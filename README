@@ -1,0 +1,4 @@
+Run a bunch of OpenBSD regression tests in a row.  The intension
+is to have a reliable set of tests and run them on a regular basis.
+The result summary is written to a file, log output of each test
+is available.
