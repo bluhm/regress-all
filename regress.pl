@@ -34,15 +34,19 @@ close($sudo) or die $! ?
     "Open pipe to '$sudocmd' failed: $!" :
     "Command '$sudocmd' failed: $!";
 
-sub bad($$$) {
-    my ($test, $reason, $meassge) = @_;
+sub bad($$$;$) {
+    my ($test, $reason, $meassge, $log) = @_;
+    print "\n$reason\t$test\t$meassge\n\n" if $opts{v};
+    print $log "\n$reason\t$test\t$meassge\n" if $log;
     print $tr "$reason\t$test\t$meassge\n";
     no warnings 'exiting';
     next;
 }
 
-sub good($) {
-    my ($test) = @_;
+sub good($;$) {
+    my ($test, $log) = @_;
+    print "\nPASS\t$test\n\n" if $opts{v};
+    print $log "\nPASS\t$test\n" if $log;
     print $tr "PASS\t$test\n";
 }
 
@@ -67,7 +71,7 @@ foreach my $test (@tests) {
     my @errors;
     my $runcmd = "make regress 2>&1";
     defined(my $pid = open(my $out, '-|'))
-	or bad $test, 'NORUN', "Open pipe from '$runcmd' failed: $!";
+	or bad $test, 'NORUN', "Open pipe from '$runcmd' failed: $!", $log;
     if ($pid == 0) {
 	close($out);
 #	open(STDIN, '<', "/dev/null")
@@ -93,19 +97,19 @@ foreach my $test (@tests) {
 	alarm(0);
     };
     kill 'KILL', -$pid;
-    bad $test, 'NOEXIT', $@ if $@;
+    if ($@) {
+	chomp($@);
+	bad $test, 'NOEXIT', $@, $log;
+    }
     close($out)
 	or bad $test, 'NORES', $! ?
 	"Close pipe from '$runcmd' failed: $!" :
-	"Command '$runcmd' failed: $?";
+	"Command '$runcmd' failed: $?", $log;
     alarm(0);
     $SIG{ALRM} = 'DEFAULT';
-	
-    close($log)
-	or bad $test, 'NOLOG', "Close '$makelog' after writing failed: $!";
 
-    bad $test, 'FAIL', join(", ", @errors) if @errors;
-    good $test;
+    bad $test, 'FAIL', join(", ", @errors), $log if @errors;
+    good $test, $log;
 }
 
 close($tr)
