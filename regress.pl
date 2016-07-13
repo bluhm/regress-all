@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Getopt::Std;
+use POSIX;
 
 # write summary of results into result file
 open(my $tr, '>', "test.result")
@@ -65,8 +66,20 @@ foreach my $test (@tests) {
 
     my @errors;
     my $runcmd = "make regress 2>&1";
-    my $pid = open(my $out, '-|', $runcmd)
+    defined(my $pid = open(my $out, '-|'))
 	or bad $test, 'NORUN', "Open pipe from '$runcmd' failed: $!";
+    if ($pid == 0) {
+	close($out);
+#	open(STDIN, '<', "/dev/null")
+#	    or warn "Redirect stdin to /dev/null failed: $!";
+	open(STDERR, '>&', \*STDOUT)
+	    or warn "Redirect stderr to stdout failed: $!";
+	setsid()
+	    or warn "Setsid $$ failed: $!";
+	exec($runcmd);
+	warn "Exec '$runcmd' failed: $!";
+	_exit(126);
+    }
     eval {
 	local $SIG{ALRM} = sub { die "Test running too long, aborted\n" };
 	alarm(1);
@@ -79,7 +92,7 @@ foreach my $test (@tests) {
 	}
 	alarm(0);
     };
-    kill 'KILL', $pid;
+    kill 'KILL', -$pid;
     bad $test, 'NOEXIT', $@ if $@;
     close($out)
 	or bad $test, 'NORES', $! ?
