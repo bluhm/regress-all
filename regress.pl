@@ -31,13 +31,13 @@ if (@ARGV) {
 }
 
 # run sudo is if is set to get password in advance
-my $sudocmd = "make -s -f - sudo";
-open(my $sudo, '|-', $sudocmd)
-    or die "Open pipe to '$sudocmd' failed: $!";
+my @sudocmd = qw(make -s -f - sudo);
+open(my $sudo, '|-', @sudocmd)
+    or die "Open pipe to '@sudocmd' failed: $!";
 print $sudo "sudo:\n\t\${SUDO} true\n";
 close($sudo) or die $! ?
-    "Open pipe to '$sudocmd' failed: $!" :
-    "Command '$sudocmd' failed: $!";
+    "Open pipe to '@sudocmd' failed: $!" :
+    "Command '@sudocmd' failed: $!";
 
 sub bad($$$;$) {
     my ($test, $reason, $meassge, $log) = @_;
@@ -74,9 +74,9 @@ foreach my $test (@tests) {
 	or bad $test, 'NOLOG', "Open '$makelog' for writing failed: $!";
 
     my @errors;
-    my $runcmd = "make regress";
+    my @runcmd = qw(make regress);
     defined(my $pid = open(my $out, '-|'))
-	or bad $test, 'NORUN', "Open pipe from '$runcmd' failed: $!", $log;
+	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
     if ($pid == 0) {
 	close($out);
 	open(STDIN, '<', "/dev/null")
@@ -85,8 +85,8 @@ foreach my $test (@tests) {
 	    or warn "Redirect stderr to stdout failed: $!";
 	setsid()
 	    or warn "Setsid $$ failed: $!";
-	exec($runcmd);
-	warn "Exec '$runcmd' failed: $!";
+	exec(@runcmd);
+	warn "Exec '@runcmd' failed: $!";
 	_exit(126);
     }
     eval {
@@ -109,8 +109,8 @@ foreach my $test (@tests) {
     }
     close($out)
 	or bad $test, 'NOEXIT', $! ?
-	"Close pipe from '$runcmd' failed: $!" :
-	"Command '$runcmd' failed: $?", $log;
+	"Close pipe from '@runcmd' failed: $!" :
+	"Command '@runcmd' failed: $?", $log;
     alarm(0);
     $SIG{ALRM} = 'DEFAULT';
 
