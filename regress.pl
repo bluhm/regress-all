@@ -11,7 +11,11 @@ open(my $tr, '>', "test.result")
 $tr->autoflush();
 
 my %opts;
-getopts('v', \%opts);
+getopts('t:v', \%opts) or do {
+    print STDERR "usage: $0 [-v] [-t timeout]\n";
+    exit(2);
+};
+my $timeout = $opts{t} || 10*60;
 
 # get test list from command line or input file
 my @tests;
@@ -36,8 +40,8 @@ close($sudo) or die $! ?
 
 sub bad($$$;$) {
     my ($test, $reason, $meassge, $log) = @_;
-    print "\n$reason\t$test\t$meassge\n\n" if $opts{v};
     print $log "\n$reason\t$test\t$meassge\n" if $log;
+    print "\n$reason\t$test\t$meassge\n\n" if $opts{v};
     print $tr "$reason\t$test\t$meassge\n";
     no warnings 'exiting';
     next;
@@ -45,8 +49,8 @@ sub bad($$$;$) {
 
 sub good($;$) {
     my ($test, $log) = @_;
-    print "\nPASS\t$test\n\n" if $opts{v};
     print $log "\nPASS\t$test\n" if $log;
+    print "\nPASS\t$test\n\n" if $opts{v};
     print $tr "PASS\t$test\n";
 }
 
@@ -54,7 +58,7 @@ sub good($;$) {
 foreach my $test (@tests) {
     my $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
     chdir($dir)
-	or bad $test, 'NOEXITS', "Chdir to $dir failed: $!";
+	or bad $test, 'NOEXIST', "Chdir to $dir failed: $!";
 
     my $cleancmd = "make clean";
     $cleancmd .= " >/dev/null" unless $opts{v};
@@ -69,7 +73,7 @@ foreach my $test (@tests) {
 	or bad $test, 'NOLOG', "Open '$makelog' for writing failed: $!";
 
     my @errors;
-    my $runcmd = "make regress 2>&1";
+    my $runcmd = "make regress";
     defined(my $pid = open(my $out, '-|'))
 	or bad $test, 'NORUN', "Open pipe from '$runcmd' failed: $!", $log;
     if ($pid == 0) {
@@ -86,11 +90,12 @@ foreach my $test (@tests) {
     }
     eval {
 	local $SIG{ALRM} = sub { die "Test running too long, aborted\n" };
-	alarm(1);
+	alarm($timeout);
 	my $prev = "";
 	while (<$out>) {
-	    print if $opts{v};
 	    print $log $_;
+	    s/[^\s[:print:]]/_/g;
+	    print if $opts{v};
 	    push @errors, $prev, if /^FAILED$/;
 	    chomp($prev = $_);
 	}
@@ -99,10 +104,10 @@ foreach my $test (@tests) {
     kill 'KILL', -$pid;
     if ($@) {
 	chomp($@);
-	bad $test, 'NOEXIT', $@, $log;
+	bad $test, 'NOTERM', $@, $log;
     }
     close($out)
-	or bad $test, 'NORES', $! ?
+	or bad $test, 'NOEXIT', $! ?
 	"Close pipe from '$runcmd' failed: $!" :
 	"Command '$runcmd' failed: $?", $log;
     alarm(0);
