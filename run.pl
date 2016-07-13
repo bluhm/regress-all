@@ -8,9 +8,10 @@ use POSIX;
 
 my %opts;
 getopts('h:', \%opts) or do {
-    print STDERR "usage: $0 [-h host]\n";
+    print STDERR "usage: $0 -h host\n";
     exit(2);
 };
+$opts{h} or die "No -h specified";
 
 # create directory for this test run with timestamp 2016-07-13T12:30:42Z
 my $date = strftime("%FT%TZ", gmtime);
