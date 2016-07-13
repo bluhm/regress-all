@@ -48,7 +48,10 @@ print $html "<table>\n";
 my @dates = reverse sort keys %d;
 print $html "  <tr>\n    <th>test at date</th>\n",
     (map { "    <th>$_</th>\n" } @dates), "  </tr>\n";
-foreach my $test (sort { $t{$a}{severity} <=> $t{$b}{severity} } keys %t) {
+
+my @tests = sort { $t{$a}{severity} <=> $t{$b}{severity} || $a cmp $b }
+    keys %t;
+foreach my $test (@tests) {
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $date (@dates) {
 	my $status = $t{$test}{$date}{status} || "";
