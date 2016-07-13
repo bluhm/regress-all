@@ -30,7 +30,7 @@ my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/github/regress-all/regress.pl',
     '-v', '-e/root/bin/ot-regress');
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
-my @scpcmd = ('scp', "$opts{h}:/root/github/regress-all/tests.result", $dir);
+my @scpcmd = ('scp', "$opts{h}:/root/github/regress-all/test.result", $dir);
 system(@scpcmd)
     and die "Command '@scpcmd' failed: $?";
 
