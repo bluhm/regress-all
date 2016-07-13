@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use File::Basename;
 use Getopt::Std;
 use POSIX;
 
@@ -12,6 +13,10 @@ getopts('e:t:v', \%opts) or do {
 };
 my $timeout = $opts{t} || 10*60;
 environment($opts{e}) if $opts{e};
+
+my $dir = dirname($0);
+chdir($dir)
+    or die "Chdir to $dir failed: $!";
 
 # write summary of results into result file
 open(my $tr, '>', "test.result")
@@ -57,7 +62,7 @@ sub good($;$) {
 
 # run make regress for each test
 foreach my $test (@tests) {
-    my $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
+    $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
     chdir($dir)
 	or bad $test, 'NOEXIST', "Chdir to $dir failed: $!";
 
