@@ -3,6 +3,9 @@
 
 use strict;
 use warnings;
+use POSIX;
+
+my $now = strftime("%FT%TZ", gmtime);
 
 my @results = sort glob("results/*/test.result");
 
@@ -33,6 +36,14 @@ foreach my $result (@results) {
 
 open(my $html, '>', "test.html")
     or die "Open 'test.html' for writing failed: $!";
+print $html "<!DOCTYPE html>\n";
+print $html "<html>\n";
+print $html "<head>\n";
+print $html "  <title>OpenBSD Regress Tests</title>\n";
+print $html "</head>\n";
+
+print $html "<body>\n";
+print $html "<h1>OpenBSD regress results at $now</h1>\n";
 print $html "<table>\n";
 my @dates = reverse sort keys %d;
 print $html "  <tr>\n    <th>test at date</th>\n",
@@ -46,5 +57,8 @@ foreach my $test (sort { $t{$a}{severity} <=> $t{$b}{severity} } keys %t) {
     print $html "  </tr>\n";
 }
 print $html "</table>\n";
+print $html "</body>\n";
+
+print $html "</html>\n";
 close($html)
     or die "Close 'test.html' after writing failed: $!";
