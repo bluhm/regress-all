@@ -56,7 +56,7 @@ foreach my $result (@results) {
 	    and warn "Duplicate test '$test' at date '$date'";
 	$t{$test}{$date} = {
 	    status => $status,
-	    message => $message
+	    message => $message,
 	};
 	$t{$test}{severity} = ($t{$test}{severity} || 0) * .5 + $severity;
     }
@@ -64,13 +64,20 @@ foreach my $result (@results) {
 	or die "Close '$result' after reading failed: $!";
 }
 
-my @dates = sort keys %d;
-print "test\\date", map {"\t$_" } @dates, "\n";
+open(my $html, '>', "test.html")
+    or die "Open 'test.html' for writing failed: $!";
+print $html "<table>\n";
+my @dates = reverse sort keys %d;
+print $html "  <tr>\n    <th>test at date</th>\n",
+    (map { "    <th>$_</th>\n" } @dates), "  </tr>\n";
 foreach my $test (sort { $t{$a}{severity} <=> $t{$b}{severity} } keys %t) {
-    print "$test";
+    print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $date (@dates) {
-	my $status = $t{$test}{$date}{status};
-	print "\t$status";
+	my $status = $t{$test}{$date}{status} || "";
+	print $html "    <td>$status</td>\n";
     }
-    print "\n";
+    print $html "  </tr>\n";
 }
+print $html "</table>\n";
+close($html)
+    or die "Close 'test.html' after writing failed: $!";
