@@ -47,7 +47,7 @@ print $html "<h1>OpenBSD regress results at $now</h1>\n";
 print $html "<table>\n";
 my @dates = reverse sort keys %d;
 print $html "  <tr>\n    <th>test at date</th>\n",
-    (map { "    <th>$_</th>\n" } @dates), "  </tr>\n";
+    (map { /(.*)T/; "    <th>$1</th>\n" } @dates), "  </tr>\n";
 
 my @tests = sort { $t{$a}{severity} <=> $t{$b}{severity} || $a cmp $b }
     keys %t;
