@@ -46,7 +46,7 @@ foreach my $result (@results) {
     open(my $fh, '<', $result)
 	or die "Open '$result' for reading failed: $!";
     while (<$fh>) {
-	my ($test, $status, $message) = split(" ", $_, 3);
+	my ($status, $test, $message) = split(" ", $_, 3);
 	my $severity =
 	    $status eq 'PASS' ? 1 :
 	    $status eq 'FAIL' ? 2 :
