@@ -55,7 +55,9 @@ foreach my $test (@tests) {
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $date (@dates) {
 	my $status = $t{$test}{$date}{status} || "";
-	print $html "    <td>$status</td>\n";
+	my $message = $t{$test}{$date}{message};
+	my $title = $message ? " title=\"$message\"" : "";
+	print $html "    <td$title>$status</td>\n";
     }
     print $html "  </tr>\n";
 }
