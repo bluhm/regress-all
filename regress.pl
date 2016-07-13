@@ -5,11 +5,6 @@ use warnings;
 use Getopt::Std;
 use POSIX;
 
-# write summary of results into result file
-open(my $tr, '>', "test.result")
-    or die "Open 'test.result' for writing failed: $!";
-$tr->autoflush();
-
 my %opts;
 getopts('e:t:v', \%opts) or do {
     print STDERR "usage: $0 [-v] [-e environment] [-t timeout]\n";
@@ -17,6 +12,11 @@ getopts('e:t:v', \%opts) or do {
 };
 my $timeout = $opts{t} || 10*60;
 environment($opts{e}) if $opts{e};
+
+# write summary of results into result file
+open(my $tr, '>', "test.result")
+    or die "Open 'test.result' for writing failed: $!";
+$tr->autoflush();
 
 # get test list from command line or input file
 my @tests;
@@ -65,7 +65,7 @@ foreach my $test (@tests) {
     $cleancmd .= " >/dev/null" unless $opts{v};
     $cleancmd .= " 2>&1";
     system($cleancmd)
-	and bad $test, 'NOCLEAN', "Command '$cleancmd' failed: $!";
+	and bad $test, 'NOCLEAN', "Command '$cleancmd' failed: $?";
 
     # write make output into log file
     my $makelog = "make.log";
