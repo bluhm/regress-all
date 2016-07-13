@@ -35,4 +35,42 @@ my @scpcmd = ('scp', "$opts{h}:/root/github/regress-all/test.result", $dir);
 system(@scpcmd)
     and die "Command '@scpcmd' failed: $?";
 
-# display result as html
+# convert all results to html
+
+my @results = sort glob("results/*/test.result");
+
+my (%t, %d);
+foreach my $result (@results) {
+    my ($date) = $result =~ m,results/(.+)/test.result,;
+    $d{$date} = 1;
+    open(my $fh, '<', $result)
+	or die "Open '$result' for reading failed: $!";
+    while (<$fh>) {
+	my ($test, $status, $message) = split(" ", $_, 3);
+	my $severity =
+	    $status eq 'PASS' ? 1 :
+	    $status eq 'FAIL' ? 2 :
+	    $status eq 'NOEXIT' ? 3 :
+	    $status eq 'NOTERM' ? 4 : 5;
+	$t{$test}{$date}
+	    and warn "Duplicate test '$test' at date '$date'";
+	$t{$test}{$date} = {
+	    status => $status,
+	    message => $message
+	};
+	$t{$test}{severity} = ($t{$test}{severity} || 0) * .5 + $severity;
+    }
+    close($fh)
+	or die "Close '$result' after reading failed: $!";
+}
+
+my @dates = sort keys %d;
+print "test\\date", map {"\t$_" } @dates, "\n";
+foreach my $test (sort { $t{$a}{severity} <=> $t{$b}{severity} } keys %t) {
+    print "$test";
+    foreach my $date (@dates) {
+	my $status = $t{$test}{$date}{status};
+	print "\t$status";
+    }
+    print "\n";
+}
