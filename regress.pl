@@ -22,6 +22,7 @@ chdir($dir)
 open(my $tr, '>', "test.result")
     or die "Open 'test.result' for writing failed: $!";
 $tr->autoflush();
+$| = 1;
 
 # get test list from command line or input file
 my @tests;
