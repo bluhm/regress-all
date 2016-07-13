@@ -11,11 +11,12 @@ open(my $tr, '>', "test.result")
 $tr->autoflush();
 
 my %opts;
-getopts('t:v', \%opts) or do {
-    print STDERR "usage: $0 [-v] [-t timeout]\n";
+getopts('e:t:v', \%opts) or do {
+    print STDERR "usage: $0 [-v] [-e environment] [-t timeout]\n";
     exit(2);
 };
 my $timeout = $opts{t} || 10*60;
+environment($opts{e}) if $opts{e};
 
 # get test list from command line or input file
 my @tests;
@@ -119,3 +120,27 @@ foreach my $test (@tests) {
 
 close($tr)
     or die "Close 'test.result' after writing failed: $!";
+
+# parse shell script that is setting environment for some tests
+# FOO=bar
+# FOO="bar"
+# export FOO=bar
+# export FOO BAR
+sub environment {
+    my $file = shift;
+
+    open(my $fh, '<', $file)
+	or die "Open '$file' for reading failed: $!";
+    while (<$fh>) {
+	chomp;
+	s/\s+$//;
+	s/^export\s+(?=\w+=)//;
+	s/^export\s+\w+.*//;
+	next if /^$/;
+	if (/^(\w+)=(\S+)$/ or /^(\w+)="([^"]*)"/ or /^(\w+)='([^']*)'/) {
+	    $ENV{$1}=$2;
+	} else {
+	    die "Unknown environment line in '$file': $_";
+	}
+    }
+}
