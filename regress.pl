@@ -7,6 +7,7 @@ use Getopt::Std;
 # write summary of results into result file
 open(my $tr, '>', "test.result")
     or die "Open 'test.result' for writing failed: $!";
+$tr->autoflush();
 
 my %opts;
 getopts('v', \%opts);
@@ -33,20 +34,22 @@ close($sudo) or die $! ?
     "Command '$sudocmd' failed: $!";
 
 sub bad($$$) {
-    print $tr join("\t", @_);
+    my ($test, $reason, $meassge) = @_;
+    print $tr "$reason\t$test\t$meassge\n";
     no warnings 'exiting';
     next;
 }
 
 sub good($) {
-    print $tr join("\t", @_);
+    my ($test) = @_;
+    print $tr "PASS\t$test\n";
 }
 
 # run make regress for each test
 foreach my $test (@tests) {
     my $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
     chdir($dir)
-	or bad $test, 'NOTEST', "Chdir to $dir failed: $!";
+	or bad $test, 'NOEXITS', "Chdir to $dir failed: $!";
 
     my $cleancmd = "make clean";
     $cleancmd .= " >/dev/null" unless $opts{v};
@@ -60,12 +63,16 @@ foreach my $test (@tests) {
     open(my $log, '>', $makelog)
 	or bad $test, 'NOLOG', "Open '$makelog' for writing failed: $!";
 
+    my @errors;
     my $runcmd = "make regress 2>&1";
     open(my $out, '-|', $runcmd)
 	or bad $test, 'NORUN', "Open pipe from '$runcmd' failed: $!";
+    my $prev = "";
     while (<$out>) {
 	print if $opts{v};
 	print $log $_;
+	push @errors, $prev, if /^FAILED$/;
+	chomp($prev = $_);
     }
     close($out)
 	or bad $test, 'NORESULT', $! ?
@@ -75,6 +82,7 @@ foreach my $test (@tests) {
     close($log)
 	or bad $test, 'NOLOG', "Close '$makelog' after writing failed: $!";
 
+    bad $test, 'FAIL', join(", ", @errors) if @errors;
     good $test;
 }
 
