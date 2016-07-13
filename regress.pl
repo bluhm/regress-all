@@ -117,8 +117,6 @@ foreach my $test (@tests) {
 	or bad $test, 'NOEXIT', $! ?
 	"Close pipe from '@runcmd' failed: $!" :
 	"Command '@runcmd' failed: $?", $log;
-    alarm(0);
-    $SIG{ALRM} = 'DEFAULT';
 
     bad $test, 'FAIL', join(", ", @errors), $log if @errors;
     good $test, $log;
