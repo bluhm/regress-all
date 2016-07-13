@@ -46,10 +46,10 @@ close($sudo) or die $! ?
     "Command '@sudocmd' failed: $!";
 
 sub bad($$$;$) {
-    my ($test, $reason, $meassge, $log) = @_;
-    print $log "\n$reason\t$test\t$meassge\n" if $log;
-    print "\n$reason\t$test\t$meassge\n\n" if $opts{v};
-    print $tr "$reason\t$test\t$meassge\n";
+    my ($test, $reason, $message, $log) = @_;
+    print $log "\n$reason\t$test\t$message\n" if $log;
+    print "\n$reason\t$test\t$message\n\n" if $opts{v};
+    print $tr "$reason\t$test\t$message\n";
     no warnings 'exiting';
     next;
 }
