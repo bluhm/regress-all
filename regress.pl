@@ -78,8 +78,8 @@ foreach my $test (@tests) {
 	or bad $test, 'NORUN', "Open pipe from '$runcmd' failed: $!", $log;
     if ($pid == 0) {
 	close($out);
-#	open(STDIN, '<', "/dev/null")
-#	    or warn "Redirect stdin to /dev/null failed: $!";
+	open(STDIN, '<', "/dev/null")
+	    or warn "Redirect stdin to /dev/null failed: $!";
 	open(STDERR, '>&', \*STDOUT)
 	    or warn "Redirect stderr to stdout failed: $!";
 	setsid()
