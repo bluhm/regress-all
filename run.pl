@@ -18,7 +18,7 @@ my $date = strftime("%FT%TZ", gmtime);
 
 my $dir = dirname($0);
 chdir($dir)
-    or die "Chdir to $dir failed: $!";
+    or die "Chdir to '$dir' failed: $!";
 $dir = "results";
 -d $dir || mkdir $dir
     or die "Make result directory '$dir' failed: $!";

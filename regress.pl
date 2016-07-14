@@ -16,7 +16,7 @@ environment($opts{e}) if $opts{e};
 
 my $dir = dirname($0);
 chdir($dir)
-    or die "Chdir to $dir failed: $!";
+    or die "Chdir to '$dir' failed: $!";
 
 # write summary of results into result file
 open(my $tr, '>', "test.result")
@@ -74,7 +74,7 @@ foreach my $test (@tests) {
 
     $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
     chdir($dir)
-	or bad $test, 'NOEXIST', "Chdir to $dir failed: $!";
+	or bad $test, 'NOEXIST', "Chdir to '$dir' failed: $!";
 
     my $cleancmd = "make clean";
     $cleancmd .= " >/dev/null" unless $opts{v};
