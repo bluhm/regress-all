@@ -16,7 +16,7 @@ $opts{h} or die "No -h specified";
 # create directory for this test run with timestamp 2016-07-13T12:30:42Z
 my $date = strftime("%FT%TZ", gmtime);
 
-my $dir = dirname($0);
+my $dir = dirname($0). "/..";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 $dir = "results";
