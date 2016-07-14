@@ -65,10 +65,13 @@ my @paxcmd = ('pax', '-wzf', "$dir/test.logs", '-s,^/usr/src/regress/,,',
     '-s,/obj/make.log$,/make.log,');
 open(my $pax, '|-', @paxcmd)
     or die "Open pipe to '@paxcmd' failed: $!";
-my @logs;
+my $paxlog;
 
 # run make regress for each test
 foreach my $test (@tests) {
+    print $pax $paxlog if $paxlog;
+    undef $paxlog;
+
     $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
     chdir($dir)
 	or bad $test, 'NOEXIST', "Chdir to $dir failed: $!";
@@ -84,7 +87,7 @@ foreach my $test (@tests) {
     $makelog = "obj/$makelog" if -d "obj";
     open(my $log, '>', $makelog)
 	or bad $test, 'NOLOG', "Open '$makelog' for writing failed: $!";
-    push @logs, "$dir/$makelog";
+    $paxlog = "$dir/$makelog\n";
 
     my @errors;
     my @runcmd = qw(make regress);
@@ -129,13 +132,13 @@ foreach my $test (@tests) {
     good $test, $log;
 }
 
-close($tr)
-    or die "Close 'test.result' after writing failed: $!";
-
-print $pax map { "$_\n" } @logs;
+print $pax $paxlog if $paxlog;
 close($pax) or die $! ?
     "Close pipe to '@paxcmd' failed: $!" :
     "Command '@paxcmd' failed: $?";
+
+close($tr)
+    or die "Close 'test.result' after writing failed: $!";
 
 # parse shell script that is setting environment for some tests
 # FOO=bar
