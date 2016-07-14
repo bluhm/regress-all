@@ -13,6 +13,7 @@ my (%t, %d);
 foreach my $result (@results) {
     my ($date) = $result =~ m,results/(.+)/test.result,;
     $d{$date} = 1;
+    $_->{severity} *= .5 foreach values %t;
     open(my $fh, '<', $result)
 	or die "Open '$result' for reading failed: $!";
     while (<$fh>) {
@@ -28,7 +29,7 @@ foreach my $result (@results) {
 	    status => $status,
 	    message => $message,
 	};
-	$t{$test}{severity} = ($t{$test}{severity} || 0) * .5 + $severity;
+	$t{$test}{severity} += $severity;
     }
     close($fh)
 	or die "Close '$result' after reading failed: $!";
@@ -49,7 +50,7 @@ my @dates = reverse sort keys %d;
 print $html "  <tr>\n    <th>test at date</th>\n",
     (map { /(.*)T/; "    <th>$1</th>\n" } @dates), "  </tr>\n";
 
-my @tests = sort { $t{$a}{severity} <=> $t{$b}{severity} || $a cmp $b }
+my @tests = sort { $t{$b}{severity} <=> $t{$a}{severity} || $a cmp $b }
     keys %t;
 foreach my $test (@tests) {
     print $html "  <tr>\n    <th>$test</th>\n";
