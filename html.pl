@@ -12,8 +12,11 @@ my @results = sort glob("results/*/test.result");
 
 my (%t, %d);
 foreach my $result (@results) {
-    my ($date) = $result =~ m,results/(.+)/test.result,;
-    $d{$date} = 1;
+    my ($date, $short) = $result =~ m,results/((.+)T.+)/test.result,;
+    $d{$date} = {
+	short => $short,
+	result => $result,
+    };
     $_->{severity} *= .5 foreach values %t;
     open(my $fh, '<', $result)
 	or die "Open '$result' for reading failed: $!";
@@ -50,8 +53,13 @@ print $html "<body>\n";
 print $html "<h1>OpenBSD regress results at $now</h1>\n";
 print $html "<table>\n";
 my @dates = reverse sort keys %d;
-print $html "  <tr>\n    <th>test at date</th>\n",
-    (map { /(.*)T/; "    <th>$1</th>\n" } @dates), "  </tr>\n";
+print $html "  <tr>\n    <th>test at date</th>\n";
+foreach my $date (@dates) {
+    my $short = $d{$date}{short};
+    my $result = $d{$date}{result};
+    print $html "    <th><a href=\"$result\">$short</a></th>\n";
+}
+print $html "  </tr>\n";
 
 my @tests = sort { $t{$b}{severity} <=> $t{$a}{severity} || $a cmp $b }
     keys %t;
