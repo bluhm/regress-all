@@ -8,11 +8,15 @@ use POSIX;
 
 my $now = strftime("%FT%TZ", gmtime);
 
-my @results = sort glob("results/*/test.result");
+my $dir = dirname($0). "/../results";
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
+
+my @results = sort glob("*/test.result");
 
 my (%t, %d);
 foreach my $result (@results) {
-    my ($date, $short) = $result =~ m,results/((.+)T.+)/test.result,;
+    my ($date, $short) = $result =~ m,((.+)T.+)/test.result,;
     $d{$date} = {
 	short => $short,
 	result => $result,
@@ -41,8 +45,8 @@ foreach my $result (@results) {
 	or die "Close '$result' after reading failed: $!";
 }
 
-open(my $html, '>', "test.html")
-    or die "Open 'test.html' for writing failed: $!";
+open(my $html, '>', "regress.html")
+    or die "Open 'regress.html' for writing failed: $!";
 print $html "<!DOCTYPE html>\n";
 print $html "<html>\n";
 print $html "<head>\n";
@@ -81,4 +85,4 @@ print $html "</body>\n";
 
 print $html "</html>\n";
 close($html)
-    or die "Close 'test.html' after writing failed: $!";
+    or die "Close 'regress.html' after writing failed: $!";
