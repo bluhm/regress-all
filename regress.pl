@@ -61,7 +61,12 @@ sub good($;$) {
     print $tr "PASS\t$test\n";
 }
 
+my @paxcmd = ('pax', '-wzf', "$dir/test.logs", '-s,^/usr/src/regress/,,',
+    '-s,/obj/make.log$,/make.log,');
+open(my $pax, '|-', @paxcmd)
+    or die "Open pipe to '@paxcmd' failed: $!";
 my @logs;
+
 # run make regress for each test
 foreach my $test (@tests) {
     $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
@@ -79,7 +84,7 @@ foreach my $test (@tests) {
     $makelog = "obj/$makelog" if -d "obj";
     open(my $log, '>', $makelog)
 	or bad $test, 'NOLOG', "Open '$makelog' for writing failed: $!";
-    push @logs, "$test/$makelog";
+    push @logs, "$dir/$makelog";
 
     my @errors;
     my @runcmd = qw(make regress);
@@ -127,11 +132,7 @@ foreach my $test (@tests) {
 close($tr)
     or die "Close 'test.result' after writing failed: $!";
 
-my @paxcmd = ('pax', '-wzf', "$dir/test.logs", '-s,^/usr/src/regress/,,',
-    '-s,/obj/make.log$,/make.log,');
-open(my $pax, '|-', @paxcmd)
-    or die "Open pipe to '@paxcmd' failed: $!";
-print $pax @logs;
+print $pax map { "$_\n" } @logs;
 close($pax) or die $! ?
     "Close pipe to '@paxcmd' failed: $!" :
     "Command '@paxcmd' failed: $?";
