@@ -31,7 +31,7 @@ if (@ARGV) {
 } else {
     open(my $tl, '<', "test.list")
 	or die "Open 'test.list' for reading failed: $!";
-    chomp(@tests = <$tl>);
+    chomp(@tests = grep { ! /^#/ && ! /^\s*$/ } <$tl>);
     close($tl)
 	or die "Close 'test.list' after reading failed: $!";
 }
