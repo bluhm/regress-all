@@ -7,8 +7,8 @@ use Getopt::Std;
 use POSIX;
 
 my %opts;
-getopts('h:', \%opts) or do {
-    print STDERR "usage: $0 -h host\n";
+getopts('h:v', \%opts) or do {
+    print STDERR "usage: $0 [-v] -h host\n";
     exit(2);
 };
 $opts{h} or die "No -h specified";
@@ -31,13 +31,16 @@ mkdir $dir
 # run regress there
 
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/github/regress-all/regress.pl',
-    '-v', '-e/root/bin/ot-regress');
+    '-e/root/bin/ot-regress');
+push @sshcmd, '-v' if $opts{v};
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
 
 # get result and log
 
-my @scpcmd = ('scp', "$opts{h}:/root/github/regress-all/test.*", $dir);
+my @scpcmd = ('scp');
+push @scpcmd, '-q' unless $opts{v};
+push @scpcmd, ("$opts{h}:/root/github/regress-all/test.*", $dir);
 system(@scpcmd)
     and die "Command '@scpcmd' failed: $?";
 
