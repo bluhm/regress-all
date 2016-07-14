@@ -3,6 +3,7 @@
 
 use strict;
 use warnings;
+use File::Basename;
 use POSIX;
 
 my $now = strftime("%FT%TZ", gmtime);
@@ -18,18 +19,20 @@ foreach my $result (@results) {
 	or die "Open '$result' for reading failed: $!";
     while (<$fh>) {
 	my ($status, $test, $message) = split(" ", $_, 3);
-	my $severity =
-	    $status eq 'PASS' ? 1 :
-	    $status eq 'FAIL' ? 2 :
-	    $status eq 'NOEXIT' ? 3 :
-	    $status eq 'NOTERM' ? 4 : 5;
 	$t{$test}{$date}
 	    and warn "Duplicate test '$test' at date '$date'";
 	$t{$test}{$date} = {
 	    status => $status,
 	    message => $message,
 	};
+	my $severity =
+	    $status eq 'PASS' ? 1 :
+	    $status eq 'FAIL' ? 2 :
+	    $status eq 'NOEXIT' ? 3 :
+	    $status eq 'NOTERM' ? 4 : 5;
 	$t{$test}{severity} += $severity;
+	my $logfile = dirname($result). "/logs/$test/make.log";
+	$t{$test}{$date}{logfile} = $logfile if -f $logfile;
     }
     close($fh)
 	or die "Close '$result' after reading failed: $!";
@@ -58,7 +61,10 @@ foreach my $test (@tests) {
 	my $status = $t{$test}{$date}{status} || "";
 	my $message = $t{$test}{$date}{message};
 	my $title = $message ? " title=\"$message\"" : "";
-	print $html "    <td$title>$status</td>\n";
+	my $logfile = $t{$test}{$date}{logfile};
+	my $href = $logfile ? "<a href=\"$logfile\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <td$title>$href$status$enda</td>\n";
     }
     print $html "  </tr>\n";
 }
