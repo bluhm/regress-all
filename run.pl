@@ -36,7 +36,7 @@ push @sshcmd, '-v' if $opts{v};
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
 
-# get result and log
+# get result and logs
 
 my @scpcmd = ('scp');
 push @scpcmd, '-q' unless $opts{v};
@@ -62,3 +62,11 @@ close($pax) or die $! ?
     "Command '@paxcmd' failed: $?";
 close($tr)
     or die "Close '$dir/test.result' after reading failed: $!";
+
+# create html output
+
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
+my @htmlcmd = "bin/html.pl"
+system(@htmlcmd)
+    and die "Command '@htmlcmd' failed: $?";
