@@ -24,10 +24,11 @@ system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
 
 (my $host = $opts{h}) =~ s/.*\@//;
+my @copy = grep { -f $_ }
+    ("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list");
 my @scpcmd = ('scp');
 push @scpcmd, '-q' unless $opts{v};
-push @scpcmd, ("regress.pl", "env-$host.sh", "test.list",
-    "$opts{h}:/root/regress");
+push @scpcmd, (@copy, "$opts{h}:/root/regress");
 system(@scpcmd)
     and die "Command '@scpcmd' failed: $?";
 
@@ -38,3 +39,9 @@ $noout = ">/dev/null" unless $opts{v};
     "cd /usr && cvs $quiet -R -d /mount/openbsd/cvs co src $noout");
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
+
+if (-f "pkg-$host.list") {
+    @sshcmd = ('ssh', $opts{h}, 'pkg_add', '-l', "pkg-$host.list");
+    system(@sshcmd)
+	and die "Command '@sshcmd' failed: $?";
+}
