@@ -71,6 +71,7 @@ close($tr)
 
 # create html output
 
+$dir = dirname($0). "/..";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 my @htmlcmd = "bin/html.pl";

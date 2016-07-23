@@ -30,3 +30,8 @@ push @scpcmd, ("regress.pl", "env-$host.sh", "test.list",
     "$opts{h}:/root/regress");
 system(@scpcmd)
     and die "Command '@scpcmd' failed: $?";
+
+@sshcmd = ('ssh', $opts{h}, 'sh', '-c',
+    'cd /usr && cvs -qR -d /mount/openbsd/cvs co src');
+system(@sshcmd)
+    and die "Command '@sshcmd' failed: $?";
