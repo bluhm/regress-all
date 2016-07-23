@@ -28,10 +28,14 @@ mkdir $dir
 
 # setup remote machines
 
+my @setupcmd = "bin/setup.pl";
+system(@setupcmd)
+    and die "Command '@setupcmd' failed: $?";
+
 # run regress there
 
-my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/github/regress-all/regress.pl',
-    '-e/root/bin/ot-regress');
+my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/regress/regress.pl',
+    '-e/root/regress/env-$opts{h}.sh');
 push @sshcmd, '-v' if $opts{v};
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
@@ -40,7 +44,7 @@ system(@sshcmd)
 
 my @scpcmd = ('scp');
 push @scpcmd, '-q' unless $opts{v};
-push @scpcmd, ("$opts{h}:/root/github/regress-all/test.*", $dir);
+push @scpcmd, ("$opts{h}:/root/regress/test.*", $dir);
 system(@scpcmd)
     and die "Command '@scpcmd' failed: $?";
 
