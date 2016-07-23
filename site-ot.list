@@ -1,3 +1,4 @@
+/etc/fstab
 /etc/hostname.em0
 /etc/hostname.em1
 /etc/hosts
