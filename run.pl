@@ -35,8 +35,9 @@ system(@setupcmd)
 
 # run regress there
 
+(my $host = $opts{h}) =~ s/.*\@//;
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/regress/regress.pl',
-    '-e/root/regress/env-$opts{h}.sh');
+    '-e', '/root/regress/env-$host.sh');
 push @sshcmd, '-v' if $opts{v};
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";

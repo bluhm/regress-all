@@ -23,9 +23,9 @@ my @sshcmd = ('ssh', $opts{h}, 'mkdir', '-p', '/root/regress');
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
 
+(my $host = $opts{h}) =~ s/.*\@//;
 my @scpcmd = ('scp');
 push @scpcmd, '-q' unless $opts{v};
-(my $host = $opts{h}) =~ s/.*\@//;
 push @scpcmd, ("regress.pl", "env-$host.sh", "test.list",
     "$opts{h}:/root/regress");
 system(@scpcmd)
