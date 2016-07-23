@@ -28,7 +28,8 @@ mkdir $dir
 
 # setup remote machines
 
-my @setupcmd = "bin/setup.pl";
+my @setupcmd = ("bin/setup.pl", '-h', $opts{h});
+push @setupcmd, '-v' if $opts{v};
 system(@setupcmd)
     and die "Command '@setupcmd' failed: $?";
 
