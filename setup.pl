@@ -41,7 +41,8 @@ system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
 
 if (-f "pkg-$host.list") {
-    @sshcmd = ('ssh', $opts{h}, 'pkg_add', '-l', "pkg-$host.list");
+    @sshcmd = ('ssh', $opts{h}, 'pkg_add', '-l', "pkg-$host.list", '-Ix');
+    push @sshcmd, '-v' if $opts{v};
     system(@sshcmd)
 	and die "Command '@sshcmd' failed: $?";
 }
