@@ -67,6 +67,6 @@ close($tr)
 
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
-my @htmlcmd = "bin/html.pl"
+my @htmlcmd = "bin/html.pl";
 system(@htmlcmd)
     and die "Command '@htmlcmd' failed: $?";
