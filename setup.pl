@@ -70,7 +70,7 @@ system(@scpcmd)
 my ($quiet, $noout) = ("", "");
 $quiet = "-q" unless $opts{v};
 $noout = ">/dev/null" unless $opts{v};
-@sshcmd = ('ssh', $opts{h}, 'sh', '-c',
+@sshcmd = ('ssh', $opts{h},
     "cd /usr && cvs $quiet -R -d /mount/openbsd/cvs co src/regress $noout");
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
