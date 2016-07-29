@@ -1,4 +1,3 @@
-/etc/fstab
 /etc/hostname.em0
 /etc/hostname.em1
 /etc/hosts
@@ -7,6 +6,7 @@
 /etc/ntpd.conf
 /etc/pkg.conf
 /etc/rc.conf.local
+/etc/rc.firsttime
 /etc/resolv.conf
 /etc/ssh/ssh_host_dsa_key
 /etc/ssh/ssh_host_dsa_key.pub
