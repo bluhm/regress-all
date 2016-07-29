@@ -78,7 +78,8 @@ system(@sshcmd)
 # install packages
 
 if (-f "pkg-$host.list") {
-    @sshcmd = ('ssh', $opts{h}, 'pkg_add', '-l', "pkg-$host.list", '-Ix');
+    @sshcmd = ('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list",
+	'-Ix');
     push @sshcmd, '-v' if $opts{v};
     system(@sshcmd)
 	and die "Command '@sshcmd' failed: $?";
