@@ -22,6 +22,8 @@ chdir($dir)
 my $setuplog = "../results/setup-$host.log";
 open(my $log, '>', $setuplog)
     or die "Open '$setuplog' for writing failed: $!";
+$log->autoflush();
+$| = 1;
 
 # pxe install machine
 
