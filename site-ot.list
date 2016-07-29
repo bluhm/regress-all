@@ -1,6 +1,7 @@
+/etc/fstab.site
 /etc/hostname.em0
 /etc/hostname.em1
-/etc/hosts
+/etc/hosts.site
 /etc/mygate
 /etc/myname
 /etc/ntpd.conf
