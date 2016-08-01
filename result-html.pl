@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# convert all tst results to a html table
+# convert all test results to a html table
 
 use strict;
 use warnings;

@@ -3,7 +3,8 @@ is to have a reliable set of tests and run them on a regular basis.
 The result summary is written to a file, log output of each test
 is available.
 
-html.pl		- convert all test results into html table
+result-html.pl	- convert all test results into html table
+setup-html.pl	- convert machine setup logs into html table
 regress.pl	- run one openbsd regression test on ot1 machine
 run.pl		- do everything, add this to cron job
 site-ot1.list	- list of config files that must be installed on ot1
