@@ -74,9 +74,9 @@ close($sysctl) or die $! ?
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
 
-$dir = "$dir/../bin";
-chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+chdir("..") if $date;
+chdir("../bin")
+    or die "Chdir to '../bin' failed: $!";
 my @copy = grep { -f $_ }
     ("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list");
 my @scpcmd = ('scp');
