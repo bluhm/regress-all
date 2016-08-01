@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use File::Basename;
 use Getopt::Std;
+use POSIX;
 
 my %opts;
 getopts('d:h:v', \%opts) or do {
@@ -33,7 +34,7 @@ $| = 1;
 # pxe install machine
 
 my @sshcmd = ('ssh', "$host\@10.0.1.1",  'setup');
-defined(my $pid = open(my $out, '-|', @sshcmd))
+defined(my $pid = open(my $out, '-|'))
     or die "Open pipe from '@sshcmd' failed: $!";
 if ($pid == 0) {
     close($out);
