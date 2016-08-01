@@ -74,6 +74,9 @@ close($sysctl) or die $! ?
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
 
+$dir = dirname($0);
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
 my @copy = grep { -f $_ }
     ("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list");
 my @scpcmd = ('scp');
