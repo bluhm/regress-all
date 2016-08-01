@@ -74,6 +74,11 @@ close($tr)
 $dir = dirname($0). "/..";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
-my @htmlcmd = "bin/regress-html.pl";
+
+my @htmlcmd = "bin/setup-html.pl -d $date";
+system(@htmlcmd)
+    and die "Command '@htmlcmd' failed: $?";
+
+@htmlcmd = "bin/regress-html.pl";
 system(@htmlcmd)
     and die "Command '@htmlcmd' failed: $?";
