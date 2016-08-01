@@ -21,6 +21,7 @@ foreach my $result (@results) {
 	short => $short,
 	result => $result,
     };
+    $d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
     $_->{severity} *= .5 foreach values %t;
     open(my $fh, '<', $result)
 	or die "Open '$result' for reading failed: $!";
@@ -60,8 +61,10 @@ my @dates = reverse sort keys %d;
 print $html "  <tr>\n    <th>test at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
-    my $result = $d{$date}{result};
-    print $html "    <th><a href=\"$result\">$short</a></th>\n";
+    my $setup = $d{$date}{setup};
+    my $href = $setup ? "<a href=\"$setup\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "    <th>$href$short$enda</th>\n";
 }
 print $html "  </tr>\n";
 
