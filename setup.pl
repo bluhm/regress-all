@@ -7,19 +7,24 @@ use File::Basename;
 use Getopt::Std;
 
 my %opts;
-getopts('h:v', \%opts) or do {
-    print STDERR "usage: $0 [-v] -h host\n";
+getopts('d:h:v', \%opts) or do {
+    print STDERR "usage: $0 [-v] [-d date] -h host\n";
     exit(2);
 };
 $opts{h} or die "No -h specified";
+my $date = $opts{d};
 
-my $dir = dirname($0);
+my $dir = dirname($0). "/../results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
+if ($date) {
+    chdir($date)
+	or die "Chdir to '$date' failed: $!";
+}
 
 (my $host = $opts{h}) =~ s/.*\@//;
 
-my $setuplog = "../results/setup-$host.log";
+my $setuplog = "setup-$host.log";
 open(my $log, '>', $setuplog)
     or die "Open '$setuplog' for writing failed: $!";
 $log->autoflush();
