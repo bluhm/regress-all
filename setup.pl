@@ -56,6 +56,18 @@ close($out) or die $! ?
     "Close pipe from '@sshcmd' failed: $!" :
     "Command '@sshcmd' failed: $?";
 
+# get version information
+
+@sshcmd = ('ssh', $opts{h}, 'sysctl', 'kern.version');
+open(my $sysctl, '-|', @sshcmd)
+    or die "Open pipe from '@sshcmd' failed: $!";
+open(my $version, '>', "version-$host.txt")
+    or die "Open 'version-$host.txt' for writing failed: $!";
+print $version (<$sysctl>);
+close($sysctl) or die $! ?
+    "Close pipe from '@sshcmd' failed: $!" :
+    "Command '@sshcmd' failed: $?";
+
 # copy scripts
 
 @sshcmd = ('ssh', $opts{h}, 'mkdir', '-p', '/root/regress');
