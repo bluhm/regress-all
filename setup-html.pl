@@ -22,24 +22,20 @@ chdir($dir)
 chdir($date)
     or die "Chdir to '$date' failed: $!";
 
-my @setups = sort glob("setup-*.log");
-
 my %h;
-foreach my $setup (glob("setup-*.log")) {
-    my ($host) = $setup =~ m,setup-(.*)\.log,;
-    $h{$host} = {
-	setup => $setup,
-    };
-}
 foreach my $version (glob("version-*.txt")) {
     my ($host) = $version =~ m,version-(.*)\.txt,;
     open(my $fh, '<', $version)
 	or die "Open '$version' for reading failed: $!";
-    my ($time) = <$fh> =~ m,: (\w+ \w+ \d+ \d+:\d+:\d+.*)$,;
+    my ($time) = <$fh> =~ m,: (\w+ \w+ \d+) .*$,;
     $h{$host} = {
 	version => $version,
 	time => $time,
     };
+}
+foreach my $setup (glob("setup-*.log")) {
+    my ($host) = $setup =~ m,setup-(.*)\.log,;
+    $h{$host}{setup} = $setup,
 }
 
 open(my $html, '>', "setup.html")
