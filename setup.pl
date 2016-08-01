@@ -74,7 +74,7 @@ close($sysctl) or die $! ?
 system(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
 
-$dir = dirname($0);
+$dir = "$dir/../bin";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 my @copy = grep { -f $_ }
