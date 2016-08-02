@@ -64,7 +64,7 @@ foreach my $date (@dates) {
     my $setup = $d{$date}{setup};
     my $href = $setup ? "<a href=\"$setup\">" : "";
     my $enda = $href ? "</a>" : "";
-    print $html "    <th>$href$short$enda</th>\n";
+    print $html "    <th title=\"$date\">$href$short$enda</th>\n";
 }
 print $html "  </tr>\n";
 
