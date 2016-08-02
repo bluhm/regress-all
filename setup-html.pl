@@ -48,7 +48,15 @@ print $html "  <title>OpenBSD Test Setup</title>\n";
 print $html "</head>\n";
 
 print $html "<body>\n";
-print $html "<h1>OpenBSD regress test machine setup at $now</h1>\n";
+print $html "<h1>OpenBSD regress test machine</h1>\n";
+print $html "<table>\n";
+print $html "  <tr>\n    <th>setup at</th>\n";
+print $html "    <td>$now</td>\n";
+print $html "  </tr>\n";
+print $html "  <tr>\n    <th>test at</th>\n";
+print $html "    <td>$date</td>\n";
+print $html "  </tr>\n";
+print $html "</table>\n";
 print $html "<table>\n";
 print $html "  <tr>\n    <th>machine</th>\n";
 print $html "    <th>version</th>\n";
