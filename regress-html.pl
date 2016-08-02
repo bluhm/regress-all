@@ -51,11 +51,16 @@ open(my $html, '>', "regress.html")
 print $html "<!DOCTYPE html>\n";
 print $html "<html>\n";
 print $html "<head>\n";
-print $html "  <title>OpenBSD Regress Tests</title>\n";
+print $html "  <title>OpenBSD Regress Results</title>\n";
 print $html "</head>\n";
 
 print $html "<body>\n";
-print $html "<h1>OpenBSD regress results at $now</h1>\n";
+print $html "<h1>OpenBSD regress tests</h1>\n";
+print $html "<table>\n";
+print $html "  <tr>\n    <th>results at</th>\n";
+print $html "    <td>$now</td>\n";
+print $html "  </tr>\n";
+print $html "</table>\n";
 print $html "<table>\n";
 my @dates = reverse sort keys %d;
 print $html "  <tr>\n    <th>test at date</th>\n";
