@@ -27,10 +27,11 @@ foreach my $version (glob("version-*.txt")) {
     my ($host) = $version =~ m,version-(.*)\.txt,;
     open(my $fh, '<', $version)
 	or die "Open '$version' for reading failed: $!";
-    my ($time) = <$fh> =~ m,: (\w+ \w+ \d+) .*$,;
+    my ($time, $short) = <$fh> =~ m,: ((\w+ \w+ \d+) .*)$,;
     $h{$host} = {
 	version => $version,
 	time => $time,
+	short => $short,
     };
 }
 foreach my $setup (glob("setup-*.log")) {
@@ -57,9 +58,11 @@ print $html "  </tr>\n";
 foreach my $host (sort keys %h) {
     print $html "  <tr>\n    <th>$host</th>\n";
     my $time = $h{$host}{time} || "";
+    my $short = $h{$host}{short} || "";
     my $version = $h{$host}{version} || "";
     my $setup = $h{$host}{setup} || "";
-    print $html "    <td><a href=\"$version\">$time</a></td>\n";
+    print $html "    <td title=\"$time\">".
+	"<a href=\"$version\">$short</a></td>\n";
     print $html "    <td><a href=\"$setup\">log</a></td>\n";
     print $html "  </tr>\n";
 }
