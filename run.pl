@@ -35,9 +35,18 @@ push @setupcmd, '-v' if $opts{v};
 system(@setupcmd)
     and die "Command '@setupcmd' failed: $?";
 
+my ($user, $host) = split('@', $opts{h}, 2);
+do {
+    my $version = "$dir/version-$host.txt";
+    next if -f $version;
+    my $h = "$user\@$host";
+    system("ssh $h sysctl kern.version >$version 2>/dev/null")
+	and last;
+} while ($host++);
+
 # run regress there
 
-(my $host = $opts{h}) =~ s/.*\@//;
+($host = $opts{h}) =~ s/.*\@//;
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/regress/regress.pl',
     '-e', "/root/regress/env-$host.sh");
 push @sshcmd, '-v' if $opts{v};
