@@ -30,7 +30,9 @@ foreach my $version (glob("version-*.txt")) {
     my ($host) = $version =~ m,version-(.*)\.txt,;
     open(my $fh, '<', $version)
 	or die "Open '$version' for reading failed: $!";
-    my ($time, $short) = <$fh> =~ m,: ((\w+ \w+ \d+) .*)$,;
+    defined(my $line = <$fh>)
+	or next;
+    my ($time, $short) = $line =~ m,: ((\w+ \w+ \d+) .*)$,;
     $h{$host} = {
 	version => $version,
 	time => $time,
