@@ -115,7 +115,7 @@ cmd(@scpcmd);
 # cvs checkout
 
 logcmd('ssh', $opts{h},
-    "cd /usr && cvs -R -d /mount/openbsd/cvs co src/regress");
+    "cd /usr && cvs -R -d /mount/openbsd/cvs co src");
 
 # install packages
 
