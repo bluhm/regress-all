@@ -31,6 +31,11 @@ open(my $log, '>', $setuplog)
 $log->autoflush();
 $| = 1;
 
+$SIG{__DIE__} = sub {
+    print $log @_;
+    die @_;
+};
+
 sub cmd {
     my @cmd = @_;
     print $log "Command '@cmd' started\n";
