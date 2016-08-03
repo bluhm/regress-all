@@ -31,8 +31,20 @@ open(my $log, '>', $setuplog)
 $log->autoflush();
 $| = 1;
 
+sub cmd {
+    my @cmd = @_;
+    print $log "Command '@cmd' started\n";
+    print "Command '@cmd' started\n" if $opts{v};
+    system(@cmd)
+	and die "Command '@cmd' failed: $?";
+    print $log "Command '@cmd' finished\n";
+    print "Command '@cmd' finished\n" if $opts{v};
+}
+
 sub logcmd {
     my @cmd = @_;
+    print $log "Command '@cmd' started\n";
+    print "Command '@cmd' started\n" if $opts{v};
     defined(my $pid = open(my $out, '-|'))
 	or die "Open pipe from '@cmd' failed: $!";
     if ($pid == 0) {
@@ -55,6 +67,8 @@ sub logcmd {
     close($out) or die $! ?
 	"Close pipe from '@cmd' failed: $!" :
 	"Command '@cmd' failed: $?";
+    print $log "Command '@cmd' finished\n";
+    print "Command '@cmd' finished\n" if $opts{v};
 }
 
 # pxe install machine
@@ -64,6 +78,8 @@ logcmd('ssh', "$host\@10.0.1.1", 'setup');
 # get version information
 
 my @sshcmd = ('ssh', $opts{h}, 'sysctl', 'kern.version');
+print $log "Command '@sshcmd' started\n";
+print "Command '@sshcmd' started\n" if $opts{v};
 open(my $sysctl, '-|', @sshcmd)
     or die "Open pipe from '@sshcmd' failed: $!";
 open(my $version, '>', "version-$host.txt")
@@ -72,12 +88,12 @@ print $version (<$sysctl>);
 close($sysctl) or die $! ?
     "Close pipe from '@sshcmd' failed: $!" :
     "Command '@sshcmd' failed: $?";
+print $log "Command '@sshcmd' finished\n";
+print "Command '@sshcmd' finished\n" if $opts{v};
 
 # copy scripts
 
-@sshcmd = ('ssh', $opts{h}, 'mkdir', '-p', '/root/regress');
-system(@sshcmd)
-    and die "Command '@sshcmd' failed: $?";
+cmd('ssh', $opts{h}, 'mkdir', '-p', '/root/regress');
 
 chdir("..") if $date;
 chdir("../bin")
@@ -87,8 +103,7 @@ my @copy = grep { -f $_ }
 my @scpcmd = ('scp');
 push @scpcmd, '-q' unless $opts{v};
 push @scpcmd, (@copy, "$opts{h}:/root/regress");
-system(@scpcmd)
-    and die "Command '@scpcmd' failed: $?";
+cmd(@scpcmd);
 
 # cvs checkout
 
