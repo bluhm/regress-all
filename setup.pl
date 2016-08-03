@@ -3,6 +3,7 @@
 
 use strict;
 use warnings;
+use Cwd;
 use File::Basename;
 use Getopt::Std;
 use POSIX;
@@ -15,13 +16,14 @@ getopts('d:h:v', \%opts) or do {
 $opts{h} or die "No -h specified";
 my $date = $opts{d};
 
-my $dir = dirname($0). "/../results";
+my $dir = dirname($0). "/..";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
-if ($date) {
-    chdir($date)
-	or die "Chdir to '$date' failed: $!";
-}
+my $regressdir = getcwd();
+$dir = "results";
+$dir .= "/$date" if $date;
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
 
 (my $host = $opts{h}) =~ s/.*\@//;
 
@@ -100,9 +102,9 @@ print "Command '@sshcmd' finished\n" if $opts{v};
 
 cmd('ssh', $opts{h}, 'mkdir', '-p', '/root/regress');
 
-chdir("..") if $date;
-chdir("../bin")
-    or die "Chdir to '../bin' failed: $!";
+$dir = "$regressdir/bin";
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
 my @copy = grep { -f $_ }
     ("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list");
 my @scpcmd = ('scp');

@@ -3,6 +3,7 @@
 
 use strict;
 use warnings;
+use Cwd;
 use File::Basename;
 use Getopt::Std;
 use POSIX;
@@ -16,11 +17,13 @@ getopts('d:', \%opts) or do {
 };
 my $date = $opts{d} or die "No -d specified";
 
-my $dir = dirname($0). "/../results";
+my $dir = dirname($0). "/..";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
-chdir($date)
-    or die "Chdir to '$date' failed: $!";
+my $regressdir = getcwd();
+$dir = "results/$date";
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
 
 my %h;
 foreach my $version (glob("version-*.txt")) {

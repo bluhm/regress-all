@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use Cwd;
 use File::Basename;
 use Getopt::Std;
 use POSIX;
@@ -19,6 +20,7 @@ my $date = strftime("%FT%TZ", gmtime);
 my $dir = dirname($0). "/..";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
+my $regressdir = getcwd();
 $dir = "results";
 -d $dir || mkdir $dir
     or die "Make result directory '$dir' failed: $!";
@@ -71,7 +73,7 @@ close($tr)
 
 # create html output
 
-$dir = dirname($0). "/..";
+$dir = $regressdir;
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 

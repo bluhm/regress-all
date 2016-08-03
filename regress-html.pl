@@ -3,12 +3,17 @@
 
 use strict;
 use warnings;
+use Cwd;
 use File::Basename;
 use POSIX;
 
 my $now = strftime("%FT%TZ", gmtime);
 
-my $dir = dirname($0). "/../results";
+my $dir = dirname($0). "/..";
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
+my $regressdir = getcwd();
+$dir = "results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
