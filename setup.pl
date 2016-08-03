@@ -31,35 +31,39 @@ open(my $log, '>', $setuplog)
 $log->autoflush();
 $| = 1;
 
+sub logcmd {
+    my @cmd = @_;
+    defined(my $pid = open(my $out, '-|'))
+	or die "Open pipe from '@cmd' failed: $!";
+    if ($pid == 0) {
+	close($out);
+	open(STDIN, '<', "/dev/null")
+	    or warn "Redirect stdin to /dev/null failed: $!";
+	open(STDERR, '>&', \*STDOUT)
+	    or warn "Redirect stderr to stdout failed: $!";
+	setsid()
+	    or warn "Setsid $$ failed: $!";
+	exec(@cmd);
+	warn "Exec '@cmd' failed: $!";
+	_exit(126);
+    }
+    while (<$out>) {
+	print $log $_;
+	s/[^\s[:print:]]/_/g;
+	print if $opts{v};
+    }
+    close($out) or die $! ?
+	"Close pipe from '@cmd' failed: $!" :
+	"Command '@cmd' failed: $?";
+}
+
 # pxe install machine
 
-my @sshcmd = ('ssh', "$host\@10.0.1.1",  'setup');
-defined(my $pid = open(my $out, '-|'))
-    or die "Open pipe from '@sshcmd' failed: $!";
-if ($pid == 0) {
-    close($out);
-    open(STDIN, '<', "/dev/null")
-	or warn "Redirect stdin to /dev/null failed: $!";
-    open(STDERR, '>&', \*STDOUT)
-	or warn "Redirect stderr to stdout failed: $!";
-    setsid()
-	or warn "Setsid $$ failed: $!";
-    exec(@sshcmd);
-    warn "Exec '@sshcmd' failed: $!";
-    _exit(126);
-}
-while (<$out>) {
-    print $log $_;
-    s/[^\s[:print:]]/_/g;
-    print if $opts{v};
-}
-close($out) or die $! ?
-    "Close pipe from '@sshcmd' failed: $!" :
-    "Command '@sshcmd' failed: $?";
+logcmd('ssh', "$host\@10.0.1.1", 'setup');
 
 # get version information
 
-@sshcmd = ('ssh', $opts{h}, 'sysctl', 'kern.version');
+my @sshcmd = ('ssh', $opts{h}, 'sysctl', 'kern.version');
 open(my $sysctl, '-|', @sshcmd)
     or die "Open pipe from '@sshcmd' failed: $!";
 open(my $version, '>', "version-$host.txt")
@@ -88,20 +92,10 @@ system(@scpcmd)
 
 # cvs checkout
 
-my ($quiet, $noout) = ("", "");
-$quiet = "-q" unless $opts{v};
-$noout = ">/dev/null" unless $opts{v};
-@sshcmd = ('ssh', $opts{h},
-    "cd /usr && cvs $quiet -R -d /mount/openbsd/cvs co src/regress $noout");
-system(@sshcmd)
-    and die "Command '@sshcmd' failed: $?";
+logcmd('ssh', $opts{h},
+    "cd /usr && cvs -R -d /mount/openbsd/cvs co src/regress");
 
 # install packages
 
-if (-f "pkg-$host.list") {
-    @sshcmd = ('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list",
-	'-Ix');
-    push @sshcmd, '-v' if $opts{v};
-    system(@sshcmd)
-	and die "Command '@sshcmd' failed: $?";
-}
+logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list", '-Ivx')
+    if -f "pkg-$host.list";
