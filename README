@@ -5,6 +5,6 @@ is available.
 
 regress-html.pl	- convert all test results into html table
 setup-html.pl	- convert machine setup logs into html table
-regress.pl	- run one openbsd regression test on ot1 machine
+regress.pl	- run one openbsd regression test on test machine
 run.pl		- do everything, add this to cron job
-site-ot1.list	- list of config files that must be installed on ot1
+site.list	- list of config files that must be installed on test machine

@@ -1,6 +1,5 @@
 /etc/fstab.site
-/etc/hostname.em0
-/etc/hostname.em1
+/etc/hostname.*
 /etc/hosts.site
 /etc/mygate
 /etc/myname
