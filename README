@@ -3,8 +3,10 @@ is to have a reliable set of tests and run them on a regular basis.
 The result summary is written to a file, log output of each test
 is available.
 
+env-ot1.sh	- environment variables to be set on the test machine ot1
+pkg-ot1.list	- list of packages that must be installed on test machine ot1
 regress-html.pl	- convert all test results into html table
-setup-html.pl	- convert machine setup logs into html table
 regress.pl	- run one openbsd regression test on test machine
 run.pl		- do everything, add this to cron job
+setup-html.pl	- convert machine setup logs into html table
 site.list	- list of config files that must be installed on test machine
