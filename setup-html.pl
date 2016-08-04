@@ -70,13 +70,21 @@ print $html "  </tr>\n";
 
 foreach my $host (sort keys %h) {
     print $html "  <tr>\n    <th>$host</th>\n";
-    my $time = $h{$host}{time} || "";
-    my $short = $h{$host}{short} || "";
-    my $version = $h{$host}{version} || "";
-    my $setup = $h{$host}{setup} || "";
-    print $html "    <td title=\"$time\">".
-	"<a href=\"$version\">$short</a></td>\n";
-    print $html "    <td><a href=\"$setup\">log</a></td>\n";
+    my $version = $h{$host}{version};
+    my $time = $h{$host}{time};
+    my $short = $h{$host}{short};
+    my $setup = $h{$host}{setup};
+    if ($version) {
+	print $html "    <td title=\"$time\">".
+	    "<a href=\"$version\">$short</a></td>\n";
+    } else {
+	print $html "    <td></td>";
+    }
+    if ($setup) {
+	print $html "    <td><a href=\"$setup\">log</a></td>\n";
+    } else {
+	print $html "    <td></td>";
+    }
     print $html "  </tr>\n";
 }
 print $html "</table>\n";
