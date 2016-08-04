@@ -87,6 +87,7 @@ foreach my $test (@tests) {
     $makelog = "obj/$makelog" if -d "obj";
     open(my $log, '>', $makelog)
 	or bad $test, 'NOLOG', "Open '$makelog' for writing failed: $!";
+    $log->autoflush();
     $paxlog = "$dir/$makelog\n";
 
     my @errors;
