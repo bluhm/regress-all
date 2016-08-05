@@ -11,7 +11,7 @@ getopts('e:t:v', \%opts) or do {
     print STDERR "usage: $0 [-v] [-e environment] [-t timeout]\n";
     exit(2);
 };
-my $timeout = $opts{t} || 10*60;
+my $timeout = $opts{t} || 30*60;
 environment($opts{e}) if $opts{e};
 
 my $dir = dirname($0);
