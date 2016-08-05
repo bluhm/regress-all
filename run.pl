@@ -36,13 +36,12 @@ system(@setupcmd)
     and die "Command '@setupcmd' failed: $?";
 
 my ($user, $host) = split('@', $opts{h}, 2);
-while (1) {
+while ($host++) {
     my $version = "$dir/version-$host.txt";
     next if -f $version;
     my $h = "$user\@$host";
     system("ssh $h sysctl kern.version >$version 2>/dev/null")
 	and last;
-    $host++;
 }
 
 # run regress there
