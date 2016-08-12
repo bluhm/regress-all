@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Cwd;
 use File::Basename;
+use HTML::Entities;
 use POSIX;
 use URI::Escape;
 
@@ -72,10 +73,11 @@ my @dates = reverse sort keys %d;
 print $html "  <tr>\n    <th>test at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
-    my $setup = uri_escape($d{$date}{setup} || "");
+    my $setup = uri_escape($d{$date}{setup});
+    my $time = encode_entities($date);
     my $href = $setup ? "<a href=\"$setup\">" : "";
     my $enda = $href ? "</a>" : "";
-    print $html "    <th title=\"$date\">$href$short$enda</th>\n";
+    print $html "    <th title=\"$time\">$href$short$enda</th>\n";
 }
 print $html "  </tr>\n";
 
@@ -85,9 +87,9 @@ foreach my $test (@tests) {
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $date (@dates) {
 	my $status = $t{$test}{$date}{status} || "";
-	my $message = $t{$test}{$date}{message};
+	my $message = encode_entities($t{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
-	my $logfile = uri_escape($t{$test}{$date}{logfile} || "");
+	my $logfile = uri_escape($t{$test}{$date}{logfile});
 	my $href = $logfile ? "<a href=\"$logfile\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <td$title>$href$status$enda</td>\n";

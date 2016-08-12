@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Cwd;
 use File::Basename;
+use HTML::Entities;
 use Getopt::Std;
 use POSIX;
 use URI::Escape;
@@ -72,7 +73,7 @@ print $html "  </tr>\n";
 foreach my $host (sort keys %h) {
     print $html "  <tr>\n    <th>$host</th>\n";
     my $version = uri_escape($h{$host}{version});
-    my $time = $h{$host}{time};
+    my $time = encode_entities($h{$host}{time});
     my $short = $h{$host}{short};
     my $setup = uri_escape($h{$host}{setup});
     if ($version) {
