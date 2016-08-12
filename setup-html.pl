@@ -7,6 +7,7 @@ use Cwd;
 use File::Basename;
 use Getopt::Std;
 use POSIX;
+use URI::Escape;
 
 my $now = strftime("%FT%TZ", gmtime);
 
@@ -70,10 +71,10 @@ print $html "  </tr>\n";
 
 foreach my $host (sort keys %h) {
     print $html "  <tr>\n    <th>$host</th>\n";
-    my $version = $h{$host}{version};
+    my $version = uri_escape($h{$host}{version});
     my $time = $h{$host}{time};
     my $short = $h{$host}{short};
-    my $setup = $h{$host}{setup};
+    my $setup = uri_escape($h{$host}{setup});
     if ($version) {
 	print $html "    <td title=\"$time\">".
 	    "<a href=\"$version\">$short</a></td>\n";
