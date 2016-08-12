@@ -6,6 +6,7 @@ use warnings;
 use Cwd;
 use File::Basename;
 use POSIX;
+use URI::Escape;
 
 my $now = strftime("%FT%TZ", gmtime);
 
@@ -71,7 +72,7 @@ my @dates = reverse sort keys %d;
 print $html "  <tr>\n    <th>test at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
-    my $setup = $d{$date}{setup};
+    my $setup = uri_escape($d{$date}{setup} || "");
     my $href = $setup ? "<a href=\"$setup\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$date\">$href$short$enda</th>\n";
@@ -86,7 +87,7 @@ foreach my $test (@tests) {
 	my $status = $t{$test}{$date}{status} || "";
 	my $message = $t{$test}{$date}{message};
 	my $title = $message ? " title=\"$message\"" : "";
-	my $logfile = $t{$test}{$date}{logfile};
+	my $logfile = uri_escape($t{$test}{$date}{logfile} || "");
 	my $href = $logfile ? "<a href=\"$logfile\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <td$title>$href$status$enda</td>\n";
