@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Cwd;
 use File::Basename;
+use Logcmd;
 use Getopt::Std;
 use POSIX;
 
@@ -28,12 +29,14 @@ $dir .= "/$date";
 mkdir $dir
     or die "Make directory '$dir' failed: $!";
 
+createlog(file => "run.log", verbose => $opts{v});
+use subs qw(logmsg);
+
 # setup remote machines
 
 my @setupcmd = ("bin/setup.pl", '-h', $opts{h}, '-d', $date);
 push @setupcmd, '-v' if $opts{v};
-system(@setupcmd)
-    and die "Command '@setupcmd' failed: $?";
+runcmd(@setupcmd);
 
 my ($user, $host) = split('@', $opts{h}, 2);
 while ($host++) {
@@ -48,9 +51,8 @@ while ($host++) {
 
 ($host = $opts{h}) =~ s/.*\@//;
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/regress/regress.pl',
-    '-e', "/root/regress/env-$host.sh");
-push @sshcmd, '-v' if $opts{v};
-system(@sshcmd)
+    '-e', "/root/regress/env-$host.sh", '-v');
+logcmd(@sshcmd)
     and die "Command '@sshcmd' failed: $?";
 
 # get result and logs
@@ -58,8 +60,7 @@ system(@sshcmd)
 my @scpcmd = ('scp');
 push @scpcmd, '-q' unless $opts{v};
 push @scpcmd, ("$opts{h}:/root/regress/test.*", $dir);
-system(@scpcmd)
-    and die "Command '@scpcmd' failed: $?";
+runcmd(@scpcmd);
 
 open(my $tr, '<', "$dir/test.result")
     or die "Open '$dir/test.result' for reading failed: $!";
@@ -86,10 +87,5 @@ $dir = $regressdir;
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
-my @htmlcmd = "bin/setup-html.pl -d $date";
-system(@htmlcmd)
-    and die "Command '@htmlcmd' failed: $?";
-
-@htmlcmd = "bin/regress-html.pl";
-system(@htmlcmd)
-    and die "Command '@htmlcmd' failed: $?";
+runcmd("bin/setup-html.pl", '-d', $date);
+runcmd("bin/regress-html.pl");
