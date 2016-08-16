@@ -73,7 +73,8 @@ my @dates = reverse sort keys %d;
 print $html "  <tr>\n    <th>test at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
-    my $setup = uri_escape($d{$date}{setup});
+    my $setup = $d{$date}{setup};
+    $setup = join("/", map { uri_escape($_) } split("/", $setup)) if $setup;
     my $time = encode_entities($date);
     my $href = $setup ? "<a href=\"$setup\">" : "";
     my $enda = $href ? "</a>" : "";
