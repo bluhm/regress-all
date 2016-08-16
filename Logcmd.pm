@@ -17,12 +17,12 @@ sub createlog (%) {
     $fh->autoflush();
     $verbose = $args{verbose};
     $| = 1 if $verbose;
-}
 
-$SIG{__DIE__} = sub {
-    print $fh @_;
-    die @_;
-};
+    $SIG{__DIE__} = sub {
+	print $fh @_;
+	die @_;
+    };
+}
 
 sub logmsg (@) {
     print $fh @_;
@@ -63,3 +63,5 @@ sub logcmd (@) {
 	"Command '@cmd' failed: $?";
     logmsg "Command '@cmd' finished\n";
 }
+
+1;
