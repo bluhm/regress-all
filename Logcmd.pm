@@ -13,7 +13,7 @@ my ($fh, $file, $verbose);
 sub createlog (%) {
     my %args = @_;
     $file = $args{file};
-    open(my $fh, '>', $file)
+    open($fh, '>', $file)
 	or die "Open '$file' for writing failed: $!";
     $fh->autoflush();
     $verbose = $args{verbose};
