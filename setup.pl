@@ -28,7 +28,6 @@ chdir($dir)
 
 (my $host = $opts{h}) =~ s/.*\@//;
 createlog(file => "setup-$host.log", verbose => $opts{v});
-use subs qw(logmsg);
 
 # pxe install machine
 

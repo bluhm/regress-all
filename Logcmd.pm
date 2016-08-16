@@ -1,10 +1,11 @@
-# run commands and log their output
+# run commands and log their output into file
+
+package Logcmd;
 
 use strict;
 use warnings;
 
-package Logcmd;
-require Exporter;
+use parent 'Exporter';
 our @EXPORT= qw(createlog logmsg runcmd logcmd);
 use subs qw(logmsg);
 
