@@ -29,7 +29,7 @@ $dir .= "/$date";
 mkdir $dir
     or die "Make directory '$dir' failed: $!";
 
-createlog(file => "run.log", verbose => $opts{v});
+createlog(file => "results/run.log", verbose => $opts{v});
 
 # setup remote machines
 
