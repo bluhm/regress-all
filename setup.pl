@@ -38,20 +38,23 @@ $SIG{__DIE__} = sub {
     die @_;
 };
 
+use subs 'log';  # do not use CORE::log natural logarithm
+sub log {
+    print $log @_;
+    print @_ if $opts{v};
+}
+
 sub cmd {
     my @cmd = @_;
-    print $log "Command '@cmd' started\n";
-    print "Command '@cmd' started\n" if $opts{v};
+    log "Command '@cmd' started\n";
     system(@cmd)
 	and die "Command '@cmd' failed: $?";
-    print $log "Command '@cmd' finished\n";
-    print "Command '@cmd' finished\n" if $opts{v};
+    log "Command '@cmd' finished\n";
 }
 
 sub logcmd {
     my @cmd = @_;
-    print $log "Command '@cmd' started\n";
-    print "Command '@cmd' started\n" if $opts{v};
+    log "Command '@cmd' started\n";
     defined(my $pid = open(my $out, '-|'))
 	or die "Open pipe from '@cmd' failed: $!";
     if ($pid == 0) {
@@ -67,15 +70,13 @@ sub logcmd {
 	_exit(126);
     }
     while (<$out>) {
-	print $log $_;
 	s/[^\s[:print:]]/_/g;
-	print if $opts{v};
+	log $_;
     }
     close($out) or die $! ?
 	"Close pipe from '@cmd' failed: $!" :
 	"Command '@cmd' failed: $?";
-    print $log "Command '@cmd' finished\n";
-    print "Command '@cmd' finished\n" if $opts{v};
+    log "Command '@cmd' finished\n";
 }
 
 # pxe install machine
@@ -85,8 +86,7 @@ logcmd('ssh', "$host\@10.0.1.1", 'setup');
 # get version information
 
 my @sshcmd = ('ssh', $opts{h}, 'sysctl', 'kern.version');
-print $log "Command '@sshcmd' started\n";
-print "Command '@sshcmd' started\n" if $opts{v};
+log "Command '@sshcmd' started\n";
 open(my $sysctl, '-|', @sshcmd)
     or die "Open pipe from '@sshcmd' failed: $!";
 open(my $version, '>', "version-$host.txt")
@@ -95,8 +95,7 @@ print $version (<$sysctl>);
 close($sysctl) or die $! ?
     "Close pipe from '@sshcmd' failed: $!" :
     "Command '@sshcmd' failed: $?";
-print $log "Command '@sshcmd' finished\n";
-print "Command '@sshcmd' finished\n" if $opts{v};
+log "Command '@sshcmd' finished\n";
 
 # copy scripts
 
