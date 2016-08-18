@@ -46,6 +46,7 @@ sub logcmd (@) {
     defined(my $pid = open(my $out, '-|'))
 	or croak "Open pipe from '@cmd' failed: $!";
     if ($pid == 0) {
+	$SIG{__DIE__} = 'DEFAULT';
 	close($out);
 	open(STDIN, '<', "/dev/null")
 	    or carp "Redirect stdin to /dev/null failed: $!";
