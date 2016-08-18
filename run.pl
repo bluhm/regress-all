@@ -4,9 +4,11 @@ use strict;
 use warnings;
 use Cwd;
 use File::Basename;
-use Logcmd;
 use Getopt::Std;
 use POSIX;
+
+use lib dirname($0);
+use Logcmd;
 
 my %opts;
 getopts('h:v', \%opts) or do {
@@ -29,7 +31,7 @@ $dir .= "/$date";
 mkdir $dir
     or die "Make directory '$dir' failed: $!";
 
-createlog(file => "results/run.log", verbose => $opts{v});
+createlog(file => "$dir/run.log", verbose => $opts{v});
 
 # setup remote machines
 

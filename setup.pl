@@ -6,8 +6,10 @@ use warnings;
 use Cwd;
 use File::Basename;
 use Getopt::Std;
-use Logcmd;
 use POSIX;
+
+use lib dirname($0);
+use Logcmd;
 
 my %opts;
 getopts('d:h:v', \%opts) or do {
