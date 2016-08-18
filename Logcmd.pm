@@ -5,6 +5,7 @@ package Logcmd;
 use strict;
 use warnings;
 use Carp;
+use POSIX;
 
 use parent 'Exporter';
 our @EXPORT= qw(createlog logmsg runcmd logcmd);
