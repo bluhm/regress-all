@@ -68,12 +68,12 @@ foreach my $date (@dates) {
     print $html "  <tr>\n    <th>created at</th>\n";
     print $html "    <td>$now</td>\n";
     print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>test at</th>\n";
+    print $html "  <tr>\n    <th>run at</th>\n";
     print $html "    <td>$date</td>\n";
     print $html "  </tr>\n";
     if (-f "run.log") {
 	$d{$date}{run} = "run.log";
-	print $html "  <tr>\n    <th>test run</th>\n";
+	print $html "  <tr>\n    <th>run</th>\n";
 	print $html "    <td><a href=\"run.log\">log</a></td>\n";
 	print $html "  </tr>\n";
     }
@@ -134,9 +134,9 @@ print $html "  </tr>\n";
 print $html "</table>\n";
 
 print $html "<table>\n";
-print $html "  <tr>\n    <th>run</th>\n";
+print $html "  <tr>\n    <th>run log</th>\n";
 foreach my $host (sort keys %m) {
-    print $html "    <th>$host</th>\n";
+    print $html "    <th>$host setup log</th>\n";
 }
 print $html "  </tr>\n";
 
