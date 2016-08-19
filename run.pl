@@ -50,7 +50,7 @@ while ($host++) {
 
 # create setup html output
 
-runcmd("bin/setup-html.pl", '-d', $date);
+runcmd("bin/setup-html.pl");
 
 # run regress there
 
