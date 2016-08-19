@@ -64,7 +64,7 @@ print $html "</head>\n";
 print $html "<body>\n";
 print $html "<h1>OpenBSD regress tests</h1>\n";
 print $html "<table>\n";
-print $html "  <tr>\n    <th>results at</th>\n";
+print $html "  <tr>\n    <th>created at</th>\n";
 print $html "    <td>$now</td>\n";
 print $html "  </tr>\n";
 print $html "</table>\n";

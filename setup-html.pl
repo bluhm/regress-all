@@ -64,13 +64,14 @@ foreach my $date (@dates) {
     print $html "<body>\n";
     print $html "<h1>OpenBSD regress test machine</h1>\n";
     print $html "<table>\n";
-    print $html "  <tr>\n    <th>setup at</th>\n";
+    print $html "  <tr>\n    <th>created at</th>\n";
     print $html "    <td>$now</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>test at</th>\n";
     print $html "    <td>$date</td>\n";
     print $html "  </tr>\n";
     if (-f "run.log") {
+	$d{$date}{run} = "run.log";
 	print $html "  <tr>\n    <th>test run</th>\n";
 	print $html "    <td><a href=\"run.log\">log</a></td>\n";
 	print $html "  </tr>\n";
