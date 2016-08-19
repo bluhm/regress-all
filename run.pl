@@ -48,10 +48,6 @@ while ($host++) {
 	and last;
 }
 
-# create setup html output
-
-runcmd("bin/setup-html.pl");
-
 # run regress there
 
 ($host = $opts{h}) =~ s/.*\@//;
@@ -86,10 +82,11 @@ close($pax) or die $! ?
 close($tr)
     or die "Close '$dir/test.result' after reading failed: $!";
 
-# create result html output
+# create html output
 
 $dir = $regressdir;
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
+runcmd("bin/setup-html.pl", '-d', $date);
 runcmd("bin/regress-html.pl");

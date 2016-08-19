@@ -31,6 +31,10 @@ chdir($dir)
 (my $host = $opts{h}) =~ s/.*\@//;
 createlog(file => "setup-$host.log", verbose => $opts{v});
 
+# create new summary with setup log
+
+runcmd("$regressdir/bin/setup-html.pl");
+
 # pxe install machine
 
 logcmd('ssh', "$host\@10.0.1.1", 'setup');
