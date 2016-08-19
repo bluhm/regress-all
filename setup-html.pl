@@ -140,7 +140,7 @@ foreach my $host (sort keys %m) {
 }
 print $html "  </tr>\n";
 
-foreach my $date (sort keys %d) {
+foreach my $date (reverse sort keys %d) {
     my $run = $d{$date}{run} || "";
     my $log = uri_escape($date). "/$run";
     my $href = $run ? "<a href=\"$log\">" : "";
