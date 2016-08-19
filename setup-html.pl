@@ -150,6 +150,7 @@ foreach my $date (reverse sort keys %d) {
     foreach my $host (sort keys %m) {
 	my $time = encode_entities($h->{$host}{time}) || "";
 	my $setup = uri_escape($h->{$host}{setup}) || "";
+	$time ||= "log" if $setup;
 	$log = uri_escape($date). "/$setup";
 	$href = $setup ? "<a href=\"$log\">" : "";
 	$enda = $href ? "</a>" : "";
