@@ -27,7 +27,7 @@ chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
 my @dates = $opts{d} || map { dirname($_) } glob("*/run.log");
-my %d;
+my (%d, %m);
 foreach my $date (@dates) {
     $dir = "$regressdir/results/$date";
     chdir($dir)
@@ -46,6 +46,7 @@ foreach my $date (@dates) {
 	    time => $time,
 	    short => $short,
 	};
+	$m{$host}++;
     }
     foreach my $setup (glob("setup-*.log")) {
 	my ($host) = $setup =~ m,setup-(.*)\.log,;
@@ -109,3 +110,56 @@ foreach my $date (@dates) {
     close($html)
 	or die "Close 'setup.html' after writing failed: $!";
 }
+
+exit if $opts{d};
+
+$dir = "$regressdir/results";
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
+
+open(my $html, '>', "run.html")
+    or die "Open 'run.html' for writing failed: $!";
+print $html "<!DOCTYPE html>\n";
+print $html "<html>\n";
+print $html "<head>\n";
+print $html "  <title>OpenBSD Regress Run</title>\n";
+print $html "</head>\n";
+
+print $html "<body>\n";
+print $html "<h1>OpenBSD regress test run</h1>\n";
+print $html "<table>\n";
+print $html "  <tr>\n    <th>created at</th>\n";
+print $html "    <td>$now</td>\n";
+print $html "  </tr>\n";
+print $html "</table>\n";
+
+print $html "<table>\n";
+print $html "  <tr>\n    <th>run</th>\n";
+foreach my $host (sort keys %m) {
+    print $html "    <th>$host</th>\n";
+}
+print $html "  </tr>\n";
+
+foreach my $date (sort keys %d) {
+    my $run = $d{$date}{run} || "";
+    my $log = uri_escape($date). "/$run";
+    my $href = $run ? "<a href=\"$log\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "  <tr>\n    <th>$href$date$enda</th>\n";
+    my $h = $d{$date}{host};
+    foreach my $host (sort keys %m) {
+	my $time = encode_entities($h->{$host}{time}) || "";
+	my $setup = uri_escape($h->{$host}{setup}) || "";
+	$log = uri_escape($date). "/$setup";
+	$href = $setup ? "<a href=\"$log\">" : "";
+	$enda = $href ? "</a>" : "";
+	print $html "    <td>$href$time$enda</td>\n";
+    }
+    print $html "  </tr>\n";
+}
+print $html "</table>\n";
+print $html "</body>\n";
+
+print $html "</html>\n";
+close($html)
+    or die "Close 'run.html' after writing failed: $!";
