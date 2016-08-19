@@ -70,6 +70,11 @@ foreach my $date (@dates) {
     print $html "  <tr>\n    <th>test at</th>\n";
     print $html "    <td>$date</td>\n";
     print $html "  </tr>\n";
+    if (-f "run.log") {
+	print $html "  <tr>\n    <th>test run</th>\n";
+	print $html "    <td><a href=\"run.log\">log</a></td>\n";
+	print $html "  </tr>\n";
+    }
     print $html "</table>\n";
     print $html "<table>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
