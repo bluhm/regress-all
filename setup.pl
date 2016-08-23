@@ -62,7 +62,7 @@ $dir = "$regressdir/bin";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 my @copy = grep { -f $_ }
-    ("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list");
+    ("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list", "site.list");
 my @scpcmd = ('scp');
 push @scpcmd, '-q' unless $opts{v};
 push @scpcmd, (@copy, "$opts{h}:/root/regress");
