@@ -4,6 +4,7 @@
 /etc/mygate
 /etc/myname
 /etc/ntpd.conf
+/etc/pf.conf
 /etc/pkg.conf
 /etc/rc.conf.local
 /etc/rc.firsttime
