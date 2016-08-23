@@ -30,6 +30,7 @@ chdir($dir)
 
 (my $host = $opts{h}) =~ s/.*\@//;
 createlog(file => "setup-$host.log", verbose => $opts{v});
+$date = strftime("%FT%TZ", gmtime);
 logmsg("script $0 started at $date");
 
 # create new summary with setup log
