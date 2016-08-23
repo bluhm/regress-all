@@ -3,10 +3,16 @@ is to have a reliable set of tests and run them on a regular basis.
 The result summary is written to a file, log output of each test
 is available.
 
+Logcmd.pm	- common log funtions for run.pl and setup.pl
 env-ot1.sh	- environment variables to be set on the test machine ot1
 pkg-ot1.list	- list of packages that must be installed on test machine ot1
+pkg-ot2.list	- list of packages that must be installed on test machine ot2
 regress-html.pl	- convert all test results into html table
-regress.pl	- run one openbsd regression test on test machine
+regress.pl	- run one openbsd regression test on test machine,
+		  this is started by run.pl
 run.pl		- do everything, add this to cron job
 setup-html.pl	- convert machine setup logs into html table
+setup.pl	- install one test machine,
+		  this is started by run.pl
 site.list	- list of config files that must be installed on test machine
+test.list	- list of /usr/src/regress subdirectories that should be tested
