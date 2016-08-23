@@ -30,6 +30,7 @@ chdir($dir)
 
 (my $host = $opts{h}) =~ s/.*\@//;
 createlog(file => "setup-$host.log", verbose => $opts{v});
+logmsg("script $0 started at $date");
 
 # create new summary with setup log
 
@@ -76,3 +77,6 @@ logcmd('ssh', $opts{h},
 
 logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list", '-Ivx')
     if -f "pkg-$host.list";
+
+$date = strftime("%FT%TZ", gmtime);
+logmsg("script $0 finished at $date");

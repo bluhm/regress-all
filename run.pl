@@ -32,6 +32,7 @@ mkdir $dir
     or die "Make directory '$dir' failed: $!";
 
 createlog(file => "$dir/run.log", verbose => $opts{v});
+logmsg("script $0 started at $date");
 
 # setup remote machines
 
@@ -90,3 +91,6 @@ chdir($dir)
 
 runcmd("bin/setup-html.pl", '-d', $date);
 runcmd("bin/regress-html.pl");
+
+$date = strftime("%FT%TZ", gmtime);
+logmsg("script $0 finished at $date");
