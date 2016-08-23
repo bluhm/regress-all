@@ -36,11 +36,18 @@ logmsg("script $0 started at $date");
 
 # setup remote machines
 
-my @setupcmd = ("bin/setup.pl", '-h', $opts{h}, '-d', $date);
+my ($user, $host) = split('@', $opts{h}, 2);
+($user, $host) = ("root", $user) unless $host;
+
+my @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
 push @setupcmd, '-v' if $opts{v};
 runcmd(@setupcmd);
+if ($host++) {
+    @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
+    push @setupcmd, '-v' if $opts{v};
+    runcmd(@setupcmd);
+}
 
-my ($user, $host) = split('@', $opts{h}, 2);
 while ($host++) {
     my $version = "$dir/version-$host.txt";
     next if -f $version;
