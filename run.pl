@@ -61,8 +61,7 @@ while ($host++) {
 ($host = $opts{h}) =~ s/.*\@//;
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/regress/regress.pl',
     '-e', "/root/regress/env-$host.sh", '-v');
-logcmd(@sshcmd)
-    and die "Command '@sshcmd' failed: $?";
+logcmd(@sshcmd);
 
 # get result and logs
 
