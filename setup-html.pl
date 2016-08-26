@@ -60,6 +60,7 @@ foreach my $date (@dates) {
     print $html "<html>\n";
     print $html "<head>\n";
     print $html "  <title>OpenBSD Test Setup</title>\n";
+    print $html "  <style>th { text-align: left; }</style>\n";
     print $html "</head>\n";
 
     print $html "<body>\n";
@@ -123,6 +124,7 @@ print $html "<!DOCTYPE html>\n";
 print $html "<html>\n";
 print $html "<head>\n";
 print $html "  <title>OpenBSD Regress Run</title>\n";
+print $html "  <style>th { text-align: left; }</style>\n";
 print $html "</head>\n";
 
 print $html "<body>\n";
