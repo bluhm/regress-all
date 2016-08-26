@@ -59,7 +59,10 @@ print $html "<!DOCTYPE html>\n";
 print $html "<html>\n";
 print $html "<head>\n";
 print $html "  <title>OpenBSD Regress Results</title>\n";
-print $html "  <style>th { text-align: left; }</style>\n";
+print $html "  <style>\n";
+print $html "    th { text-align: left; }\n";
+print $html "    tr:hover {background-color: #f5f5f5}\n";
+print $html "  </style>\n";
 print $html "</head>\n";
 
 print $html "<body>\n";
