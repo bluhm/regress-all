@@ -19,6 +19,7 @@
 /etc/ssh/ssh_host_rsa_key
 /etc/ssh/ssh_host_rsa_key.pub
 /etc/ssh/ssh_known_hosts
+/etc/sysctl.conf
 /root/.profile
 /root/.ssh/authorized_keys
 /root/.ssh/id_rsa
