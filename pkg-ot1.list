@@ -2,6 +2,7 @@ p5-BSD-Resource
 p5-BSD-Socket-Splice
 p5-IO-Socket-INET6
 p5-IO-Socket-SSL
+p5-Net-Pcap
 p5-NetPacket
 rsync--
 scapy
