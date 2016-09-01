@@ -153,6 +153,7 @@ sub environment {
 	or die "Open '$file' for reading failed: $!";
     while (<$fh>) {
 	chomp;
+	s/#.*$//;
 	s/\s+$//;
 	s/^export\s+(?=\w+=)//;
 	s/^export\s+\w+.*//;
