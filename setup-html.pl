@@ -40,7 +40,7 @@ foreach my $date (@dates) {
 	    or die "Open '$version' for reading failed: $!";
 	defined(my $line = <$fh>)
 	    or next;
-	my ($time, $short) = $line =~ m,: ((\w+ \w+ \d+) .*)$,;
+	my ($time, $short) = $line =~ m,: ((\w+ \w+ +\d+) .*)$,;
 	$h{$host} = {
 	    version => $version,
 	    time => $time,
