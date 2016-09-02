@@ -73,6 +73,8 @@ runcmd(@scpcmd);
 
 logcmd('ssh', $opts{h},
     "cd /usr && cvs -R -d /mount/openbsd/cvs co src");
+logcmd('ssh', $opts{h},
+    "cd /usr/src && make obj");
 
 # install packages
 
