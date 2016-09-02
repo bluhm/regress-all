@@ -33,6 +33,7 @@ foreach my $result (@results) {
     open(my $fh, '<', $result)
 	or die "Open '$result' for reading failed: $!";
     while (<$fh>) {
+	chomp;
 	my ($status, $test, $message) = split(" ", $_, 3);
 	$t{$test}{$date}
 	    and warn "Duplicate test '$test' at date '$date'";
