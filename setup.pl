@@ -76,8 +76,11 @@ logcmd('ssh', $opts{h},
 
 # install packages
 
-logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list", '-Ivx')
-    if -f "pkg-$host.list";
+eval {
+    logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list", '-Ivx')
+	if -f "pkg-$host.list";
+};
+warn "WARNING: $@" if $@;
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script $0 finished at $date\n");
