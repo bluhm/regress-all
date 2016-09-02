@@ -90,6 +90,7 @@ foreach my $test (@tests) {
     $log->autoflush();
     $paxlog = "$dir/$makelog\n";
 
+    my $skipped = 0;
     my @errors;
     my @runcmd = qw(make regress);
     defined(my $pid = open(my $out, '-|'))
@@ -115,6 +116,7 @@ foreach my $test (@tests) {
 	    s/[^\s[:print:]]/_/g;
 	    print if $opts{v};
 	    push @errors, $prev, if /^FAILED$/;
+	    $skipped++ if /^SKIPPED$/;
 	    chomp($prev = $_);
 	}
 	alarm(0);
@@ -129,6 +131,7 @@ foreach my $test (@tests) {
 	"Close pipe from '@runcmd' failed: $!" :
 	"Command '@runcmd' failed: $?", $log;
 
+    bad $test, 'SKIP', "Test skipped itself", $log if @errors;
     bad $test, 'FAIL', join(", ", @errors), $log if @errors;
     good $test, $log;
 }
