@@ -63,6 +63,11 @@ print $html "  <title>OpenBSD Regress Results</title>\n";
 print $html "  <style>\n";
 print $html "    th { text-align: left; }\n";
 print $html "    tr:hover {background-color: #f5f5f5}\n";
+print $html "    td.PASS {background-color: #80ff80;}\n";
+print $html "    td.FAIL, td.NOEXIT, td.NORUN, td.NOLOG, td.NOCLEAN {\n";
+print $html "        background-color: #ff8080;}\n";
+print $html "    td.NOTERM, td.NOEXIST {background-color: #ffff80;}\n";
+print $html "    td.result, td.result a {color: black;}\n";
 print $html "  </style>\n";
 print $html "</head>\n";
 
@@ -98,10 +103,11 @@ foreach my $test (@tests) {
 	my $status = $t{$test}{$date}{status} || "";
 	my $message = encode_entities($t{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
+	my $class = " class=\"result $status\"";
 	my $logfile = uri_escape($t{$test}{$date}{logfile});
 	my $href = $logfile ? "<a href=\"$logfile\">" : "";
 	my $enda = $href ? "</a>" : "";
-	print $html "    <td$title>$href$status$enda</td>\n";
+	print $html "    <td$class$title>$href$status$enda</td>\n";
     }
     print $html "  </tr>\n";
 }
