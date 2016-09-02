@@ -82,7 +82,7 @@ eval {
     logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list", '-Ivx')
 	if -f "pkg-$host.list";
 };
-warn "WARNING: $@" if $@;
+logmsg "WARNING: command failed\n" if $@;
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script $0 finished at $date\n");
