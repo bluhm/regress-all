@@ -72,6 +72,7 @@ foreach my $test (@tests) {
     print $pax $paxlog if $paxlog;
     undef $paxlog;
 
+    my $date = strftime("%FT%TZ", gmtime);
     print "\nSTART\t$test\t$date\n\n" if $opts{v};
 
     $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
@@ -92,7 +93,6 @@ foreach my $test (@tests) {
     $log->autoflush();
     $paxlog = "$dir/$makelog\n";
 
-    my $date = strftime("%FT%TZ", gmtime);
     print $log "START\t$test\t$date\n\n" if $log;
 
     my $skipped = 0;
