@@ -66,8 +66,10 @@ print $html "    tr:hover {background-color: #f0f0f0}\n";
 print $html "    td.PASS {background-color: #80ff80;}\n";
 print $html "    td.FAIL {background-color: #ff8080;}\n";
 print $html "    td.SKIP {background-color: #8080ff;}\n";
-print $html "    td.NOEXIT, td.NOTERM, td.NORUN, td.NOLOG, td.NOCLEAN, ".
-    "td.NOEXIST {background-color: #ffff80;}\n";
+print $html "    td.NOEXIT, td.NOTERM, td.NORUN ".
+    "{background-color: #ffff80;}\n";
+print $html "    td.NOLOG, td.NOCLEAN, td.NOEXIST ".
+    "{background-color: #ffffff;}\n";
 print $html "    td.result, td.result a {color: black;}\n";
 print $html "  </style>\n";
 print $html "</head>\n";
