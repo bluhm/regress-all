@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use Cwd;
 use File::Basename;
 use Getopt::Std;
 use POSIX;
@@ -17,6 +18,7 @@ environment($opts{e}) if $opts{e};
 my $dir = dirname($0);
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
+my $regressdir = getcwd();
 
 # write summary of results into result file
 open(my $tr, '>', "test.result")
@@ -142,6 +144,13 @@ print $pax $paxlog if $paxlog;
 close($pax) or die $! ?
     "Close pipe to '@paxcmd' failed: $!" :
     "Command '@paxcmd' failed: $?";
+
+# create a tgz file with all obj/regress files
+my @tarcmd = ('tar', '-C', '/usr');
+push @tarcmd, '-v' if $opts{v};
+push @tarcmd, ('-czf', "$regressdir/test.obj.tgz", 'obj/regress');
+system(@tarcmd)
+    and die "Command '@tarcmd' failed: $?";
 
 close($tr)
     or die "Close 'test.result' after writing failed: $!";
