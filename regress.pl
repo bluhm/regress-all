@@ -45,13 +45,6 @@ close($sudo) or die $! ?
     "Close pipe to '@sudocmd' failed: $!" :
     "Command '@sudocmd' failed: $?";
 
-sub start($;$) {
-    my ($test, $log) = @_;
-    my $date = strftime("%FT%TZ", gmtime);
-    print $log "START\t$test\t$date\n\n" if $log;
-    print "\nSTART\t$test\t$date\n\n" if $opts{v};
-}
-
 sub bad($$$;$) {
     my ($test, $reason, $message, $log) = @_;
     print $log "\n$reason\t$test\t$message\n" if $log;
@@ -79,6 +72,8 @@ foreach my $test (@tests) {
     print $pax $paxlog if $paxlog;
     undef $paxlog;
 
+    print "\nSTART\t$test\t$date\n\n" if $opts{v};
+
     $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
     chdir($dir)
 	or bad $test, 'NOEXIST', "Chdir to '$dir' failed: $!";
@@ -97,7 +92,8 @@ foreach my $test (@tests) {
     $log->autoflush();
     $paxlog = "$dir/$makelog\n";
 
-    start $test, $log;
+    my $date = strftime("%FT%TZ", gmtime);
+    print $log "START\t$test\t$date\n\n" if $log;
 
     my $skipped = 0;
     my @errors;
