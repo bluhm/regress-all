@@ -47,8 +47,9 @@ close($sudo) or die $! ?
 
 sub start($;$) {
     my ($test, $log) = @_;
-    print $log "START\t$test\n\n" if $log;
-    print "START\t$test\n\n" if $opts{v};
+    my $date = strftime("%FT%TZ", gmtime);
+    print $log "START\t$test\t$date\n\n" if $log;
+    print "START\t$test\t$date\n\n" if $opts{v};
 }
 
 sub bad($$$;$) {
