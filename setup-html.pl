@@ -78,6 +78,18 @@ foreach my $date (@dates) {
 	print $html "    <td><a href=\"run.log\">log</a></td>\n";
 	print $html "  </tr>\n";
     }
+    if (-f "test.log.tgz") {
+	$d{$date}{logtgz} = "test.log.tgz";
+	print $html "  <tr>\n    <th>make log</th>\n";
+	print $html "    <td><a href=\"test.log.tgz\">tgz</a></td>\n";
+	print $html "  </tr>\n";
+    }
+    if (-f "test.obj.tgz") {
+	$d{$date}{objtgz} = "test.obj.tgz";
+	print $html "  <tr>\n    <th>make obj</th>\n";
+	print $html "    <td><a href=\"test.obj.tgz\">tgz</a></td>\n";
+	print $html "  </tr>\n";
+    }
     print $html "</table>\n";
     print $html "<table>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
