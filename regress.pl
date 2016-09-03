@@ -45,6 +45,12 @@ close($sudo) or die $! ?
     "Close pipe to '@sudocmd' failed: $!" :
     "Command '@sudocmd' failed: $?";
 
+sub start($;$) {
+    my ($test, $log) = @_;
+    print $log "START\t$test\n\n" if $log;
+    print "START\t$test\n\n" if $opts{v};
+}
+
 sub bad($$$;$) {
     my ($test, $reason, $message, $log) = @_;
     print $log "\n$reason\t$test\t$message\n" if $log;
@@ -89,6 +95,8 @@ foreach my $test (@tests) {
 	or bad $test, 'NOLOG', "Open '$makelog' for writing failed: $!";
     $log->autoflush();
     $paxlog = "$dir/$makelog\n";
+
+    start $test, $log;
 
     my $skipped = 0;
     my @errors;
