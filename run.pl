@@ -38,6 +38,7 @@ logmsg("script $0 started at $date\n");
 
 my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
+my $firsthost = $host;
 
 my @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
 push @setupcmd, '-v' if $opts{v};
@@ -48,12 +49,14 @@ if ($host++) {
     runcmd(@setupcmd);
 }
 
-while ($host++) {
+for ($host = $firsthost; $host; $host++) {
     my $version = "$dir/version-$host.txt";
     next if -f $version;
     my $h = "$user\@$host";
-    system("ssh $h sysctl kern.version >$version 2>/dev/null")
-	and last;
+    if (system("ssh $h sysctl kern.version >$version 2>/dev/null")) {
+	unlink $version;
+	last;
+    }
 }
 
 # run regress there
