@@ -131,7 +131,7 @@ foreach my $test (@tests) {
 	"Close pipe from '@runcmd' failed: $!" :
 	"Command '@runcmd' failed: $?", $log;
 
-    bad $test, 'SKIP', "Test skipped itself", $log if @errors;
+    bad $test, 'SKIP', "Test skipped itself", $log if $skipped;
     bad $test, 'FAIL', join(", ", @errors), $log if @errors;
     good $test, $log;
 }
