@@ -5,6 +5,7 @@ is available.
 
 Logcmd.pm	- common log funtions for run.pl and setup.pl
 env-ot1.sh	- environment variables to be set on the test machine ot1
+mktestlist.pl	- find possible names of tests in regress directory
 pkg-ot1.list	- list of packages that must be installed on test machine ot1
 pkg-ot2.list	- list of packages that must be installed on test machine ot2
 regress-html.pl	- convert all test results into html table
