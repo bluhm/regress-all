@@ -49,7 +49,7 @@ sub start($;$) {
     my ($test, $log) = @_;
     my $date = strftime("%FT%TZ", gmtime);
     print $log "START\t$test\t$date\n\n" if $log;
-    print "START\t$test\t$date\n\n" if $opts{v};
+    print "\nSTART\t$test\t$date\n\n" if $opts{v};
 }
 
 sub bad($$$;$) {
