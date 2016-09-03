@@ -42,10 +42,12 @@ foreach my $result (@results) {
 	    message => $message,
 	};
 	my $severity =
-	    $status eq 'PASS' ? 1 :
-	    $status eq 'FAIL' ? 2 :
-	    $status eq 'NOEXIT' ? 3 :
-	    $status eq 'NOTERM' ? 4 : 5;
+	    $status eq 'PASS'   ? 1 :
+	    $status eq 'SKIP'   ? 2 :
+	    $status eq 'FAIL'   ? 3 :
+	    $status eq 'NOEXIT' ? 4 :
+	    $status eq 'NOTERM' ? 5 :
+	    $status eq 'NORUN'  ? 6 : 7;
 	$t{$test}{severity} += $severity;
 	my $logfile = dirname($result). "/logs/$test/make.log";
 	$t{$test}{$date}{logfile} = $logfile if -f $logfile;
