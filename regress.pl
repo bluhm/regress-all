@@ -61,8 +61,7 @@ sub good($;$) {
     print $tr "PASS\t$test\n";
 }
 
-my @paxcmd = ('pax', '-wzf', "$dir/test.logs", '-s,^/usr/src/regress/,,',
-    '-s,/obj/make.log$,/make.log,');
+my @paxcmd = ('pax', '-wzf', "$dir/test.logs", '-s,^/usr/src/regress/,,');
 open(my $pax, '|-', @paxcmd)
     or die "Open pipe to '@paxcmd' failed: $!";
 my $paxlog;
@@ -86,12 +85,10 @@ foreach my $test (@tests) {
 	and bad $test, 'NOCLEAN', "Command '$cleancmd' failed: $?";
 
     # write make output into log file
-    my $makelog = "make.log";
-    $makelog = "obj/$makelog" if -d "obj";
-    open(my $log, '>', $makelog)
-	or bad $test, 'NOLOG', "Open '$makelog' for writing failed: $!";
+    open(my $log, '>', "make.log")
+	or bad $test, 'NOLOG', "Open 'make.log' for writing failed: $!";
     $log->autoflush();
-    $paxlog = "$dir/$makelog\n";
+    $paxlog = "$dir/make.log\n";
 
     print $log "START\t$test\t$date\n\n" if $log;
 

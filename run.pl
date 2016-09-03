@@ -79,7 +79,7 @@ mkdir "$dir/logs"
     or die "Make directory '$dir/logs' failed: $!";
 chdir("$dir/logs")
     or die "Chdir to '$dir/logs' failed: $!";
-my @paxcmd = ('pax', '-rzf', "../test.logs", '-s,/obj/make.log,/make.log,');
+my @paxcmd = ('pax', '-rzf', "../test.logs");
 open(my $pax, '|-', @paxcmd)
     or die "Open pipe to '@paxcmd' failed: $!";
 while (<$tr>) {
