@@ -61,7 +61,7 @@ sub good($;$) {
     print $tr "PASS\t$test\n";
 }
 
-my @paxcmd = ('pax', '-wzf', "$dir/test.logs", '-s,^/usr/src/regress/,,');
+my @paxcmd = ('pax', '-wzf', "$dir/test.log.tgz", '-s,^/usr/src/regress/,,');
 open(my $pax, '|-', @paxcmd)
     or die "Open pipe to '@paxcmd' failed: $!";
 my $paxlog;
