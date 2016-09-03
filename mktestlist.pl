@@ -7,11 +7,12 @@ use File::Find;
 
 find(\&wanted, "/usr/src/regress");
 
-my ($prevdir, $prevname);
+my $prevdir;
 sub wanted {
     return unless m{^Makefile$};
     if ($prevdir && $File::Find::dir !~ m{^\Q$prevdir\E/}) {
-	print $prevname, "\n";
+	$prevdir =~ s{^/usr/src/regress/}{};
+	print $prevdir, "\n";
     }
-    ($prevdir, $prevname) = ($File::Find::dir, $File::Find::name);
+    $prevdir = $File::Find::dir;
 }
