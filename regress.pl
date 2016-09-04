@@ -146,11 +146,11 @@ close($pax) or die $! ?
     "Command '@paxcmd' failed: $?";
 
 # create a tgz file with all obj/regress files
-my @tarcmd = ('tar', '-C', '/usr');
-push @tarcmd, '-v' if $opts{v};
-push @tarcmd, ('-czf', "$regressdir/test.obj.tgz", 'obj/regress');
-system(@tarcmd)
-    and die "Command '@tarcmd' failed: $?";
+@paxcmd = ('pax', '-x', 'cpio', '-wzf', "$dir/test.log.tgz");
+push @paxcmd, '-v' if $opts{v};
+push @paxcmd, ('-s,^/usr/obj/regress,,', '/usr/obj/regress');
+system(@paxcmd)
+    and die "Command '@paxcmd' failed: $?";
 
 close($tr)
     or die "Close 'test.result' after writing failed: $!";
