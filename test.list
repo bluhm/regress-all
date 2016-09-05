@@ -185,6 +185,7 @@ usr.bin/ul
 usr.bin/xargs
 usr.sbin/arp
 usr.sbin/httpd
+usr.sbin/ldapd
 usr.sbin/mtree
 usr.sbin/ospfd
 usr.sbin/pkg_add
