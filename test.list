@@ -32,6 +32,7 @@ misc/c++abi
 misc/exceptions
 misc/objc
 misc/sse2
+misc/utf8
 sbin/iked
 sbin/ipsecctl
 sbin/isakmpd
@@ -53,9 +54,6 @@ sys/crypto/gmac
 sys/crypto/hmac
 sys/crypto/key_wrap
 sys/ddb
-sys/dev/audio
-sys/dev/audio_info
-sys/dev/audio_rw
 sys/dev/fdesc
 sys/dev/video
 sys/ffs
@@ -148,6 +146,7 @@ sys/uvm/mmap_size
 sys/uvm/mmap_write_self
 usr.bin/basename
 usr.bin/bc
+usr.bin/calendar
 usr.bin/cap_mkdb
 usr.bin/colrm
 usr.bin/column
