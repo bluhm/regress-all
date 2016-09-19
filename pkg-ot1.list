@@ -9,5 +9,6 @@ p5-IO-Socket-SSL
 p5-Net-Pcap
 p5-NetPacket
 p5-YAML
+p5-ldap
 rsync--
 scapy
