@@ -43,7 +43,7 @@ logcmd('ssh', "$host\@10.0.1.1", 'setup');
 
 # get version information
 
-my @sshcmd = ('ssh', $opts{h}, 'sysctl', 'kern.version');
+my @sshcmd = ('ssh', $opts{h}, 'sysctl', 'kern.version', 'hw.machine');
 logmsg "Command '@sshcmd' started\n";
 open(my $sysctl, '-|', @sshcmd)
     or die "Open pipe from '@sshcmd' failed: $!";
