@@ -83,7 +83,6 @@ sys/kern/mmap
 sys/kern/mmap-fail
 sys/kern/mmap2
 sys/kern/mmap3
-sys/kern/mquery
 sys/kern/nanosleep
 sys/kern/noexec
 sys/kern/pledge
