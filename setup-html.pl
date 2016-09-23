@@ -99,6 +99,7 @@ foreach my $date (@dates) {
     print $html "<table>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
     print $html "    <th>version</th>\n";
+    print $html "    <th>arch</th>\n";
     print $html "    <th>setup</th>\n";
     print $html "  </tr>\n";
 
@@ -107,17 +108,19 @@ foreach my $date (@dates) {
 	my $version = uri_escape($h{$host}{version});
 	my $time = encode_entities($h{$host}{time});
 	my $short = $h{$host}{short};
+	my $arch = encode_entities($h{$host}{arch}) || "";
 	my $setup = uri_escape($h{$host}{setup});
 	if ($version) {
 	    print $html "    <td title=\"$time\">".
 		"<a href=\"$version\">$short</a></td>\n";
 	} else {
-	    print $html "    <td></td>";
+	    print $html "    <td></td>\n";
 	}
+	print $html "    <td>$arch</td>\n";
 	if ($setup) {
 	    print $html "    <td><a href=\"$setup\">log</a></td>\n";
 	} else {
-	    print $html "    <td></td>";
+	    print $html "    <td></td>\n";
 	}
 	print $html "  </tr>\n";
     }
