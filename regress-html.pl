@@ -90,8 +90,15 @@ print $html "  <tr>\n    <th>test</th>\n";
 print $html "    <td><a href=\"run.html\">run</a></td>\n";
 print $html "  </tr>\n";
 print $html "</table>\n";
-print $html "<table>\n";
 my @dates = reverse sort keys %d;
+print $html "<table>\n";
+print $html "  <tr>\n    <th>pass rate</th>\n";
+foreach my $date (@dates) {
+    my $pass = $d{$date}{pass};
+    my $percent = "";
+    $percent = sprintf("%d%%", 100 * $pass) if defined $pass;
+    print $html "    <th>$percent</th>\n";
+}
 print $html "  <tr>\n    <th>test at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
@@ -101,13 +108,6 @@ foreach my $date (@dates) {
     my $href = $setup ? "<a href=\"$setup\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$time\">$href$short$enda</th>\n";
-}
-print $html "  <tr>\n    <th>pass rate</th>\n";
-foreach my $date (@dates) {
-    my $pass = $d{$date}{pass};
-    my $percent = "";
-    $percent = sprintf("%d%%", 100 * $pass) if defined $pass;
-    print $html "    <th>$percent</th>\n";
 }
 print $html "  </tr>\n";
 
