@@ -38,13 +38,18 @@ foreach my $date (@dates) {
 	my ($host) = $version =~ m,version-(.*)\.txt,;
 	open(my $fh, '<', $version)
 	    or die "Open '$version' for reading failed: $!";
-	defined(my $line = <$fh>)
-	    or next;
-	my ($time, $short) = $line =~ m,: ((\w+ \w+ +\d+) .*)$,;
+	my ($time, $short, $arch);
+	while (<$fh>) {
+	    /^kern.version=.*: ((\w+ \w+ +\d+) .*)$/ and
+		($time, $short) = ($1, $2);
+	    /^hw.machine=(\w+)$/ and $arch = $1;
+	}
+	$time or next;
 	$h{$host} = {
 	    version => $version,
-	    time => $time,
-	    short => $short,
+	    time    => $time,
+	    short   => $short,
+	    arch    => $arch,
 	};
 	$m{$host}++;
     }
