@@ -30,6 +30,7 @@ foreach my $result (@results) {
     };
     $d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
     $_->{severity} *= .5 foreach values %t;
+    my ($total, $pass) = (0, 0);
     open(my $fh, '<', $result)
 	or die "Open '$result' for reading failed: $!";
     while (<$fh>) {
@@ -49,11 +50,14 @@ foreach my $result (@results) {
 	    $status eq 'NOTERM' ? 5 :
 	    $status eq 'NORUN'  ? 6 : 7;
 	$t{$test}{severity} += $severity;
+	$total++ unless $status eq 'SKIP';
+	$pass++ if $status eq 'PASS';
 	my $logfile = dirname($result). "/logs/$test/make.log";
 	$t{$test}{$date}{logfile} = $logfile if -f $logfile;
     }
     close($fh)
 	or die "Close '$result' after reading failed: $!";
+    $d{$date}{pass} = $pass / $total if $total;
 }
 
 open(my $html, '>', "regress.html")
@@ -97,6 +101,13 @@ foreach my $date (@dates) {
     my $href = $setup ? "<a href=\"$setup\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$time\">$href$short$enda</th>\n";
+}
+print $html "  <tr>\n    <th>pass rate</th>\n";
+foreach my $date (@dates) {
+    my $pass = $d{$date}{pass};
+    my $percent = "";
+    $percent = sprintf("%d%%", 100 * $pass) if defined $pass;
+    print $html "    <th>$percent</th>\n";
 }
 print $html "  </tr>\n";
 
