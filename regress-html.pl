@@ -111,10 +111,11 @@ foreach my $date (@dates) {
 }
 print $html "  </tr>\n";
 
+my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/";
 my @tests = sort { $t{$b}{severity} <=> $t{$a}{severity} || $a cmp $b }
     keys %t;
 foreach my $test (@tests) {
-    print $html "  <tr>\n    <th>$test</th>\n";
+    print $html "  <tr>\n    <th><a href=\"$cvsweb$test/\">$test</a></th>\n";
     foreach my $date (@dates) {
 	my $status = $t{$test}{$date}{status} || "";
 	my $class = " class=\"result $status\"";
