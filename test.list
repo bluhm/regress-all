@@ -7,10 +7,8 @@ bin/pax
 bin/ps
 bin/test
 etc
-gnu/egcs/gcc
 gnu/egcs/gcc-bounds
 gnu/egcs/gcc-builtins
-gnu/egcs/libiberty
 include
 lib/csu
 lib/libc
