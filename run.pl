@@ -98,7 +98,7 @@ $dir = $regressdir;
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
-runcmd("bin/setup-html.pl", '-d', $date);
+runcmd("bin/setup-html.pl");
 runcmd("bin/regress-html.pl");
 
 $date = strftime("%FT%TZ", gmtime);
