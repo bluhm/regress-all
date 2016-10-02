@@ -44,7 +44,6 @@ sys/copy
 sys/crypto/aes
 sys/crypto/aesctr
 sys/crypto/aesxts
-sys/crypto/auth
 sys/crypto/chachapoly
 sys/crypto/cmac
 sys/crypto/enc
