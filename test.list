@@ -110,6 +110,7 @@ sys/kern/unalign
 sys/kern/unfdpass
 sys/kern/unixsock
 sys/kern/wait
+sys/net/etherip
 sys/net/pf_divert
 sys/net/pf_forward
 sys/net/pf_fragment
@@ -117,6 +118,7 @@ sys/net/pf_print
 sys/net/pflow
 sys/net/rdomains
 sys/net/rtable
+sys/net/vxlan
 sys/netinet/arp
 sys/netinet/autoport
 sys/netinet/broadcast_bind
