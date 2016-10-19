@@ -114,6 +114,7 @@ sys/net/pf_divert
 sys/net/pf_forward
 sys/net/pf_fragment
 sys/net/pf_print
+sys/net/pf_state
 sys/net/pflow
 sys/net/rdomains
 sys/net/rtable
