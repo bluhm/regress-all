@@ -122,6 +122,7 @@ sys/net/vxlan
 sys/netinet/arp
 sys/netinet/autoport
 sys/netinet/broadcast_bind
+sys/netinet/carp
 sys/netinet/in_pcbbind
 sys/netinet/pmtu
 sys/netinet/sendsrcaddr
