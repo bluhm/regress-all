@@ -60,9 +60,9 @@ sub bad($$$;$) {
 sub good($$;$) {
     my ($test, $difftime, $log) = @_;
     my $duration = sprintf("%dm%02.2f", $difftime / 60, fmod($difftime, 60));
-    print $log "\nPASS\t$test\t$duration\n" if $log;
-    print "\nPASS\t$test\t$duration\n\n" if $opts{v};
-    print $tr "PASS\t$test\t$duration\n";
+    print $log "\nPASS\t$test\tDuration $duration\n" if $log;
+    print "\nPASS\t$test\tDuration $duration\n\n" if $opts{v};
+    print $tr "PASS\t$test\tDuration $duration\n";
 }
 
 my @paxcmd = ('pax', '-wzf', "$dir/test.log.tgz", '-s,^/usr/src/regress/,,');
