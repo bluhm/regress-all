@@ -58,8 +58,8 @@ sub bad($$$;$) {
 }
 
 sub good($$;$) {
-    my ($test, $difftime, $log) = @_;
-    my $duration = sprintf("%dm%02.2fs", $difftime / 60, fmod($difftime, 60));
+    my ($test, $diff, $log) = @_;
+    my $duration = sprintf("%dm%02d.%02ds", $diff/60, $diff%60, 100*$diff%100);
     print $log "\nPASS\t$test\tDuration $duration\n" if $log;
     print "\nPASS\t$test\tDuration $duration\n\n" if $opts{v};
     print $tr "PASS\t$test\tDuration $duration\n";
