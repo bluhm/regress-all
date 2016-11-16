@@ -6,6 +6,7 @@ use Cwd;
 use File::Basename;
 use Getopt::Std;
 use POSIX;
+use Time::HiRes;
 
 my %opts;
 getopts('e:t:v', \%opts) or do {
@@ -56,11 +57,12 @@ sub bad($$$;$) {
     next;
 }
 
-sub good($;$) {
-    my ($test, $log) = @_;
-    print $log "\nPASS\t$test\n" if $log;
-    print "\nPASS\t$test\n\n" if $opts{v};
-    print $tr "PASS\t$test\n";
+sub good($$;$) {
+    my ($test, $difftime, $log) = @_;
+    my $duration = sprintf("%dm%02.2f", $difftime / 60, fmod($difftime, 60));
+    print $log "\nPASS\t$test\t$duration\n" if $log;
+    print "\nPASS\t$test\t$duration\n\n" if $opts{v};
+    print $tr "PASS\t$test\t$duration\n";
 }
 
 my @paxcmd = ('pax', '-wzf', "$dir/test.log.tgz", '-s,^/usr/src/regress/,,');
@@ -73,7 +75,8 @@ foreach my $test (@tests) {
     print $pax $paxlog if $paxlog;
     undef $paxlog;
 
-    my $date = strftime("%FT%TZ", gmtime);
+    my $begin = Time::HiRes::time();
+    my $date = strftime("%FT%TZ", gmtime($begin));
     print "\nSTART\t$test\t$date\n\n" if $opts{v};
 
     $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
@@ -137,7 +140,8 @@ foreach my $test (@tests) {
 
     bad $test, 'SKIP', "Test skipped itself", $log if $skipped;
     bad $test, 'FAIL', join(", ", @errors), $log if @errors;
-    good $test, $log;
+    my $end = Time::HiRes::time();
+    good $test, $end - $begin, $log;
 }
 
 print $pax $paxlog if $paxlog;
