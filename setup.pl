@@ -71,10 +71,10 @@ runcmd(@scpcmd);
 
 # cvs checkout
 
-logcmd('ssh', $opts{h},
-    "cd /usr && cvs -R -d /mount/openbsd/cvs co src");
-logcmd('ssh', $opts{h},
-    "cd /usr/src && make obj");
+logcmd('ssh', $opts{h}, "cd /usr && cvs -Rd /mount/openbsd/cvs co $_/Makefile")
+    foreach qw(src ports xenocara);
+logcmd('ssh', $opts{h}, "cd /usr/src && cvs -R up -PdA");
+logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
 
 # install packages
 
