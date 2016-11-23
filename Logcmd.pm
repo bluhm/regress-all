@@ -61,6 +61,7 @@ sub logcmd (@) {
 	}
 	_exit(126);
     }
+    local $_;
     while (<$out>) {
 	s/[^\s[:print:]]/_/g;
 	logmsg $_;
