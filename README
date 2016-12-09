@@ -17,3 +17,8 @@ setup.pl	- install one test machine,
 		  this is started by run.pl
 site.list	- list of config files that must be installed on test machine
 test.list	- list of /usr/src/regress subdirectories that should be tested
+
+Daily test results are published here:
+http://bluhm.genua.de/regress/results/regress.html
+
+Thanks to genua GmbH https://www.genua.de/ for sponsoring this work.
