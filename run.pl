@@ -11,8 +11,13 @@ use lib dirname($0);
 use Logcmd;
 
 my %opts;
-getopts('h:v', \%opts) or do {
-    print STDERR "usage: $0 [-v] -h host\n";
+getopts('h:sv', \%opts) or do {
+    print STDERR <<"EOF";
+usage: $0 [-sv] -h host
+    -h host	optional user and host for make regress, user defaults to root
+    -s		skip setup, host must already be installed
+    -v		verbose
+EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
@@ -40,13 +45,15 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 my $firsthost = $host;
 
-my @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
-push @setupcmd, '-v' if $opts{v};
-runcmd(@setupcmd);
-if ($host++) {
-    @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
+unless ($opts{s}) {
+    my @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
     push @setupcmd, '-v' if $opts{v};
     runcmd(@setupcmd);
+    if ($host++) {
+	@setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
+	push @setupcmd, '-v' if $opts{v};
+	runcmd(@setupcmd);
+    }
 }
 
 for ($host = $firsthost; $host; $host++) {
