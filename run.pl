@@ -98,6 +98,15 @@ close($pax) or die $! ?
 close($tr)
     or die "Close '$dir/test.result' after reading failed: $!";
 
+for ($host = $firsthost; $host; $host++) {
+    my $dmesg = "$dir/dmesg-$host.txt";
+    my $h = "$user\@$host";
+    if (system("ssh $h dmesg >$dmesg 2>/dev/null")) {
+	unlink $dmesg;
+	last;
+    }
+}
+
 # create html output
 
 $dir = $regressdir;
