@@ -58,7 +58,6 @@ unless ($opts{s}) {
 
 for ($host = $firsthost; $host; $host++) {
     my $version = "$dir/version-$host.txt";
-    next if -f $version;
     my $h = "$user\@$host";
     if (system("ssh $h sysctl kern.version hw.machine >$version 2>/dev/null")) {
 	unlink $version;
