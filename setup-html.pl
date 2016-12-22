@@ -45,11 +45,13 @@ foreach my $date (@dates) {
 	    /^hw.machine=(\w+)$/ and $arch = $1;
 	}
 	$time or next;
+	(my $dmesg = $version) =~ s,version,dmesg,;
 	$h{$host} = {
 	    version => $version,
 	    time    => $time,
 	    short   => $short,
 	    arch    => $arch,
+	    dmesg   => -f $dmesg ? $dmesg : undef,
 	};
 	$m{$host}++;
     }
@@ -101,6 +103,7 @@ foreach my $date (@dates) {
     print $html "    <th>version</th>\n";
     print $html "    <th>arch</th>\n";
     print $html "    <th>setup</th>\n";
+    print $html "    <th>dmesg</th>\n";
     print $html "  </tr>\n";
 
     foreach my $host (sort keys %h) {
@@ -110,6 +113,7 @@ foreach my $date (@dates) {
 	my $short = $h{$host}{short};
 	my $arch = encode_entities($h{$host}{arch}) || "";
 	my $setup = uri_escape($h{$host}{setup});
+	my $dmesg = uri_escape($h{$host}{dmesg});
 	if ($version) {
 	    print $html "    <td title=\"$time\">".
 		"<a href=\"$version\">$short</a></td>\n";
@@ -119,6 +123,11 @@ foreach my $date (@dates) {
 	print $html "    <td>$arch</td>\n";
 	if ($setup) {
 	    print $html "    <td><a href=\"$setup\">log</a></td>\n";
+	} else {
+	    print $html "    <td></td>\n";
+	}
+	if ($dmesg) {
+	    print $html "    <td><a href=\"$dmesg\">dmesg</a></td>\n";
 	} else {
 	    print $html "    <td></td>\n";
 	}
