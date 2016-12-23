@@ -41,8 +41,18 @@ sub runcmd (@) {
 }
 
 sub logcmd (@) {
-    my @cmd = @_;
+    my (@cmd, $outfile);
+    if (ref($_[0])) {
+	my %args = %{$_[0]};
+	@cmd = ref($args{cmd}) ? @{$args{cmd}} : $args{cmd};
+	$outfile = $args{outfile};
+    } else {
+	@cmd = @_;
+    }
     logmsg "Command '@cmd' started\n";
+    open(my $fh, '>', $outfile)
+	or croak "Open file '$outfile' for writing failed: $!"
+	if $outfile;
     defined(my $pid = open(my $out, '-|'))
 	or croak "Open pipe from '@cmd' failed: $!";
     if ($pid == 0) {
@@ -52,6 +62,9 @@ sub logcmd (@) {
 	    or carp "Redirect stdin to /dev/null failed: $!";
 	open(STDERR, '>&', \*STDOUT)
 	    or carp "Redirect stderr to stdout failed: $!";
+	open(STDOUT, '>&', $fh)
+	    or carp "Redirect stdout to file failed: $!"
+	    if $outfile;
 	setsid()
 	    or carp "Setsid $$ failed: $!";
 	{
