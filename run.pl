@@ -60,7 +60,7 @@ for ($host = $firsthost; $host; $host++) {
     my $h = "$user\@$host";
     my $version = "$dir/version-$host.txt";
     eval { logcmd({
-	cmd => ('ssh', $h, 'sysctl', 'kern.version', 'hw.machine'),
+	cmd => ['ssh', $h, 'sysctl', 'kern.version', 'hw.machine'],
 	outfile => $version,
     })};
     if ($@) {
@@ -69,7 +69,7 @@ for ($host = $firsthost; $host; $host++) {
     }
     my $dmesg = "$dir/dmesg-boot-$host.txt";
     eval { logcmd({
-	cmd => ('ssh', $h, 'cat', '/var/run/dmesg.boot'),
+	cmd => ['ssh', $h, 'cat', '/var/run/dmesg.boot'],
 	outfile => $dmesg,
     })};
     if ($@) {
@@ -117,7 +117,7 @@ for ($host = $firsthost; $host; $host++) {
     my $h = "$user\@$host";
     my $dmesg = "$dir/dmesg-$host.txt";
     eval { logcmd({
-	cmd => ('ssh', $h, 'dmesg'),
+	cmd => ['ssh', $h, 'dmesg'],
 	outfile => $dmesg,
     })};
     if ($@) {
