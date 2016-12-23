@@ -57,11 +57,15 @@ unless ($opts{s}) {
 }
 
 for ($host = $firsthost; $host; $host++) {
-    my $version = "$dir/version-$host.txt";
     my $h = "$user\@$host";
+    my $version = "$dir/version-$host.txt";
     if (system("ssh $h sysctl kern.version hw.machine >$version")) {
 	unlink $version;
 	last;
+    }
+    my $dmesg = "$dir/dmesg-boot-$host.txt";
+    if (system("ssh $h cat /var/run/dmesg.boot >$dmesg")) {
+	unlink $dmesg;
     }
 }
 
@@ -103,8 +107,8 @@ chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
 for ($host = $firsthost; $host; $host++) {
-    my $dmesg = "$dir/dmesg-$host.txt";
     my $h = "$user\@$host";
+    my $dmesg = "$dir/dmesg-$host.txt";
     if (system("ssh $h dmesg >$dmesg")) {
 	unlink $dmesg;
 	last;
