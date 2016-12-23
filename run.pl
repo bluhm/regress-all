@@ -59,7 +59,7 @@ unless ($opts{s}) {
 for ($host = $firsthost; $host; $host++) {
     my $version = "$dir/version-$host.txt";
     my $h = "$user\@$host";
-    if (system("ssh $h sysctl kern.version hw.machine >$version 2>/dev/null")) {
+    if (system("ssh $h sysctl kern.version hw.machine >$version")) {
 	unlink $version;
 	last;
     }
@@ -101,7 +101,7 @@ close($tr)
 for ($host = $firsthost; $host; $host++) {
     my $dmesg = "$dir/dmesg-$host.txt";
     my $h = "$user\@$host";
-    if (system("ssh $h dmesg >$dmesg 2>/dev/null")) {
+    if (system("ssh $h dmesg >$dmesg")) {
 	unlink $dmesg;
 	last;
     }
