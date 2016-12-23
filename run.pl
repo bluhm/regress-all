@@ -110,9 +110,8 @@ close($pax) or die $! ?
 close($tr)
     or die "Close '$dir/test.result' after reading failed: $!";
 
-$dir = $regressdir;
-chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+chdir($regressdir)
+    or die "Chdir to '$regressdir' failed: $!";
 
 for ($host = $firsthost; $host; $host++) {
     my $h = "$user\@$host";
