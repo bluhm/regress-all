@@ -59,12 +59,20 @@ unless ($opts{s}) {
 for ($host = $firsthost; $host; $host++) {
     my $h = "$user\@$host";
     my $version = "$dir/version-$host.txt";
-    if (system("ssh $h sysctl kern.version hw.machine >$version")) {
+    eval { logcmd({
+	cmd => ('ssh', $h, 'sysctl', 'kern.version', 'hw.machine'),
+	outfile => $version,
+    })};
+    if ($@) {
 	unlink $version;
 	last;
     }
     my $dmesg = "$dir/dmesg-boot-$host.txt";
-    if (system("ssh $h cat /var/run/dmesg.boot >$dmesg")) {
+    eval { logcmd({
+	cmd => ('ssh', $h, 'cat', '/var/run/dmesg.boot'),
+	outfile => $dmesg,
+    })};
+    if ($@) {
 	unlink $dmesg;
     }
 }
@@ -109,7 +117,11 @@ chdir($dir)
 for ($host = $firsthost; $host; $host++) {
     my $h = "$user\@$host";
     my $dmesg = "$dir/dmesg-$host.txt";
-    if (system("ssh $h dmesg >$dmesg")) {
+    eval { logcmd({
+	cmd => ('ssh', $h, 'dmesg'),
+	outfile => $dmesg,
+    })};
+    if ($@) {
 	unlink $dmesg;
 	last;
     }

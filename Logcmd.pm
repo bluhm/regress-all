@@ -74,6 +74,7 @@ sub logcmd (@) {
 	}
 	_exit(126);
     }
+    close($fh) if $outfile;
     local $_;
     while (<$out>) {
 	s/[^\s[:print:]]/_/g;
