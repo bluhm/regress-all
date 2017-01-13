@@ -79,6 +79,7 @@ sys/kern/mmap
 sys/kern/mmap-fail
 sys/kern/mmap2
 sys/kern/mmap3
+sys/kern/mount
 sys/kern/nanosleep
 sys/kern/noexec
 sys/kern/pledge
@@ -131,6 +132,7 @@ sys/netinet6/frag6
 sys/netinet6/nd6
 sys/netinet6/pktinfo_addr
 sys/netinet6/rh0
+sys/nfs
 sys/ptrace
 sys/sys/tree
 sys/uvm/minherit_zero
