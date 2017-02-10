@@ -2,6 +2,7 @@
 /etc/hostname.*
 /etc/hosts.site
 /etc/inetd.conf
+/etc/mk.conf
 /etc/mygate
 /etc/myname
 /etc/ntpd.conf
