@@ -1,5 +1,6 @@
 git
 go
+openldap-client
 p5-AnyEvent
 p5-BSD-Resource
 p5-BSD-Socket-Splice
