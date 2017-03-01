@@ -2,12 +2,12 @@
 /etc/hostname.*
 /etc/hosts.site
 /etc/inetd.conf
+/etc/installurl
 /etc/mk.conf
 /etc/mygate
 /etc/myname
 /etc/ntpd.conf
 /etc/pf.conf
-/etc/pkg.conf
 /etc/rc.conf.local
 /etc/rc.firsttime
 /etc/resolv.conf
