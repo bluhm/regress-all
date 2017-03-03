@@ -8,6 +8,7 @@ p5-Crypt-Random
 p5-Hash-Merge
 p5-IO-Socket-INET6
 p5-IO-Socket-SSL
+p5-Net-Flow
 p5-Net-Pcap
 p5-NetPacket
 p5-YAML
