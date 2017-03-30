@@ -79,7 +79,8 @@ logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
 # install packages
 
 eval {
-    logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list", '-Ivx')
+    logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list", '-Ivx',
+	'-Dsnap')
 	if -f "pkg-$host.list";
 };
 logmsg "WARNING: command failed\n" if $@;
