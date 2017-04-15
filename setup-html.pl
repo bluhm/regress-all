@@ -158,8 +158,9 @@ $dir = "$regressdir/results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
-open(my $html, '>', "run.html")
-    or die "Open 'run.html' for writing failed: $!";
+unlink("run.html.new");
+open(my $html, '>', "run.html.new")
+    or die "Open 'run.html.new' for writing failed: $!";
 print $html "<!DOCTYPE html>\n";
 print $html "<html>\n";
 print $html "<head>\n";
@@ -205,4 +206,6 @@ print $html "</body>\n";
 
 print $html "</html>\n";
 close($html)
-    or die "Close 'run.html' after writing failed: $!";
+    or die "Close 'run.html.new' after writing failed: $!";
+rename("run.html.new", "run.html")
+    or die "Rename 'run.html.new' to 'run.html' failed: $!";
