@@ -162,3 +162,8 @@ close($html)
     or die "Close 'regress.html.new' after writing failed: $!";
 rename("regress.html.new", "regress.html")
     or die "Rename 'regress.html.new' to 'regress.html' failed: $!";
+
+system("gzip -f -c regress.html >regress.html.gz.new")
+    and die "gzip regress.html failed: $?";
+rename("regress.html.gz.new", "regress.html.gz")
+    or die "Rename 'regress.html.new.gz' to 'regress.html.gz' failed: $!";
