@@ -60,8 +60,9 @@ foreach my $result (@results) {
     $d{$date}{pass} = $pass / $total if $total;
 }
 
-open(my $html, '>', "regress.html")
-    or die "Open 'regress.html' for writing failed: $!";
+unlink("regress.html.new");
+open(my $html, '>', "regress.html.new")
+    or die "Open 'regress.html.new' for writing failed: $!";
 print $html "<!DOCTYPE html>\n";
 print $html "<html>\n";
 print $html "<head>\n";
@@ -158,4 +159,6 @@ print $html "</body>\n";
 
 print $html "</html>\n";
 close($html)
-    or die "Close 'regress.html' after writing failed: $!";
+    or die "Close 'regress.html.new' after writing failed: $!";
+rename("regress.html.new", "regress.html")
+    or die "Rename 'regress.html.new' to 'regress.html' failed: $!";
