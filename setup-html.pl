@@ -63,8 +63,9 @@ foreach my $date (@dates) {
     }
     $d{$date}{host} = \%h;
 
-    open(my $html, '>', "setup.html")
-	or die "Open 'setup.html' for writing failed: $!";
+    unlink("setup.html.new");
+    open(my $html, '>', "setup.html.new")
+	or die "Open 'setup.html.new' for writing failed: $!";
     print $html "<!DOCTYPE html>\n";
     print $html "<html>\n";
     print $html "<head>\n";
@@ -146,7 +147,9 @@ foreach my $date (@dates) {
 
     print $html "</html>\n";
     close($html)
-	or die "Close 'setup.html' after writing failed: $!";
+	or die "Close 'setup.html.new' after writing failed: $!";
+    rename("setup.html.new", "setup.html")
+	or die "Rename 'setup.html.new' to 'setup.html' failed: $!";
 }
 
 exit if $opts{d};
