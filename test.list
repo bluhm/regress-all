@@ -79,6 +79,7 @@ sys/kern/mmap
 sys/kern/mmap-fail
 sys/kern/mmap2
 sys/kern/mmap3
+sys/kern/mount
 sys/kern/nanosleep
 sys/kern/noexec
 sys/kern/pledge
@@ -115,6 +116,7 @@ sys/net/pf_forward
 sys/net/pf_fragment
 sys/net/pf_print
 sys/net/pf_state
+sys/net/pf_table
 sys/net/pflow
 sys/net/rdomains
 sys/net/rtable
