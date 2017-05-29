@@ -53,6 +53,7 @@ sys/ddb
 sys/dev/fdesc
 sys/dev/video
 sys/ffs
+sys/fileops
 sys/fifofs
 sys/kern/__syscall
 sys/kern/accept
