@@ -168,6 +168,7 @@ usr.bin/ftp
 usr.bin/grep
 usr.bin/gzip
 usr.bin/jot
+usr.bin/lastcomm
 usr.bin/libtool
 usr.bin/m4
 usr.bin/make
