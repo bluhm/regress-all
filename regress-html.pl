@@ -23,7 +23,8 @@ my @results = sort glob("*/test.result");
 
 my (%t, %d);
 foreach my $result (@results) {
-    my ($date, $short) = $result =~ m,((.+)T.+)/test.result,;
+    my ($date, $short) = $result =~ m,((.+)T.+)/test.result,
+	or next;
     $d{$date} = {
 	short => $short,
 	result => $result,
