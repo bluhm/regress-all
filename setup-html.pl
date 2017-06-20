@@ -14,7 +14,7 @@ my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
 getopts('d:', \%opts) or do {
-    print STDERR "usage: $0 -d date\n";
+    print STDERR "usage: $0 [-d date]\n";
     exit(2);
 };
 
