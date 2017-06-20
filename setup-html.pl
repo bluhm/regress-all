@@ -26,7 +26,7 @@ $dir = "results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
-my @dates = $opts{d} || map { dirname($_) } glob("*/run.log");
+my @dates = $opts{d} || grep { m/T/ } map { dirname($_) } glob("*/run.log");
 my (%d, %m);
 foreach my $date (@dates) {
     $dir = "$regressdir/results/$date";
