@@ -35,6 +35,9 @@ $dir = "results";
 $dir .= "/$date";
 mkdir $dir
     or die "Make directory '$dir' failed: $!";
+unlink("results/current");
+symlink($date, "results/current")
+    or die "Make symlink 'results/current' failed: $!";
 
 createlog(file => "$dir/run.log", verbose => $opts{v});
 logmsg("script $0 started at $date\n");
@@ -131,5 +134,8 @@ for ($host = $firsthost; $host; $host++) {
 runcmd("bin/setup-html.pl");
 runcmd("bin/regress-html.pl");
 
+unlink("results/latest");
+symlink($date, "results/latest")
+    or die "Make symlink 'results/latest' failed: $!";
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script $0 finished at $date\n");
