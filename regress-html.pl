@@ -6,10 +6,17 @@ use warnings;
 use Cwd;
 use File::Basename;
 use HTML::Entities;
+use Getopt::Std;
 use POSIX;
 use URI::Escape;
 
 my $now = strftime("%FT%TZ", gmtime);
+
+my %opts;
+getopts('l', \%opts) or do {
+    print STDERR "usage: $0 [-l]\n";
+    exit(2);
+};
 
 my $dir = dirname($0). "/..";
 chdir($dir)
@@ -19,7 +26,16 @@ $dir = "results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
-my @results = sort glob("*/test.result");
+my @results;
+if ($opts{l}) {
+    -f "latest/test.result"
+	or die "No latest test.result";
+    my $date = readlink("latest")
+	or die "Readlink 'latest' failed: $!";
+    @results = "$date/test.result";
+} else {
+    @results = sort glob("*/test.result");
+}
 
 my (%t, %d);
 foreach my $result (@results) {
@@ -61,13 +77,15 @@ foreach my $result (@results) {
     $d{$date}{pass} = $pass / $total if $total;
 }
 
-unlink("regress.html.new");
-open(my $html, '>', "regress.html.new")
-    or die "Open 'regress.html.new' for writing failed: $!";
+my $htmlfile = $opts{l} ? "latest.html" : "regress.html";
+unlink("$htmlfile.new");
+open(my $html, '>', "$htmlfile.new")
+    or die "Open '$htmlfile.new' for writing failed: $!";
 print $html "<!DOCTYPE html>\n";
 print $html "<html>\n";
 print $html "<head>\n";
-print $html "  <title>OpenBSD Regress Results</title>\n";
+my $htmltitle = $opts{l} ? "Latest" : "Test";
+print $html "  <title>OpenBSD Regress $htmltitle Results</title>\n";
 print $html "  <style>\n";
 print $html "    th { text-align: left; white-space: nowrap; }\n";
 print $html "    tr:hover {background-color: #e0e0e0}\n";
@@ -83,7 +101,8 @@ print $html "  </style>\n";
 print $html "</head>\n";
 
 print $html "<body>\n";
-print $html "<h1>OpenBSD regress tests</h1>\n";
+my $bodytitle = $opts{l} ? "latest" : "all";
+print $html "<h1>OpenBSD regress $bodytitle test results</h1>\n";
 print $html "<table>\n";
 print $html "  <tr>\n    <th>created at</th>\n";
 print $html "    <td>$now</td>\n";
@@ -160,11 +179,11 @@ print $html "</body>\n";
 
 print $html "</html>\n";
 close($html)
-    or die "Close 'regress.html.new' after writing failed: $!";
-rename("regress.html.new", "regress.html")
-    or die "Rename 'regress.html.new' to 'regress.html' failed: $!";
+    or die "Close '$htmlfile.new' after writing failed: $!";
+rename("$htmlfile.new", "$htmlfile")
+    or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
 
-system("gzip -f -c regress.html >regress.html.gz.new")
-    and die "gzip regress.html failed: $?";
-rename("regress.html.gz.new", "regress.html.gz")
-    or die "Rename 'regress.html.new.gz' to 'regress.html.gz' failed: $!";
+system("gzip -f -c $htmlfile >$htmlfile.gz.new")
+    and die "gzip $htmlfile failed: $?";
+rename("$htmlfile.gz.new", "$htmlfile.gz")
+    or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
