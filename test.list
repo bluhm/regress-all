@@ -191,6 +191,7 @@ usr.bin/tsort
 usr.bin/ul
 usr.bin/wc
 usr.bin/xargs
+usr.sbin/acme-client
 usr.sbin/arp
 usr.sbin/httpd
 usr.sbin/ldapd

@@ -16,3 +16,5 @@ sub wanted {
     }
     $prevdir = $File::Find::dir;
 }
+$prevdir =~ s{^/usr/src/regress/}{};
+print $prevdir, "\n" if $prevdir;
