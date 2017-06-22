@@ -1,5 +1,6 @@
 bin/cat
 bin/chmod
+bin/csh
 bin/ksh
 bin/ln
 bin/md5
@@ -53,8 +54,8 @@ sys/ddb
 sys/dev/fdesc
 sys/dev/video
 sys/ffs
-sys/fileops
 sys/fifofs
+sys/fileops
 sys/kern/__syscall
 sys/kern/accept
 sys/kern/access
@@ -68,6 +69,7 @@ sys/kern/extent
 sys/kern/fchdir
 sys/kern/fcntl_dup
 sys/kern/flock
+sys/kern/futex
 sys/kern/getpeereid
 sys/kern/getrusage
 sys/kern/gettimeofday
@@ -96,8 +98,8 @@ sys/kern/rlimit-file
 sys/kern/setuid
 sys/kern/sig-stop
 sys/kern/siginfo-fault
-sys/kern/signal
 sys/kern/signal-stress
+sys/kern/signal
 sys/kern/sigpending
 sys/kern/sigprof
 sys/kern/sigsuspend
