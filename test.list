@@ -16,6 +16,7 @@ lib/libc
 lib/libcrypto
 lib/libedit
 lib/libevent
+lib/libexpat
 lib/libfuse
 lib/libm
 lib/libpthread
@@ -98,8 +99,8 @@ sys/kern/rlimit-file
 sys/kern/setuid
 sys/kern/sig-stop
 sys/kern/siginfo-fault
-sys/kern/signal-stress
 sys/kern/signal
+sys/kern/signal-stress
 sys/kern/sigpending
 sys/kern/sigprof
 sys/kern/sigsuspend
