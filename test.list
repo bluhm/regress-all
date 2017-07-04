@@ -176,7 +176,6 @@ usr.bin/libtool
 usr.bin/m4
 usr.bin/make
 usr.bin/mandoc
-usr.bin/mdoclint
 usr.bin/openssl
 usr.bin/patch
 usr.bin/pkg-config
