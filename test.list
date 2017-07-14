@@ -195,6 +195,7 @@ usr.bin/xargs
 usr.sbin/acme-client
 usr.sbin/arp
 usr.sbin/httpd
+usr.sbin/ifstated
 usr.sbin/ldapd
 usr.sbin/mtree
 usr.sbin/ospfd
