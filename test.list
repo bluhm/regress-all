@@ -30,7 +30,6 @@ libexec/ld.so
 misc/X11
 misc/c++abi
 misc/exceptions
-misc/objc
 misc/sse2
 sbin/iked
 sbin/ipsecctl
