@@ -1,5 +1,6 @@
 git
 go
+net-snmp
 openldap-client--
 p5-AnyEvent
 p5-BSD-Resource
