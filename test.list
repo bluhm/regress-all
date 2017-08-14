@@ -156,6 +156,7 @@ usr.bin/calendar
 usr.bin/cap_mkdb
 usr.bin/colrm
 usr.bin/column
+usr.bin/ctfdump
 usr.bin/cut
 usr.bin/cvs
 usr.bin/dc
