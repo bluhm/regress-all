@@ -6,6 +6,7 @@ p5-AnyEvent
 p5-BSD-Resource
 p5-BSD-Socket-Splice
 p5-Crypt-Random
+p5-File-Slurp
 p5-Hash-Merge
 p5-IO-Socket-INET6
 p5-IO-Socket-SSL
