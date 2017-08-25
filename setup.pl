@@ -39,7 +39,8 @@ runcmd("$regressdir/bin/setup-html.pl");
 
 # pxe install machine
 
-logcmd('ssh', "$host\@10.0.1.1", 'setup');
+# XXX explicit IP address in source code
+logcmd('ssh', "$host\@10.0.1.4", 'setup');
 
 # get version information
 
