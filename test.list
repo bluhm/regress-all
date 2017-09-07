@@ -129,6 +129,7 @@ sys/netinet/arp
 sys/netinet/autoport
 sys/netinet/broadcast_bind
 sys/netinet/carp
+sys/netinet/frag
 sys/netinet/in_pcbbind
 sys/netinet/ipsec
 sys/netinet/pmtu
