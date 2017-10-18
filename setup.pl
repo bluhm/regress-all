@@ -12,12 +12,25 @@ use lib dirname($0);
 use Logcmd;
 
 my %opts;
-getopts('d:h:v', \%opts) or do {
-    print STDERR "usage: $0 [-v] [-d date] -h host\n";
+getopts('d:h:vbciku', \%opts) or do {
+    print STDERR "usage: $0 [-v] [-d date] -h host -[b|c|i|k|u]\n". <<EOF;
+	-b	build system from source
+	-c	cvs update
+	-i	install from snapshot (default)
+	-k	build kernel from source
+	-u	upgrade with snapshot
+EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
 my $date = $opts{d};
+
+my %mode;
+foreach (qw(build cvs install kernel upgrade)) {
+    $mode{$_} = 1 if $opts{substr($_,0,1)};
+}
+$mode{install} = 1 unless keys %mode;
+keys %mode == 1 or die "Not exactly one setup mode b c i k u given";
 
 my $dir = dirname($0). "/..";
 chdir($dir)
