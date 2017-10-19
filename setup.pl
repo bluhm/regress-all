@@ -93,6 +93,11 @@ sub upgrade_pxe {
     logcmd('ssh', "$host\@$testmaster", "upgrade");
 }
 
+# reboot machine
+
+sub reboot {
+    logcmd('ssh', "$host\@$testmaster", "reboot");
+}
 # get version information
 
 sub get_version {
