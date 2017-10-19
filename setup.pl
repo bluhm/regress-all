@@ -42,14 +42,14 @@ foreach (qw(install upgrade)) {
     die "Mode be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
 
-my $dir = dirname($0). "/..";
-chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
-my $regressdir = getcwd();
-$dir = "results";
-$dir .= "/$date" if $date;
-chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+my $regressdir = dirname($0). "/..";
+chdir($regressdir)
+    or die "Chdir to '$regressdir' failed: $!";
+$regressdir = getcwd();
+my $resultdir = "$regressdir/results";
+$resultdir .= "/$date" if $date;
+chdir($resultdir)
+    or die "Chdir to '$resultdir' failed: $!";
 
 (my $host = $opts{h}) =~ s/.*\@//;
 createlog(file => "setup-$host.log", verbose => $opts{v});
@@ -129,9 +129,9 @@ sub get_version {
 
 sub copy_scripts {
     runcmd('ssh', $opts{h}, 'mkdir', '-p', '/root/regress');
-    $dir = "$regressdir/bin";
-    chdir($dir)
-	or die "Chdir to '$dir' failed: $!";
+    my $bindir = "$regressdir/bin";
+    chdir($bindir)
+	or die "Chdir to '$bindir' failed: $!";
     my @copy = grep { -f $_ }
 	("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list",
 	"site.list");
@@ -139,6 +139,8 @@ sub copy_scripts {
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$opts{h}:/root/regress");
     runcmd(@scpcmd);
+    chdir($resultdir)
+	or die "Chdir to '$resultdir' failed: $!";
 }
 
 # cvs checkout
