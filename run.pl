@@ -63,7 +63,7 @@ for ($host = $firsthost; $host; $host++) {
     my $h = "$user\@$host";
     my $version = "$dir/version-$host.txt";
     eval { logcmd({
-	cmd => ['ssh', $h, 'sysctl', 'kern.version', 'hw.machine'],
+	cmd => ['ssh', $h, 'sysctl', 'kern.version', 'hw.machine', 'hw.ncpu'],
 	outfile => $version,
     })};
     if ($@) {
