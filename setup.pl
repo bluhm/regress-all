@@ -13,24 +13,31 @@ use Logcmd;
 
 my %opts;
 getopts('d:h:vbciku', \%opts) or do {
-    print STDERR "usage: $0 [-v] [-d date] -h host -[b|c|i|k|u]\n". <<EOF;
-	-b	build system from source
-	-c	cvs update
-	-i	install from snapshot (default)
-	-k	build kernel from source
-	-u	upgrade with snapshot
+    print STDERR <<"EOF";
+usage: $0 [-v] [-d date] -h host [mode ...]
+    -v		verbose
+    -d date	set date string and change to sub directory
+    -h host	root\@openbsd-test-machine, login per ssh
+    build	build system from source /usr/src
+    cvs		cvs update /usr/src and make obj
+    install	install from snapshot (default)
+    sys		build kernel from source /usr/src/sys
+    upgrade	upgrade with snapshot
 EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
 my $date = $opts{d};
 
-my %mode;
-foreach (qw(build cvs install kernel upgrade)) {
-    $mode{$_} = 1 if $opts{substr($_,0,1)};
+my %allmodes;
+@allmodes{qw(build cvs install sys upgrade)} = ();
+my %mode = map {
+    die "Unknown mode: $_" unless exists $allmodes{$_};
+    $_ => 1;
+} @ARGV ? @ARGV : "install";
+foreach (qw(install upgrade)) {
+    die "Mode be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
-$mode{install} = 1 unless keys %mode;
-keys %mode == 1 or die "Not exactly one setup mode b c i k u given";
 
 my $dir = dirname($0). "/..";
 chdir($dir)
