@@ -11,6 +11,9 @@ use POSIX;
 use lib dirname($0);
 use Logcmd;
 
+# XXX explicit IP address in source code
+my $testmaster="10.0.1.4";
+
 my %opts;
 getopts('d:h:vbciku', \%opts) or do {
     print STDERR <<"EOF";
@@ -59,11 +62,19 @@ runcmd("$regressdir/bin/setup-html.pl");
 
 # execute commands
 
-install_pxe();
+my %sysctl;
+
+install_pxe() if $mode{install};
+upgrade_pxe() if $mode{upgrade};
 get_version();
 copy_scripts();
-checkout_cvs();
-install_packages();
+checkout_cvs() if $mode{install};
+update_cvs() if $mode{upgrade} || $mode{cvs};
+make_kernel() if $mode{kernel};
+make_build() if $mode{build};
+reboot() if $mode{kernel} || $mode{build};
+get_version() if $mode{kernel} || $mode{build};
+install_packages() if $mode{install} || $mode{upgrade};
 
 # finish setup log
 
@@ -75,21 +86,35 @@ exit;
 # pxe install machine
 
 sub install_pxe {
-    # XXX explicit IP address in source code
-    logcmd('ssh', "$host\@10.0.1.4", "install");
+    logcmd('ssh', "$host\@$testmaster", "install");
+}
+
+sub upgrade_pxe {
+    logcmd('ssh', "$host\@$testmaster", "upgrade");
 }
 
 # get version information
 
 sub get_version {
-    my @sshcmd = ('ssh', $opts{h}, 'sysctl', 'kern.version', 'hw.machine');
+    my @sshcmd = (('ssh', $opts{h}, 'sysctl'),
+	qw(kern.version hw.machine hw.ncpu));
     logmsg "Command '@sshcmd' started\n";
-    open(my $sysctl, '-|', @sshcmd)
+    open(my $ctl, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
     open(my $version, '>', "version-$host.txt")
 	or die "Open 'version-$host.txt' for writing failed: $!";
-    print $version (<$sysctl>);
-    close($sysctl) or die $! ?
+    %sysctl = ();
+    my $prevkey;
+    while (defined(local $_ = <$ctl>)) {
+	if (m{^([\w.]+)=(.*)}) {
+	    $sysctl{$1} = $2;
+	    $prevkey = $1;
+	} else {
+	    $sysctl{$prevkey} .= "\n$_";
+	}
+	print $version $_;
+    }
+    close($ctl) or die $! ?
 	"Close pipe from '@sshcmd' failed: $!" :
 	"Command '@sshcmd' failed: $?";
     logmsg "Command '@sshcmd' finished\n";
@@ -118,8 +143,32 @@ sub checkout_cvs {
 	logcmd('ssh', $opts{h},
 	    "cd /usr && cvs -Rd /mount/openbsd/cvs co $_/Makefile")
     }
+    update_cvs();
+}
+
+sub update_cvs {
     logcmd('ssh', $opts{h}, "cd /usr/src && cvs -R up -PdA");
     logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
+}
+
+# make /usr/src
+
+sub make_kernel {
+    my $version = $sysctl{'kern.version'};
+    $version =~ m{:/usr/srs/sys/([\w.]+)$}m
+	or die "No kernel path in version: $version";
+    my $path = $1;
+    my $ncpu = $sysctl{'hw.ncpu'};
+    my $jflag = $ncpu > 1 ? "-j $ncpu" : "";
+    logcmd('ssh', $opts{h}, "cd /usr/src/sys/$path && make config");
+    logcmd('ssh', $opts{h}, "cd /usr/src/sys/$path && nice make $jflag");
+    logcmd('ssh', $opts{h}, "cd /usr/src/sys/$path && make install");
+}
+
+sub make_build {
+    my $ncpu = $sysctl{'hw.ncpu'};
+    my $jflag = $ncpu > 1 ? "-j $ncpu" : "";
+    logcmd('ssh', $opts{h}, "cd /usr/src && nice make $jflag build");
 }
 
 # install packages
