@@ -150,11 +150,12 @@ sub checkout_cvs {
 	logcmd('ssh', $opts{h},
 	    "cd /usr && cvs -Rd /mount/openbsd/cvs co $_/Makefile")
     }
-    update_cvs();
+    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -R up -PdA");
+    logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
 }
 
 sub update_cvs {
-    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -R up -PdA");
+    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -qR up -PdA");
     logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
 }
 
