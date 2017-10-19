@@ -164,7 +164,7 @@ sub make_kernel {
 	or die "No kernel path in version: $version";
     my $path = $1;
     my $ncpu = $sysctl{'hw.ncpu'};
-    my $jflag = $ncpu > 1 ? "-j $ncpu" : "";
+    my $jflag = $ncpu > 1 ? "-j ".($ncpu+1) : "";
     logcmd('ssh', $opts{h}, "cd /usr/src/sys/$path && make config");
     logcmd('ssh', $opts{h}, "cd /usr/src/sys/$path && nice make $jflag");
     logcmd('ssh', $opts{h}, "cd /usr/src/sys/$path && make install");
@@ -172,7 +172,7 @@ sub make_kernel {
 
 sub make_build {
     my $ncpu = $sysctl{'hw.ncpu'};
-    my $jflag = $ncpu > 1 ? "-j $ncpu" : "";
+    my $jflag = $ncpu > 1 ? "-j ".($ncpu+1) : "";
     logcmd('ssh', $opts{h}, "cd /usr/src && nice make $jflag build");
 }
 
