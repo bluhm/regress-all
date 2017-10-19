@@ -24,7 +24,7 @@ usage: $0 [-v] [-d date] -h host [mode ...]
     build	build system from source /usr/src
     cvs		cvs update /usr/src and make obj
     install	install from snapshot (default)
-    sys		build kernel from source /usr/src/sys
+    kernel	build kernel from source /usr/src/sys
     upgrade	upgrade with snapshot
 EOF
     exit(2);
@@ -33,7 +33,7 @@ $opts{h} or die "No -h specified";
 my $date = $opts{d};
 
 my %allmodes;
-@allmodes{qw(build cvs install sys upgrade)} = ();
+@allmodes{qw(build cvs install kernel upgrade)} = ();
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
     $_ => 1;
