@@ -50,54 +50,81 @@ logmsg("script $0 started at $date\n");
 
 runcmd("$regressdir/bin/setup-html.pl");
 
-# pxe install machine
+# execute commands
 
-# XXX explicit IP address in source code
-logcmd('ssh', "$host\@10.0.1.4", 'setup');
+install_pxe();
+get_version();
+copy_scripts();
+checkout_cvs();
+install_packages();
 
-# get version information
-
-my @sshcmd = ('ssh', $opts{h}, 'sysctl', 'kern.version', 'hw.machine');
-logmsg "Command '@sshcmd' started\n";
-open(my $sysctl, '-|', @sshcmd)
-    or die "Open pipe from '@sshcmd' failed: $!";
-open(my $version, '>', "version-$host.txt")
-    or die "Open 'version-$host.txt' for writing failed: $!";
-print $version (<$sysctl>);
-close($sysctl) or die $! ?
-    "Close pipe from '@sshcmd' failed: $!" :
-    "Command '@sshcmd' failed: $?";
-logmsg "Command '@sshcmd' finished\n";
-
-# copy scripts
-
-runcmd('ssh', $opts{h}, 'mkdir', '-p', '/root/regress');
-
-$dir = "$regressdir/bin";
-chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
-my @copy = grep { -f $_ }
-    ("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list", "site.list");
-my @scpcmd = ('scp');
-push @scpcmd, '-q' unless $opts{v};
-push @scpcmd, (@copy, "$opts{h}:/root/regress");
-runcmd(@scpcmd);
-
-# cvs checkout
-
-logcmd('ssh', $opts{h}, "cd /usr && cvs -Rd /mount/openbsd/cvs co $_/Makefile")
-    foreach qw(src ports xenocara);
-logcmd('ssh', $opts{h}, "cd /usr/src && cvs -R up -PdA");
-logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
-
-# install packages
-
-eval {
-    logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list", '-Ivx',
-	'-Dsnap')
-	if -f "pkg-$host.list";
-};
-logmsg "WARNING: command failed\n" if $@;
+# finish setup log
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script $0 finished at $date\n");
+
+exit;
+
+# pxe install machine
+
+sub install_pxe {
+    # XXX explicit IP address in source code
+    logcmd('ssh', "$host\@10.0.1.4", "install");
+}
+
+# get version information
+
+sub get_version {
+    my @sshcmd = ('ssh', $opts{h}, 'sysctl', 'kern.version', 'hw.machine');
+    logmsg "Command '@sshcmd' started\n";
+    open(my $sysctl, '-|', @sshcmd)
+	or die "Open pipe from '@sshcmd' failed: $!";
+    open(my $version, '>', "version-$host.txt")
+	or die "Open 'version-$host.txt' for writing failed: $!";
+    print $version (<$sysctl>);
+    close($sysctl) or die $! ?
+	"Close pipe from '@sshcmd' failed: $!" :
+	"Command '@sshcmd' failed: $?";
+    logmsg "Command '@sshcmd' finished\n";
+}
+
+# copy scripts
+
+sub copy_scripts {
+    runcmd('ssh', $opts{h}, 'mkdir', '-p', '/root/regress');
+    $dir = "$regressdir/bin";
+    chdir($dir)
+	or die "Chdir to '$dir' failed: $!";
+    my @copy = grep { -f $_ }
+	("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list",
+	"site.list");
+    my @scpcmd = ('scp');
+    push @scpcmd, '-q' unless $opts{v};
+    push @scpcmd, (@copy, "$opts{h}:/root/regress");
+    runcmd(@scpcmd);
+}
+
+# cvs checkout
+
+sub checkout_cvs {
+    foreach (qw(src ports xenocara)) {
+	logcmd('ssh', $opts{h},
+	    "cd /usr && cvs -Rd /mount/openbsd/cvs co $_/Makefile")
+    }
+    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -R up -PdA");
+    logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
+}
+
+# install packages
+
+sub install_packages {
+    if (-f "pkg-$host.list") {
+	eval {
+	    logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list",
+		'-Ivx', '-Dsnap')
+	};
+	logmsg "WARNING: command failed\n" if $@;
+    }
+}
+
+1;
