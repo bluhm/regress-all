@@ -15,7 +15,7 @@ use Logcmd;
 my $testmaster="10.0.1.4";
 
 my %opts;
-getopts('d:h:vbciku', \%opts) or do {
+getopts('d:h:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-d date] -h host [mode ...]
     -v		verbose
