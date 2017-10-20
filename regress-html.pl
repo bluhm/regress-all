@@ -13,9 +13,10 @@ use URI::Escape;
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('l', \%opts) or do {
+getopts('h:l', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-l]
+usage: $0 [-l] [-h host]
+    -h host     optional user and host for version information
     -l		create latest.html with one column of the latest results
 EOF
     exit(2);
@@ -40,8 +41,13 @@ if ($opts{l}) {
     @results = sort glob("*/test.result");
 }
 
+my ($user, $host) = split('@', $opts{h}, 2);
+($user, $host) = ("root", $user) unless $host;
+
 my (%t, %d);
 foreach my $result (@results) {
+
+    # parse result file
     my ($date, $short) = $result =~ m,((.+)T.+)/test.result,
 	or next;
     $d{$date} = {
@@ -78,6 +84,25 @@ foreach my $result (@results) {
     close($fh)
 	or die "Close '$result' after reading failed: $!";
     $d{$date}{pass} = $pass / $total if $total;
+
+    # parse version file
+    next unless $host;
+    my $version = "$date/version-$host.txt";
+    next unless -f $version;
+    $d{$date}{version} = $version;
+    open($fh, '<', $version)
+	or die "Open '$version' for reading failed: $!";
+    while (<$fh>) {
+	if (/^kern.version=(.*: (\w+ \w+ +\d+ .*))$/) {
+	    $d{$date}{kernel} = $1;
+	    $d{$date}{time} = $2;
+	    <$fh> =~ /(\S+)/;
+	    $d{$date}{kernel} .= "\n    $1";
+	    $d{$date}{location} = $1;
+	}
+    }
+    $d{$date}{build} = $d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
+	"snapshot" : "custom";
 }
 
 my $htmlfile = $opts{l} ? "latest.html" : "regress.html";
@@ -132,6 +157,23 @@ foreach my $date (@dates) {
     my $href = $setup ? "<a href=\"$setup\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$time\">$href$short$enda</th>\n";
+}
+if ($host) {
+    print $html "  <tr>\n    <th>machine build</th>\n";
+    foreach my $date (@dates) {
+	my $version = $d{$date}{version};
+	unless ($version) {
+	    print $html "    <th\>\n";
+	    next;
+	}
+	my $kernel = encode_entities($d{$date}{kernel});
+	my $build = $d{$date}{build};
+	$version = join("/", map { uri_escape($_) } split("/", $version));
+	my $time = encode_entities($date);
+	my $href = $build eq "snapshot" ? "<a href=\"$version\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
+    }
 }
 print $html "  </tr>\n";
 
