@@ -14,6 +14,8 @@ use Logcmd;
 # XXX explicit IP address in source code
 my $testmaster="10.0.1.4";
 
+my $scriptname = "$0 @ARGV";
+
 my %opts;
 getopts('d:h:v', \%opts) or do {
     print STDERR <<"EOF";
@@ -55,7 +57,7 @@ my $bindir = "$regressdir/bin";
 (my $host = $opts{h}) =~ s/.*\@//;
 createlog(file => "setup-$host.log", verbose => $opts{v});
 $date = strftime("%FT%TZ", gmtime);
-logmsg("script $0 started at $date\n");
+logmsg("script '$scriptname' started at $date\n");
 
 # create new summary with setup log
 
@@ -82,7 +84,7 @@ install_packages() if $mode{install} || $mode{upgrade};
 # finish setup log
 
 $date = strftime("%FT%TZ", gmtime);
-logmsg("script $0 finished at $date\n");
+logmsg("script '$scriptname' finished at $date\n");
 
 exit;
 

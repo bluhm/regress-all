@@ -10,6 +10,8 @@ use POSIX;
 use lib dirname($0);
 use Logcmd;
 
+my $scriptname = "$0 @ARGV";
+
 my %opts;
 getopts('h:sv', \%opts) or do {
     print STDERR <<"EOF";
@@ -40,7 +42,7 @@ symlink($date, "results/current")
     or die "Make symlink 'results/current' failed: $!";
 
 createlog(file => "$dir/run.log", verbose => $opts{v});
-logmsg("script $0 started at $date\n");
+logmsg("script '$scriptname' started at $date\n");
 
 # setup remote machines
 
@@ -140,4 +142,4 @@ symlink($date, "results/latest")
 runcmd("bin/regress-html.pl", "-h", $host, "-l");
 
 $date = strftime("%FT%TZ", gmtime);
-logmsg("script $0 finished at $date\n");
+logmsg("script '$scriptname' finished at $date\n");
