@@ -50,6 +50,7 @@ my $resultdir = "$regressdir/results";
 $resultdir .= "/$date" if $date;
 chdir($resultdir)
     or die "Chdir to '$resultdir' failed: $!";
+my $bindir = "$regressdir/bin";
 
 (my $host = $opts{h}) =~ s/.*\@//;
 createlog(file => "setup-$host.log", verbose => $opts{v});
@@ -129,7 +130,6 @@ sub get_version {
 
 sub copy_scripts {
     runcmd('ssh', $opts{h}, 'mkdir', '-p', '/root/regress');
-    my $bindir = "$regressdir/bin";
     chdir($bindir)
 	or die "Chdir to '$bindir' failed: $!";
     my @copy = grep { -f $_ }
@@ -182,7 +182,7 @@ sub make_build {
 # install packages
 
 sub install_packages {
-    if (-f "pkg-$host.list") {
+    if (-f "$bindir/pkg-$host.list") {
 	eval {
 	    logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list",
 		'-Ivx', '-Dsnap')
