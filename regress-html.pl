@@ -103,6 +103,8 @@ foreach my $result (@results) {
     }
     $d{$date}{build} = $d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
 	"snapshot" : "custom";
+    my $diff = "$date/diff-$host.txt";
+    $d{$date}{diff} = $diff if -f $diff;
 }
 
 my $htmlfile = $opts{l} ? "latest.html" : "regress.html";
@@ -163,14 +165,17 @@ if ($host) {
     foreach my $date (@dates) {
 	my $version = $d{$date}{version};
 	unless ($version) {
-	    print $html "    <th\>\n";
+	    print $html "    <th/>\n";
 	    next;
 	}
 	my $kernel = encode_entities($d{$date}{kernel});
 	my $build = $d{$date}{build};
 	$version = join("/", map { uri_escape($_) } split("/", $version));
-	my $time = encode_entities($date);
-	my $href = $build eq "snapshot" ? "<a href=\"$version\">" : "";
+	my $diff = join("/", map { uri_escape($_) }
+	    split("/", $d{$date}{diff} || ""));
+	my $href = "";
+	$href = "<a href=\"$version\">" if $build eq "snapshot";
+	$href = "<a href=\"$diff\">" if $build eq "custom" && $diff;
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
     }
