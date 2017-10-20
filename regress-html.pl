@@ -14,7 +14,10 @@ my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
 getopts('l', \%opts) or do {
-    print STDERR "usage: $0 [-l]\n";
+    print STDERR <<"EOF";
+usage: $0 [-l]
+    -l		create latest.html with one column of the latest results
+EOF
     exit(2);
 };
 
