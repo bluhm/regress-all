@@ -14,7 +14,10 @@ my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
 getopts('d:', \%opts) or do {
-    print STDERR "usage: $0 [-d date]\n";
+    print STDERR <<"EOF";
+usage: $0 [-d date]
+    -d date	create setup.html for a specific date, otherwise for all
+EOF
     exit(2);
 };
 
