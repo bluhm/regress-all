@@ -50,6 +50,7 @@ foreach my $date (@dates) {
 	$time or next;
 	(my $dmesg = $version) =~ s,version,dmesg,;
 	(my $dmesgboot = $version) =~ s,version,dmesg-boot,;
+	(my $diff = $version) =~ s,version,diff,;
 	$h{$host} = {
 	    version   => $version,
 	    time      => $time,
@@ -57,6 +58,7 @@ foreach my $date (@dates) {
 	    arch      => $arch,
 	    dmesg     => -f $dmesg ? $dmesg : undef,
 	    dmesgboot => -f $dmesgboot ? $dmesgboot : undef,
+	    diff      => -f $diff ? $diff : undef,
 	};
 	$m{$host}++;
     }
@@ -110,6 +112,7 @@ foreach my $date (@dates) {
     print $html "    <th>arch</th>\n";
     print $html "    <th>setup</th>\n";
     print $html "    <th colspan=\"2\">dmesg</th>\n";
+    print $html "    <th>diff</th>\n";
     print $html "  </tr>\n";
 
     foreach my $host (sort keys %h) {
@@ -121,27 +124,33 @@ foreach my $date (@dates) {
 	my $setup = uri_escape($h{$host}{setup});
 	my $dmesg = uri_escape($h{$host}{dmesg});
 	my $dmesgboot = uri_escape($h{$host}{dmesgboot});
+	my $diff = uri_escape($h{$host}{diff});
 	if ($version) {
 	    print $html "    <td title=\"$time\">".
 		"<a href=\"$version\">$short</a></td>\n";
 	} else {
-	    print $html "    <td></td>\n";
+	    print $html "    <td/>\n";
 	}
 	print $html "    <td>$arch</td>\n";
 	if ($setup) {
 	    print $html "    <td><a href=\"$setup\">log</a></td>\n";
 	} else {
-	    print $html "    <td></td>\n";
+	    print $html "    <td/>\n";
 	}
 	if ($dmesgboot) {
 	    print $html "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
 	} else {
-	    print $html "    <td></td>\n";
+	    print $html "    <td/>\n";
 	}
 	if ($dmesg) {
 	    print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
 	} else {
-	    print $html "    <td></td>\n";
+	    print $html "    <td/>\n";
+	}
+	if ($diff) {
+	    print $html "    <td><a href=\"$diff\">diff</a></td>\n";
+	} else {
+	    print $html "    <td/>\n";
 	}
 	print $html "  </tr>\n";
     }
