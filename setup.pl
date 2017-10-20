@@ -73,6 +73,8 @@ checkout_cvs() if $mode{install};
 update_cvs() if $mode{upgrade} || $mode{cvs};
 make_kernel() if $mode{kernel};
 make_build() if $mode{build};
+diff_cvs("sys") if $mode{kernel};
+diff_cvs() if $mode{build};
 reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
 install_packages() if $mode{install} || $mode{upgrade};
@@ -143,7 +145,7 @@ sub copy_scripts {
 	or die "Chdir to '$resultdir' failed: $!";
 }
 
-# cvs checkout
+# cvs checkout, update, diff
 
 sub checkout_cvs {
     foreach (qw(src ports xenocara)) {
@@ -157,6 +159,24 @@ sub checkout_cvs {
 sub update_cvs {
     logcmd('ssh', $opts{h}, "cd /usr/src && cvs -qR up -PdA");
     logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
+}
+
+sub diff_cvs {
+    my ($path) = @_;
+    $path = " $path" if $path;
+    my @sshcmd = ('ssh', $opts{h}, 'cd /usr/src && cvs -qR diff -up'.$path);
+    logmsg "Command '@sshcmd' started\n";
+    open(my $cvs, '-|', @sshcmd)
+	or die "Open pipe from '@sshcmd' failed: $!";
+    open(my $diff, '>', "diff-$host.txt")
+	or die "Open 'diff-$host.txt' for writing failed: $!";
+    while (<$cvs>) {
+	print $diff $_;
+    }
+    close($cvs) or die $! ?
+	"Close pipe from '@sshcmd' failed: $!" :
+	"Command '@sshcmd' failed: $?";
+    logmsg "Command '@sshcmd' finished\n";
 }
 
 # make /usr/src
