@@ -173,9 +173,11 @@ sub diff_cvs {
     while (<$cvs>) {
 	print $diff $_;
     }
-    close($cvs) or die $! ?
-	"Close pipe from '@sshcmd' failed: $!" :
-	"Command '@sshcmd' failed: $?";
+    close($cvs) or do {
+	die "Close pipe from '@sshcmd' failed: $!" if $!;
+	# cvs diff returns 0 without and 1 with differences
+	die "Command '@sshcmd' failed: $?" if $? != 0 && $? != (1<<8);
+    };
     logmsg "Command '@sshcmd' finished\n";
 }
 
