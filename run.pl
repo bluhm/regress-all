@@ -134,12 +134,12 @@ for ($host = $firsthost; $host; $host++) {
 # create html output
 
 runcmd("bin/setup-html.pl");
-runcmd("bin/regress-html.pl", "-h", $host);
+runcmd("bin/regress-html.pl", "-h", $firsthost);
 
 unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
-runcmd("bin/regress-html.pl", "-h", $host, "-l");
+runcmd("bin/regress-html.pl", "-h", $firsthost, "-l");
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' finished at $date\n");
