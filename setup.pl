@@ -41,7 +41,7 @@ my %mode = map {
     $_ => 1;
 } @ARGV ? @ARGV : "install";
 foreach (qw(install upgrade)) {
-    die "Mode be used solely: $_" if $mode{$_} && keys %mode != 1;
+    die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
 
 my $regressdir = dirname($0). "/..";

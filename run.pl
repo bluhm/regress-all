@@ -13,16 +13,32 @@ use Logcmd;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('h:sv', \%opts) or do {
+getopts('h:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-sv] -h host
+usage: $0 [-v] -h host [mode ...]
     -h host	optional user and host for make regress, user defaults to root
     -s		skip setup, host must already be installed
     -v		verbose
+    build       build system from source /usr/src
+    cvs         cvs update /usr/src and make obj
+    install     install from snapshot (default)
+    kernel      build kernel from source /usr/src/sys
+    skip	skip setup, host must already be installed
+    upgrade     upgrade with snapshot
 EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
+
+my %allmodes;
+@allmodes{qw(build cvs install kernel skip upgrade)} = ();
+my %mode = map {
+    die "Unknown mode: $_" unless exists $allmodes{$_};
+    $_ => 1;
+} @ARGV ? @ARGV : "install";
+foreach (qw(install skip upgrade)) {
+    die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
+}
 
 # create directory for this test run with timestamp 2016-07-13T12:30:42Z
 my $date = strftime("%FT%TZ", gmtime);
@@ -50,13 +66,15 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 my $firsthost = $host;
 
-unless ($opts{s}) {
+unless ($mode{skip}) {
     my @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
     push @setupcmd, '-v' if $opts{v};
+    push @setupcmd, keys %mode;
     runcmd(@setupcmd);
     if ($host++) {
 	@setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
 	push @setupcmd, '-v' if $opts{v};
+	push @setupcmd, keys %mode;
 	runcmd(@setupcmd);
     }
 }
