@@ -98,6 +98,7 @@ unless ($mode{skip}) {
 
     waitcmd(@pidcmds);
 }
+runcmd("$regressdir/bin/setup-html.pl");
 
 for ($host = $firsthost; $host; $host++) {
     my $h = "$user\@$host";
