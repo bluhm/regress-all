@@ -115,7 +115,8 @@ sub get_version {
 	or die "Open 'version-$host.txt' for writing failed: $!";
     %sysctl = ();
     my $prevkey;
-    while (defined(local $_ = <$ctl>)) {
+    local $_;
+    while (defined($_ = <$ctl>)) {
 	if (m{^([\w.]+)=(.*)}) {
 	    $sysctl{$1} = $2;
 	    $prevkey = $1;
@@ -172,6 +173,7 @@ sub diff_cvs {
 	or die "Open pipe from '@sshcmd' failed: $!";
     open(my $diff, '>', "diff-$host.txt")
 	or die "Open 'diff-$host.txt' for writing failed: $!";
+    local $_;
     while (<$cvs>) {
 	print $diff $_;
     }
