@@ -63,6 +63,7 @@ sub forkcmd (@) {
 
 sub waitcmd (%) {
     my %pidcmds = @_;;
+    my $total = keys %pidcmds;
     my $failed = 0;
     while (keys %pidcmds) {
 	(my $pid = wait) == -1
@@ -75,7 +76,7 @@ sub waitcmd (%) {
 	    logmsg "Command '@cmd' finished\n";
 	}
     }
-    $failed and carp "$failed commands failed";
+    $failed and carp "Commands $failed out of $total failed";
 }
 
 sub logcmd (@) {
