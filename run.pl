@@ -67,16 +67,17 @@ my ($user, $host) = split('@', $opts{h}, 2);
 my $firsthost = $host;
 
 unless ($mode{skip}) {
+    my @pidcmds;
     my @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
     push @setupcmd, '-v' if $opts{v};
     push @setupcmd, keys %mode;
-    runcmd(@setupcmd);
-    if ($host++) {
-	@setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
-	push @setupcmd, '-v' if $opts{v};
-	push @setupcmd, keys %mode;
-	runcmd(@setupcmd);
-    }
+    push @pidcmds, forkcmd(@setupcmd);
+    $host++;
+    @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
+    push @setupcmd, '-v' if $opts{v};
+    push @setupcmd, keys %mode;
+    push @pidcmds, forkcmd(@setupcmd);
+    waitcmd(@pidcmds);
 }
 
 for ($host = $firsthost; $host; $host++) {
