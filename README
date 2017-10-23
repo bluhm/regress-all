@@ -22,7 +22,7 @@ Several modes for run.pl and setup.pl exist to prepare the test machines.
 
 build	- build system from source /usr/src
 cvs	- cvs update /usr/src and make obj
-install	- install from snapshot (default)
+install	- install from snapshot
 kernel	- build kernel from source /usr/src/sys
 skip	- skip setup and keep existing software on machine
 upgrade	- upgrade with snapshot

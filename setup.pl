@@ -39,7 +39,7 @@ usage: $0 [-v] [-d date] -h host [mode ...]
     -h host	root\@openbsd-test-machine, login per ssh
     build	build system from source /usr/src
     cvs		cvs update /usr/src and make obj
-    install	install from snapshot (default)
+    install	install from snapshot
     kernel	build kernel from source /usr/src/sys
     upgrade	upgrade with snapshot
 EOF
@@ -50,10 +50,11 @@ my $date = $opts{d};
 
 my %allmodes;
 @allmodes{qw(build cvs install kernel upgrade)} = ();
+@ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
     $_ => 1;
-} @ARGV ? @ARGV : "install";
+} @ARGV;
 foreach (qw(install upgrade)) {
     die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
