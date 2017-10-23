@@ -63,13 +63,19 @@ sub forkcmd (@) {
 
 sub waitcmd (%) {
     my %pidcmds = @_;;
+    my $failed = 0;
     while (keys %pidcmds) {
 	(my $pid = wait) == -1
 	    and die "Wait failed: $!";
 	my @cmd = @{$pidcmds{$pid}};
-	$? and croak "Command '@cmd' failed: $?";
-	logmsg "Command '@cmd' finished\n";
+	if ($?) {
+	    logmsg "Command '@cmd' failed: $?\n";
+	    $failed++;
+	} else {
+	    logmsg "Command '@cmd' finished\n";
+	}
     }
+    $failed and carp "$failed commands failed";
 }
 
 sub logcmd (@) {
