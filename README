@@ -18,6 +18,15 @@ setup.pl	- install one test machine,
 site.list	- list of config files that must be installed on test machine
 test.list	- list of /usr/src/regress subdirectories that should be tested
 
+Several modes for run.pl and setup.pl exist to prepare the test machines.
+
+build	- build system from source /usr/src
+cvs	- cvs update /usr/src and make obj
+install	- install from snapshot (default)
+kernel	- build kernel from source /usr/src/sys
+skip	- skip setup and keep existing software on machine
+upgrade	- upgrade with snapshot
+
 Daily test results are published here:
 http://bluhm.genua.de/regress/results/regress.html
 
