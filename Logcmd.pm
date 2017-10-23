@@ -8,7 +8,7 @@ use Carp;
 use POSIX;
 
 use parent 'Exporter';
-our @EXPORT= qw(createlog logmsg runcmd logcmd);
+our @EXPORT= qw(createlog logmsg runcmd forkcmd waitcmd logcmd);
 use subs qw(logmsg);
 
 my ($fh, $file, $verbose);
