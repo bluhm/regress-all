@@ -40,6 +40,38 @@ sub runcmd (@) {
     logmsg "Command '@cmd' finished\n";
 }
 
+sub forkcmd (@) {
+    my @cmd = @_;
+    logmsg "Command '@cmd' started\n";
+    defined(my $pid = fork())
+	or croak "Fork '@cmd' failed: $!";
+    if ($pid == 0) {
+	$SIG{__DIE__} = 'DEFAULT';
+	open(STDIN, '<', "/dev/null")
+	    or carp "Redirect stdin to /dev/null failed: $!";
+	setsid()
+	    or carp "Setsid $$ failed: $!";
+	{
+	    no warnings 'exec';
+	    exec(@cmd);
+	    carp "Exec '@cmd' failed: $!";
+	}
+	_exit(126);
+    }
+    return $pid => [@cmd];
+}
+
+sub waitcmd (%) {
+    my %pidcmds = @_;;
+    while (keys %pidcmds) {
+	(my $pid = wait) == -1
+	    and die "Wait failed: $!";
+	my @cmd = @{$pidcmds{$pid}};
+	$? and croak "Command '@cmd' failed: $?";
+	logmsg "Command '@cmd' finished\n";
+    }
+}
+
 sub logcmd (@) {
     my (@cmd, $outfile);
     if (ref($_[0])) {
