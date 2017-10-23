@@ -71,7 +71,7 @@ checkout_cvs() if $mode{install};
 update_cvs() if $mode{upgrade} || $mode{cvs};
 make_kernel() if $mode{kernel};
 make_build() if $mode{build};
-diff_cvs("sys") if $mode{kernel};
+diff_cvs("sys") if $mode{kernel} && !$mode{build};
 diff_cvs() if $mode{build};
 reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
