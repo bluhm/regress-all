@@ -69,7 +69,7 @@ get_version();
 copy_scripts();
 checkout_cvs() if $mode{install};
 update_cvs() if $mode{upgrade} || $mode{cvs};
-make_kernel() if $mode{kernel};
+make_kernel() if $mode{kernel} || $mode{build};
 make_build() if $mode{build};
 diff_cvs("sys") if $mode{kernel} && !$mode{build};
 diff_cvs() if $mode{build};
