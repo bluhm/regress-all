@@ -59,10 +59,6 @@ createlog(file => "setup-$host.log", verbose => $opts{v});
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' started at $date\n");
 
-# create new summary with setup log
-
-runcmd("$regressdir/bin/setup-html.pl");
-
 # execute commands
 
 my %sysctl;

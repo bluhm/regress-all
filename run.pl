@@ -77,6 +77,11 @@ unless ($mode{skip}) {
     push @setupcmd, '-v' if $opts{v};
     push @setupcmd, keys %mode;
     push @pidcmds, forkcmd(@setupcmd);
+
+    # create new summary with setup log
+    sleep 1;
+    runcmd("$regressdir/bin/setup-html.pl");
+
     waitcmd(@pidcmds);
 }
 
