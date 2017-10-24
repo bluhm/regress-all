@@ -38,7 +38,7 @@ usage: $0 [-v] [-d date] -h host mode ...
     -d date	set date string and change to sub directory
     -h host	root\@openbsd-test-machine, login per ssh
     build	build system from source /usr/src
-    cvs		cvs update /usr/src and make obj
+    cvs		clean cvs update /usr/src and make obj
     install	install from snapshot
     kernel	build kernel from source /usr/src/sys
     upgrade	upgrade with snapshot
@@ -171,7 +171,7 @@ sub checkout_cvs {
 }
 
 sub update_cvs {
-    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -qR up -PdA");
+    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -qR up -PdA -C");
     logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
 }
 
