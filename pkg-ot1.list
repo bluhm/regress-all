@@ -1,3 +1,4 @@
+diffstat
 git
 go
 net-snmp
@@ -18,3 +19,4 @@ p5-ldap
 rsync--
 scapy
 sudo--
+sysclean
