@@ -33,7 +33,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('d:h:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] -h host [mode ...]
+usage: $0 [-v] [-d date] -h host mode ...
     -v		verbose
     -d date	set date string and change to sub directory
     -h host	root\@openbsd-test-machine, login per ssh

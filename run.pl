@@ -29,7 +29,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('h:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -h host [mode ...]
+usage: $0 [-v] -h host mode ...
     -h host	optional user and host for make regress, user defaults to root
     -s		skip setup, host must already be installed
     -v		verbose
