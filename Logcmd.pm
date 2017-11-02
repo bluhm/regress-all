@@ -76,7 +76,7 @@ sub forkcmd (@) {
 }
 
 sub waitcmd (%) {
-    my %pidcmds = @_;;
+    my %pidcmds = @_;
     my $total = keys %pidcmds;
     my $failed = 0;
     while (keys %pidcmds) {
