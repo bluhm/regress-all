@@ -81,9 +81,9 @@ sub waitcmd (%) {
     my $failed = 0;
     while (keys %pidcmds) {
 	(my $pid = wait) == -1
-	    and carp "Wait failed: $!";
+	    and croak "Wait failed: $!";
 	my $cmd = delete $pidcmds{$pid}
-	    or carp "Wait for pid $pid without command";
+	    or croak "Wait for pid $pid without command";
 	my @cmd = @$cmd;
 	if ($?) {
 	    logmsg "Command '@cmd' failed: $?\n";
@@ -92,7 +92,7 @@ sub waitcmd (%) {
 	    logmsg "Command '@cmd' finished\n";
 	}
     }
-    $failed and carp "Commands $failed out of $total failed";
+    $failed and croak "Commands $failed out of $total failed";
 }
 
 sub logcmd (@) {
