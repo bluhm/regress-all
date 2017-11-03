@@ -177,7 +177,7 @@ sub update_cvs {
 
 sub diff_cvs {
     my ($path) = @_;
-    $path = " $path" if $path;
+    $path = $path ? " $path" : "";
     my @sshcmd = ('ssh', $opts{h}, 'cd /usr/src && cvs -qR diff -up'.$path);
     logmsg "Command '@sshcmd' started\n";
     open(my $cvs, '-|', @sshcmd)
