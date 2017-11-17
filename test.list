@@ -115,6 +115,7 @@ sys/kern/unfdpass
 sys/kern/unixsock
 sys/kern/wait
 sys/net/etherip
+sys/net/loop
 sys/net/pf_divert
 sys/net/pf_forward
 sys/net/pf_fragment
