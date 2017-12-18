@@ -87,8 +87,11 @@ unless ($mode{skip}) {
     push @setupcmd, '-v' if $opts{v};
     push @setupcmd, keys %mode;
     push @pidcmds, forkcmd(@setupcmd);
+
     if ($mode{install} || $mode{upgrade}) {
-	# Change config of dhcpd has races, cannot install simultaneously.
+	# change config of dhcpd has races, cannot install simultaneously
+	sleep 1;
+	runcmd("$regressdir/bin/setup-html.pl");
 	waitcmd(@pidcmds);
 	undef @pidcmds;
     }
@@ -102,7 +105,6 @@ unless ($mode{skip}) {
     # create new summary with setup log
     sleep 1;
     runcmd("$regressdir/bin/setup-html.pl");
-
     waitcmd(@pidcmds);
 }
 runcmd("$regressdir/bin/setup-html.pl");
