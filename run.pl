@@ -87,6 +87,12 @@ unless ($mode{skip}) {
     push @setupcmd, '-v' if $opts{v};
     push @setupcmd, keys %mode;
     push @pidcmds, forkcmd(@setupcmd);
+    if ($mode{install} || $mode{upgrade}) {
+	# Change config of dhcpd has races, cannot install simultaneously.
+	waitcmd(@pidcmds);
+	undef @pidcmds;
+    }
+
     $host++;
     @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
     push @setupcmd, '-v' if $opts{v};
