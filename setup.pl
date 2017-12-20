@@ -26,7 +26,7 @@ use lib dirname($0);
 use Logcmd;
 
 # XXX explicit IP address in source code
-my $testmaster="10.0.1.4";
+my $testmaster="10.0.1.1";
 
 my $scriptname = "$0 @ARGV";
 
