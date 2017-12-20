@@ -114,6 +114,7 @@ foreach my $result (@results) {
 	    $d{$date}{kernel} .= "\n    $1";
 	    $d{$date}{location} = $1;
 	}
+	/^hw.machine=(\w+)$/ and $d{$date}{arch} = $1;
     }
     $d{$date}{build} = $d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
 	"snapshot" : "custom";
@@ -192,6 +193,15 @@ if ($host) {
 	$href = "<a href=\"$diff\">" if $build eq "custom" && $diff;
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
+    }
+    print $html "  <tr>\n    <th>architecture</th>\n";
+    foreach my $date (@dates) {
+	my $arch = $d{$date}{arch};
+	unless ($arch) {
+	    print $html "    <th/>\n";
+	    next;
+	}
+	print $html "    <th>$arch</th>\n";
     }
 }
 print $html "  </tr>\n";
