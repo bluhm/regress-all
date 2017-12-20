@@ -110,7 +110,11 @@ foreach my $result (@results) {
 	($diff = $version) =~ s,/version-,/diff-,;
 	($dmesg = $version) =~ s,/version-,/dmesg-,;
     }
-    next unless -f $version;
+    unless (-f $version) {
+	# if host is specified, only print result for this one
+	delete $d{$date} if $host;
+	next;
+    }
     $d{$date}{version} = $version;
     open($fh, '<', $version)
 	or die "Open '$version' for reading failed: $!";
