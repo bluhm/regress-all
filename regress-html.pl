@@ -55,7 +55,7 @@ if ($opts{l}) {
     @results = sort glob("*/test.result");
 }
 
-my ($user, $host) = split('@', $opts{h}, 2);
+my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
 
 my (%t, %d);
@@ -100,8 +100,14 @@ foreach my $result (@results) {
     $d{$date}{pass} = $pass / $total if $total;
 
     # parse version file
-    next unless $host;
-    my $version = "$date/version-$host.txt";
+    my ($version, $diff);
+    if ($host) {
+	$version = "$date/version-$host.txt";
+	$diff = "$date/diff-$host.txt";
+    } else {
+	$version = (glob("$date/version-*.txt"))[0];
+	($diff = $version) =~ s,/version-,/diff-,;
+    }
     next unless -f $version;
     $d{$date}{version} = $version;
     open($fh, '<', $version)
@@ -118,7 +124,6 @@ foreach my $result (@results) {
     }
     $d{$date}{build} = $d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
 	"snapshot" : "custom";
-    my $diff = "$date/diff-$host.txt";
     $d{$date}{diff} = $diff if -f $diff;
 }
 
@@ -175,34 +180,31 @@ foreach my $date (@dates) {
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$time\">$href$short$enda</th>\n";
 }
-if ($host) {
-    print $html "  <tr>\n    <th>machine build</th>\n";
-    foreach my $date (@dates) {
-	my $version = $d{$date}{version};
-	unless ($version) {
-	    print $html "    <th/>\n";
-	    next;
-	}
-	my $kernel = encode_entities($d{$date}{kernel});
-	my $build = $d{$date}{build};
-	$version = join("/", map { uri_escape($_) } split("/", $version));
-	my $diff = join("/", map { uri_escape($_) }
-	    split("/", $d{$date}{diff} || ""));
-	my $href = "";
-	$href = "<a href=\"$version\">" if $build eq "snapshot";
-	$href = "<a href=\"$diff\">" if $build eq "custom" && $diff;
-	my $enda = $href ? "</a>" : "";
-	print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
+print $html "  <tr>\n    <th>machine build</th>\n";
+foreach my $date (@dates) {
+    my $version = $d{$date}{version};
+    unless ($version) {
+	print $html "    <th/>\n";
+	next;
     }
-    print $html "  <tr>\n    <th>architecture</th>\n";
-    foreach my $date (@dates) {
-	my $arch = $d{$date}{arch};
-	unless ($arch) {
-	    print $html "    <th/>\n";
-	    next;
-	}
-	print $html "    <th>$arch</th>\n";
+    my $kernel = encode_entities($d{$date}{kernel});
+    my $build = $d{$date}{build};
+    $version = join("/", map { uri_escape($_) } split("/", $version));
+    my $diff = join("/", map { uri_escape($_) }
+	split("/", $d{$date}{diff} || ""));
+    my $href = "";
+    $href = "<a href=\"$version\">" if $build eq "snapshot";
+    $href = "<a href=\"$diff\">" if $build eq "custom" && $diff;
+    my $enda = $href ? "</a>" : "";
+    print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
+}
+print $html "  <tr>\n    <th>architecture</th>\n";
+foreach my $date (@dates) {
+    my $arch = $d{$date}{arch};
+    unless ($arch) {
+	print $html "    <th/>\n";
     }
+    print $html "    <th>$arch</th>\n";
 }
 print $html "  </tr>\n";
 
