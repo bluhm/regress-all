@@ -100,13 +100,15 @@ foreach my $result (@results) {
     $d{$date}{pass} = $pass / $total if $total;
 
     # parse version file
-    my ($version, $diff);
+    my ($version, $diff, $dmesg);
     if ($host) {
 	$version = "$date/version-$host.txt";
 	$diff = "$date/diff-$host.txt";
+	$dmesg = "$date/dmesg-$host.txt";
     } else {
 	$version = (glob("$date/version-*.txt"))[0];
 	($diff = $version) =~ s,/version-,/diff-,;
+	($dmesg = $version) =~ s,/version-,/dmesg-,;
     }
     next unless -f $version;
     $d{$date}{version} = $version;
@@ -125,6 +127,7 @@ foreach my $result (@results) {
     $d{$date}{build} = $d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
 	"snapshot" : "custom";
     $d{$date}{diff} = $diff if -f $diff;
+    $d{$date}{dmesg} = $dmesg if -f $dmesg;
 }
 
 my $htmlfile = $opts{l} ? "latest.html" : "regress.html";
@@ -204,7 +207,11 @@ foreach my $date (@dates) {
     unless ($arch) {
 	print $html "    <th/>\n";
     }
-    print $html "    <th>$arch</th>\n";
+    my $dmesg = join("/", map { uri_escape($_) }
+	split("/", $d{$date}{dmesg} || ""));
+    my $href = $dmesg ? "<a href=\"$dmesg\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "    <th>$href$arch$enda</th>\n";
 }
 print $html "  </tr>\n";
 
