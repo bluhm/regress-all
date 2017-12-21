@@ -44,19 +44,24 @@ $dir = "results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
+my ($user, $host) = split('@', $opts{h} || "", 2);
+($user, $host) = ("root", $user) unless $host;
+
 my @results;
 if ($opts{l}) {
-    -f "latest/test.result"
-	or die "No latest test.result";
-    my $date = readlink("latest")
-	or die "Readlink 'latest' failed: $!";
-    @results = "$date/test.result";
+    my @latest;
+    if ($host) {
+	push @latest, "latest-$host/test.result";
+	-f $latest[0]
+	    or die "No latest test.result for $host";
+    } else {
+	@latest = glob("latest-*/test.result");
+    }
+    @results = map { (readlink(dirname($_))
+	or die "Readlink latest '$_' failed: $!") . "/test.result" } @latest;
 } else {
     @results = sort glob("*/test.result");
 }
-
-my ($user, $host) = split('@', $opts{h} || "", 2);
-($user, $host) = ("root", $user) unless $host;
 
 my (%t, %d);
 foreach my $result (@results) {
@@ -134,7 +139,9 @@ foreach my $result (@results) {
     $d{$date}{dmesg} = $dmesg if -f $dmesg;
 }
 
-my $htmlfile = $opts{l} ? "latest.html" : "regress.html";
+my $htmlfile = $opts{l} ? "latest" : "regress";
+$htmlfile .= "-$host" if $host;
+$htmlfile .= ".html";
 unlink("$htmlfile.new");
 open(my $html, '>', "$htmlfile.new")
     or die "Open '$htmlfile.new' for writing failed: $!";

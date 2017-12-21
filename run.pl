@@ -183,11 +183,17 @@ for ($host = $firsthost; $host; $host++) {
 
 runcmd("bin/setup-html.pl");
 runcmd("bin/regress-html.pl", "-h", $firsthost);
+runcmd("bin/regress-html.pl");
+
+unlink("results/latest-$firsthost");
+symlink($date, "results/latest-$firsthost")
+    or die "Make symlink 'results/latest-$firsthost' failed: $!";
+runcmd("bin/regress-html.pl", "-l", "-h", $firsthost);
 
 unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
-runcmd("bin/regress-html.pl", "-h", $firsthost, "-l");
+runcmd("bin/regress-html.pl", "-l");
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' finished at $date\n");
