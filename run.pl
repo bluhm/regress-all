@@ -188,11 +188,10 @@ runcmd("bin/regress-html.pl");
 unlink("results/latest-$firsthost");
 symlink($date, "results/latest-$firsthost")
     or die "Make symlink 'results/latest-$firsthost' failed: $!";
-runcmd("bin/regress-html.pl", "-l", "-h", $firsthost);
-
 unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
+runcmd("bin/regress-html.pl", "-l", "-h", $firsthost);
 runcmd("bin/regress-html.pl", "-l");
 
 $date = strftime("%FT%TZ", gmtime);
