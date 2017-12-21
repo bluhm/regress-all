@@ -90,10 +90,10 @@ foreach my $result (@results) {
 	my $severity =
 	    $status eq 'PASS'   ? 1 :
 	    $status eq 'SKIP'   ? 2 :
-	    $status eq 'FAIL'   ? 3 :
-	    $status eq 'NOEXIT' ? 4 :
-	    $status eq 'NOTERM' ? 5 :
-	    $status eq 'NORUN'  ? 6 : 7;
+	    $status eq 'FAIL'   ? 5 :
+	    $status eq 'NOEXIT' ? 6 :
+	    $status eq 'NOTERM' ? 7 :
+	    $status eq 'NORUN'  ? 8 : 10;
 	$t{$test}{severity} += $severity;
 	$total++ unless $status eq 'SKIP';
 	$pass++ if $status eq 'PASS';
