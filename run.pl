@@ -31,7 +31,6 @@ getopts('h:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -h host mode ...
     -h host	optional user and host for make regress, user defaults to root
-    -s		skip setup, host must already be installed
     -v		verbose
     build       build system from source /usr/src
     cvs         cvs update /usr/src and make obj
@@ -97,15 +96,18 @@ unless ($mode{skip}) {
     }
 
     $host++;
-    @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
-    push @setupcmd, '-v' if $opts{v};
-    push @setupcmd, keys %mode;
-    push @pidcmds, forkcmd(@setupcmd);
+    # XXX hack to find out whether a remote machine exists
+    if (-f "bin/pkg-$host.list") {
+	@setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
+	push @setupcmd, '-v' if $opts{v};
+	push @setupcmd, keys %mode;
+	push @pidcmds, forkcmd(@setupcmd);
 
-    # create new summary with setup log
-    sleep 1;
-    runcmd("$regressdir/bin/setup-html.pl");
-    waitcmd(@pidcmds);
+	# create new summary with setup log
+	sleep 1;
+	runcmd("$regressdir/bin/setup-html.pl");
+	waitcmd(@pidcmds);
+    }
 }
 runcmd("$regressdir/bin/setup-html.pl");
 
