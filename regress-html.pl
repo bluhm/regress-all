@@ -165,8 +165,8 @@ print $html "  </style>\n";
 print $html "</head>\n";
 
 print $html "<body>\n";
-my $bodytitle = $opts{l} ? "latest" : "all";
-$bodytitle .= " $host" if $host;
+my $bodytitle = $host ? ($opts{l} ? "latest $host" : $host) :
+    ($opts{l} ? "latest" : "all");
 print $html "<h1>OpenBSD regress $bodytitle test results</h1>\n";
 print $html "<table>\n";
 print $html "  <tr>\n    <th>created at</th>\n";
