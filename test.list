@@ -1,6 +1,7 @@
 bin/cat
 bin/chmod
 bin/csh
+bin/ed
 bin/ksh
 bin/ln
 bin/md5
@@ -197,6 +198,7 @@ usr.bin/wc
 usr.bin/xargs
 usr.sbin/acme-client
 usr.sbin/arp
+usr.sbin/bgpd
 usr.sbin/httpd
 usr.sbin/ifstated
 usr.sbin/ldapd
