@@ -32,25 +32,25 @@ getopts('h:v', \%opts) or do {
 usage: $0 [-v] -h host mode ...
     -h host	optional user and host for make regress, user defaults to root
     -v		verbose
-    build       build system from source /usr/src
-    cvs         cvs update /usr/src and make obj
-    install     install from snapshot
-    kernel      build kernel from source /usr/src/sys
-    skip	skip setup, host must already be installed
-    upgrade     upgrade with snapshot
+    build	build system from source /usr/src
+    cvs		cvs update /usr/src and make obj
+    install	install from snapshot
+    keep	keep installed host as is, skip setup
+    kernel	build kernel from source /usr/src/sys
+    upgrade	upgrade with snapshot
 EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
 
 my %allmodes;
-@allmodes{qw(build cvs install kernel skip upgrade)} = ();
+@allmodes{qw(build cvs install keep kernel upgrade)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
-foreach (qw(install skip upgrade)) {
+foreach (qw(install keep upgrade)) {
     die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
 
@@ -80,7 +80,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 my $firsthost = $host;
 
-unless ($mode{skip}) {
+unless ($mode{keep}) {
     my @pidcmds;
     my @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
     push @setupcmd, '-v' if $opts{v};
