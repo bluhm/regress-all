@@ -154,6 +154,7 @@ sys/uvm/mmap_mod
 sys/uvm/mmap_noreplace
 sys/uvm/mmap_size
 sys/uvm/mmap_write_self
+usr.bin/apply
 usr.bin/basename
 usr.bin/bc
 usr.bin/calendar
