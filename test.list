@@ -108,6 +108,7 @@ sys/kern/sigprof
 sys/kern/sigsuspend
 sys/kern/sosplice
 sys/kern/stackjmp
+sys/kern/stackpivot
 sys/kern/syscall
 sys/kern/sysvmsg
 sys/kern/sysvsem
