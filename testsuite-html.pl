@@ -55,8 +55,7 @@ chdir($testdir)
 
 if ($latest) {
     my $obj = "$resultsdir/$latest/test.obj.tgz";
-    my @pax = ("pax", "-zrf", $obj, "-s,^/misc/$testsuite/,,",
-	"/misc/$testsuite/");
+    my @pax = ("pax", "-zrf", $obj, "-s,^/misc/$testsuite/,,", "-s,.*,,");
     system(@pax)
 	and die "Command '@pax' failed: $?";
 }
@@ -64,7 +63,7 @@ if ($latest) {
 foreach my $date (@latesthost) {
     my $obj = "$resultsdir/$date/test.obj.tgz";
     my @pax = ("pax", "-zrf", $obj, "-s,^/misc/$testsuite/,out/$date/,",
-	"/misc/$testsuite/");
+	"-s,.*,,");
     system(@pax)
 	and die "Command '@pax' failed: $?";
 }
