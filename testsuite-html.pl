@@ -19,10 +19,12 @@
 use strict;
 use warnings;
 use Cwd;
+use File::Basename;
+use File::Path qw(make_path);
 use Getopt::Std;
 
 my %opts;
-getopts('h:l', \%opts) or do {
+getopts('p:', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 -p publish
     -t publish	directory where the test suite results are created
@@ -37,18 +39,22 @@ chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 my $regressdir = getcwd();
 
+my $resultsdir = "$regressdir/results";
+chdir($resultsdir)
+    or die "Chdir to '$resultsdir' failed: $!";
 my $latest = readlink "latest";
-my @latesthost = map { readlink $_ or () } glob("latest-*");
+my @latesthost = grep { -d } map { readlink $_ or () } glob("latest-*");
 
 my $testsuite = "os-test";
 
-$dir = "$publish/$testsuite";
-make_path("$dir/out") or die "make path '$dir/out' failed: $!";
-chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+my $testdir = "$publish/$testsuite";
+-d "$testdir/out" || make_path("$testdir/out")
+    or die "make path '$testdir/out' failed: $!";
+chdir($testdir)
+    or die "Chdir to '$testdir' failed: $!";
 
 if ($latest) {
-    my $obj = "$regressdir/$latest/test.obj.tgz";
+    my $obj = "$resultsdir/$latest/test.obj.tgz";
     my @pax = ("pax", "-zrf", $obj, "-s,^/misc/$testsuite/,,",
 	"/misc/$testsuite/");
     system(@pax)
@@ -56,7 +62,7 @@ if ($latest) {
 }
 
 foreach my $date (@latesthost) {
-    my $obj = "$regressdir/$date/test.obj.tgz";
+    my $obj = "$resultsdir/$date/test.obj.tgz";
     my @pax = ("pax", "-zrf", $obj, "-s,^/misc/$testsuite/,out/$date/,",
 	"/misc/$testsuite/");
     system(@pax)
