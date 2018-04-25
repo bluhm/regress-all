@@ -60,10 +60,44 @@ if ($latest) {
 	and die "Command '@pax' failed: $?";
 }
 
+my $outdir = "$testdir/out";
+chdir($outdir)
+    or die "Chdir to '$outdir' failed: $!";
+
 foreach my $date (@latesthost) {
     my $obj = "$resultsdir/$date/test.obj.tgz";
-    my @pax = ("pax", "-zrf", $obj, "-s,^/misc/$testsuite/,out/$date/,",
-	"-s,.*,,");
+    my @pax = ("pax", "-zrf", $obj, "-s,^/misc/$testsuite/,$date/,", "-s,.*,,");
     system(@pax)
 	and die "Command '@pax' failed: $?";
 }
+
+my @oslist = reverse sort grep { -d } glob("*");
+my @suites = qw(io udp);
+my @cmd = ("os-test-html", "--enable-suites-overview", "--suite-list=@suites",
+    "--os-list=@oslist");
+
+chdir($testdir)
+    or die "Chdir to '$testdir' failed: $!";
+
+my $htmlfile = "os-test.html";
+unlink("$htmlfile.new");
+
+defined(my $pid = fork())
+    or die "fork failed: $!";
+if ($pid == 0) {
+    open(STDOUT, '>', "$htmlfile.new")
+	or die "Redirect '$htmlfile.new' to stdout failed: $!";
+    exec(@cmd);
+    die "Exec '@cmd' failed: $!";
+}
+(my $waitpid = wait()) > 1
+    or die "wait failed: $!";
+$? and die "Command '@cmd' failed: $?";
+
+rename("$htmlfile.new", "$htmlfile")
+    or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
+
+system("gzip -f -c $htmlfile >$htmlfile.gz.new")
+    and die "gzip $htmlfile failed: $?";
+rename("$htmlfile.gz.new", "$htmlfile.gz")
+    or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
