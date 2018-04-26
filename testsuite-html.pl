@@ -87,8 +87,8 @@ defined(my $pid = fork())
 if ($pid == 0) {
     open(STDOUT, '>', "$htmlfile.new")
 	or die "Redirect '$htmlfile.new' to stdout failed: $!";
-    exec(@cmd);
-    die "Exec '@cmd' failed: $!";
+    exec { "/usr/local/bin/os-test-html" } @cmd;
+    die "Exec '/usr/local/bin/os-test-html' failed: $!";
 }
 (my $waitpid = wait()) > 1
     or die "wait failed: $!";
