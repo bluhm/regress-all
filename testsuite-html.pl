@@ -43,7 +43,13 @@ my $resultsdir = "$regressdir/results";
 chdir($resultsdir)
     or die "Chdir to '$resultsdir' failed: $!";
 my $latest = readlink "latest";
-my @latesthost = grep { -d } map { readlink $_ or () } glob("latest-*");
+my %latesthost;
+foreach (glob("latest-*")) {
+    my $date = readlink $_ or next;
+    -d $date or next;
+    my (undef, $host) = split(/-/, $_, 2);
+    $latesthost{$host} = $date;
+}
 
 my $testsuite = "os-test";
 
@@ -64,7 +70,7 @@ my $outdir = "$testdir/out";
 chdir($outdir)
     or die "Chdir to '$outdir' failed: $!";
 
-foreach my $date (@latesthost) {
+foreach my $date (values %latesthost) {
     my $obj = "$resultsdir/$date/test.obj.tgz";
     my @pax = ("pax", "-zrf", $obj, "-s,^/misc/$testsuite/,$date/,", "-s,.*,,");
     system(@pax)
