@@ -33,6 +33,7 @@ misc/X11
 misc/c++abi
 misc/exceptions
 misc/os-test
+misc/posixtestsuite
 misc/sse2
 sbin/iked
 sbin/ipsecctl
