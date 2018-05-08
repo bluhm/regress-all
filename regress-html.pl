@@ -145,37 +145,40 @@ $htmlfile .= ".html";
 unlink("$htmlfile.new");
 open(my $html, '>', "$htmlfile.new")
     or die "Open '$htmlfile.new' for writing failed: $!";
-print $html "<!DOCTYPE html>\n";
-print $html "<html>\n";
-print $html "<head>\n";
 my $htmltitle = $opts{l} ? "Latest" : "Test";
-print $html "  <title>OpenBSD Regress $htmltitle Results</title>\n";
-print $html "  <style>\n";
-print $html "    th { text-align: left; white-space: nowrap; }\n";
-print $html "    tr:hover {background-color: #e0e0e0}\n";
-print $html "    td.PASS {background-color: #80ff80;}\n";
-print $html "    td.FAIL {background-color: #ff8080;}\n";
-print $html "    td.SKIP {background-color: #8080ff;}\n";
-print $html "    td.NOEXIT, td.NOTERM, td.NORUN ".
-    "{background-color: #ffff80;}\n";
-print $html "    td.NOLOG, td.NOCLEAN, td.NOEXIST ".
-    "{background-color: #ffffff;}\n";
-print $html "    td.result, td.result a {color: black;}\n";
-print $html "  </style>\n";
-print $html "</head>\n";
-
-print $html "<body>\n";
 my $bodytitle = $host ? ($opts{l} ? "latest $host" : $host) :
     ($opts{l} ? "latest" : "all");
-print $html "<h1>OpenBSD regress $bodytitle test results</h1>\n";
-print $html "<table>\n";
-print $html "  <tr>\n    <th>created at</th>\n";
-print $html "    <td>$now</td>\n";
-print $html "  </tr>\n";
-print $html "  <tr>\n    <th>test</th>\n";
-print $html "    <td><a href=\"run.html\">run</a></td>\n";
-print $html "  </tr>\n";
-print $html "</table>\n";
+
+print $html <<"HEADER";
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OpenBSD Regress $htmltitle Results</title>
+  <style>
+    th { text-align: left; white-space: nowrap; }
+    tr:hover {background-color: #e0e0e0}
+    td.PASS {background-color: #80ff80;}
+    td.FAIL {background-color: #ff8080;}
+    td.SKIP {background-color: #8080ff;}
+    td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
+    td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
+    td.result, td.result a {color: black;}
+  </style>
+</head>
+
+<body>
+<h1>OpenBSD regress $bodytitle test results</h1>
+<table>
+  <tr>\n    <th>created at</th>
+    <td>$now</td>
+  </tr>
+  <tr>\n    <th>test</th>
+    <td><a href=\"run.html\">run</a></td>
+  </tr>
+</table>
+HEADER
+
 my @dates = reverse sort keys %d;
 print $html "<table>\n";
 print $html "  <tr>\n    <th>pass rate</th>\n";
@@ -245,34 +248,33 @@ foreach my $test (@tests) {
     print $html "  </tr>\n";
 }
 print $html "</table>\n";
-print $html "<table>\n";
-print $html "  <tr>\n    <th>PASS</th>\n";
-print $html "    <td>make regress passed</td>\n  </tr>\n";
-print $html "  <tr>\n    <th>FAIL</th>\n";
-print $html "    <td>make regress failed, ";
-print $html "string FAILED in test output</td>\n  </tr>\n";
-print $html "  <tr>\n    <th>SKIP</th>\n";
-print $html "    <td>make regress skipped itself, ";
-print $html "string SKIPPED in test output</td>\n  </tr>\n";
-print $html "  <tr>\n    <th>NOEXIT</th>\n";
-print $html "    <td>make regress did not exit with code 0, ";
-print $html "make failed</td>\n  </tr>\n";
-print $html "  <tr>\n    <th>NOTERM</th>\n";
-print $html "    <td>make regress did not terminate, ";
-print $html "aborted after timeout</td>\n  </tr>\n";
-print $html "  <tr>\n    <th>NORUN</th>\n";
-print $html "    <td>make regress did not run, ";
-print $html "execute make failed</td>\n  </tr>\n";
-print $html "  <tr>\n    <th>NOLOG</th>\n";
-print $html "    <td>create log file for make output failed</td>\n  </tr>\n";
-print $html "  <tr>\n    <th>NOCLEAN</th>\n";
-print $html "    <td>make clean before running test failed</td>\n  </tr>\n";
-print $html "  <tr>\n    <th>NOEXIST</th>\n";
-print $html "    <td>test directory not found</td>\n  </tr>\n";
-print $html "</table>\n";
-print $html "</body>\n";
 
-print $html "</html>\n";
+print $html <<"FOOTER";
+<table>
+  <tr>\n    <th>PASS</th>
+    <td>make regress passed</td>\n  </tr>
+  <tr>\n    <th>FAIL</th>
+    <td>make regress failed, string FAILED in test output</td>\n  </tr>
+  <tr>\n    <th>SKIP</th>
+    <td>make regress skipped itself, string SKIPPED in test output</td>\n  </tr>
+  <tr>\n    <th>NOEXIT</th>
+    <td>make regress did not exit with code 0, make failed</td>\n  </tr>
+  <tr>\n    <th>NOTERM</th>
+    <td>make regress did not terminate, aborted after timeout</td>\n  </tr>
+  <tr>\n    <th>NORUN</th>
+    <td>make regress did not run, execute make failed</td>\n  </tr>
+  <tr>\n    <th>NOLOG</th>
+    <td>create log file for make output failed</td>\n  </tr>
+  <tr>\n    <th>NOCLEAN</th>
+    <td>make clean before running test failed</td>\n  </tr>
+  <tr>\n    <th>NOEXIST</th>
+    <td>test directory not found</td>\n  </tr>
+</table>
+</body>
+
+</html>
+FOOTER
+
 close($html)
     or die "Close '$htmlfile.new' after writing failed: $!";
 rename("$htmlfile.new", "$htmlfile")
