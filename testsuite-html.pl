@@ -51,24 +51,24 @@ foreach (glob("latest-*")) {
     $latesthost{$host} = $date;
 }
 
-my $testsuite = "os-test";
-
-my $testdir = "$publish/$testsuite";
+my $testdir = "$publish/os-test";
 -d "$testdir/out" || make_path("$testdir/out")
     or die "make path '$testdir/out' failed: $!";
-chdir($testdir)
-    or die "Chdir to '$testdir' failed: $!";
+$testdir = "$publish/posixtestsuite";
+-d "$testdir/out" || make_path("$testdir/out")
+    or die "make path '$testdir/out' failed: $!";
+chdir($publish)
+    or die "Chdir to '$publish' failed: $!";
 
 if ($latest) {
     my $obj = "$resultsdir/$latest/test.obj.tgz";
-    my @pax = ("pax", "-zrf", $obj, "-s,^/misc/$testsuite/,,", "-s,.*,,");
+    my @pax = ("pax", "-zrf", $obj,
+	"-s,^/misc/os-test/,$publish/os-test/,",
+	"-s,^/misc/posixtestsuite/,$publish/posixtestsuite/,",
+	"-s,.*,,");
     system(@pax)
 	and die "Command '@pax' failed: $?";
 }
-
-my $outdir = "$testdir/out";
-chdir($outdir)
-    or die "Chdir to '$outdir' failed: $!";
 
 while (my ($host, $date) = each %latesthost) {
     my $version = "$resultsdir/$date/version-$host.txt";
@@ -98,16 +98,29 @@ while (my ($host, $date) = each %latesthost) {
     my $snap = sprintf("%04d-%02d-%02d", $year, $mn2m{$monthname}, $day);
 
     my $obj = "$resultsdir/$date/test.obj.tgz";
-    my @pax = ("pax", "-zrf", $obj, "-s,^/misc/$testsuite/,$snap/,", "-s,.*,,");
+    my @pax = ("pax", "-zrf", $obj,
+	"-s,.*\.core\$,,",
+	"-s,.*\.c\$,,",
+	"-s,.*\.sh\$,,",
+	"-s,^/misc/os-test/,$publish/os-test/out/$snap/,",
+	"-s,^/misc/posixtestsuite/,$publish/posixtestsuite/out/$snap/,",
+	"-s,.*,,");
     system(@pax)
 	and die "Command '@pax' failed: $?";
 }
+
+### os-test
+
+my $outdir = "$publish/os-test/out";
+chdir($outdir)
+    or die "Chdir to '$outdir' failed: $!";
 
 my @oslist = reverse sort grep { -d } glob("*");
 my @suites = qw(io udp);
 my @cmd = ("os-test-html", "--enable-suites-overview", "--suite-list=@suites",
     "--os-list=@oslist");
 
+$testdir = "$publish/os-test";
 chdir($testdir)
     or die "Chdir to '$testdir' failed: $!";
 
@@ -123,6 +136,37 @@ if ($pid == 0) {
     die "Exec '/usr/local/bin/os-test-html' failed: $!";
 }
 (my $waitpid = wait()) > 1
+    or die "wait failed: $!";
+$? and die "Command '@cmd' failed: $?";
+
+rename("$htmlfile.new", "$htmlfile")
+    or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
+
+system("gzip -f -c $htmlfile >$htmlfile.gz.new")
+    and die "gzip $htmlfile failed: $?";
+rename("$htmlfile.gz.new", "$htmlfile.gz")
+    or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+
+### posixtestsuite
+
+@cmd = ("posixtestsuite-html", "-p", "@oslist");
+
+$testdir = "$publish/posixtestsuite";
+chdir($testdir)
+    or die "Chdir to '$testdir' failed: $!";
+
+$htmlfile = "posixtestsuite.html";
+unlink("$htmlfile.new");
+
+defined($pid = fork())
+    or die "fork failed: $!";
+if ($pid == 0) {
+    open(STDOUT, '>', "$htmlfile.new")
+	or die "Redirect '$htmlfile.new' to stdout failed: $!";
+    exec { "/home/bluhm/posixtestsuite-html.pl" } @cmd;
+    die "Exec '/usr/local/bin/posixtestsuite-html' failed: $!";
+}
+($waitpid = wait()) > 1
     or die "wait failed: $!";
 $? and die "Command '@cmd' failed: $?";
 
