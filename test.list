@@ -210,6 +210,7 @@ usr.sbin/ldapd
 usr.sbin/mtree
 usr.sbin/ospfd
 usr.sbin/pkg_add
+usr.sbin/rebound
 usr.sbin/relayd
 usr.sbin/snmpd
 usr.sbin/switchd
