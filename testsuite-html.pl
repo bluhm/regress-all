@@ -149,7 +149,11 @@ rename("$htmlfile.gz.new", "$htmlfile.gz")
 
 ### posixtestsuite
 
-@cmd = ("posixtestsuite-html", "-p", "@oslist");
+$outdir = "$publish/posixtestsuite/out";
+chdir($outdir)
+    or die "Chdir to '$outdir' failed: $!";
+@oslist = reverse sort grep { -d } glob("*");
+@cmd = ("posixtestsuite-html", "-o", "@oslist");
 
 $testdir = "$publish/posixtestsuite";
 chdir($testdir)
