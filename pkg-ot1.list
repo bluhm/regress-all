@@ -1,6 +1,9 @@
+bzip2
 diffstat
 git
+gmake
 go
+gsed
 net-snmp
 openldap-client--
 os-test
@@ -22,3 +25,4 @@ rsync--
 scapy
 sudo--
 sysclean
+xz
