@@ -41,9 +41,17 @@ foreach my $date (reverse sort @datedirs) {
 	next;
     }
     if ($d =~ /5$/) {
-	print "skip $date\n" if $opts{v};
+	my $cleanfile = "$date/test.obj.tgz";
+	if (-f $cleanfile) {
+	    print "clean $date\n" if $opts{v};
+	    unlink($cleanfile)
+		or die "Unlink '$cleanfile' failed: $!"
+		unless $opts{n};
+	} else {
+	    print "skip $date\n" if $opts{v};
+	}
 	next;
     }
     print "remove $date\n" if $opts{v};
-    rmtree($date) unless $opts{n};
+    remove_tree($date, { safe => 1 }) unless $opts{n};
 }
