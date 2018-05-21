@@ -167,7 +167,7 @@ defined($pid = fork())
 if ($pid == 0) {
     open(STDOUT, '>', "$htmlfile.new")
 	or die "Redirect '$htmlfile.new' to stdout failed: $!";
-    exec { "/home/bluhm/posixtestsuite-html.pl" } @cmd;
+    exec { "/usr/local/bin/posixtestsuite-html" } @cmd;
     die "Exec '/usr/local/bin/posixtestsuite-html' failed: $!";
 }
 ($waitpid = wait()) > 1
