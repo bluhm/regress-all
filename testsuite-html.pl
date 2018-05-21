@@ -73,18 +73,18 @@ if ($latest) {
 while (my ($host, $date) = each %latesthost) {
     my $version = "$resultsdir/$date/version-$host.txt";
     open(my $fh, '<', $version)
-        or die "Open '$version' for reading failed: $!";
+	or die "Open '$version' for reading failed: $!";
     my ($kernel, $time, $location, $arch);
     while (<$fh>) {
 	# OpenBSD 6.3-current (GENERIC.MP) #14: Thu Apr 26 21:03:52 MDT 2018
-        if (/^kern.version=(.*: (\w+ \w+ +\d+ .*))$/) {
-            $kernel = $1;
-            $time = $2;
-            <$fh> =~ /(\S+)/;
-            $kernel .= "\n    $1";
-            $location = $1;
-        }
-        /^hw.machine=(\w+)$/ and $arch = $1;
+	if (/^kern.version=(.*: (\w+ \w+ +\d+ .*))$/) {
+	    $kernel = $1;
+	    $time = $2;
+	    <$fh> =~ /(\S+)/;
+	    $kernel .= "\n    $1";
+	    $location = $1;
+	}
+	/^hw.machine=(\w+)$/ and $arch = $1;
     }
     # test results with kernel from snapshot build only
     next unless $location =~ /^deraadt@\w+.openbsd.org:/;
