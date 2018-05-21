@@ -102,8 +102,8 @@ while (my ($host, $date) = each %latesthost) {
 	"-s,.*\.core\$,,",
 	"-s,.*\.c\$,,",
 	"-s,.*\.sh\$,,",
-	"-s,^/misc/os-test/,$publish/os-test/out/$snap/,",
-	"-s,^/misc/posixtestsuite/,$publish/posixtestsuite/out/$snap/,",
+	"-s,^/misc/os-test/,$publish/os-test/out/$host-$snap/,",
+	"-s,^/misc/posixtestsuite/,$publish/posixtestsuite/out/$host-$snap/,",
 	"-s,.*,,");
     system(@pax)
 	and die "Command '@pax' failed: $?";
