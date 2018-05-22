@@ -43,6 +43,7 @@ sbin/pfctl
 sbin/route
 sbin/slaacd
 sys/arch/hppa
+sys/arch/i386
 sys/arch/m88k
 sys/arch/sparc64
 sys/copy
