@@ -78,7 +78,7 @@ logmsg("script '$scriptname' started at $date\n");
 
 my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
-my $firsthost = $host;
+my ($firsthost, $lasthost) = $host;
 
 unless ($mode{keep}) {
     my @pidcmds;
@@ -103,6 +103,7 @@ unless ($mode{keep}) {
 	push @setupcmd, keys %mode;
 	push @pidcmds, forkcmd(@setupcmd);
     }
+    $lasthost = $host;
 
     # create new summary with setup log
     sleep 1;
@@ -130,6 +131,7 @@ for ($host = $firsthost; $host; $host++) {
     if ($@) {
 	unlink $dmesg;
     }
+    last if $host eq $lasthost;
 }
 
 # run regress there
@@ -177,8 +179,8 @@ for ($host = $firsthost; $host; $host++) {
     })};
     if ($@) {
 	unlink $dmesg;
-	last;
     }
+    last if $host eq $lasthost;
 }
 
 # create html output
