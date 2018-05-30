@@ -67,6 +67,7 @@ sys/kern/accept
 sys/kern/access
 sys/kern/bind
 sys/kern/dup2
+sys/kern/dup2_accept
 sys/kern/dup2_self
 sys/kern/exec_self
 sys/kern/execve
@@ -121,6 +122,7 @@ sys/kern/unfdpass
 sys/kern/unixsock
 sys/kern/wait
 sys/net/etherip
+sys/net/gif
 sys/net/loop
 sys/net/pf_divert
 sys/net/pf_forward
