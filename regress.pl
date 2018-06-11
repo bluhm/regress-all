@@ -67,6 +67,8 @@ sub bad($$$;$) {
     print $log "\n$reason\t$test\t$message\n" if $log;
     print "\n$reason\t$test\t$message\n\n" if $opts{v};
     print $tr "$reason\t$test\t$message\n";
+    $log->sync() if $log;
+    $tr->sync();
     no warnings 'exiting';
     next;
 }
@@ -77,11 +79,14 @@ sub good($$;$) {
     print $log "\nPASS\t$test\tDuration $duration\n" if $log;
     print "\nPASS\t$test\tDuration $duration\n\n" if $opts{v};
     print $tr "PASS\t$test\tDuration $duration\n";
+    $log->sync() if $log;
+    $tr->sync();
 }
 
 my @paxcmd = ('pax', '-wzf', "$dir/test.log.tgz", '-s,^/usr/src/regress/,,');
 open(my $pax, '|-', @paxcmd)
     or die "Open pipe to '@paxcmd' failed: $!";
+$pax->autoflush();
 my $paxlog;
 
 # run make regress for each test
@@ -109,7 +114,8 @@ foreach my $test (@tests) {
     $log->autoflush();
     $paxlog = "$dir/make.log\n";
 
-    print $log "START\t$test\t$date\n\n" if $log;
+    print $log "START\t$test\t$date\n\n";
+    $log->sync();
 
     my $skipped = 0;
     my @errors;
