@@ -1,3 +1,4 @@
+/etc/exports
 /etc/fstab.site
 /etc/hostname.*
 /etc/hosts.site
