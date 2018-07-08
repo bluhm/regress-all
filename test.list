@@ -76,6 +76,7 @@ sys/kern/extent
 sys/kern/fchdir
 sys/kern/fcntl_dup
 sys/kern/flock
+sys/kern/ftruncate
 sys/kern/futex
 sys/kern/getpeereid
 sys/kern/getrusage
@@ -142,11 +143,13 @@ sys/netinet/frag
 sys/netinet/in_pcbbind
 sys/netinet/ipsec
 sys/netinet/pmtu
+sys/netinet/recvmsg
 sys/netinet/sendsrcaddr
 sys/netinet6/autoport
 sys/netinet6/frag6
 sys/netinet6/nd6
 sys/netinet6/pktinfo_addr
+sys/netinet6/recvmsg
 sys/netinet6/rh0
 sys/nfs
 sys/ptrace
