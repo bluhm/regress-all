@@ -74,6 +74,7 @@ sys/kern/execve
 sys/kern/exit
 sys/kern/extent
 sys/kern/fchdir
+sys/kern/fchown
 sys/kern/fcntl_dup
 sys/kern/flock
 sys/kern/ftruncate
