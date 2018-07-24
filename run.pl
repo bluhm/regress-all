@@ -130,8 +130,9 @@ for ($host = $firsthost; $host; $host++) {
     })};
     if ($@) {
 	unlink $dmesg;
+	last;
     }
-    last if $host eq $lasthost;
+    last if $lasthost && $host eq $lasthost;
 }
 
 # run regress there
@@ -179,8 +180,9 @@ for ($host = $firsthost; $host; $host++) {
     })};
     if ($@) {
 	unlink $dmesg;
+	last;
     }
-    last if $host eq $lasthost;
+    last if $lasthost && $host eq $lasthost;
 }
 
 # create html output
