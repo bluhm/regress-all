@@ -42,6 +42,7 @@ sbin/newfs
 sbin/pfctl
 sbin/route
 sbin/slaacd
+sys/arch/amd64
 sys/arch/hppa
 sys/arch/i386
 sys/arch/m88k
