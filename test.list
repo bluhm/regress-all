@@ -124,6 +124,7 @@ sys/kern/sysvshm
 sys/kern/unalign
 sys/kern/unfdpass
 sys/kern/unixsock
+sys/kern/unveil
 sys/kern/wait
 sys/net/etherip
 sys/net/gif
