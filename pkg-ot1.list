@@ -25,4 +25,5 @@ rsync--
 scapy
 sudo--
 sysclean
+wycheproof-testvectors
 xz
