@@ -27,6 +27,7 @@ lib/libskey
 lib/libsndio
 lib/libssl
 lib/libtls
+lib/libusbhid
 lib/libutil
 libexec/ld.so
 misc/X11
@@ -59,6 +60,7 @@ sys/crypto/hmac
 sys/crypto/key_wrap
 sys/ddb
 sys/dev/fdesc
+sys/dev/kcov
 sys/dev/video
 sys/ffs
 sys/fifofs
@@ -67,6 +69,7 @@ sys/kern/__syscall
 sys/kern/accept
 sys/kern/access
 sys/kern/bind
+sys/kern/descrip
 sys/kern/dup2
 sys/kern/dup2_accept
 sys/kern/dup2_self
@@ -190,6 +193,7 @@ usr.bin/ftp
 usr.bin/grep
 usr.bin/gzip
 usr.bin/jot
+usr.bin/lam
 usr.bin/lastcomm
 usr.bin/libtool
 usr.bin/m4
