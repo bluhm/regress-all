@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Cwd;
 use File::Basename;
-use File::Path;
+use File::Path qw(remove_tree);
 use Getopt::Std;
 use POSIX;
 
