@@ -174,14 +174,14 @@ sub checkout_cvs {
 	    "cd /usr && cvs -Rd /mount/openbsd/cvs co $_/Makefile")
     }
     my $tag = $release || "";
-    $tag =~ s/(\d+)\.(\d+)/OPENBSD_${1}_${2}_BASE/;
+    $tag =~ s/(\d+)\.(\d+)/-rOPENBSD_${1}_${2}_BASE/;
     logcmd('ssh', $opts{h}, "cd /usr/src && cvs -R up -PdA $tag");
     logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
 }
 
 sub update_cvs {
     my $tag = $release || "";
-    $tag =~ s/(\d+)\.(\d+)/OPENBSD_${1}_${2}_BASE/;
+    $tag =~ s/(\d+)\.(\d+)/-rOPENBSD_${1}_${2}_BASE/;
     logcmd('ssh', $opts{h}, "cd /usr/src && cvs -qR up -PdA -C $tag");
     logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
 }
