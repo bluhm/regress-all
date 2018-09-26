@@ -1,6 +1,6 @@
 # run commands and log their output into file
 
-# Copyright (c) 2016-2017 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2018 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -22,7 +22,7 @@ use Carp;
 use POSIX;
 
 use parent 'Exporter';
-our @EXPORT= qw(createlog logmsg runcmd forkcmd waitcmd logcmd);
+our @EXPORT= qw(createlog logmsg runcmd forkcmd waitcmd logcmd loggrep);
 use subs qw(logmsg);
 
 my ($fh, $file, $verbose);
@@ -139,6 +139,15 @@ sub logcmd (@) {
 	"Close pipe from '@cmd' failed: $!" :
 	"Command '@cmd' failed: $?";
     logmsg "Command '@cmd' finished\n";
+}
+
+sub loggrep ($) {
+    my ($regex) = @_;
+    open(my $fh, '<', $file)
+	or croak "Open '$file' for reading failed: $!";
+    my @match = grep { /$regex/ } <$fh>;
+    close($fh);
+    return wantarray ? @match : $match[0];
 }
 
 1;

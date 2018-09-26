@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # setup machine for regress test
 
-# Copyright (c) 2016-2017 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2018 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -24,9 +24,7 @@ use POSIX;
 
 use lib dirname($0);
 use Logcmd;
-
-# XXX explicit IP address in source code
-my $testmaster="10.0.1.1";
+use Machine;
 
 my $scriptname = "$0 @ARGV";
 
@@ -76,28 +74,30 @@ chdir($resultdir)
     or die "Chdir to '$resultdir' failed: $!";
 my $bindir = "$regressdir/bin";
 
-(my $host = $opts{h}) =~ s/.*\@//;
+my ($user, $host) = split('@', $opts{h}, 2);
+($user, $host) = ("root", $user) unless $host;
+
 createlog(file => "setup-$host.log", verbose => $opts{v});
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' started at $date\n");
 
+createhost($user, $host);
+
 # execute commands
 
-my %sysctl;
-
-install_pxe() if $mode{install};
+install_pxe($release) if $mode{install};
 upgrade_pxe() if $mode{upgrade};
 get_version();
 copy_scripts();
-checkout_cvs() if $mode{install};
-update_cvs() if $mode{upgrade} || $mode{cvs};
+checkout_cvs($release) if $mode{install};
+update_cvs($release) if $mode{upgrade} || $mode{cvs};
 make_kernel() if $mode{kernel} || $mode{build};
 make_build() if $mode{build};
 diff_cvs("sys") if $mode{kernel} && !$mode{build};
 diff_cvs() if $mode{build};
 reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
-install_packages() if $mode{install} || $mode{upgrade};
+install_packages($release) if $mode{install} || $mode{upgrade};
 
 # finish setup log
 
@@ -106,53 +106,10 @@ logmsg("script '$scriptname' finished at $date\n");
 
 exit;
 
-# pxe install machine
-
-sub install_pxe {
-    logcmd('ssh', "$host\@$testmaster", "install", $release || ());
-}
-
-sub upgrade_pxe {
-    logcmd('ssh', "$host\@$testmaster", "upgrade");
-}
-
-# reboot machine
-
-sub reboot {
-    logcmd('ssh', "$host\@$testmaster", "reboot");
-}
-# get version information
-
-sub get_version {
-    my @sshcmd = (('ssh', $opts{h}, 'sysctl'),
-	qw(kern.version hw.machine hw.ncpu));
-    logmsg "Command '@sshcmd' started\n";
-    open(my $ctl, '-|', @sshcmd)
-	or die "Open pipe from '@sshcmd' failed: $!";
-    open(my $version, '>', "version-$host.txt")
-	or die "Open 'version-$host.txt' for writing failed: $!";
-    %sysctl = ();
-    my $prevkey;
-    local $_;
-    while (defined($_ = <$ctl>)) {
-	if (m{^([\w.]+)=(.*)}) {
-	    $sysctl{$1} = $2;
-	    $prevkey = $1;
-	} else {
-	    $sysctl{$prevkey} .= "\n$_";
-	}
-	print $version $_;
-    }
-    close($ctl) or die $! ?
-	"Close pipe from '@sshcmd' failed: $!" :
-	"Command '@sshcmd' failed: $?";
-    logmsg "Command '@sshcmd' finished\n";
-}
-
 # copy scripts
 
 sub copy_scripts {
-    runcmd('ssh', $opts{h}, 'mkdir', '-p', '/root/regress');
+    runcmd('ssh', "$user\@$host", 'mkdir', '-p', '/root/regress');
     chdir($bindir)
 	or die "Chdir to '$bindir' failed: $!";
     my @copy = grep { -f $_ }
@@ -160,79 +117,20 @@ sub copy_scripts {
 	"site.list");
     my @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
-    push @scpcmd, (@copy, "$opts{h}:/root/regress");
+    push @scpcmd, (@copy, "$user\@$host:/root/regress");
     runcmd(@scpcmd);
     chdir($resultdir)
 	or die "Chdir to '$resultdir' failed: $!";
 }
 
-# cvs checkout, update, diff
-
-sub checkout_cvs {
-    foreach (qw(src ports xenocara)) {
-	logcmd('ssh', $opts{h},
-	    "cd /usr && cvs -Rd /mount/openbsd/cvs co $_/Makefile")
-    }
-    my $tag = $release || "";
-    $tag =~ s/(\d+)\.(\d+)/-rOPENBSD_${1}_${2}_BASE/;
-    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -R up -PdA $tag");
-    logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
-}
-
-sub update_cvs {
-    my $tag = $release || "";
-    $tag =~ s/(\d+)\.(\d+)/-rOPENBSD_${1}_${2}_BASE/;
-    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -qR up -PdA -C $tag");
-    logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
-}
-
-sub diff_cvs {
-    my ($path) = @_;
-    $path = $path ? " $path" : "";
-    my @sshcmd = ('ssh', $opts{h}, 'cd /usr/src && cvs -qR diff -up'.$path);
-    logmsg "Command '@sshcmd' started\n";
-    open(my $cvs, '-|', @sshcmd)
-	or die "Open pipe from '@sshcmd' failed: $!";
-    open(my $diff, '>', "diff-$host.txt")
-	or die "Open 'diff-$host.txt' for writing failed: $!";
-    local $_;
-    while (<$cvs>) {
-	print $diff $_;
-    }
-    close($cvs) or do {
-	die "Close pipe from '@sshcmd' failed: $!" if $!;
-	# cvs diff returns 0 without and 1 with differences
-	die "Command '@sshcmd' failed: $?" if $? != 0 && $? != (1<<8);
-    };
-    logmsg "Command '@sshcmd' finished\n";
-}
-
-# make /usr/src
-
-sub make_kernel {
-    my $version = $sysctl{'kern.version'};
-    $version =~ m{:/usr/src/sys/([\w./]+)$}m
-	or die "No kernel path in version: $version";
-    my $path = $1;
-    my $ncpu = $sysctl{'hw.ncpu'};
-    my $jflag = $ncpu > 1 ? "-j ".($ncpu+1) : "";
-    logcmd('ssh', $opts{h}, "cd /usr/src/sys/$path && make config");
-    logcmd('ssh', $opts{h}, "cd /usr/src/sys/$path && nice make $jflag");
-    logcmd('ssh', $opts{h}, "cd /usr/src/sys/$path && make install");
-}
-
-sub make_build {
-    my $ncpu = $sysctl{'hw.ncpu'};
-    my $jflag = $ncpu > 1 ? "-j ".($ncpu+1) : "";
-    logcmd('ssh', $opts{h}, "cd /usr/src && nice make $jflag build");
-}
-
 # install packages
 
 sub install_packages {
+    my ($release) = @_;
     if (-f "$bindir/pkg-$host.list") {
 	eval {
-	    logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list",
+	    logcmd('ssh', "$user\@$host", 'pkg_add',
+		'-l', "regress/pkg-$host.list",
 		'-Ivx', $release ? () : '-Dsnap')
 	};
 	logmsg "WARNING: command failed\n" if $@;
