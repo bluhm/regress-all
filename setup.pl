@@ -31,12 +31,13 @@ my $testmaster="10.0.1.1";
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:h:v', \%opts) or do {
+getopts('d:h:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] -h host mode ...
-    -v		verbose
+usage: $0 [-v] [-d date] -h host [-r relese] mode ...
     -d date	set date string and change to sub directory
     -h host	root\@openbsd-test-machine, login per ssh
+    -r release	use release for install and cvs checkout
+    -v		verbose
     build	build system from source /usr/src
     cvs		clean cvs update /usr/src and make obj
     install	install from snapshot
@@ -57,6 +58,12 @@ my %mode = map {
 } @ARGV;
 foreach (qw(install upgrade)) {
     die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
+}
+my $release;
+if ($opts{r}) {
+    die "Upgrade to release not supported" if $mode{upgrade};
+    $release = $opts{r};
+    die "Release must be major.minor" unless $release =~ /^\d.\d$/;
 }
 
 my $regressdir = dirname($0). "/..";
@@ -102,7 +109,7 @@ exit;
 # pxe install machine
 
 sub install_pxe {
-    logcmd('ssh', "$host\@$testmaster", "install");
+    logcmd('ssh', "$host\@$testmaster", "install", $release || ());
 }
 
 sub upgrade_pxe {
@@ -166,12 +173,16 @@ sub checkout_cvs {
 	logcmd('ssh', $opts{h},
 	    "cd /usr && cvs -Rd /mount/openbsd/cvs co $_/Makefile")
     }
-    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -R up -PdA");
+    my $tag = $release || "";
+    $tag =~ s/(\d+)\.(\d+)/OPENBSD_${1}_${2}_BASE/;
+    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -R up -PdA $tag");
     logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
 }
 
 sub update_cvs {
-    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -qR up -PdA -C");
+    my $tag = $release || "";
+    $tag =~ s/(\d+)\.(\d+)/OPENBSD_${1}_${2}_BASE/;
+    logcmd('ssh', $opts{h}, "cd /usr/src && cvs -qR up -PdA -C $tag");
     logcmd('ssh', $opts{h}, "cd /usr/src && make obj");
 }
 
@@ -222,7 +233,7 @@ sub install_packages {
     if (-f "$bindir/pkg-$host.list") {
 	eval {
 	    logcmd('ssh', $opts{h}, 'pkg_add', '-l', "regress/pkg-$host.list",
-		'-Ivx', '-Dsnap')
+		'-Ivx', $release ? () : '-Dsnap')
 	};
 	logmsg "WARNING: command failed\n" if $@;
     }
