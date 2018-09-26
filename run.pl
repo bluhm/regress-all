@@ -30,7 +30,7 @@ my %opts;
 getopts('h:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -h host mode ...
-    -h host	optional user and host for make regress, user defaults to root
+    -h host	user and host for make regress, user defaults to root
     -v		verbose
     build	build system from source /usr/src
     cvs		cvs update /usr/src and make obj
