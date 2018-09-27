@@ -19,6 +19,7 @@ package Machine;
 use strict;
 use warnings;
 use Carp;
+use Date::Parse;
 
 use Logcmd;
 
@@ -108,6 +109,8 @@ sub make_kernel {
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make config");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make clean")
 	if loggrep(qr/you must run "make clean"/);
+    logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path; ".
+	"[ ! -s CVS/Tag ] || { echo -n cvs : ; cat CVS/Tag; } >obj/version");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && nice make $jflag");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make install");
 }
