@@ -77,21 +77,19 @@ mkdir $dir
 unlink("results/current");
 symlink($date, "results/current")
     or die "Make symlink 'results/current' failed: $!";
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
 
-createlog(file => "$dir/step.log", verbose => $opts{v});
+createlog(file => "step.log", verbose => $opts{v});
 logmsg("script '$scriptname' started at $date\n");
 
 # setup remote machines
 
-my ($user, $host) = split('@', $opts{h}, 2);
-($user, $host) = ("root", $user) unless $host;
-my ($firsthost, $lasthost) = $host;
-for ($host = $firsthost; -f "bin/pkg-$host.list"; $lasthost = $host++) {
-    # XXX hack to find out whether a remote machine exists
-}
-undef $host;
+my $user = usehosts(bindir => "$performancedir/bin", host => $opts{h},
+    date => $opts{d}, verbose => $opts{v});
 
-setup_hosts() unless $mode{keep};
+setup_hosts(mode => \%mode, release => $opts{r}) unless $mode{keep};
+collect_version();
 runcmd("$performancedir/bin/setup-html.pl");
 
 # update in single steps
@@ -100,13 +98,12 @@ for (my $current = $begin; $current <= $end;
     $current = add_step($current, $step, $unit)) {
 
     my $cvsdate = strftime("%FT%TZ", gmtime($current));
-    $dir = "results/$date/$cvsdate";
-    mkdir $dir
-	or die "Make directory '$dir' failed: $!";
-    chdir($dir)
-	or die "Chdir to '$dir' failed: $!";
-
-    update_hosts($cvsdate);
+    my $cvsdir = "results/$date/$cvsdate";
+    mkdir $cvsdir
+	or die "Make directory '$cvsdir' failed: $!";
+    chdir($cvsdir)
+	or die "Chdir to '$cvsdir' failed: $!";
+    cvsbuild_hosts(cvsdate => $cvsdate);
     collect_version();
 
     # run performance there
@@ -156,66 +153,4 @@ sub add_step {
 
     my $after = timegm($sec, $min, $hour, $mday, $mon, $year) + $step;
     return $after;
-}
-
-sub setup_hosts {
-    my @pidcmds;
-    for (my $host = $firsthost; $host le $lasthost; $host++) {
-	my @setupcmd = ("$performancedir/bin/setup.pl",
-	    '-h', "$user\@$host", '-d', $date);
-	push @setupcmd, '-v' if $opts{v};
-	push @setupcmd, '-r', $opts{r} if $opts{r};
-	push @setupcmd, keys %mode;
-	push @pidcmds, forkcmd(@setupcmd);
-
-	# create new summary with setup log
-	sleep 1;
-	runcmd("$performancedir/bin/setup-html.pl");
-
-	if ($mode{install}) {
-	    # change config of dhcpd has races, cannot install simultaneously
-	    waitcmd(@pidcmds);
-	    undef @pidcmds;
-	}
-    }
-    waitcmd(@pidcmds);
-}
-
-sub update_hosts {
-    my ($date) = @_;
-    my @pidcmds;
-    for (my $host = $firsthost; $host le $lasthost; $host++) {
-	my @cvscmd = ("$performancedir/bin/cvsbuild.pl",
-	    '-h', "$user\@$host", '-D', $date);
-	push @cvscmd, '-v' if $opts{v};
-	push @cvscmd, keys %mode;
-	push @pidcmds, forkcmd(@cvscmd);
-    }
-    waitcmd(@pidcmds);
-}
-
-sub collect_version {
-    for (my $host = $firsthost; $host le $lasthost; $host++) {
-	my $h = "$user\@$host";
-	my $version = "version-$host.txt";
-	eval { logcmd({
-	    cmd => ['ssh', $h, 'sysctl', 'kern.version', 'hw.machine',
-		'hw.ncpu'],
-	    outfile => $version,
-	})};
-	if ($@) {
-	    unlink $version;
-	    last;
-	}
-	my $dmesg = "dmesg-boot-$host.txt";
-	eval { logcmd({
-	    cmd => ['ssh', $h, 'cat', '/var/run/dmesg.boot'],
-	    outfile => $dmesg,
-	})};
-	if ($@) {
-	    unlink $dmesg;
-	    last;
-	}
-	last if $lasthost && $host eq $lasthost;
-    }
 }

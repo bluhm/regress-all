@@ -45,7 +45,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
 my $cvsdate = $opts{D};
-createlog(file => "build-$host.log", verbose => $opts{v});
+createlog(file => "cvsbuild-$host.log", verbose => $opts{v});
 my $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' started at $date\n");
 
