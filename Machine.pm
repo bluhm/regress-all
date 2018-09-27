@@ -105,7 +105,7 @@ sub update_cvs {
     $tag = $date ? strftime(" -D%FZ%T", str2time($date)) : "";
     $path = $path ? " $path" : "";
     logcmd('ssh', "$user\@$host", "cd /usr/src && cvs -qR up -PdAC$tag$path");
-    $path = $path ? "-C$path" : "";
+    $path = $path ? " -C$path" : "";
     logcmd('ssh', "$user\@$host", "cd /usr/src && make$path obj");
 }
 
@@ -139,20 +139,20 @@ sub make_kernel {
 	or die "No kernel path in version: $version";
     my $path = $1;
     my $ncpu = $sysctl{'hw.ncpu'};
-    my $jflag = $ncpu > 1 ? "-j ".($ncpu+1) : "";
+    my $jflag = $ncpu > 1 ? " -j ".($ncpu+1) : "";
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make config");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make clean")
 	if loggrep(qr/you must run "make clean"/);
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path; ".
 	"[ ! -s CVS/Tag ] || { echo -n cvs : ; cat CVS/Tag; } >obj/version");
-    logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && nice make $jflag");
+    logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && nice make$jflag");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make install");
 }
 
 sub make_build {
     my $ncpu = $sysctl{'hw.ncpu'};
-    my $jflag = $ncpu > 1 ? "-j ".($ncpu+1) : "";
-    logcmd('ssh', "$user\@$host", "cd /usr/src && nice make $jflag build");
+    my $jflag = $ncpu > 1 ? " -j ".($ncpu+1) : "";
+    logcmd('ssh', "$user\@$host", "cd /usr/src && nice make$jflag build");
 }
 
 1;
