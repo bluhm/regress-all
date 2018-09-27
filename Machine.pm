@@ -24,8 +24,8 @@ use Date::Parse;
 use Logcmd;
 
 use parent 'Exporter';
-our @EXPORT= qw(createhost
-    install_pxe upgrade_pxe
+our @EXPORT= qw(createhost reboot
+    install_pxe upgrade_pxe get_version
     checkout_cvs update_cvs diff_cvs
     make_kernel make_build
 );
@@ -39,6 +39,12 @@ sub createhost {
     ($user, $host) = @_;
 }
 
+# reboot machine
+
+sub reboot {
+    logcmd('ssh', "$host\@$testmaster", "reboot");
+}
+
 # pxe install machine
 
 sub install_pxe {
@@ -48,6 +54,34 @@ sub install_pxe {
 
 sub upgrade_pxe {
     logcmd('ssh', "$host\@$testmaster", "upgrade");
+}
+
+# get version information
+
+sub get_version {
+    my @sshcmd = (('ssh', "$user\@$host", 'sysctl'),
+	qw(kern.version hw.machine hw.ncpu));
+    logmsg "Command '@sshcmd' started\n";
+    open(my $ctl, '-|', @sshcmd)
+	or die "Open pipe from '@sshcmd' failed: $!";
+    open(my $version, '>', "version-$host.txt")
+	or die "Open 'version-$host.txt' for writing failed: $!";
+    %sysctl = ();
+    my $prevkey;
+    local $_;
+    while (defined($_ = <$ctl>)) {
+	if (m{^([\w.]+)=(.*)}) {
+	    $sysctl{$1} = $2;
+	    $prevkey = $1;
+	} else {
+	    $sysctl{$prevkey} .= "\n$_";
+	}
+	print $version $_;
+    }
+    close($ctl) or die $! ?
+	"Close pipe from '@sshcmd' failed: $!" :
+	"Command '@sshcmd' failed: $?";
+    logmsg "Command '@sshcmd' finished\n";
 }
 
 # cvs checkout, update, diff
