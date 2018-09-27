@@ -20,6 +20,7 @@ use strict;
 use warnings;
 use Carp;
 use Date::Parse;
+use POSIX;
 
 use Logcmd;
 
@@ -102,7 +103,7 @@ sub update_cvs {
     my ($release, $date, $path) = @_;
     my $tag = $release || "";
     $tag =~ s/(\d+)\.(\d+)/ -rOPENBSD_${1}_${2}_BASE/;
-    $tag = $date ? strftime(" -D%FZ%T", str2time($date)) : "";
+    $tag = $date ? strftime(" -D%FZ%T", gmtime(str2time($date))) : "";
     $path = $path ? " $path" : "";
     logcmd('ssh', "$user\@$host", "cd /usr/src && cvs -qR up -PdAC$tag$path");
     $path = $path ? " -C$path" : "";
@@ -143,8 +144,8 @@ sub make_kernel {
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make config");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make clean")
 	if loggrep(qr/you must run "make clean"/);
-    logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path; ".
-	"[ ! -s CVS/Tag ] || { echo -n cvs : ; cat CVS/Tag; } >obj/version");
+    logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && if [ -s CVS/Tag ]".
+	"; then echo -n 'cvs : '; cat CVS/Tag; fi >obj/version");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && nice make$jflag");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make install");
 }
