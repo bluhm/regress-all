@@ -31,22 +31,33 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('D:h:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-D cvsdate] -h host
+usage: $0 [-v] [-d date] [-D cvsdate] -h host
+    -d date	set date string and change to sub directory
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
     -v		verbose
 EOF
     exit(2);
 };
-
 $opts{h} or die "No -h specified";
+my $date = $opts{d};
+my $cvsdate = $opts{D};
+
+my $performancedir = dirname($0). "/..";
+chdir($performancedir)
+    or die "Chdir to '$performancedir' failed: $!";
+$performancedir = getcwd();
+my $resultdir = "$performancedir/results";
+$resultdir .= "/$date" if $date;
+$resultdir .= "/$cvsdate" if $cvsdate;
+chdir($resultdir)
+    or die "Chdir to '$resultdir' failed: $!";
 
 my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
-my $cvsdate = $opts{D};
 createlog(file => "cvsbuild-$host.log", verbose => $opts{v});
-my $date = strftime("%FT%TZ", gmtime);
+$date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' started at $date\n");
 
 createhost($user, $host);

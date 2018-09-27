@@ -25,6 +25,7 @@ use Time::Local;
 
 use lib dirname($0);
 use Logcmd;
+use Hostctl;
 
 my $scriptname = "$0 @ARGV";
 
@@ -64,21 +65,21 @@ foreach (qw(install keep)) {
 # create directory for this test run with timestamp 2016-07-13T12:30:42Z
 my $date = strftime("%FT%TZ", gmtime);
 
-my $dir = dirname($0). "/..";
-chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
-my $performancedir = getcwd();
-$dir = "results";
--d $dir || mkdir $dir
-    or die "Make result directory '$dir' failed: $!";
-$dir .= "/$date";
-mkdir $dir
-    or die "Make directory '$dir' failed: $!";
+my $performancedir = dirname($0). "/..";
+chdir($performancedir)
+    or die "Chdir to '$performancedir' failed: $!";
+$performancedir = getcwd();
+my $resultdir = "results";
+-d $resultdir || mkdir $resultdir
+    or die "Make result directory '$resultdir' failed: $!";
+$resultdir .= "/$date";
+mkdir $resultdir
+    or die "Make directory '$resultdir' failed: $!";
 unlink("results/current");
 symlink($date, "results/current")
     or die "Make symlink 'results/current' failed: $!";
-chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+chdir($resultdir)
+    or die "Chdir to '$resultdir' failed: $!";
 
 createlog(file => "step.log", verbose => $opts{v});
 logmsg("script '$scriptname' started at $date\n");
@@ -86,7 +87,7 @@ logmsg("script '$scriptname' started at $date\n");
 # setup remote machines
 
 my $user = usehosts(bindir => "$performancedir/bin", host => $opts{h},
-    date => $opts{d}, verbose => $opts{v});
+    date => $date, verbose => $opts{v});
 
 setup_hosts(mode => \%mode, release => $opts{r}) unless $mode{keep};
 collect_version();
