@@ -86,8 +86,8 @@ logmsg("script '$scriptname' started at $date\n");
 
 # setup remote machines
 
-my $user = usehosts(bindir => "$performdir/bin", host => $opts{h},
-    date => $date, verbose => $opts{v});
+usehosts(bindir => "$performdir/bin", date => $date,
+    host => $opts{h}, verbose => $opts{v});
 
 setup_hosts(mode => \%mode, release => $opts{r}) unless $mode{keep};
 collect_version();

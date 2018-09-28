@@ -23,6 +23,7 @@ use POSIX;
 
 use lib dirname($0);
 use Logcmd;
+use Hostctl;
 
 my $scriptname = "$0 @ARGV";
 
@@ -75,68 +76,19 @@ logmsg("script '$scriptname' started at $date\n");
 
 # setup remote machines
 
-my ($user, $host) = split('@', $opts{h}, 2);
-($user, $host) = ("root", $user) unless $host;
-my ($firsthost, $lasthost) = $host;
+usehosts(bindir => "$regressdir/bin", date => $date,
+    host => $opts{h}, verbose => $opts{v});
 
-unless ($mode{keep}) {
-    my @pidcmds;
-    my @setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
-    push @setupcmd, '-v' if $opts{v};
-    push @setupcmd, keys %mode;
-    push @pidcmds, forkcmd(@setupcmd);
-
-    if ($mode{install} || $mode{upgrade}) {
-	# change config of dhcpd has races, cannot install simultaneously
-	sleep 1;
-	runcmd("$regressdir/bin/setup-html.pl");
-	waitcmd(@pidcmds);
-	undef @pidcmds;
-    }
-
-    $host++;
-    # XXX hack to find out whether a remote machine exists
-    if (-f "bin/pkg-$host.list") {
-	@setupcmd = ("bin/setup.pl", '-h', "$user\@$host", '-d', $date);
-	push @setupcmd, '-v' if $opts{v};
-	push @setupcmd, keys %mode;
-	push @pidcmds, forkcmd(@setupcmd);
-    }
-    $lasthost = $host;
-
-    # create new summary with setup log
-    sleep 1;
-    runcmd("$regressdir/bin/setup-html.pl");
-    waitcmd(@pidcmds);
-}
+setup_hosts(mode => \%mode) unless $mode{keep};
+collect_version();
 runcmd("$regressdir/bin/setup-html.pl");
-
-for ($host = $firsthost; $host; $host++) {
-    my $h = "$user\@$host";
-    my $version = "version-$host.txt";
-    eval { logcmd({
-	cmd => ['ssh', $h, 'sysctl', 'kern.version', 'hw.machine', 'hw.ncpu'],
-	outfile => $version,
-    })};
-    if ($@) {
-	unlink $version;
-	last;
-    }
-    my $dmesg = "dmesg-boot-$host.txt";
-    eval { logcmd({
-	cmd => ['ssh', $h, 'cat', '/var/run/dmesg.boot'],
-	outfile => $dmesg,
-    })};
-    if ($@) {
-	unlink $dmesg;
-	last;
-    }
-    last if $lasthost && $host eq $lasthost;
-}
 
 # run regress there
 
-($host = $opts{h}) =~ s/.*\@//;
+chdir($resultdir)
+    or die "Chdir to '$regressdir' failed: $!";
+
+(my $host = $opts{h}) =~ s/.*\@//;
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/regress/regress.pl',
     '-e', "/root/regress/env-$host.sh", '-v');
 logcmd(@sshcmd);
@@ -171,19 +123,7 @@ close($tr)
 chdir($resultdir)
     or die "Chdir to '$regressdir' failed: $!";
 
-for ($host = $firsthost; $host; $host++) {
-    my $h = "$user\@$host";
-    my $dmesg = "dmesg-$host.txt";
-    eval { logcmd({
-	cmd => ['ssh', $h, 'dmesg'],
-	outfile => $dmesg,
-    })};
-    if ($@) {
-	unlink $dmesg;
-	last;
-    }
-    last if $lasthost && $host eq $lasthost;
-}
+collect_dmesg();
 
 # create html output
 
@@ -191,16 +131,16 @@ chdir($regressdir)
     or die "Chdir to '$regressdir' failed: $!";
 
 runcmd("bin/setup-html.pl");
-runcmd("bin/regress-html.pl", "-h", $firsthost);
+runcmd("bin/regress-html.pl", "-h", $host);
 runcmd("bin/regress-html.pl");
 
-unlink("results/latest-$firsthost");
-symlink($date, "results/latest-$firsthost")
-    or die "Make symlink 'results/latest-$firsthost' failed: $!";
+unlink("results/latest-$host");
+symlink($date, "results/latest-$host")
+    or die "Make symlink 'results/latest-$host' failed: $!";
 unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
-runcmd("bin/regress-html.pl", "-l", "-h", $firsthost);
+runcmd("bin/regress-html.pl", "-l", "-h", $host);
 runcmd("bin/regress-html.pl", "-l");
 
 $date = strftime("%FT%TZ", gmtime);

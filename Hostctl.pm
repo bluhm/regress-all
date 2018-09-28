@@ -23,7 +23,10 @@ use Carp;
 use Logcmd;
 
 use parent 'Exporter';
-our @EXPORT= qw(usehosts setup_hosts collect_version cvsbuild_hosts);
+our @EXPORT= qw(usehosts setup_hosts
+    collect_version collect_dmesg
+    cvsbuild_hosts
+);
 
 my ($bindir, $user, $firsthost, $lasthost, $date, $verbose);
 
@@ -40,7 +43,6 @@ sub usehosts {
 	$lasthost = $host++) {
 	    # XXX hack to find out whether a remote machine exists
     }
-    return $user;
 }
 
 sub setup_hosts {
@@ -86,6 +88,20 @@ sub collect_version {
 	my $dmesg = "dmesg-boot-$host.txt";
 	eval { logcmd({
 	    cmd => ['ssh', "$user\@$host", 'cat', '/var/run/dmesg.boot'],
+	    outfile => $dmesg,
+	})};
+	if ($@) {
+	    unlink $dmesg;
+	    last;
+	}
+    }
+}
+
+sub collect_dmesg {
+    for (my $host = $firsthost; $host le $lasthost; $host++) {
+	my $dmesg = "dmesg-$host.txt";
+	eval { logcmd({
+	    cmd => ['ssh', "$user\@$host", 'dmesg'],
 	    outfile => $dmesg,
 	})};
 	if ($@) {

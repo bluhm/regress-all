@@ -146,5 +146,3 @@ sub install_packages {
 	logmsg "WARNING: command failed\n" if $@;
     }
 }
-
-1;
