@@ -158,6 +158,11 @@ foreach my $testcmd (@testcmd) {
 chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
 
+# kill remote commands or ssh will hang forever
+
+@sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3', 'tcpbench');
+system(@sshcmd);
+
 # create a tgz file with all log files
 my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$performdir/test.log.tgz");
 push @paxcmd, '-v' if $opts{v};
