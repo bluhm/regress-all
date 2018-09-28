@@ -109,9 +109,10 @@ exit;
 # copy scripts
 
 sub copy_scripts {
-    runcmd('ssh', "$user\@$host", 'mkdir', '-p', '/root/regress');
     chdir($bindir)
 	or die "Chdir to '$bindir' failed: $!";
+
+    runcmd('ssh', "$user\@$host", 'mkdir', '-p', '/root/regress');
     my @copy = grep { -f $_ }
 	("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list",
 	"site.list");
@@ -119,6 +120,15 @@ sub copy_scripts {
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$user\@$host:/root/regress");
     runcmd(@scpcmd);
+
+    runcmd('ssh', "$user\@$host", 'mkdir', '-p', '/root/perform');
+    @copy = grep { -f $_ }
+	("perform.pl", "env-$host.sh", "pkg-$host.list");
+    @scpcmd = ('scp');
+    push @scpcmd, '-q' unless $opts{v};
+    push @scpcmd, (@copy, "$user\@$host:/root/regress");
+    runcmd(@scpcmd);
+
     chdir($resultdir)
 	or die "Chdir to '$resultdir' failed: $!";
 }
