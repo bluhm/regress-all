@@ -50,19 +50,23 @@ chdir($logdir)
     or die "Chdir to '$logdir' failed: $!";
 
 sub bad($$$;$) {
-    my ($test, $reason, $message) = @_;
+    my ($test, $reason, $message, $log) = @_;
+    print $log "\n$reason\t$test\t$message\n" if $log;
     print "\n$reason\t$test\t$message\n\n" if $opts{v};
     print $tr "$reason\t$test\t$message\n";
+    $log->sync() if $log;
     $tr->sync();
     no warnings 'exiting';
     next;
 }
 
 sub good($$;$) {
-    my ($test, $diff) = @_;
+    my ($test, $diff, $log) = @_;
     my $duration = sprintf("%dm%02d.%02ds", $diff/60, $diff%60, 100*$diff%100);
+    print $log "\nPASS\t$test\tDuration $duration\n" if $log;
     print "\nPASS\t$test\tDuration $duration\n\n" if $opts{v};
     print $tr "PASS\t$test\tDuration $duration\n";
+    $log->sync() if $log;
     $tr->sync();
 }
 
@@ -70,6 +74,8 @@ my $remote_addr = $ENV{REMOTE_ADDR}
     or die "Environemnt REMOTE_ADDR not set";
 my $remote_ssh = $ENV{REMOTE_SSH}
     or die "Environemnt REMOTE_SSH not set";
+
+# iperf3 tests
 
 my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3');
 system(@sshcmd);
@@ -90,10 +96,16 @@ foreach my $args (@iperf3args) {
     my $date = strftime("%FT%TZ", gmtime($begin));
     print "\nSTART\t$test\t$date\n\n" if $opts{v};
 
-    push @runcmd, '--logfile', $test;
+    # write iperf3 output into log file
+    open(my $log, '>', $test)
+	or bad $test, 'NOLOG', "Open log '$test' for writing failed: $!";
+    $log->autoflush();
+
+    print $log "START\t$test\t$date\n\n";
+    $log->sync();
 
     defined(my $pid = open(my $out, '-|'))
-	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!";
+	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
     if ($pid == 0) {
 	close($out);
 	open(STDIN, '<', "/dev/null")
@@ -110,6 +122,7 @@ foreach my $args (@iperf3args) {
 	local $SIG{ALRM} = sub { die "Test running too long, aborted\n" };
 	alarm($timeout);
 	while (<$out>) {
+	    print $log $_;
 	    s/[^\s[:print:]]/_/g;
 	    print if $opts{v};
 	}
@@ -118,15 +131,18 @@ foreach my $args (@iperf3args) {
     kill 'KILL', -$pid;
     if ($@) {
 	chomp($@);
-	bad $test, 'NOTERM', $@
+	bad $test, 'NOTERM', $@, $log;
     }
     close($out)
 	or bad $test, 'NOEXIT', $! ?
 	"Close pipe from '@runcmd' failed: $!" :
-	"Command '@runcmd' failed: $?";
+	"Command '@runcmd' failed: $?", $log;
 
     my $end = Time::HiRes::time();
-    good $test, $end - $begin;
+    good $test, $end - $begin, $log;
+
+    close($log)
+	or die "Close log '$test' after writing failed: $!";
 }
 
 chdir($performdir)
@@ -135,7 +151,7 @@ chdir($performdir)
 # create a tgz file with all log files
 my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$performdir/test.log.tgz");
 push @paxcmd, '-v' if $opts{v};
-push @paxcmd, ("-s,^$logdir,,", $logdir);
+push @paxcmd, ("-s,^$logdir/,,", $logdir);
 system(@paxcmd)
     and die "Command '@paxcmd' failed: $?";
 

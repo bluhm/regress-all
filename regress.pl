@@ -162,6 +162,9 @@ foreach my $test (@tests) {
     bad $test, 'FAIL', join(", ", @errors), $log if @errors;
     my $end = Time::HiRes::time();
     good $test, $end - $begin, $log;
+
+    close($log)
+	or die "Close 'make.log' after writing failed: $!";
 }
 
 print $pax $paxlog if $paxlog;
