@@ -35,10 +35,95 @@ chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 my $performdir = getcwd();
 
+# write summary of results into result file
+open(my $tr, '>', "test.result")
+    or die "Open 'test.result' for writing failed: $!";
+$tr->autoflush();
+$| = 1;
+
+sub bad($$$;$) {
+    my ($test, $reason, $message) = @_;
+    print "\n$reason\t$test\t$message\n\n" if $opts{v};
+    print $tr "$reason\t$test\t$message\n";
+    $tr->sync();
+    die "XXX";
+}
+
+sub good($$;$) {
+    my ($test, $diff) = @_;
+    my $duration = sprintf("%dm%02d.%02ds", $diff/60, $diff%60, 100*$diff%100);
+    print "\nPASS\t$test\tDuration $duration\n\n" if $opts{v};
+    print $tr "PASS\t$test\tDuration $duration\n";
+    $tr->sync();
+}
+
 my $remote_addr = $ENV{REMOTE_ADDR};
 my $remote_ssh = $ENV{REMOTE_SSH};
 
-# TODO
+my $test = "iperf3";
+my $begin = Time::HiRes::time();
+my $date = strftime("%FT%TZ", gmtime($begin));
+print "\nSTART\t$test\t$date\n\n" if $opts{v};
+
+$dir = $test;
+-d $dir || mkdir $dir
+    or die "Make directory '$dir' failed: $!";
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
+
+my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3');
+system(@sshcmd);
+@sshcmd = ('ssh', $remote_ssh, 'iperf3', '-s', '-D');
+system(@sshcmd)
+    and die "Start iperf3 server with '@sshcmd' failed: $?";
+
+my @runcmd = ('iperf3', "-c$remote_addr", '-w1m');
+my $logfile = join("", @runcmd);
+push @runcmd, '--logfile', $logfile;
+
+defined(my $pid = open(my $out, '-|'))
+    or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!";
+if ($pid == 0) {
+    close($out);
+    open(STDIN, '<', "/dev/null")
+	or warn "Redirect stdin to /dev/null failed: $!";
+    open(STDERR, '>&', \*STDOUT)
+	or warn "Redirect stderr to stdout failed: $!";
+    setsid()
+	or warn "Setsid $$ failed: $!";
+    exec(@runcmd);
+    warn "Exec '@runcmd' failed: $!";
+    _exit(126);
+}
+eval {
+    local $SIG{ALRM} = sub { die "Test running too long, aborted\n" };
+    alarm($timeout);
+    while (<$out>) {
+	s/[^\s[:print:]]/_/g;
+	print if $opts{v};
+    }
+    alarm(0);
+};
+kill 'KILL', -$pid;
+if ($@) {
+    chomp($@);
+    bad $test, 'NOTERM', $@
+}
+close($out)
+    or bad $test, 'NOEXIT', $! ?
+    "Close pipe from '@runcmd' failed: $!" :
+    "Command '@runcmd' failed: $?";
+
+my $end = Time::HiRes::time();
+good $test, $end - $begin;
+
+chdir($performdir)
+    or die "Chdir to '$performdir' failed: $!";
+
+close($tr)
+    or die "Close 'test.result' after writing failed: $!";
+
+exit;
 
 # parse shell script that is setting environment for some tests
 # FOO=bar
