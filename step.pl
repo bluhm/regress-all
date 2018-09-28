@@ -114,7 +114,7 @@ for (my $current = $begin; $current <= $end;
 
     (my $host = $opts{h}) =~ s/.*\@//;
     my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
-	'-e', "/root/regress/env-$host.sh", '-v');
+	'-e', "/root/perform/env-$host.sh", '-v');
     logcmd(@sshcmd);
 
     # get result and logs
