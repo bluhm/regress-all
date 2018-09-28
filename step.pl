@@ -65,10 +65,10 @@ foreach (qw(install keep)) {
 # create directory for this test run with timestamp 2016-07-13T12:30:42Z
 my $date = strftime("%FT%TZ", gmtime);
 
-my $performancedir = dirname($0). "/..";
-chdir($performancedir)
-    or die "Chdir to '$performancedir' failed: $!";
-$performancedir = getcwd();
+my $performdir = dirname($0). "/..";
+chdir($performdir)
+    or die "Chdir to '$performdir' failed: $!";
+$performdir = getcwd();
 my $resultdir = "results";
 -d $resultdir || mkdir $resultdir
     or die "Make result directory '$resultdir' failed: $!";
@@ -86,20 +86,20 @@ logmsg("script '$scriptname' started at $date\n");
 
 # setup remote machines
 
-my $user = usehosts(bindir => "$performancedir/bin", host => $opts{h},
+my $user = usehosts(bindir => "$performdir/bin", host => $opts{h},
     date => $date, verbose => $opts{v});
 
 setup_hosts(mode => \%mode, release => $opts{r}) unless $mode{keep};
 collect_version();
-runcmd("$performancedir/bin/setup-html.pl");
+runcmd("$performdir/bin/setup-html.pl");
 
 # update in single steps
 
 for (my $current = $begin; $current <= $end;
     $current = add_step($current, $step, $unit)) {
 
-    chdir($performancedir)
-	or die "Chdir to '$performancedir' failed: $!";
+    chdir($performdir)
+	or die "Chdir to '$performdir' failed: $!";
 
     my $cvsdate = strftime("%FT%TZ", gmtime($current));
     my $cvsdir = "results/$date/$cvsdate";
@@ -110,14 +110,14 @@ for (my $current = $begin; $current <= $end;
     cvsbuild_hosts(cvsdate => $cvsdate);
     collect_version();
 
-    # run performance there
+    # run performance test on machine
     # TODO
 }
 
 # create html output
 
-chdir($performancedir)
-    or die "Chdir to '$performancedir' failed: $!";
+chdir($performdir)
+    or die "Chdir to '$performdir' failed: $!";
 
 runcmd("bin/setup-html.pl");
 

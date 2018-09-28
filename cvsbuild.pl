@@ -43,11 +43,11 @@ $opts{h} or die "No -h specified";
 my $date = $opts{d};
 my $cvsdate = $opts{D};
 
-my $performancedir = dirname($0). "/..";
-chdir($performancedir)
-    or die "Chdir to '$performancedir' failed: $!";
-$performancedir = getcwd();
-my $resultdir = "$performancedir/results";
+my $performdir = dirname($0). "/..";
+chdir($performdir)
+    or die "Chdir to '$performdir' failed: $!";
+$performdir = getcwd();
+my $resultdir = "$performdir/results";
 $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $cvsdate;
 chdir($resultdir)
