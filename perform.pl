@@ -18,6 +18,7 @@ use strict;
 use warnings;
 use Cwd;
 use File::Basename;
+use File::Path qw(remove_tree);
 use Getopt::Std;
 use POSIX;
 use Time::HiRes;
@@ -41,6 +42,13 @@ open(my $tr, '>', "test.result")
 $tr->autoflush();
 $| = 1;
 
+my $logdir = "$performdir/logs";
+remove_tree($logdir);
+mkdir $logdir
+    or die "Make directory '$logdir' failed: $!";
+chdir($logdir)
+    or die "Chdir to '$logdir' failed: $!";
+
 sub bad($$$;$) {
     my ($test, $reason, $message) = @_;
     print "\n$reason\t$test\t$message\n\n" if $opts{v};
@@ -57,8 +65,10 @@ sub good($$;$) {
     $tr->sync();
 }
 
-my $remote_addr = $ENV{REMOTE_ADDR};
-my $remote_ssh = $ENV{REMOTE_SSH};
+my $remote_addr = $ENV{REMOTE_ADDR}
+    or die "Environemnt REMOTE_ADDR not set";
+my $remote_ssh = $ENV{REMOTE_SSH}
+    or die "Environemnt REMOTE_SSH not set";
 
 my $test = "iperf3";
 my $begin = Time::HiRes::time();
@@ -119,6 +129,13 @@ good $test, $end - $begin;
 
 chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
+
+# create a tgz file with all log files
+my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$performdir/test.log.tgz");
+push @paxcmd, '-v' if $opts{v};
+push @paxcmd, ("-s,^$logdir,,", $logdir);
+system(@paxcmd)
+    and die "Command '@paxcmd' failed: $?";
 
 close($tr)
     or die "Close 'test.result' after writing failed: $!";
