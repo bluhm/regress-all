@@ -75,28 +75,38 @@ my $remote_addr = $ENV{REMOTE_ADDR}
 my $remote_ssh = $ENV{REMOTE_SSH}
     or die "Environemnt REMOTE_SSH not set";
 
-# iperf3 tests
+# iperf3 and tcpbench tests
 
 my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3');
 system(@sshcmd);
-@sshcmd = ('ssh', $remote_ssh, 'iperf3', '-s', '-D');
+@sshcmd = ('ssh', '-f', $remote_ssh, 'iperf3', '-s', '-D');
 system(@sshcmd)
     and die "Start iperf3 server with '@sshcmd' failed: $?";
 
-my @iperf3args = (
-    ["-c$remote_addr", '-w1m'],
-    ["-c$remote_addr", '-w1m', '-R'],
+@sshcmd = ('ssh', $remote_ssh, 'pkill', 'tcpbench');
+system(@sshcmd);
+@sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
+system(@sshcmd)
+    and die "Start tcpbench server with '@sshcmd' failed: $?";
+
+sleep 1;
+
+my @testcmd = (
+    ['iperf3', "-c$remote_addr", '-w1m'],
+    ['iperf3', "-c$remote_addr", '-w1m', '-R'],
+    ['tcpbench', '-S1000000', '-t10', $remote_addr],
+    ['tcpbench', '-S1000000', '-t10', '-n1000', $remote_addr],
 );
 
-foreach my $args (@iperf3args) {
-    my @runcmd = ('iperf3', @$args);
-    my $test = join("", @runcmd);
+foreach my $testcmd (@testcmd) {
+    my @runcmd = @$testcmd;
+    my $test = join("_", @runcmd);
 
     my $begin = Time::HiRes::time();
     my $date = strftime("%FT%TZ", gmtime($begin));
     print "\nSTART\t$test\t$date\n\n" if $opts{v};
 
-    # write iperf3 output into log file
+    # write test output into log file
     open(my $log, '>', $test)
 	or bad $test, 'NOLOG', "Open log '$test' for writing failed: $!";
     $log->autoflush();
