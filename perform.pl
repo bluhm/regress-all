@@ -95,7 +95,7 @@ my @testcmd = (
     ['iperf3', "-c$remote_addr", '-w1m'],
     ['iperf3', "-c$remote_addr", '-w1m', '-R'],
     ['tcpbench', '-S1000000', '-t10', $remote_addr],
-    ['tcpbench', '-S1000000', '-t10', '-n1000', $remote_addr],
+    ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr],
 );
 
 foreach my $testcmd (@testcmd) {
