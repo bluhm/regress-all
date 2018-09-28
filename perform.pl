@@ -165,7 +165,7 @@ system(@sshcmd);
 # create a tgz file with all log files
 my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$performdir/test.log.tgz");
 push @paxcmd, '-v' if $opts{v};
-push @paxcmd, ("-s,^$logdir,,", $logdir);
+push @paxcmd, ("-s,^$logdir/,,", "-s,^$logdir,,", $logdir);
 system(@paxcmd)
     and die "Command '@paxcmd' failed: $?";
 

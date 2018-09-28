@@ -173,9 +173,10 @@ close($pax) or die $! ?
     "Command '@paxcmd' failed: $?";
 
 # create a tgz file with all obj/regress files
+my $objdir = "/usr/obj/regress";
 @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$regressdir/test.obj.tgz");
 push @paxcmd, '-v' if $opts{v};
-push @paxcmd, ('-s,^/usr/obj/regress,,', '/usr/obj/regress');
+push @paxcmd, ("-s,^$objdir/,,", "-s,^$objdir,,", $objdir);
 system(@paxcmd)
     and die "Command '@paxcmd' failed: $?";
 
