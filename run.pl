@@ -83,7 +83,7 @@ setup_hosts(mode => \%mode) unless $mode{keep};
 collect_version();
 runcmd("$regressdir/bin/setup-html.pl");
 
-# run regress there
+# run regression tests remotely
 
 chdir($resultdir)
     or die "Chdir to '$regressdir' failed: $!";
@@ -104,7 +104,7 @@ open(my $tr, '<', "test.result")
     or die "Open 'test.result' for reading failed: $!";
 my $logdir = "$resultdir/logs";
 mkdir $logdir
-    or die "Make directory 'logdir' failed: $!";
+    or die "Make directory '$logdir' failed: $!";
 chdir($logdir)
     or die "Chdir to '$logdir' failed: $!";
 my @paxcmd = ('pax', '-rzf', "../test.log.tgz");

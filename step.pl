@@ -110,8 +110,17 @@ for (my $current = $begin; $current <= $end;
     cvsbuild_hosts(cvsdate => $cvsdate);
     collect_version();
 
-    # run performance test on machine
-    # TODO
+    # run performance tests remotely
+
+    (my $host = $opts{h}) =~ s/.*\@//;
+    my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
+	'-e', "/root/regress/env-$host.sh", '-v');
+    logcmd(@sshcmd);
+
+    # get result and logs
+
+    collect_result("$opts{h}:/root/perform");
+    collect_dmesg();
 }
 
 # create html output

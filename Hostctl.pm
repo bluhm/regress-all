@@ -24,7 +24,7 @@ use Logcmd;
 
 use parent 'Exporter';
 our @EXPORT= qw(usehosts setup_hosts
-    collect_version collect_dmesg
+    collect_version collect_dmesg collect_result
     cvsbuild_hosts
 );
 
@@ -108,6 +108,38 @@ sub collect_dmesg {
 	    unlink $dmesg;
 	    last;
 	}
+    }
+}
+
+sub collect_result {
+    foreach my $source (@_) {
+	my @scpcmd = ('scp');
+	push @scpcmd, '-q' unless $verbose;
+	push @scpcmd, ("$source/test.*", ".");
+	runcmd(@scpcmd);
+
+	open(my $tr, '<', "test.result")
+	    or die "Open 'test.result' for reading failed: $!";
+	my $logdir = "logs";
+	mkdir $logdir
+	    or die "Make directory '$logdir' failed: $!";
+	chdir($logdir)
+	    or die "Chdir to '$logdir' failed: $!";
+	my @paxcmd = ('pax', '-rzf', "../test.log.tgz");
+	open(my $pax, '|-', @paxcmd)
+	    or die "Open pipe to '@paxcmd' failed: $!";
+	while (<$tr>) {
+	    my ($status, $test, $message) = split(" ", $_, 3);
+	    print $pax $test unless $test =~ m,[^\w/],;
+	}
+	close($pax) or die $! ?
+	    "Close pipe to '@paxcmd' failed: $!" :
+	    "Command '@paxcmd' failed: $?";
+	close($tr)
+	    or die "Close 'test.result' after reading failed: $!";
+
+	chdir("..")
+	    or die "Chdir to '..' failed: $!";
     }
 }
 
