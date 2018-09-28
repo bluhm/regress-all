@@ -98,6 +98,9 @@ runcmd("$performancedir/bin/setup-html.pl");
 for (my $current = $begin; $current <= $end;
     $current = add_step($current, $step, $unit)) {
 
+    chdir($performancedir)
+	or die "Chdir to '$performancedir' failed: $!";
+
     my $cvsdate = strftime("%FT%TZ", gmtime($current));
     my $cvsdir = "results/$date/$cvsdate";
     mkdir $cvsdir
@@ -109,12 +112,13 @@ for (my $current = $begin; $current <= $end;
 
     # run performance there
     # TODO
-
-    chdir($performancedir)
-	or die "Chdir to '$performancedir' failed: $!";
 }
 
 # create html output
+
+chdir($performancedir)
+    or die "Chdir to '$performancedir' failed: $!";
+
 runcmd("bin/setup-html.pl");
 
 unlink("results/latest");

@@ -104,7 +104,7 @@ sub cvsbuild_hosts {
     my @pidcmds;
     for (my $host = $firsthost; $host le $lasthost; $host++) {
 	my @cvscmd = ("$bindir/cvsbuild.pl",
-	    '-h', "$user\@$host", '-D', $cvsdate);
+	    '-h', "$user\@$host", '-d', $date, '-D', $cvsdate);
 	push @cvscmd, '-v' if $verbose;
 	push @pidcmds, forkcmd(@cvscmd);
     }

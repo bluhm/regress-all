@@ -29,7 +29,7 @@ use Machine;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('D:h:v', \%opts) or do {
+getopts('d:D:h:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-d date] [-D cvsdate] -h host
     -d date	set date string and change to sub directory
