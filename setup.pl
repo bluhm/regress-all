@@ -126,7 +126,7 @@ sub copy_scripts {
 	("perform.pl", "env-$host.sh", "pkg-$host.list");
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
-    push @scpcmd, (@copy, "$user\@$host:/root/regress");
+    push @scpcmd, (@copy, "$user\@$host:/root/perform");
     runcmd(@scpcmd);
 
     chdir($resultdir)
