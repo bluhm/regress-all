@@ -54,7 +54,8 @@ sub bad($$$;$) {
     print "\n$reason\t$test\t$message\n\n" if $opts{v};
     print $tr "$reason\t$test\t$message\n";
     $tr->sync();
-    die "XXX";
+    no warnings 'exiting';
+    next;
 }
 
 sub good($$;$) {
@@ -70,62 +71,63 @@ my $remote_addr = $ENV{REMOTE_ADDR}
 my $remote_ssh = $ENV{REMOTE_SSH}
     or die "Environemnt REMOTE_SSH not set";
 
-my $test = "iperf3";
-my $begin = Time::HiRes::time();
-my $date = strftime("%FT%TZ", gmtime($begin));
-print "\nSTART\t$test\t$date\n\n" if $opts{v};
-
-$dir = $test;
--d $dir || mkdir $dir
-    or die "Make directory '$dir' failed: $!";
-chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
-
 my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3');
 system(@sshcmd);
 @sshcmd = ('ssh', $remote_ssh, 'iperf3', '-s', '-D');
 system(@sshcmd)
     and die "Start iperf3 server with '@sshcmd' failed: $?";
 
-my @runcmd = ('iperf3', "-c$remote_addr", '-w1m');
-my $logfile = join("", @runcmd);
-push @runcmd, '--logfile', $logfile;
+my @iperf3args = (
+    ["-c$remote_addr", '-w1m'],
+    ["-c$remote_addr", '-w1m', '-R'],
+);
 
-defined(my $pid = open(my $out, '-|'))
-    or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!";
-if ($pid == 0) {
-    close($out);
-    open(STDIN, '<', "/dev/null")
-	or warn "Redirect stdin to /dev/null failed: $!";
-    open(STDERR, '>&', \*STDOUT)
-	or warn "Redirect stderr to stdout failed: $!";
-    setsid()
-	or warn "Setsid $$ failed: $!";
-    exec(@runcmd);
-    warn "Exec '@runcmd' failed: $!";
-    _exit(126);
-}
-eval {
-    local $SIG{ALRM} = sub { die "Test running too long, aborted\n" };
-    alarm($timeout);
-    while (<$out>) {
-	s/[^\s[:print:]]/_/g;
-	print if $opts{v};
+foreach my $args (@iperf3args) {
+    my @runcmd = ('iperf3', @$args);
+    my $test = join("", @runcmd);
+
+    my $begin = Time::HiRes::time();
+    my $date = strftime("%FT%TZ", gmtime($begin));
+    print "\nSTART\t$test\t$date\n\n" if $opts{v};
+
+    push @runcmd, '--logfile', $test;
+
+    defined(my $pid = open(my $out, '-|'))
+	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!";
+    if ($pid == 0) {
+	close($out);
+	open(STDIN, '<', "/dev/null")
+	    or warn "Redirect stdin to /dev/null failed: $!";
+	open(STDERR, '>&', \*STDOUT)
+	    or warn "Redirect stderr to stdout failed: $!";
+	setsid()
+	    or warn "Setsid $$ failed: $!";
+	exec(@runcmd);
+	warn "Exec '@runcmd' failed: $!";
+	_exit(126);
     }
-    alarm(0);
-};
-kill 'KILL', -$pid;
-if ($@) {
-    chomp($@);
-    bad $test, 'NOTERM', $@
-}
-close($out)
-    or bad $test, 'NOEXIT', $! ?
-    "Close pipe from '@runcmd' failed: $!" :
-    "Command '@runcmd' failed: $?";
+    eval {
+	local $SIG{ALRM} = sub { die "Test running too long, aborted\n" };
+	alarm($timeout);
+	while (<$out>) {
+	    s/[^\s[:print:]]/_/g;
+	    print if $opts{v};
+	}
+	alarm(0);
+    };
+    kill 'KILL', -$pid;
+    if ($@) {
+	chomp($@);
+	bad $test, 'NOTERM', $@
+    }
+    close($out)
+	or bad $test, 'NOEXIT', $! ?
+	"Close pipe from '@runcmd' failed: $!" :
+	"Command '@runcmd' failed: $?";
 
-my $end = Time::HiRes::time();
-good $test, $end - $begin;
+    my $end = Time::HiRes::time();
+    good $test, $end - $begin;
+}
 
 chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
