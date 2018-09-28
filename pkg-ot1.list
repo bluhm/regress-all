@@ -4,6 +4,7 @@ git
 gmake
 go
 gsed
+iperf3
 net-snmp
 openldap-client--
 os-test
