@@ -1,7 +1,7 @@
 #!/usr/bin/perl
-# convert all test results to a html table
+# convert all performance results to a html table
 
-# Copyright (c) 2016-2017 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -39,7 +39,7 @@ EOF
 my $dir = dirname($0). "/..";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
-my $regressdir = getcwd();
+my $performdir = getcwd();
 $dir = "results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
@@ -51,26 +51,29 @@ my @results;
 if ($opts{l}) {
     my @latest;
     if ($host) {
-	push @latest, "latest-$host/test.result";
+	push @latest, "latest-$host/*/test.result";
 	-f $latest[0]
 	    or die "No latest test.result for $host";
     } else {
-	@latest = glob("latest-*/test.result");
+	@latest = glob("latest-*/*/test.result");
     }
     @results = map { (readlink(dirname($_))
 	or die "Readlink latest '$_' failed: $!") . "/test.result" } @latest;
 } else {
-    @results = sort glob("*/test.result");
+    @results = sort glob("*/*/test.result");
 }
 
 my (%t, %d);
 foreach my $result (@results) {
 
     # parse result file
-    my ($date, $short) = $result =~ m,((.+)T.+)/test.result,
+    my ($date, $short, $cvsdate, $cvsshort) =
+	$result =~ m,((.+)T.+)/((.+)T.+)/test.result,
 	or next;
-    $d{$date} = {
-	short => $short,
+    $d{$date}{short} = $short;
+    push @{$d{$date}{cvsdates} ||= []}, $cvsdate;
+    $d{$date}{$cvsdate} = {
+	cvsshort => $cvsshort,
 	result => $result,
     };
     $d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
@@ -81,9 +84,9 @@ foreach my $result (@results) {
     while (<$fh>) {
 	chomp;
 	my ($status, $test, $message) = split(" ", $_, 3);
-	$t{$test}{$date}
-	    and warn "Duplicate test '$test' at date '$date'";
-	$t{$test}{$date} = {
+	$t{$test}{$date}{$cvsdate}
+	    and warn "Duplicate test '$test' date '$date' cvsdate '$cvsdate'";
+	$t{$test}{$date}{$cvsdate} = {
 	    status => $status,
 	    message => $message,
 	};
@@ -94,52 +97,151 @@ foreach my $result (@results) {
 	    $status eq 'NOEXIT' ? 6 :
 	    $status eq 'NOTERM' ? 7 :
 	    $status eq 'NORUN'  ? 8 : 10;
+	if (($t{$test}{$date}{severity} || 0 ) < $severity) {
+		$t{$test}{$date}{status} = $status;
+		$t{$test}{$date}{severity} = $severity;
+	}
 	$t{$test}{severity} += $severity;
 	$total++ unless $status eq 'SKIP';
 	$pass++ if $status eq 'PASS';
-	my $logfile = dirname($result). "/logs/$test/make.log";
-	$t{$test}{$date}{logfile} = $logfile if -f $logfile;
+	my $logfile = dirname($result). "/logs/$test.log";
+	$t{$test}{$date}{$cvsdate}{logfile} = $logfile if -f $logfile;
     }
     close($fh)
 	or die "Close '$result' after reading failed: $!";
-    $d{$date}{pass} = $pass / $total if $total;
+    $d{$date}{$cvsdate}{pass} = $pass / $total if $total;
 
     # parse version file
     my ($version, $diff, $dmesg);
     if ($host) {
-	$version = "$date/version-$host.txt";
-	$diff = "$date/diff-$host.txt";
-	$dmesg = "$date/dmesg-$host.txt";
+	$version = "$date/$cvsdate/version-$host.txt";
+	$diff = "$date/$cvsdate/diff-$host.txt";
+	$dmesg = "$date/$cvsdate/dmesg-$host.txt";
     } else {
-	$version = (glob("$date/version-*.txt"))[0];
+	$version = (glob("$date/$cvsdate/version-*.txt"))[0];
 	($diff = $version) =~ s,/version-,/diff-,;
 	($dmesg = $version) =~ s,/version-,/dmesg-,;
     }
     unless (-f $version) {
 	# if host is specified, only print result for this one
-	delete $d{$date} if $host;
+	delete $d{$date}{$cvsdate} if $host;
 	next;
     }
-    $d{$date}{version} = $version;
+    $d{$date}{$cvsdate}{version} = $version;
     open($fh, '<', $version)
 	or die "Open '$version' for reading failed: $!";
     while (<$fh>) {
-	if (/^kern.version=(.*: (\w+ \w+ +\d+ .*))$/) {
-	    $d{$date}{kernel} = $1;
-	    $d{$date}{time} = $2;
+	if (/^kern.version=(.*(?:cvs : (\w+))?: (\w+ \w+ +\d+ .*))$/) {
+	    $d{$date}{$cvsdate}{kernel} = $1;
+	    $d{$date}{$cvsdate}{cvs} = $2;
+	    $d{$date}{$cvsdate}{time} = $3;
 	    <$fh> =~ /(\S+)/;
-	    $d{$date}{kernel} .= "\n    $1";
-	    $d{$date}{location} = $1;
+	    $d{$date}{$cvsdate}{kernel} .= "\n    $1";
+	    $d{$date}{$cvsdate}{location} = $1;
 	}
-	/^hw.machine=(\w+)$/ and $d{$date}{arch} = $1;
+	if (/^hw.machine=(\w+)$/) {
+	    $d{$date}{arch} ||= $1;
+	    $d{$date}{$cvsdate}{arch} = $1;
+	}
     }
-    $d{$date}{build} = $d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
+    $d{$date}{$cvsdate}{build} =
+	$d{$date}{$cvsdate}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
 	"snapshot" : "custom";
-    $d{$date}{diff} = $diff if -f $diff;
-    $d{$date}{dmesg} = $dmesg if -f $dmesg;
+    $d{$date}{$cvsdate}{diff} = $diff if -f $diff;
+    $d{$date}{$cvsdate}{dmesg} = $dmesg if -f $dmesg;
 }
 
-my $htmlfile = $opts{l} ? "latest" : "regress";
+my @dates = reverse sort keys %d;
+
+# html per date with cvsdate
+
+foreach my $date (@dates) {
+    my $htmlfile = "$date/perform.html";
+    unlink("$htmlfile.new");
+    open(my $html, '>', "$htmlfile.new")
+	or die "Open '$htmlfile.new' for writing failed: $!";
+
+    print $html <<"HEADER";
+    <!DOCTYPE html>
+    <html>
+
+    <head>
+      <title>OpenBSD Performance Date Results</title>
+      <style>
+	th { text-align: left; white-space: nowrap; }
+	tr:hover {background-color: #e0e0e0}
+	td.PASS {background-color: #80ff80;}
+	td.FAIL {background-color: #ff8080;}
+	td.SKIP {background-color: #8080ff;}
+	td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
+	td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
+	td.result, td.result a {color: black;}
+      </style>
+    </head>
+
+    <body>
+    <h1>OpenBSD performed at $date test results</h1>
+    <table>
+      <tr>\n    <th>created at</th>
+	<td>$now</td>
+      </tr>
+      <tr>\n    <th>test</th>
+	<td><a href=\"run.html\">run</a>XXX</td>
+      </tr>
+    </table>
+HEADER
+
+    print $html "<table>\n";
+    my @cvsdates = @{$d{$date}{cvsdates}};
+
+    print $html "  <tr>\n    <th>cvs at date</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
+	my $setup = $d{$date}{$cvsdate}{setup};
+	$setup = join("/", map { uri_escape($_) } split("/", $setup)) if $setup;
+	my $time = encode_entities($cvsdate);
+	my $href = $setup ? "<a href=\"$setup\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
+    }
+    my @tests = sort keys %t;
+    foreach my $test (@tests) {
+	my $td = $t{$test}{$date} or next;
+	print $html "  <tr>\n    <th>$test</th>\n";
+	foreach my $cvsdate (@cvsdates) {
+	    my $status = $td->{$cvsdate}{status} || "";
+	    my $class = " class=\"result $status\"";
+	    my $message = encode_entities($td->{$cvsdate}{message});
+	    my $title = $message ? " title=\"$message\"" : "";
+	    my $logfile = uri_escape($td->{$cvsdate}{logfile});
+	    my $href = $logfile ? "<a href=\"../$logfile\">" : "";
+	    my $enda = $href ? "</a>" : "";
+	    print $html "    <td$class$title>$href$status$enda</td>\n";
+	}
+	print $html "  </tr>\n";
+    }
+    print $html "</table>\n";
+
+    print $html <<"FOOTER";
+    </body>
+
+    </html>
+FOOTER
+
+    close($html)
+	or die "Close '$htmlfile.new' after writing failed: $!";
+    rename("$htmlfile.new", "$htmlfile")
+	or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
+
+    system("gzip -f -c $htmlfile >$htmlfile.gz.new")
+	and die "gzip $htmlfile failed: $?";
+    rename("$htmlfile.gz.new", "$htmlfile.gz")
+	or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+}
+
+# html with date
+
+my $htmlfile = $opts{l} ? "latest" : "perform";
 $htmlfile .= "-$host" if $host;
 $htmlfile .= ".html";
 unlink("$htmlfile.new");
@@ -154,7 +256,7 @@ print $html <<"HEADER";
 <html>
 
 <head>
-  <title>OpenBSD Regress $htmltitle Results</title>
+  <title>OpenBSD Performance $htmltitle Results</title>
   <style>
     th { text-align: left; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0}
@@ -168,18 +270,17 @@ print $html <<"HEADER";
 </head>
 
 <body>
-<h1>OpenBSD regress $bodytitle test results</h1>
+<h1>OpenBSD perform $bodytitle test results</h1>
 <table>
   <tr>\n    <th>created at</th>
     <td>$now</td>
   </tr>
   <tr>\n    <th>test</th>
-    <td><a href=\"run.html\">run</a></td>
+    <td><a href=\"run.html\">run</a>XXX</td>
   </tr>
 </table>
 HEADER
 
-my @dates = reverse sort keys %d;
 print $html "<table>\n";
 print $html "  <tr>\n    <th>pass rate</th>\n";
 foreach my $date (@dates) {
@@ -230,18 +331,17 @@ foreach my $date (@dates) {
 }
 print $html "  </tr>\n";
 
-my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/";
 my @tests = sort { $t{$b}{severity} <=> $t{$a}{severity} || $a cmp $b }
     keys %t;
 foreach my $test (@tests) {
-    print $html "  <tr>\n    <th><a href=\"$cvsweb$test/\">$test</a></th>\n";
+    print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $date (@dates) {
 	my $status = $t{$test}{$date}{status} || "";
 	my $class = " class=\"result $status\"";
 	my $message = encode_entities($t{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
-	my $logfile = uri_escape($t{$test}{$date}{logfile});
-	my $href = $logfile ? "<a href=\"$logfile\">" : "";
+	my $datehtml = "$date/perform.html";
+	my $href = -f $datehtml ? "<a href=\"$datehtml\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <td$class$title>$href$status$enda</td>\n";
     }
@@ -252,23 +352,15 @@ print $html "</table>\n";
 print $html <<"FOOTER";
 <table>
   <tr>\n    <th>PASS</th>
-    <td>make regress passed</td>\n  </tr>
-  <tr>\n    <th>FAIL</th>
-    <td>make regress failed, string FAILED in test output</td>\n  </tr>
-  <tr>\n    <th>SKIP</th>
-    <td>make regress skipped itself, string SKIPPED in test output</td>\n  </tr>
+    <td>performance test passed</td>\n  </tr>
   <tr>\n    <th>NOEXIT</th>
-    <td>make regress did not exit with code 0, make failed</td>\n  </tr>
+    <td>performance test did not exit with code 0, make failed</td>\n  </tr>
   <tr>\n    <th>NOTERM</th>
-    <td>make regress did not terminate, aborted after timeout</td>\n  </tr>
+    <td>performance test did not terminate, aborted after timeout</td>\n  </tr>
   <tr>\n    <th>NORUN</th>
-    <td>make regress did not run, execute make failed</td>\n  </tr>
+    <td>performance test did not run, execute test failed</td>\n  </tr>
   <tr>\n    <th>NOLOG</th>
-    <td>create log file for make output failed</td>\n  </tr>
-  <tr>\n    <th>NOCLEAN</th>
-    <td>make clean before running test failed</td>\n  </tr>
-  <tr>\n    <th>NOEXIST</th>
-    <td>test directory not found</td>\n  </tr>
+    <td>create log file for test output failed</td>\n  </tr>
 </table>
 </body>
 

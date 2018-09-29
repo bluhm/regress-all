@@ -107,8 +107,9 @@ foreach my $testcmd (@testcmd) {
     print "\nSTART\t$test\t$date\n\n" if $opts{v};
 
     # write test output into log file
-    open(my $log, '>', $test)
-	or bad $test, 'NOLOG', "Open log '$test' for writing failed: $!";
+    my $logfile = "$test.log";
+    open(my $log, '>', $logfile)
+	or bad $test, 'NOLOG', "Open log '$logfile' for writing failed: $!";
     $log->autoflush();
 
     print $log "START\t$test\t$date\n\n";
@@ -152,7 +153,7 @@ foreach my $testcmd (@testcmd) {
     good $test, $end - $begin, $log;
 
     close($log)
-	or die "Close log '$test' after writing failed: $!";
+	or die "Close log '$logfile' after writing failed: $!";
 }
 
 chdir($performdir)
