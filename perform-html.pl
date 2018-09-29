@@ -162,33 +162,35 @@ foreach my $date (@dates) {
 	or die "Open '$htmlfile.new' for writing failed: $!";
 
     print $html <<"HEADER";
-    <!DOCTYPE html>
-    <html>
+<!DOCTYPE html>
+<html>
 
-    <head>
-      <title>OpenBSD Performance Date Results</title>
-      <style>
-	th { text-align: left; white-space: nowrap; }
-	tr:hover {background-color: #e0e0e0}
-	td.PASS {background-color: #80ff80;}
-	td.FAIL {background-color: #ff8080;}
-	td.SKIP {background-color: #8080ff;}
-	td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
-	td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
-	td.result, td.result a {color: black;}
-      </style>
-    </head>
+<head>
+  <title>OpenBSD Performance Date Results</title>
+  <style>
+    th { text-align: left; white-space: nowrap; }
+    tr:hover {background-color: #e0e0e0}
+    td.PASS {background-color: #80ff80;}
+    td.FAIL {background-color: #ff8080;}
+    td.SKIP {background-color: #8080ff;}
+    td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
+    td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
+    td.result, td.result a {color: black;}
+  </style>
+</head>
 
-    <body>
-    <h1>OpenBSD performed at $date test results</h1>
-    <table>
-      <tr>\n    <th>created at</th>
-	<td>$now</td>
-      </tr>
-      <tr>\n    <th>test</th>
-	<td><a href=\"run.html\">run</a>XXX</td>
-      </tr>
-    </table>
+<body>
+<h1>OpenBSD performed at $date test results</h1>
+<table>
+  <tr>
+    <th>created at</th>
+    <td>$now</td>
+  </tr>
+  <tr>
+    <th>test</th>
+    <td><a href=\"run.html\">run</a>XXX</td>
+  </tr>
+</table>
 HEADER
 
     print $html "<table>\n";
@@ -223,9 +225,9 @@ HEADER
     print $html "</table>\n";
 
     print $html <<"FOOTER";
-    </body>
+</body>
 
-    </html>
+</html>
 FOOTER
 
     close($html)
@@ -272,10 +274,12 @@ print $html <<"HEADER";
 <body>
 <h1>OpenBSD perform $bodytitle test results</h1>
 <table>
-  <tr>\n    <th>created at</th>
+  <tr>
+    <th>created at</th>
     <td>$now</td>
   </tr>
-  <tr>\n    <th>test</th>
+  <tr>
+    <th>test</th>
     <td><a href=\"run.html\">run</a>XXX</td>
   </tr>
 </table>
@@ -351,16 +355,26 @@ print $html "</table>\n";
 
 print $html <<"FOOTER";
 <table>
-  <tr>\n    <th>PASS</th>
-    <td>performance test passed</td>\n  </tr>
-  <tr>\n    <th>NOEXIT</th>
-    <td>performance test did not exit with code 0, make failed</td>\n  </tr>
-  <tr>\n    <th>NOTERM</th>
-    <td>performance test did not terminate, aborted after timeout</td>\n  </tr>
-  <tr>\n    <th>NORUN</th>
-    <td>performance test did not run, execute test failed</td>\n  </tr>
-  <tr>\n    <th>NOLOG</th>
-    <td>create log file for test output failed</td>\n  </tr>
+  <tr>
+    <th>PASS</th>
+    <td>performance test passed</td>
+  </tr>
+  <tr>
+    <th>NOEXIT</th>
+    <td>performance test did not exit with code 0, make failed</td>
+  </tr>
+  <tr>
+    <th>NOTERM</th>
+    <td>performance test did not terminate, aborted after timeout</td>
+  </tr>
+  <tr>
+    <th>NORUN</th>
+    <td>performance test did not run, execute test failed</td>
+  </tr>
+  <tr>
+    <th>NOLOG</th>
+    <td>create log file for test output failed</td>
+  </tr>
 </table>
 </body>
 

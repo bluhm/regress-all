@@ -187,20 +187,24 @@ chdir($dir)
 unlink("run.html.new");
 open(my $html, '>', "run.html.new")
     or die "Open 'run.html.new' for writing failed: $!";
-print $html "<!DOCTYPE html>\n";
-print $html "<html>\n";
-print $html "<head>\n";
-print $html "  <title>OpenBSD Regress Run</title>\n";
-print $html "  <style>th { text-align: left; }</style>\n";
-print $html "</head>\n";
 
-print $html "<body>\n";
-print $html "<h1>OpenBSD regress test run</h1>\n";
-print $html "<table>\n";
-print $html "  <tr>\n    <th>created at</th>\n";
-print $html "    <td>$now</td>\n";
-print $html "  </tr>\n";
-print $html "</table>\n";
+print $html <<"HEADER";
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OpenBSD Regress Run</title>
+  <style>th { text-align: left; }</style>
+</head>
+
+<body>
+<h1>OpenBSD regress test run</h1>
+<table>
+  <tr>
+    <th>created at</th>
+    <td>$now</td>
+  </tr>
+</table>
+HEADER
 
 print $html "<table>\n";
 print $html "  <tr>\n    <th>run log</th>\n";

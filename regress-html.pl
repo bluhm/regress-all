@@ -170,12 +170,14 @@ print $html <<"HEADER";
 <body>
 <h1>OpenBSD regress $bodytitle test results</h1>
 <table>
-  <tr>\n    <th>created at</th>
+  <tr>
+    <th>created at</th>
     <td>$now</td>
   </tr>
-  <tr>\n    <th>test</th>
+  <tr>
+    <th>test</th>
     <td><a href=\"run.html\">run</a></td>
-  </tr>
+</tr>
 </table>
 HEADER
 
@@ -251,24 +253,42 @@ print $html "</table>\n";
 
 print $html <<"FOOTER";
 <table>
-  <tr>\n    <th>PASS</th>
-    <td>make regress passed</td>\n  </tr>
-  <tr>\n    <th>FAIL</th>
-    <td>make regress failed, string FAILED in test output</td>\n  </tr>
-  <tr>\n    <th>SKIP</th>
-    <td>make regress skipped itself, string SKIPPED in test output</td>\n  </tr>
-  <tr>\n    <th>NOEXIT</th>
-    <td>make regress did not exit with code 0, make failed</td>\n  </tr>
-  <tr>\n    <th>NOTERM</th>
-    <td>make regress did not terminate, aborted after timeout</td>\n  </tr>
-  <tr>\n    <th>NORUN</th>
-    <td>make regress did not run, execute make failed</td>\n  </tr>
-  <tr>\n    <th>NOLOG</th>
-    <td>create log file for make output failed</td>\n  </tr>
-  <tr>\n    <th>NOCLEAN</th>
-    <td>make clean before running test failed</td>\n  </tr>
-  <tr>\n    <th>NOEXIST</th>
-    <td>test directory not found</td>\n  </tr>
+  <tr>
+    <th>PASS</th>
+    <td>make regress passed</td>
+  </tr>
+  <tr>
+    <th>FAIL</th>
+    <td>make regress failed, string FAILED in test output</td>
+  </tr>
+  <tr>
+    <th>SKIP</th>
+    <td>make regress skipped itself, string SKIPPED in test output</td>
+  </tr>
+  <tr>
+    <th>NOEXIT</th>
+    <td>make regress did not exit with code 0, make failed</td>
+  </tr>
+  <tr>
+    <th>NOTERM</th>
+    <td>make regress did not terminate, aborted after timeout</td>
+  </tr>
+  <tr>
+    <th>NORUN</th>
+    <td>make regress did not run, execute make failed</td>
+  </tr>
+  <tr>
+    <th>NOLOG</th>
+    <td>create log file for make output failed</td>
+  </tr>
+  <tr>
+    <th>NOCLEAN</th>
+    <td>make clean before running test failed</td>
+  </tr>
+  <tr>
+    <th>NOEXIST</th>
+    <td>test directory not found</td>
+  </tr>
 </table>
 </body>
 
