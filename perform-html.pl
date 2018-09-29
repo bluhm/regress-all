@@ -196,7 +196,7 @@ HEADER
     print $html "<table>\n";
     my @cvsdates = @{$d{$date}{cvsdates}};
 
-    print $html "  <tr>\n    <th>cvs at date</th>\n";
+    print $html "  <tr>\n    <th>cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
 	my $setup = $d{$date}{$cvsdate}{setup};
@@ -303,23 +303,24 @@ foreach my $date (@dates) {
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$time\">$href$short$enda</th>\n";
 }
-print $html "  <tr>\n    <th>machine build</th>\n";
+print $html "  <tr>\n    <th>first cvs checkout</th>\n";
 foreach my $date (@dates) {
-    my $version = $d{$date}{version};
-    unless ($version) {
-	print $html "    <th/>\n";
-	next;
-    }
-    my $kernel = encode_entities($d{$date}{kernel});
-    my $build = $d{$date}{build};
-    $version = join("/", map { uri_escape($_) } split("/", $version));
-    my $diff = join("/", map { uri_escape($_) }
-	split("/", $d{$date}{diff} || ""));
-    my $href = "";
-    $href = "<a href=\"$version\">" if $build eq "snapshot";
-    $href = "<a href=\"$diff\">" if $build eq "custom" && $diff;
-    my $enda = $href ? "</a>" : "";
-    print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
+    my $cvsdate = (sort @{$d{$date}{cvsdates}})[0];
+    my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
+    my $time = encode_entities($cvsdate);
+    print $html "    <th title=\"$time\">$cvsshort</th>\n";
+}
+print $html "  <tr>\n    <th>last cvs checkout</th>\n";
+foreach my $date (@dates) {
+    my $cvsdate = (sort @{$d{$date}{cvsdates}})[-1];
+    my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
+    my $time = encode_entities($cvsdate);
+    print $html "    <th title=\"$time\">$cvsshort</th>\n";
+}
+print $html "  <tr>\n    <th>metering points</th>\n";
+foreach my $date (@dates) {
+    my $total = @{$d{$date}{cvsdates}};
+    print $html "    <th>$total</th>\n";
 }
 print $html "  <tr>\n    <th>architecture</th>\n";
 foreach my $date (@dates) {
