@@ -281,13 +281,6 @@ print $html <<"HEADER";
 HEADER
 
 print $html "<table>\n";
-print $html "  <tr>\n    <th>pass rate</th>\n";
-foreach my $date (@dates) {
-    my $pass = $d{$date}{pass};
-    my $percent = "";
-    $percent = sprintf("%d%%", 100 * $pass) if defined $pass;
-    print $html "    <th>$percent</th>\n";
-}
 print $html "  <tr>\n    <th>test at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
