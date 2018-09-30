@@ -166,7 +166,7 @@ foreach my $date (@dates) {
 <html>
 
 <head>
-  <title>OpenBSD Performance Date Results</title>
+  <title>OpenBSD Perform Date Results</title>
   <style>
     th { text-align: left; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0}
@@ -180,15 +180,11 @@ foreach my $date (@dates) {
 </head>
 
 <body>
-<h1>OpenBSD performed at $date test results</h1>
+<h1>OpenBSD perform $date test results</h1>
 <table>
   <tr>
     <th>created at</th>
     <td>$now</td>
-  </tr>
-  <tr>
-    <th>test</th>
-    <td><a href=\"run.html\">run</a>XXX</td>
   </tr>
 </table>
 HEADER
@@ -226,7 +222,6 @@ HEADER
 
     print $html <<"FOOTER";
 </body>
-
 </html>
 FOOTER
 
@@ -258,7 +253,7 @@ print $html <<"HEADER";
 <html>
 
 <head>
-  <title>OpenBSD Performance $htmltitle Results</title>
+  <title>OpenBSD Perform $htmltitle Results</title>
   <style>
     th { text-align: left; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0}
@@ -280,7 +275,7 @@ print $html <<"HEADER";
   </tr>
   <tr>
     <th>test</th>
-    <td><a href=\"run.html\">run</a>XXX</td>
+    <td><a href=\"run.html\">run</a></td>
   </tr>
 </table>
 HEADER
@@ -378,7 +373,6 @@ print $html <<"FOOTER";
   </tr>
 </table>
 </body>
-
 </html>
 FOOTER
 

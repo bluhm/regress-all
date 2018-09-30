@@ -291,7 +291,6 @@ print $html <<"FOOTER";
   </tr>
 </table>
 </body>
-
 </html>
 FOOTER
 

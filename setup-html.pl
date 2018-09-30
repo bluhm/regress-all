@@ -232,9 +232,10 @@ foreach my $date (reverse sort keys %d) {
     print $html "  </tr>\n";
 }
 print $html "</table>\n";
-print $html "</body>\n";
-
-print $html "</html>\n";
+print $html <<"FOOTER";
+</body>
+</html>
+FOOTER
 close($html)
     or die "Close 'run.html.new' after writing failed: $!";
 rename("run.html.new", "run.html")
