@@ -43,44 +43,63 @@ $dir = "results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
-my @dates = $opts{d} || grep { m/T/ } map { dirname($_) } glob("*/run.log");
+my @dates = $opts{d} || map { dirname($_) }
+    (glob("*T*/run.log"), glob("*T*/step.log"));
 my (%d, %m);
 foreach my $date (@dates) {
     $dir = "$regressdir/results/$date";
     chdir($dir)
 	or die "Chdir to '$dir' failed: $!";
 
-    my %h;
-    foreach my $version (glob("version-*.txt")) {
-	my ($host) = $version =~ m,version-(.*)\.txt,;
-	open(my $fh, '<', $version)
-	    or die "Open '$version' for reading failed: $!";
-	my ($time, $short, $arch);
-	while (<$fh>) {
-	    /^kern.version=.*: ((\w+ \w+ +\d+) .*)$/ and
-		($time, $short) = ($1, $2);
-	    /^hw.machine=(\w+)$/ and $arch = $1;
+    my @cvsdates = grep { -d $_ } glob("*T*");
+    $d{$date}{cvsdates} = \@cvsdates;
+
+    foreach my $cvsdate ("", @cvsdates) {
+	my $subdir = "$dir/$cvsdate";
+	chdir($subdir)
+	    or die "Chdir to '$subdir' failed: $!";
+	my %h;
+	foreach my $version (glob("version-*.txt")) {
+	    my ($host) = $version =~ m,version-(.*)\.txt,;
+	    open(my $fh, '<', $version)
+		or die "Open '$version' for reading failed: $!";
+	    my ($time, $short, $arch);
+	    while (<$fh>) {
+		/^kern.version=.*: ((\w+ \w+ +\d+) .*)$/ and
+		    ($time, $short) = ($1, $2);
+		/^hw.machine=(\w+)$/ and $arch = $1;
+	    }
+	    $time or next;
+	    (my $dmesg = $version) =~ s,version,dmesg,;
+	    (my $dmesgboot = $version) =~ s,version,dmesg-boot,;
+	    (my $diff = $version) =~ s,version,diff,;
+	    $h{$host} = {
+		version   => $version,
+		time      => $time,
+		short     => $short,
+		arch      => $arch,
+		dmesg     => -f $dmesg ? $dmesg : undef,
+		dmesgboot => -f $dmesgboot ? $dmesgboot : undef,
+		diff      => -f $diff ? $diff : undef,
+	    };
+	    $m{$host}++;
 	}
-	$time or next;
-	(my $dmesg = $version) =~ s,version,dmesg,;
-	(my $dmesgboot = $version) =~ s,version,dmesg-boot,;
-	(my $diff = $version) =~ s,version,diff,;
-	$h{$host} = {
-	    version   => $version,
-	    time      => $time,
-	    short     => $short,
-	    arch      => $arch,
-	    dmesg     => -f $dmesg ? $dmesg : undef,
-	    dmesgboot => -f $dmesgboot ? $dmesgboot : undef,
-	    diff      => -f $diff ? $diff : undef,
-	};
-	$m{$host}++;
+	foreach my $setup (glob("setup-*.log")) {
+	    my ($host) = $setup =~ m,setup-(.*)\.log,;
+	    $h{$host}{setup} = $setup,
+	}
+	foreach my $setup (glob("cvsbuild-*.log")) {
+	    my ($host) = $setup =~ m,cvsbuild-(.*)\.log,;
+	    $h{$host}{setup} = "$cvsdate/$setup",
+	}
+	if ($cvsdate) {
+	    $d{$date}{$cvsdate}{host} = \%h;
+	} else {
+	    $d{$date}{host} = \%h;
+	}
     }
-    foreach my $setup (glob("setup-*.log")) {
-	my ($host) = $setup =~ m,setup-(.*)\.log,;
-	$h{$host}{setup} = $setup,
-    }
-    $d{$date}{host} = \%h;
+    chdir($dir)
+	or die "Chdir to '$dir' failed: $!";
 
     unlink("setup.html.new");
     open(my $html, '>', "setup.html.new")
@@ -106,6 +125,11 @@ foreach my $date (@dates) {
 	print $html "  <tr>\n    <th>run</th>\n";
 	print $html "    <td><a href=\"run.log\">log</a></td>\n";
 	print $html "  </tr>\n";
+    } elsif (-f "step.log") {
+	$d{$date}{run} = "step.log";
+	print $html "  <tr>\n    <th>run</th>\n";
+	print $html "    <td><a href=\"step.log\">log</a></td>\n";
+	print $html "  </tr>\n";
     }
     if (-f "test.log.tgz") {
 	$d{$date}{logtgz} = "test.log.tgz";
@@ -129,6 +153,7 @@ foreach my $date (@dates) {
     print $html "    <th>diff</th>\n";
     print $html "  </tr>\n";
 
+    my %h = %{$d{$date}{host}};
     foreach my $host (sort keys %h) {
 	print $html "  <tr>\n    <th>$host</th>\n";
 	my $version = uri_escape($h{$host}{version});
@@ -214,22 +239,30 @@ foreach my $host (sort keys %m) {
 print $html "  </tr>\n";
 
 foreach my $date (reverse sort keys %d) {
-    my $run = $d{$date}{run} || "";
-    my $log = uri_escape($date). "/$run";
-    my $href = $run ? "<a href=\"$log\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "  <tr>\n    <th>$href$date$enda</th>\n";
-    my $h = $d{$date}{host};
-    foreach my $host (sort keys %m) {
-	my $time = encode_entities($h->{$host}{time}) || "";
-	my $setup = uri_escape($h->{$host}{setup}) || "";
-	$time ||= "log" if $setup;
-	$log = uri_escape($date). "/$setup";
-	$href = $setup ? "<a href=\"$log\">" : "";
-	$enda = $href ? "</a>" : "";
-	print $html "    <td>$href$time$enda</td>\n";
+    foreach my $cvsdate (reverse "", @{$d{$date}{cvsdates} || []}) {
+	my $h;
+	if ($cvsdate) {
+	    print $html "  <tr>\n    <th></th>\n";
+	    $h = $d{$date}{$cvsdate}{host};
+	} else {
+	    my $run = $d{$date}{run} || "";
+	    my $log = uri_escape($date). "/$run";
+	    my $href = $run ? "<a href=\"$log\">" : "";
+	    my $enda = $href ? "</a>" : "";
+	    print $html "  <tr>\n    <th>$href$date$enda</th>\n";
+	    $h = $d{$date}{host};
+	}
+	foreach my $host (sort keys %m) {
+	    my $time = encode_entities($h->{$host}{time}) || "";
+	    my $setup = uri_escape($h->{$host}{setup}) || "";
+	    $time ||= "log" if $setup;
+	    my $log = uri_escape($date). "/$setup";
+	    my $href = $setup ? "<a href=\"$log\">" : "";
+	    my $enda = $href ? "</a>" : "";
+	    print $html "    <td>$href$time$enda</td>\n";
+	}
+	print $html "  </tr>\n";
     }
-    print $html "  </tr>\n";
 }
 print $html "</table>\n";
 print $html <<"FOOTER";
