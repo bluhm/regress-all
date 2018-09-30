@@ -57,7 +57,7 @@ sub bad($$$;$) {
     $log->sync() if $log;
     $tr->sync();
     no warnings 'exiting';
-    next;
+    next TEST;
 }
 
 sub good($$;$) {
@@ -91,15 +91,103 @@ system(@sshcmd)
 
 sleep 1;
 
-my @testcmd = (
-    ['iperf3', "-c$remote_addr", '-w1m'],
-    ['iperf3', "-c$remote_addr", '-w1m', '-R'],
-    ['tcpbench', '-S1000000', '-t10', $remote_addr],
-    ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr],
+sub iperf3_parser {
+    my ($line, $log) = @_;
+    if ($line =~ m{ ([\d.]+) +([kmgt]?)bits/sec(?: +(sender|receiver))?}i) {
+	my $value = $1;
+	my $unit = lc($2);
+	if ($unit eq '') {
+	} elsif ($unit eq 'k') {
+	    $value *= 1000;
+	} elsif ($unit eq 'm') {
+	    $value *= 1000*1000;
+	} elsif ($unit eq 'g') {
+	    $value *= 1000*1000*1000;
+	} elsif ($unit eq 't') {
+	    $value *= 1000*1000*1000*1000;
+	} else {
+	    print $log "FAILED unknown unit $2\n" if $log;
+	    print "FAILED unknown unit $2\n" if $opts{v};
+	    return;
+	}
+	if ($3) {
+	    print $tr "VALUE $value bits/sec $3\n";
+	} else {
+	    print $tr "SUBVALUE $value bits/sec\n";
+	}
+    }
+    return 1;
+}
+
+my $subscale;
+sub tcpbench_parser {
+    my ($line, $log) = @_;
+    if ($line =~ m{ ([kmgt]?)bps: +([\d.]+) }i) {
+	my $value = $2;
+	my $unit = lc($1);
+	if ($unit eq '') {
+	} elsif ($unit eq 'k') {
+	    $value *= 1000;
+	} elsif ($unit eq 'm') {
+	    $value *= 1000*1000;
+	} elsif ($unit eq 'g') {
+	    $value *= 1000*1000*1000;
+	} elsif ($unit eq 't') {
+	    $value *= 1000*1000*1000*1000;
+	} else {
+	    print $log "FAILED unknown unit $1\n" if $log;
+	    print "FAILED unknown unit $1\n" if $opts{v};
+	    return;
+	}
+	print $tr "VALUE $value bits/sec\n";
+    } elsif ($line =~ m{ \d+ +\d+ +([\d.]+) +[\d.]+%}i) {
+	unless ($subscale) {
+	    print $log "FAILED sub unit not set\n" if $log;
+	    print "FAILED sub unit not set\n" if $opts{v};
+	    return;
+	}
+	my $value = $1 * $subscale;
+	print $tr "SUBVALUE $value bits/sec\n";
+    } elsif ($line =~ m{ \w+ +\w+ +([kmgt]?)bps +[\w.]+}i) {
+	my $unit = lc($1);
+	if ($unit eq '') {
+	    $subscale = 1;
+	} elsif ($unit eq 'k') {
+	    $subscale = 1000;
+	} elsif ($unit eq 'm') {
+	    $subscale = 1000*1000;
+	} elsif ($unit eq 'g') {
+	    $subscale = 1000*1000*1000;
+	} elsif ($unit eq 't') {
+	    $subscale = 1000*1000*1000*1000;
+	} else {
+	    print $log "FAILED unknown sub unit $1\n" if $log;
+	    print "FAILED unknown sub unit $1\n" if $opts{v};
+	    return;
+	}
+    }
+    return 1;
+}
+
+my @tests = (
+    {
+	testcmd => ['iperf3', "-c$remote_addr", '-w1m'],
+	parser => \&iperf3_parser,
+    }, {
+	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-R'],
+	parser => \&iperf3_parser,
+    }, {
+	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr],
+	parser => \&tcpbench_parser,
+    }, {
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr],
+	parser => \&tcpbench_parser,
+    }
 );
 
-foreach my $testcmd (@testcmd) {
-    my @runcmd = @$testcmd;
+TEST:
+foreach my $t (@tests) {
+    my @runcmd = @{$t->{testcmd}};
     my $test = join("_", @runcmd);
 
     my $begin = Time::HiRes::time();
@@ -134,6 +222,8 @@ foreach my $testcmd (@testcmd) {
 	alarm($timeout);
 	while (<$out>) {
 	    print $log $_;
+	    $t->{parser}($_, $log)
+		or bad $test, 'FAIL', "Could not parse value", $log;
 	    s/[^\s[:print:]]/_/g;
 	    print if $opts{v};
 	}

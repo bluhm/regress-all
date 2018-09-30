@@ -349,8 +349,12 @@ print $html <<"FOOTER";
     <td>performance test passed</td>
   </tr>
   <tr>
+    <th>FAIL</th>
+    <td>performance test failed to produce value</td>
+  </tr>
+  <tr>
     <th>NOEXIT</th>
-    <td>performance test did not exit with code 0, make failed</td>
+    <td>performance test did not exit with code 0</td>
   </tr>
   <tr>
     <th>NOTERM</th>
