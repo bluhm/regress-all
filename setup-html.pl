@@ -73,14 +73,15 @@ foreach my $date (@dates) {
 	    (my $dmesg = $version) =~ s,version,dmesg,;
 	    (my $dmesgboot = $version) =~ s,version,dmesg-boot,;
 	    (my $diff = $version) =~ s,version,diff,;
+	    my $cvsdir = $cvsdate ? "$cvsdate/" : "";
 	    $h{$host} = {
-		version   => $version,
+		version   => $cvsdir.$version,
 		time      => $time,
 		short     => $short,
 		arch      => $arch,
-		dmesg     => -f $dmesg ? $dmesg : undef,
-		dmesgboot => -f $dmesgboot ? $dmesgboot : undef,
-		diff      => -f $diff ? $diff : undef,
+		dmesg     => -f $dmesg ? $cvsdir.$dmesg : undef,
+		dmesgboot => -f $dmesgboot ? $cvsdir.$dmesgboot : undef,
+		diff      => -f $diff ? $cvsdir.$diff : undef,
 	    };
 	    $m{$host}++;
 	}
@@ -146,52 +147,61 @@ foreach my $date (@dates) {
     print $html "</table>\n";
     print $html "<table>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
-    print $html "    <th>version</th>\n";
+    print $html "    <th>checkout</th>\n";
+    print $html "    <th>kernel</th>\n";
     print $html "    <th>arch</th>\n";
     print $html "    <th>setup</th>\n";
     print $html "    <th colspan=\"2\">dmesg</th>\n";
     print $html "    <th>diff</th>\n";
     print $html "  </tr>\n";
 
-    my %h = %{$d{$date}{host}};
-    foreach my $host (sort keys %h) {
-	print $html "  <tr>\n    <th>$host</th>\n";
-	my $version = uri_escape($h{$host}{version});
-	my $time = encode_entities($h{$host}{time});
-	my $short = $h{$host}{short};
-	my $arch = encode_entities($h{$host}{arch}) || "";
-	my $setup = uri_escape($h{$host}{setup});
-	my $dmesg = uri_escape($h{$host}{dmesg});
-	my $dmesgboot = uri_escape($h{$host}{dmesgboot});
-	my $diff = uri_escape($h{$host}{diff});
-	if ($version) {
-	    print $html "    <td title=\"$time\">".
-		"<a href=\"$version\">$short</a></td>\n";
-	} else {
-	    print $html "    <td/>\n";
+    foreach my $cvsdate ("", @cvsdates) {
+	my $h = $cvsdate ? $d{$date}{$cvsdate}{host} : $d{$date}{host};
+	foreach my $host (sort keys %$h) {
+	    print $html "  <tr>\n    <th>$host</th>\n";
+	    if ($cvsdate) {
+		(my $cvsshort = $cvsdate) =~ s/T.*//;
+		print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    my $version = uri_escape($h->{$host}{version});
+	    my $time = encode_entities($h->{$host}{time});
+	    my $short = $h->{$host}{short};
+	    my $arch = encode_entities($h->{$host}{arch}) || "";
+	    my $setup = uri_escape($h->{$host}{setup});
+	    my $dmesg = uri_escape($h->{$host}{dmesg});
+	    my $dmesgboot = uri_escape($h->{$host}{dmesgboot});
+	    my $diff = uri_escape($h->{$host}{diff});
+	    if ($version) {
+		print $html "    <td title=\"$time\">".
+		    "<a href=\"$version\">$short</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    print $html "    <td>$arch</td>\n";
+	    if ($setup) {
+		print $html "    <td><a href=\"$setup\">log</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    if ($dmesgboot) {
+		print $html "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    if ($dmesg) {
+		print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    if ($diff) {
+		print $html "    <td><a href=\"$diff\">diff</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    print $html "  </tr>\n";
 	}
-	print $html "    <td>$arch</td>\n";
-	if ($setup) {
-	    print $html "    <td><a href=\"$setup\">log</a></td>\n";
-	} else {
-	    print $html "    <td/>\n";
-	}
-	if ($dmesgboot) {
-	    print $html "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
-	} else {
-	    print $html "    <td/>\n";
-	}
-	if ($dmesg) {
-	    print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
-	} else {
-	    print $html "    <td/>\n";
-	}
-	if ($diff) {
-	    print $html "    <td><a href=\"$diff\">diff</a></td>\n";
-	} else {
-	    print $html "    <td/>\n";
-	}
-	print $html "  </tr>\n";
     }
     print $html "</table>\n";
     print $html "</body>\n";
