@@ -88,6 +88,7 @@ logmsg("script '$scriptname' started at $date\n");
 
 usehosts(bindir => "$performdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
+(my $host = $opts{h}) =~ s/.*\@//;
 
 setup_hosts(mode => \%mode, release => $opts{r}) unless $mode{keep};
 collect_version();
@@ -112,7 +113,6 @@ for (my $current = $begin; $current <= $end;
 
     # run performance tests remotely
 
-    (my $host = $opts{h}) =~ s/.*\@//;
     my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
 	'-e', "/root/perform/env-$host.sh", '-v');
     logcmd(@sshcmd);
@@ -121,6 +121,7 @@ for (my $current = $begin; $current <= $end;
 
     collect_result("$opts{h}:/root/perform");
     collect_dmesg();
+    runcmd("$performdir/bin/setup-html.pl");
 }
 
 # create html output
@@ -129,10 +130,17 @@ chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
 
 runcmd("bin/setup-html.pl");
+runcmd("bin/perform-html.pl", "-h", $host);
+runcmd("bin/perform-html.pl");
 
+unlink("results/latest-$host");
+symlink($date, "results/latest-$host")
+    or die "Make symlink 'results/latest-$host' failed: $!";
 unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
+runcmd("bin/perform-html.pl", "-l", "-h", $host);
+runcmd("bin/perform-html.pl", "-l");
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' finished at $date\n");
