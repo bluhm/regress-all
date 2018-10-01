@@ -84,6 +84,7 @@ foreach my $result (@results) {
     while (<$fh>) {
 	chomp;
 	my ($status, $test, $message) = split(" ", $_, 3);
+	next if $status =~ /VALUE/;
 	$t{$test}{$date}{$cvsdate}
 	    and warn "Duplicate test '$test' date '$date' cvsdate '$cvsdate'";
 	$t{$test}{$date}{$cvsdate} = {
