@@ -51,7 +51,7 @@ my @results;
 if ($opts{l}) {
     my @latest;
     if ($host) {
-	push @latest, "latest-$host/test.result";
+	@latest = "latest-$host/test.result";
 	-f $latest[0]
 	    or die "No latest test.result for $host";
     } else {
