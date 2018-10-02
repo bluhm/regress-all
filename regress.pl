@@ -62,7 +62,7 @@ close($sudo) or die $! ?
     "Close pipe to '@sudocmd' failed: $!" :
     "Command '@sudocmd' failed: $?";
 
-sub bad($$$;$) {
+sub bad {
     my ($test, $reason, $message, $log) = @_;
     print $log "\n$reason\t$test\t$message\n" if $log;
     print "\n$reason\t$test\t$message\n\n" if $opts{v};
@@ -73,7 +73,7 @@ sub bad($$$;$) {
     next;
 }
 
-sub good($$;$) {
+sub good {
     my ($test, $diff, $log) = @_;
     my $duration = sprintf("%dm%02d.%02ds", $diff/60, $diff%60, 100*$diff%100);
     print $log "\nPASS\t$test\tDuration $duration\n" if $log;

@@ -26,7 +26,7 @@ our @EXPORT= qw(createlog logmsg runcmd forkcmd waitcmd logcmd loggrep);
 use subs qw(logmsg);
 
 my ($fh, $file, $verbose);
-sub createlog (%) {
+sub createlog {
     my %args = @_;
     $file = $args{file};
     open($fh, '>', $file)
@@ -41,12 +41,12 @@ sub createlog (%) {
     };
 }
 
-sub logmsg (@) {
+sub logmsg {
     print $fh @_;
     print @_ if $verbose;
 }
 
-sub runcmd (@) {
+sub runcmd {
     my @cmd = @_;
     logmsg "Command '@cmd' started\n";
     system(@cmd)
@@ -54,7 +54,7 @@ sub runcmd (@) {
     logmsg "Command '@cmd' finished\n";
 }
 
-sub forkcmd (@) {
+sub forkcmd {
     my @cmd = @_;
     logmsg "Command '@cmd' started\n";
     defined(my $pid = fork())
@@ -75,7 +75,7 @@ sub forkcmd (@) {
     return $pid => [@cmd];
 }
 
-sub waitcmd (%) {
+sub waitcmd {
     my %pidcmds = @_;
     my $total = keys %pidcmds;
     my $failed = 0;
@@ -95,7 +95,7 @@ sub waitcmd (%) {
     $failed and croak "Commands $failed out of $total failed";
 }
 
-sub logcmd (@) {
+sub logcmd {
     my (@cmd, $outfile);
     if (ref($_[0])) {
 	my %args = %{$_[0]};
@@ -141,7 +141,7 @@ sub logcmd (@) {
     logmsg "Command '@cmd' finished\n";
 }
 
-sub loggrep ($) {
+sub loggrep {
     my ($regex) = @_;
     open(my $fh, '<', $file)
 	or croak "Open '$file' for reading failed: $!";
