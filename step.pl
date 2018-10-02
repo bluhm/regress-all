@@ -110,6 +110,7 @@ for (my $current = $begin; $current <= $end;
 	or die "Chdir to '$cvsdir' failed: $!";
     cvsbuild_hosts(cvsdate => $cvsdate);
     collect_version();
+    runcmd("$performdir/bin/setup-html.pl");
 
     # run performance tests remotely
 
@@ -121,7 +122,6 @@ for (my $current = $begin; $current <= $end;
 
     collect_result("$opts{h}:/root/perform");
     collect_dmesg();
-    runcmd("$performdir/bin/setup-html.pl");
 }
 
 # create html output
