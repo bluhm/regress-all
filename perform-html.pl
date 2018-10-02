@@ -51,14 +51,15 @@ my @results;
 if ($opts{l}) {
     my @latest;
     if ($host) {
-	@latest = "latest-$host/*/test.result";
+	@latest = glob("latest-$host/*/test.result");
 	-f $latest[0]
 	    or die "No latest test.result for $host";
     } else {
 	@latest = glob("latest-*/*/test.result");
     }
-    @results = map { (readlink(dirname($_))
-	or die "Readlink latest '$_' failed: $!") . "/test.result" } @latest;
+    @results = map { (readlink(dirname(dirname($_)))
+	or die "Readlink latest '$_' failed: $!") . "/".
+	    basename(dirname($_))."/test.result" } @latest;
 } else {
     @results = sort glob("*/*/test.result");
 }
