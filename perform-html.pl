@@ -21,6 +21,7 @@ use Cwd;
 use File::Basename;
 use HTML::Entities;
 use Getopt::Std;
+use List::Util qw(max);
 use POSIX;
 use URI::Escape;
 
@@ -64,7 +65,7 @@ if ($opts{l}) {
     @results = sort glob("*/*/test.result");
 }
 
-my (%t, %d);
+my (%t, %d, %v);
 foreach my $result (@results) {
 
     # parse result file
@@ -82,10 +83,24 @@ foreach my $result (@results) {
     my ($total, $pass) = (0, 0);
     open(my $fh, '<', $result)
 	or die "Open '$result' for reading failed: $!";
+    my @values;
     while (<$fh>) {
 	chomp;
 	my ($status, $test, $message) = split(" ", $_, 3);
-	next if $status =~ /VALUE/;
+	if ($status =~ /VALUE/) {
+	    next if $status =~ /SUBVALUE/;  # XXX not yet
+	    my (undef, $number, $unit, $name) = split(" ", $_, 4);
+	    $number =~ /^(\d+|\d*\.\d+)$/
+		or warn "Number '$number' for value '$name' is invalid";
+	    push @values, {
+		name => $name || "",
+		unit => $unit,
+		number => $number,
+	    };
+	    next;
+	}
+	$v{$date}{$test}{$cvsdate} = [ @values ];
+	undef @values;
 	$t{$test}{$date}{$cvsdate}
 	    and warn "Duplicate test '$test' date '$date' cvsdate '$cvsdate'";
 	$t{$test}{$date}{$cvsdate} = {
@@ -219,6 +234,22 @@ HEADER
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
 	print $html "  </tr>\n";
+	my $vt = $v{$date}{$test};
+	my $maxval = max map { scalar @{$vt->{$_}} } @cvsdates;
+	for (my $i = 0; $i < $maxval; $i++) {
+	    my $value0 = $vt->{$cvsdates[0]}[$i];
+	    my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
+	    print $html "  <tr>\n    <th>$name0</th>\n";
+	    foreach my $cvsdate (@cvsdates) {
+		my $status = $td->{$cvsdate}{status};
+		my $value = $vt->{$cvsdate}[$i];
+		my $number = $status eq 'PASS' ?
+		    $vt->{$cvsdate}[$i]{number} : "";
+		print $html "    <td>$number</td>\n";
+	    }
+	    print $html "    <th>$unit0</th>\n";
+	    print $html "  </tr>\n";
+	}
     }
     print $html "</table>\n";
 
