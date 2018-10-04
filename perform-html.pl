@@ -213,7 +213,6 @@ HEADER
     foreach my $cvsdate (@cvsdates) {
 	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
 	my $setup = $d{$date}{$cvsdate}{setup};
-	$setup = join("/", map { uri_escape($_) } split("/", $setup)) if $setup;
 	my $time = encode_entities($cvsdate);
 	my $href = $setup ? "<a href=\"$setup\">" : "";
 	my $enda = $href ? "</a>" : "";
@@ -228,7 +227,7 @@ HEADER
 	    my $class = " class=\"result $status\"";
 	    my $message = encode_entities($td->{$cvsdate}{message});
 	    my $title = $message ? " title=\"$message\"" : "";
-	    my $logfile = uri_escape($td->{$cvsdate}{logfile});
+	    my $logfile = $td->{$cvsdate}{logfile};
 	    my $href = $logfile ? "<a href=\"../$logfile\">" : "";
 	    my $enda = $href ? "</a>" : "";
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
@@ -318,7 +317,6 @@ print $html "  <tr>\n    <th>test at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
     my $setup = $d{$date}{setup};
-    $setup = join("/", map { uri_escape($_) } split("/", $setup)) if $setup;
     my $time = encode_entities($date);
     my $href = $setup ? "<a href=\"$setup\">" : "";
     my $enda = $href ? "</a>" : "";
@@ -349,8 +347,7 @@ foreach my $date (@dates) {
     unless ($arch) {
 	print $html "    <th/>\n";
     }
-    my $dmesg = join("/", map { uri_escape($_) }
-	split("/", $d{$date}{dmesg} || ""));
+    my $dmesg = $d{$date}{dmesg};
     my $href = $dmesg ? "<a href=\"$dmesg\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th>$href$arch$enda</th>\n";
