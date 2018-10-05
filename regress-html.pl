@@ -194,7 +194,6 @@ print $html "  <tr>\n    <th>test at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
     my $setup = $d{$date}{setup};
-    $setup = join("/", map { uri_escape($_) } split("/", $setup)) if $setup;
     my $time = encode_entities($date);
     my $href = $setup ? "<a href=\"$setup\">" : "";
     my $enda = $href ? "</a>" : "";
@@ -209,9 +208,7 @@ foreach my $date (@dates) {
     }
     my $kernel = encode_entities($d{$date}{kernel});
     my $build = $d{$date}{build};
-    $version = join("/", map { uri_escape($_) } split("/", $version));
-    my $diff = join("/", map { uri_escape($_) }
-	split("/", $d{$date}{diff} || ""));
+    my $diff = $d{$date}{diff};
     my $href = "";
     $href = "<a href=\"$version\">" if $build eq "snapshot";
     $href = "<a href=\"$diff\">" if $build eq "custom" && $diff;
@@ -224,8 +221,7 @@ foreach my $date (@dates) {
     unless ($arch) {
 	print $html "    <th/>\n";
     }
-    my $dmesg = join("/", map { uri_escape($_) }
-	split("/", $d{$date}{dmesg} || ""));
+    my $dmesg = $d{$date}{dmesg};
     my $href = $dmesg ? "<a href=\"$dmesg\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th>$href$arch$enda</th>\n";
@@ -242,7 +238,7 @@ foreach my $test (@tests) {
 	my $class = " class=\"result $status\"";
 	my $message = encode_entities($t{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
-	my $logfile = uri_escape($t{$test}{$date}{logfile});
+	my $logfile = $t{$test}{$date}{logfile};
 	my $href = $logfile ? "<a href=\"$logfile\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <td$class$title>$href$status$enda</td>\n";
