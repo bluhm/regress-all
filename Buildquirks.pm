@@ -16,11 +16,24 @@
 
 package Buildquirks;
 
+use strict;
+use warnings;
+use Date::Parse;
+use POSIX;
+
+use parent 'Exporter';
+our @EXPORT= qw(
+    initquirks
+    quirk_commands
+);
+
 my %quirks = (
     '2018-04-05T03:32:39Z' => {
 	comment => "remove PF_TRANS_ALTQ",
 	updatedirs => [ "sys/net" ], 
-	builddirs => [ "include" ],
+	buildcommands => [
+	    [qw( make -C /usr/src includes )],
+	],
     },
     '2018-04-07T10:05:06Z' => {
 	comment => "update LLVM to 6.0.0",
@@ -34,11 +47,71 @@ my %quirks = (
     },
     '2018-07-26T13:20:53Z' => {
 	comment => "infrastructure to install lld",
-	updatedirs => [ "share/mk",
-	    "gnu/usr.bin/binutils-2.17", "gnu/usr.bin/clang/ldd" ],
-	builddirs => [ "share/mk",
-	    "gnu/usr.bin/binutils-2.17", "gnu/usr.bin/clang/ldd" ],
+	updatedirs => [
+	    "share/mk",
+	    "gnu/usr.bin/clang/ldd",
+	    "gnu/usr.bin/binutils-2.17",
+	],
+	builddirs => [
+	    "share/mk",
+	    "gnu/usr.bin/clang/ldd",
+	],
+	buildcommands => [
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper install",
+	],
     },
 );
+
+my $sysctl;
+
+sub initquirks {
+    ($sysctl) = @_;
+}
+
+sub quirk_commands {
+    my ($before, $after) = @_;
+
+    my %q;
+    while (my($k, $v) = each %quirks) {
+	my $commit = str2time($k)
+	    or die "Invalid commit date '$k'";
+	$q{$commit} = $v if $commit > $before && $commit <= $after;
+    }
+    my @c;
+    foreach my $commit (sort keys %q) {
+	my $v = $q{$commit};
+	push @c, "echo $v->{comment}";
+	if ($v->{updatedirs}) {
+	    my $dirs = @{$v->{updatedirs}};
+	    my $cvsdate = strftime("%FT%TZ", gmtime($commit));
+	    push @c, "cd /usr/src && cvs -qR up -PdAC -D$cvsdate $dirs";
+	}
+	foreach my $dir (@{$v->{builddirs} || []}) {
+	    my $ncpu = $sysctl->{'hw.ncpu'};
+	    push @c, "cd /usr/src && make -C $dir obj";
+	    push @c, "cd /usr/src && nice make -C $dir -j $ncpu all";
+	    push @c, "cd /usr/src && make -C $dir install";
+	}
+	foreach my $cmd (@{$v->{buildcommands} || []}) {
+	    push @c, "cd /usr/src && $cmd";
+	}
+	if ($v->{buildkernel}) {
+	    my $version = $sysctl->{'kern.version'};
+	    $version =~ m{:/usr/src/sys/([\w./]+)$}m
+		or die "No kernel path in version: $version";
+	    my $path = $1;
+	    my $ncpu = $sysctl->{'hw.ncpu'};
+	    push @c, "cd /usr/src/sys/$path && make obj";
+	    push @c, "cd /usr/src/sys/$path && make config";
+	    push @c, "cd /usr/src/sys/$path && make clean";
+	    push @c, "cd /usr/src/sys/$path && nice make -j ncpu";
+	    push @c, "cd /usr/src/sys/$path && make install";
+	}
+    }
+
+    return @c;
+}
 
 1;
