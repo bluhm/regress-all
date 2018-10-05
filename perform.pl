@@ -152,6 +152,11 @@ sub tcpbench_finalize {
 	print "FAILED no sub values\n" if $opts{v};
 	return;
     }
+    if (@tcpbench_subvalues >= 5) {
+	# first and last value have higher variance, take middle values
+	shift @tcpbench_subvalues;
+	pop @tcpbench_subvalues;
+    }
     my $value = 0;
     $value += $_ foreach @tcpbench_subvalues;
     $value /= @tcpbench_subvalues;
