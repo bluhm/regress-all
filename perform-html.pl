@@ -238,8 +238,9 @@ HEADER
 	    print $html "    <th/>\n";
 	    next;
 	}
-	my $kernel = encode_entities($d{$date}{kernel});
-	print $html "    <th><a href=\"$version\">kernel</a></th>\n";
+	my $kernel = encode_entities($d{$date}{$cvsdate}{kernel});
+	print $html "    <th title=\"$kernel\">".
+	    "<a href=\"$version\">version</a></th>\n";
     }
     print $html "  <tr>\n    <th>architecture</th>\n";
     foreach my $cvsdate (@cvsdates) {

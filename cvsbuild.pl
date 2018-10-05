@@ -75,10 +75,9 @@ if ($sysctl{'kern.version'} =~
 if ($before) {
     my @comments = quirk_comments($before, $cvsdate);
     if (@comments) {
-	open(my $fh, '>', "quirks.log")
-	    or die "Open 'quirks.log' for writing failed: $!";
-	local $\ = "\n";
-	print $fh @comments;
+	open(my $fh, '>', "quirks-$host.txt")
+	    or die "Open 'quirks-$host.txt' for writing failed: $!";
+	print $fh map { "$_\n" } @comments;
     }
     foreach my $cmd (quirk_commands($before, $cvsdate, \%sysctl)) {
 	logcmd('ssh', "$user\@$host", $cmd);

@@ -73,6 +73,7 @@ foreach my $date (@dates) {
 	    (my $dmesg = $version) =~ s,version,dmesg,;
 	    (my $dmesgboot = $version) =~ s,version,dmesg-boot,;
 	    (my $diff = $version) =~ s,version,diff,;
+	    (my $quirks = $version) =~ s,version,quirks,;
 	    my $cvsdir = $cvsdate ? "$cvsdate/" : "";
 	    $h{$host} = {
 		version   => $cvsdir.$version,
@@ -82,6 +83,7 @@ foreach my $date (@dates) {
 		dmesg     => -f $dmesg ? $cvsdir.$dmesg : undef,
 		dmesgboot => -f $dmesgboot ? $cvsdir.$dmesgboot : undef,
 		diff      => -f $diff ? $cvsdir.$diff : undef,
+		quirks    => -f $quirks ? $cvsdir.$quirks : undef,
 	    };
 	    $m{$host}++;
 	}
@@ -89,9 +91,9 @@ foreach my $date (@dates) {
 	    my ($host) = $setup =~ m,setup-(.*)\.log,;
 	    $h{$host}{setup} = $setup,
 	}
-	foreach my $setup (glob("cvsbuild-*.log")) {
-	    my ($host) = $setup =~ m,cvsbuild-(.*)\.log,;
-	    $h{$host}{setup} = "$cvsdate/$setup",
+	foreach my $build (glob("cvsbuild-*.log")) {
+	    my ($host) = $build =~ m,cvsbuild-(.*)\.log,;
+	    $h{$host}{build} = "$cvsdate/$build",
 	}
 	if ($cvsdate) {
 	    $d{$date}{$cvsdate}{host} = \%h;
@@ -153,6 +155,7 @@ foreach my $date (@dates) {
     print $html "    <th>setup</th>\n";
     print $html "    <th colspan=\"2\">dmesg</th>\n";
     print $html "    <th>diff</th>\n";
+    print $html "    <th>quirks</th>\n";
     print $html "  </tr>\n";
 
     foreach my $cvsdate ("", @cvsdates) {
@@ -169,10 +172,11 @@ foreach my $date (@dates) {
 	    my $time = encode_entities($h->{$host}{time});
 	    my $short = $h->{$host}{short};
 	    my $arch = encode_entities($h->{$host}{arch}) || "";
-	    my $setup = $h->{$host}{setup};
+	    my $setup = $h->{$host}{setup} || $h->{$host}{build};
 	    my $dmesg = $h->{$host}{dmesg};
 	    my $dmesgboot = $h->{$host}{dmesgboot};
 	    my $diff = $h->{$host}{diff};
+	    my $quirks = $h->{$host}{quirks};
 	    if ($version) {
 		print $html "    <td title=\"$time\">".
 		    "<a href=\"$version\">$short</a></td>\n";
@@ -200,6 +204,11 @@ foreach my $date (@dates) {
 	    } else {
 		print $html "    <td/>\n";
 	    }
+	    if ($quirks) {
+		print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
 	    print $html "  </tr>\n";
 	}
     }
@@ -211,6 +220,108 @@ foreach my $date (@dates) {
 	or die "Close 'setup.html.new' after writing failed: $!";
     rename("setup.html.new", "setup.html")
 	or die "Rename 'setup.html.new' to 'setup.html' failed: $!";
+
+    foreach my $cvsdate (@cvsdates) {
+	my $subdir = "$dir/$cvsdate";
+	chdir($subdir)
+	    or die "Chdir to '$subdir' failed: $!";
+
+	unlink("build.html.new");
+	open(my $html, '>', "build.html.new")
+	    or die "Open 'build.html.new' for writing failed: $!";
+	print $html "<!DOCTYPE html>\n";
+	print $html "<html>\n";
+	print $html "<head>\n";
+	print $html "  <title>OpenBSD CVS Build</title>\n";
+	print $html "  <style>th { text-align: left; }</style>\n";
+	print $html "</head>\n";
+
+	print $html "<body>\n";
+	print $html "<h1>OpenBSD perform test machine</h1>\n";
+	print $html "<table>\n";
+	print $html "  <tr>\n    <th>created at</th>\n";
+	print $html "    <td>$now</td>\n";
+	print $html "  </tr>\n";
+	print $html "  <tr>\n    <th>run at</th>\n";
+	print $html "    <td>$date</td>\n";
+	print $html "  </tr>\n";
+	print $html "  <tr>\n    <th>cvs checkout</th>\n";
+	print $html "    <td>$cvsdate</td>\n";
+	print $html "  </tr>\n";
+	print $html "</table>\n";
+	print $html "<table>\n";
+	print $html "  <tr>\n    <th>machine</th>\n";
+	print $html "    <th>checkout</th>\n";
+	print $html "    <th>kernel</th>\n";
+	print $html "    <th>arch</th>\n";
+	print $html "    <th>build</th>\n";
+	print $html "    <th colspan=\"2\">dmesg</th>\n";
+	print $html "    <th>diff</th>\n";
+	print $html "    <th>quirks</th>\n";
+	print $html "  </tr>\n";
+	my $h = $d{$date}{$cvsdate}{host};
+	foreach my $host (sort keys %$h) {
+	    print $html "  <tr>\n    <th>$host</th>\n";
+	    (my $cvsshort = $cvsdate) =~ s/T.*//;
+	    print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
+	    my $version = $h->{$host}{version};
+	    my $time = encode_entities($h->{$host}{time});
+	    my $short = $h->{$host}{short};
+	    my $arch = encode_entities($h->{$host}{arch}) || "";
+	    my $build = $h->{$host}{build};
+	    my $dmesg = $h->{$host}{dmesg};
+	    my $dmesgboot = $h->{$host}{dmesgboot};
+	    my $diff = $h->{$host}{diff};
+	    my $quirks = $h->{$host}{quirks};
+	    if ($version) {
+		$version =~ s,[^/]+/,,;
+		print $html "    <td title=\"$time\">".
+		    "<a href=\"$version\">$short</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    print $html "    <td>$arch</td>\n";
+	    if ($build) {
+		$build =~ s,[^/]+/,,;
+		print $html "    <td><a href=\"$build\">log</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    if ($dmesgboot) {
+		$dmesgboot =~ s,[^/]+/,,;
+		print $html "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    if ($dmesg) {
+		$dmesg =~ s,[^/]+/,,;
+		print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    if ($diff) {
+		$diff =~ s,[^/]+/,,;
+		print $html "    <td><a href=\"$diff\">diff</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    if ($quirks) {
+		$quirks =~ s,[^/]+/,,;
+		print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
+	    } else {
+		print $html "    <td/>\n";
+	    }
+	    print $html "  </tr>\n";
+	}
+	print $html "</table>\n";
+	print $html "</body>\n";
+
+	print $html "</html>\n";
+	close($html)
+	    or die "Close 'build.html.new' after writing failed: $!";
+	rename("build.html.new", "build.html")
+	    or die "Rename 'build.html.new' to 'build.html' failed: $!";
+    }
 }
 
 exit if $opts{d};
@@ -264,7 +375,7 @@ foreach my $date (reverse sort keys %d) {
 	}
 	foreach my $host (sort keys %m) {
 	    my $time = encode_entities($h->{$host}{time}) || "";
-	    my $setup = $h->{$host}{setup} || "";
+	    my $setup = $h->{$host}{setup} || $h->{$host}{build} || "";
 	    $time ||= "log" if $setup;
 	    my $log = "$date/$setup";
 	    my $href = $setup ? "<a href=\"$log\">" : "";
