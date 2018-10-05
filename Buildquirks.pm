@@ -29,9 +29,7 @@ my %quirks = (
     '2018-04-05T03:32:39Z' => {
 	comment => "remove PF_TRANS_ALTQ",
 	updatedirs => [ "sys/net" ], 
-	buildcommands => [
-	    [qw( make -C /usr/src includes )],
-	],
+	buildcommands => [ "make includes" ],
     },
     '2018-04-07T10:05:06Z' => {
 	comment => "update LLVM to 6.0.0",
