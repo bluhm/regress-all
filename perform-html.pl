@@ -80,6 +80,8 @@ foreach my $result (@results) {
     };
     $d{$date}{log} = "step.log" if -f "$date/step.log";
     $d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
+    $d{$date}{$cvsdate}{build} = "$date/$cvsdate/build.html"
+	if -f "$date/$cvsdate/build.html";
     $_->{severity} *= .5 foreach values %t;
     my ($total, $pass) = (0, 0);
     open(my $fh, '<', $result)
@@ -162,9 +164,6 @@ foreach my $result (@results) {
 	    $d{$date}{$cvsdate}{arch} = $1;
 	}
     }
-    $d{$date}{$cvsdate}{build} =
-	$d{$date}{$cvsdate}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
-	"snapshot" : "custom";
     ($d{$date}{$cvsdate}{diff} = $diff) =~ s,[^/]+/,, if -f $diff;
     ($d{$date}{$cvsdate}{dmesg} = $dmesg) =~ s,[^/]+/,, if -f $dmesg;
 }
@@ -225,13 +224,14 @@ HEADER
     print $html "  <tr>\n    <th>cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
-	my $setup = $d{$date}{$cvsdate}{setup};
+	my $build = $d{$date}{$cvsdate}{build};
+	$build =~ s,[^/]+/,, if $build;
 	my $time = encode_entities($cvsdate);
-	my $href = $setup ? "<a href=\"$setup\">" : "";
+	my $href = $build ? "<a href=\"$build\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
     }
-    print $html "  <tr>\n    <th>machine build</th>\n";
+    print $html "  <tr>\n    <th>kernel build</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $version = $d{$date}{$cvsdate}{version};
 	unless ($version) {
