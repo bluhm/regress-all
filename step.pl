@@ -96,8 +96,7 @@ runcmd("$performdir/bin/setup-html.pl");
 
 # update in single steps
 
-for (my $current = $begin; $current <= $end;
-    $current = add_step($current, $step, $unit)) {
+for (my $current = $begin; $current <= $end;) {
 
     chdir($performdir)
 	or die "Chdir to '$performdir' failed: $!";
@@ -122,6 +121,12 @@ for (my $current = $begin; $current <= $end;
 
     collect_result("$opts{h}:/root/perform");
     collect_dmesg();
+
+    # if next step does not hit the end exactly, do an additional test
+
+    last if $current == $end;
+    $current = add_step($current, $step, $unit);
+    $current = $end if $current > $end;
 }
 
 # create html output
