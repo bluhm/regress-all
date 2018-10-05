@@ -18,6 +18,7 @@ package Buildquirks;
 
 use strict;
 use warnings;
+use Carp;
 use Date::Parse;
 use POSIX;
 
@@ -61,8 +62,11 @@ my %quirks = (
     },
 );
 
-sub quirk_comments {
-    my ($before, $after, $sysctl) = @_;
+sub quirks {
+    my $before = str2time($_[0])
+	or croak "Could not parse date '$_[0]'";
+    my $after = str2time($_[1])
+	or croak "Could not parse date '$_[1]'";
 
     my %q;
     while (my($k, $v) = each %quirks) {
@@ -70,18 +74,18 @@ sub quirk_comments {
 	    or die "Invalid commit date '$k'";
 	$q{$commit} = $v if $commit > $before && $commit <= $after;
     }
+    return %q;
+}
+
+sub quirk_comments {
+    my %q = quirks(@_);
     return map { $q{$_}{comment} } sort keys %q;
 }
 
 sub quirk_commands {
-    my ($before, $after, $sysctl) = @_;
+    my (undef, undef, $sysctl) = @_;
+    my %q = quirks(@_);
 
-    my %q;
-    while (my($k, $v) = each %quirks) {
-	my $commit = str2time($k)
-	    or die "Invalid commit date '$k'";
-	$q{$commit} = $v if $commit > $before && $commit <= $after;
-    }
     my @c;
     foreach my $commit (sort keys %q) {
 	my $v = $q{$commit};

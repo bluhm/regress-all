@@ -18,7 +18,6 @@
 use strict;
 use warnings;
 use Cwd;
-use Date::Parse;
 use File::Basename;
 use Getopt::Std;
 use POSIX;
@@ -68,14 +67,12 @@ my %sysctl = get_version();
 my $before;
 if ($sysctl{'kern.version'} =~
     /#cvs : D(\d{4}).(\d\d).(\d\d).(\d\d).(\d\d).(\d\d):/) {
-    $before = str2time("$1-$2-${3}T-$4:$5:${6}Z")
-	or die "Could not parse kernel cvs date '$1-$2-${3}T-$4:$5:${6}Z'";
+    $before = "$1-$2-${3}T$4:$5:${6}Z";
 } elsif ($sysctl{'kern.version'} =~
     /: (\w{3} \w{3} \d?\d \d\d:\d\d:\d\d \w+ \d{4})\n/) {
-    $before = str2time("$1")
-	or die "Could not parse kernel build date '$1'";
+    $before = $1;
 }
-if ($before && $before < $cvsdate) {
+if ($before) {
     my @comments = quirk_comments($before, $cvsdate);
     if (@comments) {
 	open(my $fh, '>', "quirks.log")
