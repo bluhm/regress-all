@@ -119,7 +119,7 @@ sub iperf3_parser {
     return 1;
 }
 
-my $subscale;
+my @tcpbench_subvalues;
 sub tcpbench_parser {
     my ($line, $log) = @_;
     if ($line =~ m{ ([kmgt]?)bps: +([\d.]+) }i) {
@@ -139,33 +139,24 @@ sub tcpbench_parser {
 	    print "FAILED unknown unit $1\n" if $opts{v};
 	    return;
 	}
-	print $tr "VALUE $value bits/sec\n";
-    } elsif ($line =~ m{ \d+ +\d+ +([\d.]+) +[\d.]+%}i) {
-	unless ($subscale) {
-	    print $log "FAILED sub unit not set\n" if $log;
-	    print "FAILED sub unit not set\n" if $opts{v};
-	    return;
-	}
-	my $value = $1 * $subscale;
+	push @tcpbench_subvalues, $value;
 	print $tr "SUBVALUE $value bits/sec\n";
-    } elsif ($line =~ m{ \w+ +\w+ +([kmgt]?)bps +[\w.]+}i) {
-	my $unit = lc($1);
-	if ($unit eq '') {
-	    $subscale = 1;
-	} elsif ($unit eq 'k') {
-	    $subscale = 1000;
-	} elsif ($unit eq 'm') {
-	    $subscale = 1000*1000;
-	} elsif ($unit eq 'g') {
-	    $subscale = 1000*1000*1000;
-	} elsif ($unit eq 't') {
-	    $subscale = 1000*1000*1000*1000;
-	} else {
-	    print $log "FAILED unknown sub unit $1\n" if $log;
-	    print "FAILED unknown sub unit $1\n" if $opts{v};
-	    return;
-	}
     }
+    return 1;
+}
+
+sub tcpbench_finalize {
+    my ($log) = @_;
+    unless (@tcpbench_subvalues) {
+	print $log "FAILED no sub values\n" if $log;
+	print "FAILED no sub values\n" if $opts{v};
+	return;
+    }
+    my $value = 0;
+    $value += $_ foreach @tcpbench_subvalues;
+    $value /= @tcpbench_subvalues;
+    undef @tcpbench_subvalues;
+    print $tr "VALUE $value bits/sec sender\n";
     return 1;
 }
 
@@ -173,15 +164,19 @@ my @tests = (
     {
 	testcmd => ['iperf3', "-c$remote_addr", '-w1m'],
 	parser => \&iperf3_parser,
+	finalize => sub {},
     }, {
 	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-R'],
 	parser => \&iperf3_parser,
+	finalize => sub {},
     }, {
 	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr],
 	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
 	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr],
 	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }
 );
 
@@ -227,6 +222,8 @@ foreach my $t (@tests) {
 	    s/[^\s[:print:]]/_/g;
 	    print if $opts{v};
 	}
+	$t->{finalize}($log)
+	    or bad $test, 'FAIL', "Could not finalize value", $log;
 	alarm(0);
     };
     kill 'KILL', -$pid;
