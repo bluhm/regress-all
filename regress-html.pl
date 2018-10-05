@@ -190,7 +190,7 @@ foreach my $date (@dates) {
     $percent = sprintf("%d%%", 100 * $pass) if defined $pass;
     print $html "    <th>$percent</th>\n";
 }
-print $html "  <tr>\n    <th>test at date</th>\n";
+print $html "  <tr>\n    <th>run at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
     my $setup = $d{$date}{setup};

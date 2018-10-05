@@ -78,6 +78,7 @@ foreach my $result (@results) {
 	cvsshort => $cvsshort,
 	result => $result,
     };
+    $d{$date}{log} = "step.log" if -f "$date/step.log";
     $d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
     $_->{severity} *= .5 foreach values %t;
     my ($total, $pass) = (0, 0);
@@ -144,7 +145,7 @@ foreach my $result (@results) {
 	delete $d{$date}{$cvsdate} if $host;
 	next;
     }
-    $d{$date}{$cvsdate}{version} = $version;
+    ($d{$date}{$cvsdate}{version} = $version) =~ s,[^/]+/,,;
     open($fh, '<', $version)
 	or die "Open '$version' for reading failed: $!";
     while (<$fh>) {
@@ -164,8 +165,8 @@ foreach my $result (@results) {
     $d{$date}{$cvsdate}{build} =
 	$d{$date}{$cvsdate}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
 	"snapshot" : "custom";
-    $d{$date}{$cvsdate}{diff} = $diff if -f $diff;
-    $d{$date}{$cvsdate}{dmesg} = $dmesg if -f $dmesg;
+    ($d{$date}{$cvsdate}{diff} = $diff) =~ s,[^/]+/,, if -f $diff;
+    ($d{$date}{$cvsdate}{dmesg} = $dmesg) =~ s,[^/]+/,, if -f $dmesg;
 }
 
 my @dates = reverse sort keys %d;
@@ -178,6 +179,7 @@ foreach my $date (@dates) {
     open(my $html, '>', "$htmlfile.new")
 	or die "Open '$htmlfile.new' for writing failed: $!";
 
+    my $short = $d{$date}{short};
     print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
@@ -197,14 +199,25 @@ foreach my $date (@dates) {
 </head>
 
 <body>
-<h1>OpenBSD perform $date test results</h1>
+<h1>OpenBSD perform $short test results</h1>
 <table>
   <tr>
     <th>created at</th>
     <td>$now</td>
   </tr>
-</table>
+  <tr>
+    <th>run at</th>
+    <td>$date</td>
+  </tr>
 HEADER
+
+    print $html "  <tr>\n    <th>run</th>\n";
+    my $log = $d{$date}{log};
+    my $href = $log ? "<a href=\"$log\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "    <th>${href}log$enda</th>\n";
+    print $html "  </tr>\n";
+    print $html "</table>\n";
 
     print $html "<table>\n";
     my @cvsdates = @{$d{$date}{cvsdates}};
@@ -218,6 +231,28 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
     }
+    print $html "  <tr>\n    <th>machine build</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $version = $d{$date}{$cvsdate}{version};
+	unless ($version) {
+	    print $html "    <th/>\n";
+	    next;
+	}
+	my $kernel = encode_entities($d{$date}{kernel});
+	print $html "    <th><a href=\"$version\">kernel</a></th>\n";
+    }
+    print $html "  <tr>\n    <th>architecture</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $arch = $d{$date}{$cvsdate}{arch};
+	unless ($arch) {
+	    print $html "    <th/>\n";
+	}
+	my $dmesg = $d{$date}{$cvsdate}{dmesg};
+	my $href = $dmesg ? "<a href=\"$dmesg\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <th>$href$arch$enda</th>\n";
+    }
+    print $html "  </tr>\n";
     my @tests = sort keys %t;
     foreach my $test (@tests) {
 	my $td = $t{$test}{$date} or next;
@@ -313,7 +348,7 @@ print $html <<"HEADER";
 HEADER
 
 print $html "<table>\n";
-print $html "  <tr>\n    <th>test at date</th>\n";
+print $html "  <tr>\n    <th>run at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
     my $setup = $d{$date}{setup};
@@ -336,7 +371,7 @@ foreach my $date (@dates) {
     my $time = encode_entities($cvsdate);
     print $html "    <th title=\"$time\">$cvsshort</th>\n";
 }
-print $html "  <tr>\n    <th>metering points</th>\n";
+print $html "  <tr>\n    <th>checkout steps</th>\n";
 foreach my $date (@dates) {
     my $total = @{$d{$date}{cvsdates}};
     print $html "    <th>$total</th>\n";

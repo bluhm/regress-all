@@ -122,12 +122,12 @@ foreach my $date (@dates) {
     print $html "    <td>$date</td>\n";
     print $html "  </tr>\n";
     if (-f "run.log") {
-	$d{$date}{run} = "run.log";
+	$d{$date}{log} = "run.log";
 	print $html "  <tr>\n    <th>run</th>\n";
 	print $html "    <td><a href=\"run.log\">log</a></td>\n";
 	print $html "  </tr>\n";
     } elsif (-f "step.log") {
-	$d{$date}{run} = "step.log";
+	$d{$date}{log} = "step.log";
 	print $html "  <tr>\n    <th>run</th>\n";
 	print $html "    <td><a href=\"step.log\">log</a></td>\n";
 	print $html "  </tr>\n";
@@ -255,9 +255,9 @@ foreach my $date (reverse sort keys %d) {
 	    print $html "  <tr>\n    <th></th>\n";
 	    $h = $d{$date}{$cvsdate}{host};
 	} else {
-	    my $run = $d{$date}{run} || "";
-	    my $log = "$date/$run";
-	    my $href = $run ? "<a href=\"$log\">" : "";
+	    my $log = $d{$date}{log} || "";
+	    my $logfile = "$date/$log";
+	    my $href = $log ? "<a href=\"$logfile\">" : "";
 	    my $enda = $href ? "</a>" : "";
 	    print $html "  <tr>\n    <th>$href$date$enda</th>\n";
 	    $h = $d{$date}{host};
