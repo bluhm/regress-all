@@ -22,7 +22,7 @@ use Date::Parse;
 use POSIX;
 
 use parent 'Exporter';
-our @EXPORT= qw(quirk_commands);
+our @EXPORT= qw(quirk_comments quirk_commands);
 
 my %quirks = (
     '2018-04-05T03:32:39Z' => {
@@ -60,6 +60,18 @@ my %quirks = (
 	],
     },
 );
+
+sub quirk_comments {
+    my ($before, $after, $sysctl) = @_;
+
+    my %q;
+    while (my($k, $v) = each %quirks) {
+	my $commit = str2time($k)
+	    or die "Invalid commit date '$k'";
+	$q{$commit} = $v if $commit > $before && $commit <= $after;
+    }
+    return map { $q{$_}{comment} } sort keys %q;
+}
 
 sub quirk_commands {
     my ($before, $after, $sysctl) = @_;

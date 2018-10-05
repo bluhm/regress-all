@@ -76,6 +76,13 @@ if ($sysctl{'kern.version'} =~
 	or die "Could not parse kernel build date '$1'";
 }
 if ($before && $before < $cvsdate) {
+    my @comments = quirk_comments($before, $cvsdate);
+    if (@comments) {
+	open(my $fh, '>', "quirks.log")
+	    or die "Open 'quirks.log' for writing failed: $!";
+	local $\ = "\n";
+	print $fh @comments;
+    }
     foreach my $cmd (quirk_commands($before, $cvsdate, \%sysctl)) {
 	logcmd('ssh', "$user\@$host", $cmd);
     }
