@@ -89,6 +89,15 @@ system(@sshcmd);
 system(@sshcmd)
     and die "Start tcpbench server with '@sshcmd' failed: $?";
 
+my $kconf = `sysctl -n kern.osversion | cut -d# -f1`;
+my $machine = `machine`;
+my $ncpu = `sysctl -n hw.ncpu`;
+chomp($kconf, $machine, $ncpu);
+my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf", 'clean');
+system(@cmd)
+    and die "Clean kernel with '@cmd' failed: $?";
+system('sync');
+
 sleep 1;
 
 sub iperf3_parser {
@@ -165,15 +174,24 @@ sub tcpbench_finalize {
     return 1;
 }
 
+sub time_parser {
+    my ($line, $log) = @_;
+    if (/^(\w+) +(\d+\.\d+)$/) {
+	print $tr "VALUE $2 sec $1\n";
+    }
+    if (/^ *(\d+)  ([\w ]+)$/) {
+	print $tr "SUBVALUE $1 count $2\n";
+    }
+    return 1;
+}
+
 my @tests = (
     {
 	testcmd => ['iperf3', "-c$remote_addr", '-w1m'],
 	parser => \&iperf3_parser,
-	finalize => sub {},
     }, {
 	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-R'],
 	parser => \&iperf3_parser,
-	finalize => sub {},
     }, {
 	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr],
 	parser => \&tcpbench_parser,
@@ -182,13 +200,17 @@ my @tests = (
 	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
+    }, {
+	testcmd => ['time', '-lp', 'make',
+	    "-C/usr/src/sys/arch/$machine/compile/$kconf", "-j$ncpu", '-s'],
+	parser => \&time_parser,
     }
 );
 
 TEST:
 foreach my $t (@tests) {
     my @runcmd = @{$t->{testcmd}};
-    my $test = join("_", @runcmd);
+    (my $test = join("_", @runcmd)) =~ s,/.*/,,;
 
     my $begin = Time::HiRes::time();
     my $date = strftime("%FT%TZ", gmtime($begin));
@@ -223,12 +245,14 @@ foreach my $t (@tests) {
 	while (<$out>) {
 	    print $log $_;
 	    $t->{parser}($_, $log)
-		or bad $test, 'FAIL', "Could not parse value", $log;
+		or bad $test, 'FAIL', "Could not parse value", $log
+		if $t->{parser};
 	    s/[^\s[:print:]]/_/g;
 	    print if $opts{v};
 	}
 	$t->{finalize}($log)
-	    or bad $test, 'FAIL', "Could not finalize value", $log;
+	    or bad $test, 'FAIL', "Could not finalize value", $log
+	    if $t->{finalize};
 	alarm(0);
     };
     kill 'KILL', -$pid;
