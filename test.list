@@ -70,6 +70,7 @@ sys/kern/__syscall
 sys/kern/accept
 sys/kern/access
 sys/kern/bind
+sys/kern/cmsgsize
 sys/kern/descrip
 sys/kern/dup2
 sys/kern/dup2_accept
