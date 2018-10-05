@@ -83,6 +83,7 @@ sub get_version {
 	"Close pipe from '@sshcmd' failed: $!" :
 	"Command '@sshcmd' failed: $?";
     logmsg "Command '@sshcmd' finished\n";
+    return %sysctl;
 }
 
 # cvs checkout, update, diff

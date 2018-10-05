@@ -22,10 +22,7 @@ use Date::Parse;
 use POSIX;
 
 use parent 'Exporter';
-our @EXPORT= qw(
-    initquirks
-    quirk_commands
-);
+our @EXPORT= qw(quirk_commands);
 
 my %quirks = (
     '2018-04-05T03:32:39Z' => {
@@ -64,14 +61,8 @@ my %quirks = (
     },
 );
 
-my $sysctl;
-
-sub initquirks {
-    ($sysctl) = @_;
-}
-
 sub quirk_commands {
-    my ($before, $after) = @_;
+    my ($before, $after, $sysctl) = @_;
 
     my %q;
     while (my($k, $v) = each %quirks) {
