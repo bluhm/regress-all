@@ -165,14 +165,14 @@ foreach my $date (@dates) {
 	    } else {
 		print $html "    <td/>\n";
 	    }
-	    my $version = uri_escape($h->{$host}{version});
+	    my $version = $h->{$host}{version};
 	    my $time = encode_entities($h->{$host}{time});
 	    my $short = $h->{$host}{short};
 	    my $arch = encode_entities($h->{$host}{arch}) || "";
-	    my $setup = uri_escape($h->{$host}{setup});
-	    my $dmesg = uri_escape($h->{$host}{dmesg});
-	    my $dmesgboot = uri_escape($h->{$host}{dmesgboot});
-	    my $diff = uri_escape($h->{$host}{diff});
+	    my $setup = $h->{$host}{setup};
+	    my $dmesg = $h->{$host}{dmesg};
+	    my $dmesgboot = $h->{$host}{dmesgboot};
+	    my $diff = $h->{$host}{diff};
 	    if ($version) {
 		print $html "    <td title=\"$time\">".
 		    "<a href=\"$version\">$short</a></td>\n";
@@ -256,7 +256,7 @@ foreach my $date (reverse sort keys %d) {
 	    $h = $d{$date}{$cvsdate}{host};
 	} else {
 	    my $run = $d{$date}{run} || "";
-	    my $log = uri_escape($date). "/$run";
+	    my $log = "$date/$run";
 	    my $href = $run ? "<a href=\"$log\">" : "";
 	    my $enda = $href ? "</a>" : "";
 	    print $html "  <tr>\n    <th>$href$date$enda</th>\n";
@@ -264,9 +264,9 @@ foreach my $date (reverse sort keys %d) {
 	}
 	foreach my $host (sort keys %m) {
 	    my $time = encode_entities($h->{$host}{time}) || "";
-	    my $setup = uri_escape($h->{$host}{setup}) || "";
+	    my $setup = $h->{$host}{setup} || "";
 	    $time ||= "log" if $setup;
-	    my $log = uri_escape($date). "/$setup";
+	    my $log = "$date/$setup";
 	    my $href = $setup ? "<a href=\"$log\">" : "";
 	    my $enda = $href ? "</a>" : "";
 	    print $html "    <td>$href$time$enda</td>\n";
