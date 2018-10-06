@@ -89,9 +89,9 @@ sub quirk_commands {
 	my $v = $q{$commit};
 	push @c, "echo $v->{comment}";
 	if ($v->{updatedirs}) {
-	    my $dirs = @{$v->{updatedirs}};
+	    my @dirs = @{$v->{updatedirs}};
 	    my $tag = strftime("-D%FZ%T", gmtime($commit));
-	    push @c, "cd /usr/src && cvs -qR up -PdAC $tag $dirs";
+	    push @c, "cd /usr/src && cvs -qR up -PdAC $tag @dirs";
 	}
 	foreach my $dir (@{$v->{builddirs} || []}) {
 	    my $ncpu = $sysctl->{'hw.ncpu'};
