@@ -31,16 +31,20 @@ my %quirks = (
 	updatedirs => [ "sys/net" ], 
 	buildcommands => [ "make includes" ],
     },
+    # cvs has a bug and cannot check out vendor branches between commits
+    # use date after RETGUARD was finished
     '2018-04-07T10:05:06Z' => {
-	comment => "update LLVM to 6.0.0",
-	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ], 
+	comment => "update LLVM to 6.0.0, add RETGUARD to clang",
+	updatecommands => [
+	    "cvs -qR up -PdC -D2018-06-22Z12:01:07 gnu/llvm gnu/usr.bin/clang",
+	], 
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
-    '2018-06-06T00:14:29Z' => {
-	comment => "add RETGUARD to clang",
-	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ], 
-	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
-    },
+#    '2018-06-06T00:14:29Z' => {
+#	comment => "add RETGUARD to clang",
+#	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ], 
+#	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
+#    },
     '2018-07-26T13:20:53Z' => {
 	comment => "infrastructure to install lld",
 	updatedirs => [
@@ -91,7 +95,10 @@ sub quirk_commands {
 	if ($v->{updatedirs}) {
 	    my @dirs = @{$v->{updatedirs}};
 	    my $tag = strftime("-D%FZ%T", gmtime($commit));
-	    push @c, "cd /usr/src && cvs -qR up -PdAC $tag @dirs";
+	    push @c, "cd /usr/src && cvs -qR up -PdC $tag @dirs";
+	}
+	foreach my $cmd (@{$v->{updatecommands} || []}) {
+	    push @c, "cd /usr/src && $cmd";
 	}
 	foreach my $dir (@{$v->{builddirs} || []}) {
 	    my $ncpu = $sysctl->{'hw.ncpu'};
