@@ -23,7 +23,7 @@ use Date::Parse;
 use POSIX;
 
 use parent 'Exporter';
-our @EXPORT= qw(quirk_comments quirk_commands);
+our @EXPORT= qw(quirk_comments quirk_patches quirk_commands);
 
 my %quirks = (
     '2018-04-05T03:32:39Z' => {
@@ -32,19 +32,61 @@ my %quirks = (
 	buildcommands => [ "make includes" ],
     },
     # cvs has a bug and cannot check out vendor branches between commits
-    # use date after RETGUARD was finished
-    '2018-04-07T10:05:06Z' => {
-	comment => "update LLVM to 6.0.0, add RETGUARD to clang",
+    '2018-04-07T10:05:05Z' => {
+	comment => "fix cvs vendor branch checkout",
 	updatecommands => [
-	    "cvs -qR up -PdC -D2018-06-22Z12:01:07 gnu/llvm gnu/usr.bin/clang",
+	    "cvs -qR up -PdC -rOPENBSD_6_3_BASE gnu/usr.bin/cvs",
 	], 
+	patches => { 'cvs-vendor' => <<'PATCH' },
+Index: gnu/usr.bin/cvs/src/rcs.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/gnu/usr.bin/cvs/src/rcs.c,v
+retrieving revision 1.26
+diff -u -p -r1.26 rcs.c
+--- gnu/usr.bin/cvs/src/rcs.c	28 May 2014 16:43:06 -0000	1.26
++++ gnu/usr.bin/cvs/src/rcs.c	7 Oct 2018 20:34:54 -0000
+@@ -2824,6 +2824,7 @@ RCS_getdate (rcs, date, force_tag_match)
+     char *cur_rev = NULL;
+     char *retval = NULL;
+     Node *p;
++    RCSVers *cur_vers;
+     RCSVers *vers = NULL;
+ 
+     /* make sure we have something to look at... */
+@@ -2851,6 +2852,7 @@ RCS_getdate (rcs, date, force_tag_match)
+ 	    if (RCS_datecmp (vers->date, date) <= 0)
+ 	    {
+ 		cur_rev = vers->version;
++		cur_vers = vers;
+ 		break;
+ 	    }
+ 
+@@ -2881,7 +2883,7 @@ RCS_getdate (rcs, date, force_tag_match)
+ 	if (p)
+ 	{
+ 	    vers = (RCSVers *) p->data;
+-	    if (RCS_datecmp (vers->date, date) != 0)
++	    if (RCS_datecmp (vers->date, cur_vers->date) != 0)
+ 		return xstrdup ("1.1");
+ 	}
+     }
+PATCH
+	buildcommands => [
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper install",
+	],
+    },
+    '2018-04-07T10:05:06Z' => {
+	comment => "update LLVM to 6.0.0",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ], 
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
-#    '2018-06-06T00:14:29Z' => {
-#	comment => "add RETGUARD to clang",
-#	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ], 
-#	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
-#    },
+    '2018-06-06T00:14:29Z' => {
+	comment => "add RETGUARD to clang",
+	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ], 
+	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
+    },
     '2018-07-26T13:20:53Z' => {
 	comment => "infrastructure to install lld",
 	updatedirs => [
@@ -65,16 +107,21 @@ my %quirks = (
 );
 
 sub quirks {
-    my $before = str2time($_[0])
-	or croak "Could not parse date '$_[0]'";
-    my $after = str2time($_[1])
-	or croak "Could not parse date '$_[1]'";
+    my ($before, $after);
+    if (@_) {
+	$before = str2time($_[0])
+	    or croak "Could not parse date '$_[0]'";
+	$after = str2time($_[1])
+	    or croak "Could not parse date '$_[1]'";
+    }
 
     my %q;
     while (my($k, $v) = each %quirks) {
 	my $commit = str2time($k)
 	    or die "Invalid commit date '$k'";
-	$q{$commit} = $v if $commit > $before && $commit <= $after;
+	next if $before && $commit <= $before;
+	next if $after && $commit > $after;
+	$q{$commit} = $v;
     }
     return %q;
 }
@@ -82,6 +129,11 @@ sub quirks {
 sub quirk_comments {
     my %q = quirks(@_);
     return map { $q{$_}{comment} } sort keys %q;
+}
+
+sub quirk_patches {
+    my %q = quirks(@_);
+    return map { %{$q{$_}{patches} || {}} } sort keys %q;
 }
 
 sub quirk_commands {
@@ -99,6 +151,10 @@ sub quirk_commands {
 	}
 	foreach my $cmd (@{$v->{updatecommands} || []}) {
 	    push @c, "cd /usr/src && $cmd";
+	}
+	foreach my $patch (sort keys %{$v->{patches} || {}}) {
+	    my $file = "/root/perform/patches/$patch.diff";
+	    push @c, "cd /usr/src && patch -p0 <$file";
 	}
 	foreach my $dir (@{$v->{builddirs} || []}) {
 	    my $ncpu = $sysctl->{'hw.ncpu'};

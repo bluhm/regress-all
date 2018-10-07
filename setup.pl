@@ -25,6 +25,7 @@ use POSIX;
 use lib dirname($0);
 use Logcmd;
 use Machine;
+use Buildquirks;
 
 my $scriptname = "$0 @ARGV";
 
@@ -131,6 +132,28 @@ sub copy_scripts {
 
     chdir($resultdir)
 	or die "Chdir to '$resultdir' failed: $!";
+
+    if (my %patches = quirk_patches()) {
+	my $patchdir = "$resultdir/patches";
+	-d $patchdir || mkdir($patchdir)
+	    or die "Mkdir '$patchdir' failed: $!";
+	while (my ($file, $content) = each %patches) {
+	    my $path = "$patchdir/$file.diff";
+	    open(my $fh, '>', "$path.tmp")
+		or die "Open '$path.tmp' for writing failed: $!";
+	    print $fh $content
+		or die "Write content to '$path.tmp' failed: $!";
+	    close($fh)
+		or die "Close '$path.tmp' after writing failed: $!";
+	    # setup.pl might run in parallel, make file creation atomic
+	    rename("$path.tmp", $path)
+		or die "Rename '$path.tmp' to '$path' failed: $!";
+	}
+	@scpcmd = ('scp');
+	push @scpcmd, '-q' unless $opts{v};
+	push @scpcmd, ('-r', 'patches', "$user\@$host:/root/perform");
+	runcmd(@scpcmd);
+    }
 }
 
 # install packages
