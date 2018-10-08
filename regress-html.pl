@@ -220,6 +220,7 @@ foreach my $date (@dates) {
     my $arch = $d{$date}{arch};
     unless ($arch) {
 	print $html "    <th/>\n";
+	next;
     }
     my $dmesg = $d{$date}{dmesg};
     my $href = $dmesg ? "<a href=\"$dmesg\">" : "";
