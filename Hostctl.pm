@@ -60,17 +60,23 @@ sub setup_hosts {
 	push @setupcmd, keys %mode;
 	push @pidcmds, forkcmd(@setupcmd);
 
-	# create new summary with setup log
-	sleep 1;
-	runcmd("$bindir/setup-html.pl");
-
 	if ($mode{install} || $mode{upgrade}) {
+	    # create new summary with setup log
+	    sleep 1;
+	    runcmd("$bindir/setup-html.pl");
+
 	    # change config of dhcpd has races, cannot install simultaneously
 	    waitcmd(@pidcmds);
 	    undef @pidcmds;
 	}
     }
-    waitcmd(@pidcmds);
+    if (@pidcmds) {
+	# create new summary with setup log
+	sleep 1;
+	runcmd("$bindir/setup-html.pl");
+
+	waitcmd(@pidcmds);
+    }
 }
 
 sub collect_version {
@@ -156,7 +162,13 @@ sub cvsbuild_hosts {
 	push @cvscmd, '-v' if $verbose;
 	push @pidcmds, forkcmd(@cvscmd);
     }
-    waitcmd(@pidcmds);
+    if (@pidcmds) {
+	# create new summary with setup log
+	sleep 1;
+	runcmd("$bindir/setup-html.pl");
+
+	waitcmd(@pidcmds);
+    }
 }
 
 1;
