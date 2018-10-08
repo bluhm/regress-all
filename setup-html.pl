@@ -377,7 +377,7 @@ foreach my $date (reverse sort keys %d) {
 	    $h = $d{$date}{host};
 	}
 	foreach my $host (sort keys %m) {
-	    my $time = encode_entities($h->{$host}{time}) || "";
+	    my $time = encode_entities($cvsdate || $h->{$host}{time}) || "";
 	    my $setup = $h->{$host}{setup} || $h->{$host}{build} || "";
 	    $time ||= "log" if $setup;
 	    my $log = "$date/$setup";
