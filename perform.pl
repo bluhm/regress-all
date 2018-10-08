@@ -188,10 +188,10 @@ sub time_parser {
 
 my @tests = (
     {
-	testcmd => ['iperf3', "-c$remote_addr", '-w1m', -t60'],
+	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t60'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['iperf3', "-c$remote_addr", '-w1m', -t60', '-R'],
+	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t60', '-R'],
 	parser => \&iperf3_parser,
     }, {
 	testcmd => ['tcpbench', '-S1000000', '-t60', $remote_addr],
