@@ -28,15 +28,16 @@ our @EXPORT= qw(quirk_comments quirk_patches quirk_commands);
 my %quirks = (
     '2018-04-05T03:32:39Z' => {
 	comment => "remove PF_TRANS_ALTQ",
-	updatedirs => [ "sys/net" ], 
-	buildcommands => [ "make includes" ],
+	updatedirs => [ "sys/net" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
     },
     # cvs has a bug and cannot check out vendor branches between commits
     '2018-04-07T10:05:05Z' => {
 	comment => "fix cvs vendor branch checkout",
 	updatecommands => [
 	    "cvs -qR up -PdC -rOPENBSD_6_3_BASE gnu/usr.bin/cvs",
-	], 
+	],
 	patches => { 'cvs-vendor' => <<'PATCH' },
 Index: gnu/usr.bin/cvs/src/rcs.c
 ===================================================================
@@ -79,17 +80,17 @@ PATCH
     },
     '2018-04-07T10:05:06Z' => {
 	comment => "update LLVM to 6.0.0",
-	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ], 
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2018-06-03T21:30:38Z' => {
 	comment => "add ret protector options as no-ops",
-	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ], 
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2018-06-06T00:14:29Z' => {
 	comment => "add RETGUARD to clang",
-	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ], 
+	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [ "gnu/usr.bin/clang" ],
 	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
     },
@@ -97,12 +98,12 @@ PATCH
 	comment => "infrastructure to install lld",
 	updatedirs => [
 	    "share/mk",
-	    "gnu/usr.bin/clang/ldd",
+	    "gnu/usr.bin/clang/lld",
 	    "gnu/usr.bin/binutils-2.17",
 	],
 	builddirs => [
 	    "share/mk",
-	    "gnu/usr.bin/clang/ldd",
+	    "gnu/usr.bin/clang/lld",
 	],
 	buildcommands => [
 	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper obj",
@@ -161,6 +162,9 @@ sub quirk_commands {
 	foreach my $patch (sort keys %{$v->{patches} || {}}) {
 	    my $file = "/root/perform/patches/$patch.diff";
 	    push @c, "cd /usr/src && patch -p0 <$file";
+	}
+	foreach my $cmd (@{$v->{prebuildcommands} || []}) {
+	    push @c, "cd /usr/src && $cmd";
 	}
 	foreach my $dir (@{$v->{cleandirs} || []}) {
 	    push @c, "cd /usr/src && make -C $dir clean";
