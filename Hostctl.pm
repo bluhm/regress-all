@@ -62,7 +62,7 @@ sub setup_hosts {
 
 	if ($mode{install} || $mode{upgrade}) {
 	    # create new summary with setup log
-	    sleep 1;
+	    sleep 5;
 	    runcmd("$bindir/setup-html.pl");
 
 	    # change config of dhcpd has races, cannot install simultaneously
@@ -72,7 +72,7 @@ sub setup_hosts {
     }
     if (@pidcmds) {
 	# create new summary with setup log
-	sleep 1;
+	sleep 5;
 	runcmd("$bindir/setup-html.pl");
 
 	waitcmd(@pidcmds);
@@ -164,7 +164,7 @@ sub cvsbuild_hosts {
     }
     if (@pidcmds) {
 	# create new summary with setup log
-	sleep 1;
+	sleep 5;
 	runcmd("$bindir/setup-html.pl");
 
 	waitcmd(@pidcmds);
