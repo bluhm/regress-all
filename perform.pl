@@ -93,7 +93,8 @@ my $kconf = `sysctl -n kern.osversion | cut -d# -f1`;
 my $machine = `machine`;
 my $ncpu = `sysctl -n hw.ncpu`;
 chomp($kconf, $machine, $ncpu);
-my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf", 'clean');
+my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf",
+    'clean', 'config');
 system(@cmd)
     and die "Clean kernel with '@cmd' failed: $?";
 system('sync');
@@ -187,17 +188,17 @@ sub time_parser {
 
 my @tests = (
     {
-	testcmd => ['iperf3', "-c$remote_addr", '-w1m'],
+	testcmd => ['iperf3', "-c$remote_addr", '-w1m', -t60'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-R'],
+	testcmd => ['iperf3', "-c$remote_addr", '-w1m', -t60', '-R'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr],
+	testcmd => ['tcpbench', '-S1000000', '-t60', $remote_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr],
+	testcmd => ['tcpbench', '-S1000000', '-t60', '-n100', $remote_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
