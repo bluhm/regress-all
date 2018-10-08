@@ -82,6 +82,11 @@ PATCH
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ], 
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
+    '2018-06-03T21:30:38Z' => {
+	comment => "add ret protctor options as no-ops",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ], 
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
     '2018-06-06T00:14:29Z' => {
 	comment => "add RETGUARD to clang",
 	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ], 
