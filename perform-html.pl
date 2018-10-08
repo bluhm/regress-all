@@ -132,15 +132,17 @@ foreach my $result (@results) {
     $d{$date}{$cvsdate}{pass} = $pass / $total if $total;
 
     # parse version file
-    my ($version, $diff, $dmesg);
+    my ($version, $diff, $dmesg, $quirks);
     if ($host) {
 	$version = "$date/$cvsdate/version-$host.txt";
 	$diff = "$date/$cvsdate/diff-$host.txt";
 	$dmesg = "$date/$cvsdate/dmesg-$host.txt";
+	$quirks = "$date/$cvsdate/quirks-$host.txt";
     } else {
 	$version = (glob("$date/$cvsdate/version-*.txt"))[0];
 	($diff = $version) =~ s,/version-,/diff-,;
 	($dmesg = $version) =~ s,/version-,/dmesg-,;
+	($quirks = $version) =~ s,/version-,/quirks-,;
     }
     unless (-f $version) {
 	# if host is specified, only print result for this one
@@ -166,6 +168,7 @@ foreach my $result (@results) {
     }
     ($d{$date}{$cvsdate}{diff} = $diff) =~ s,[^/]+/,, if -f $diff;
     ($d{$date}{$cvsdate}{dmesg} = $dmesg) =~ s,[^/]+/,, if -f $dmesg;
+    ($d{$date}{$cvsdate}{quirks} = $quirks) =~ s,[^/]+/,, if -f $quirks;
 }
 
 my @dates = reverse sort keys %d;
@@ -221,7 +224,7 @@ HEADER
     print $html "<table>\n";
     my @cvsdates = @{$d{$date}{cvsdates}};
 
-    print $html "  <tr>\n    <th>cvs checkout</th>\n";
+    print $html "  <tr>\n    <th>run at cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
 	my $build = $d{$date}{$cvsdate}{build};
@@ -242,13 +245,19 @@ HEADER
 	print $html "    <th title=\"$kernel\">".
 	    "<a href=\"$version\">version</a></th>\n";
     }
-    print $html "  <tr>\n    <th>architecture</th>\n";
+    print $html "  <tr>\n    <th>build quirks</th>\n";
     foreach my $cvsdate (@cvsdates) {
-	my $arch = $d{$date}{$cvsdate}{arch};
-	unless ($arch) {
+	my $quirks = $d{$date}{$cvsdate}{quirks};
+	unless ($quirks) {
 	    print $html "    <th/>\n";
 	    next;
 	}
+	print $html "    <th><a href=\"$quirks\">quirks<a></th>\n";
+    }
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>dmesg after run</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $arch = $d{$date}{$cvsdate}{arch} || "dmesg";
 	my $dmesg = $d{$date}{$cvsdate}{dmesg};
 	my $href = $dmesg ? "<a href=\"$dmesg\">" : "";
 	my $enda = $href ? "</a>" : "";
@@ -377,18 +386,6 @@ print $html "  <tr>\n    <th>checkout steps</th>\n";
 foreach my $date (@dates) {
     my $total = @{$d{$date}{cvsdates}};
     print $html "    <th>$total</th>\n";
-}
-print $html "  <tr>\n    <th>architecture</th>\n";
-foreach my $date (@dates) {
-    my $arch = $d{$date}{arch};
-    unless ($arch) {
-	print $html "    <th/>\n";
-	next;
-    }
-    my $dmesg = $d{$date}{dmesg};
-    my $href = $dmesg ? "<a href=\"$dmesg\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <th>$href$arch$enda</th>\n";
 }
 print $html "  </tr>\n";
 
