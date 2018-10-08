@@ -83,13 +83,14 @@ PATCH
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2018-06-03T21:30:38Z' => {
-	comment => "add ret protctor options as no-ops",
+	comment => "add ret protector options as no-ops",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ], 
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2018-06-06T00:14:29Z' => {
 	comment => "add RETGUARD to clang",
 	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ], 
+	cleandirs => [ "gnu/usr.bin/clang" ],
 	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
     },
     '2018-07-26T13:20:53Z' => {
@@ -160,6 +161,9 @@ sub quirk_commands {
 	foreach my $patch (sort keys %{$v->{patches} || {}}) {
 	    my $file = "/root/perform/patches/$patch.diff";
 	    push @c, "cd /usr/src && patch -p0 <$file";
+	}
+	foreach my $dir (@{$v->{cleandirs} || []}) {
+	    push @c, "cd /usr/src && make -C $dir clean";
 	}
 	foreach my $dir (@{$v->{builddirs} || []}) {
 	    my $ncpu = $sysctl->{'hw.ncpu'};
