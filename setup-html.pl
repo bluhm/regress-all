@@ -43,6 +43,7 @@ $dir = "results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
+my $typename = "";
 my @dates = $opts{d} || map { dirname($_) }
     (glob("*T*/run.log"), glob("*T*/step.log"));
 my (%d, %m);
@@ -104,6 +105,8 @@ foreach my $date (@dates) {
     chdir($dir)
 	or die "Chdir to '$dir' failed: $!";
 
+    $typename = "regress" if -f "run.log";
+    $typename = "perform" if -f "step.log";
     unlink("setup.html.new");
     open(my $html, '>', "setup.html.new")
 	or die "Open 'setup.html.new' for writing failed: $!";
@@ -115,7 +118,7 @@ foreach my $date (@dates) {
     print $html "</head>\n";
 
     print $html "<body>\n";
-    print $html "<h1>OpenBSD regress test machine</h1>\n";
+    print $html "<h1>OpenBSD $typename test machine</h1>\n";
     print $html "<table>\n";
     print $html "  <tr>\n    <th>created at</th>\n";
     print $html "    <td>$now</td>\n";
@@ -343,7 +346,7 @@ print $html <<"HEADER";
 </head>
 
 <body>
-<h1>OpenBSD regress test run</h1>
+<h1>OpenBSD $typename test run</h1>
 <table>
   <tr>
     <th>created at</th>
