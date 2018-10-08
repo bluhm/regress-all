@@ -52,7 +52,7 @@ my ($step, $unit) = $opts{S} =~ /^(\d+)(\w+)$/
     or die "Invalid -S step '$opts{S}'";
 
 my %allmodes;
-@allmodes{qw(cvs install keep)} = ();
+@allmodes{qw(build cvs install keep)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
@@ -83,6 +83,15 @@ chdir($resultdir)
 
 createlog(file => "step.log", verbose => $opts{v});
 logmsg("script '$scriptname' started at $date\n");
+
+open(my $fh, '>', "step.txt")
+    or die "Open 'step.txt' for writing failed :$!";
+print $fh "RELEASE $opts{r}\n";
+print $fh strftime("BEGIN %FT%TZ\n", gmtime($begin));
+print $fh strftime("END %FT%TZ\n", gmtime($end));
+print $fh "STEP $step $unit\n";
+print $fh "MODES ", join(" ", sort keys %mode), "\n";
+close($fh);
 
 # setup remote machines
 
