@@ -171,6 +171,8 @@ sub tcpbench_finalize {
     $value += $_ foreach @tcpbench_subvalues;
     $value /= @tcpbench_subvalues;
     undef @tcpbench_subvalues;
+    # too much precision is useless and produces ugly output
+    $value =~ s/\..*//;
     print $tr "VALUE $value bits/sec sender\n";
     return 1;
 }
