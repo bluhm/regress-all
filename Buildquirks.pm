@@ -178,18 +178,6 @@ sub quirk_commands {
 	foreach my $cmd (@{$v->{buildcommands} || []}) {
 	    push @c, "cd /usr/src && $cmd";
 	}
-	if ($v->{buildkernel}) {
-	    my $version = $sysctl->{'kern.version'};
-	    $version =~ m{:/usr/src/sys/([\w./]+)$}m
-		or die "No kernel path in version: $version";
-	    my $path = $1;
-	    my $ncpu = $sysctl->{'hw.ncpu'};
-	    push @c, "cd /usr/src/sys/$path && make obj";
-	    push @c, "cd /usr/src/sys/$path && make config";
-	    push @c, "cd /usr/src/sys/$path && make clean";
-	    push @c, "cd /usr/src/sys/$path && nice make -j ncpu";
-	    push @c, "cd /usr/src/sys/$path && make install";
-	}
     }
 
     return @c;
