@@ -18,6 +18,7 @@
 use strict;
 use warnings;
 use Cwd;
+use Errno;
 use File::Basename;
 use HTML::Entities;
 use Getopt::Std;
@@ -79,6 +80,17 @@ foreach my $result (@results) {
 	result => $result,
     };
     $d{$date}{log} = "step.log" if -f "$date/step.log";
+    my $stepfile = "$date/step.txt";
+    if (open (my $fh, '<', $stepfile)) {
+	while (<$fh>) {
+	    chomp;
+	    my ($k, $v) = split(/\s+/, $_, 2);
+	    $d{$date}{step}{lc($k)} = $v;
+	}
+    } else {
+	$!{ENOENT}
+	    or die "Open '$stepfile' for reading failed: $!";
+    }
     $d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
     $d{$date}{$cvsdate}{build} = "$date/$cvsdate/build.html"
 	if -f "$date/$cvsdate/build.html";
@@ -396,7 +408,10 @@ foreach my $date (@dates) {
 print $html "  <tr>\n    <th>checkout steps</th>\n";
 foreach my $date (@dates) {
     my $total = @{$d{$date}{cvsdates}};
-    print $html "    <th>$total</th>\n";
+    my $duration = $d{$date}{step} && $d{$date}{step}{step};
+    my $steptext = $duration && $total ?
+	"$duration / $total" : $duration || $total;
+    print $html "    <th>$steptext</th>\n";
 }
 print $html "  </tr>\n";
 
