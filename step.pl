@@ -30,7 +30,7 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('B:E:hN::r:S:v', \%opts) or do {
+getopts('B:E:h:N:r:S:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -h host [-r release] -B date -E date -S date mode ...
     -h host	user and host for performance test, user defaults to root
