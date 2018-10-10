@@ -155,6 +155,10 @@ for (my $current = $begin; $current <= $end;) {
 
 	collect_result("$opts{h}:/root/perform");
 	collect_dmesg();
+
+	if ($repeat > 1) {
+	    reorder_kernel();
+	}
     }
 
     # if next step does not hit the end exactly, do an additional test

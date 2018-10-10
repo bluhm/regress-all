@@ -21,6 +21,7 @@ use warnings;
 use Carp;
 
 use Logcmd;
+use Machine;
 
 use parent 'Exporter';
 our @EXPORT= qw(usehosts setup_hosts
@@ -169,6 +170,24 @@ sub cvsbuild_hosts {
 
 	waitcmd(@pidcmds);
     }
+}
+
+sub reorder_kernel {
+    my $cksum = "/var/db/kernel.SHA256";
+    my @pidcmds;
+    for (my $host = $firsthost; $host le $lasthost; $host++) {
+	my $relinkcmd =
+	    "sha256 -h $cksum /bsd; usr/libexec/reorder_kernel; rm -f $cksum";
+	my @sshcmd = ('ssh', "$user\@$host", $relinkcmd);
+	push @pidcmds, forkcmd(@sshcmd);
+    }
+    waitcmd(@pidcmds);
+    undef @pidcmds;
+    for (my $host = $firsthost; $host le $lasthost; $host++) {
+	my @sshcmd = ('ssh', "$host\@$Machine::testmaster", "reboot");
+	push @pidcmds, forkcmd(@sshcmd);
+    }
+    waitcmd(@pidcmds);
 }
 
 1;

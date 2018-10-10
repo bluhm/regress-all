@@ -32,7 +32,7 @@ our @EXPORT= qw(createhost reboot
 );
 
 # XXX explicit IP address in source code
-my $testmaster="10.0.1.1";
+our $testmaster = "10.0.1.1";
 
 my ($user, $host, %sysctl);
 
@@ -150,7 +150,7 @@ sub make_kernel {
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && nice make$jflag");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make install");
     # disable kernel relinking, load after reboot may change perform result
-    logcmd('ssh', "$user\@$host", "rm /var/db/kernel.SHA256");
+    logcmd('ssh', "$user\@$host", "rm -f /var/db/kernel.SHA256");
 }
 
 sub make_build {
