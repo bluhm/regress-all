@@ -30,7 +30,7 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('B:E:h:r:S:v', \%opts) or do {
+getopts('B:E:hN::r:S:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -h host [-r release] -B date -E date -S date mode ...
     -h host	user and host for performance test, user defaults to root
@@ -38,18 +38,31 @@ usage: $0 [-v] -h host [-r release] -B date -E date -S date mode ...
     -r release	use release for install and cvs checkout
     -B date	begin date
     -E date	end date
-    -S date	step in sec, min, hour, day, week, month, year
+    -S duration	step in sec, min, hour, day, week, month, year
+    -N repeat	number of build, reboot, test repetitions per step
 EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
 $opts{B} or die "No -B begin date";
-$opts{E} or die "No -E end date";
-$opts{S} or die "No -S step";
-my $begin = str2time($opts{B}) or die "Invalid -B date '$opts{B}'";
-my $end = str2time($opts{E}) or die "Invalid -E date '$opts{E}'";
-my ($step, $unit) = $opts{S} =~ /^(\d+)(\w+)$/
-    or die "Invalid -S step '$opts{S}'";
+my ($begin, $end, $step, $unit, $repeat);
+$begin = str2time($opts{B}) or die "Invalid -B date '$opts{B}'";
+$end = str2time($opts{E} || $opts{B}) or die "Invalid -E date '$opts{E}'";
+if ($opts{S}) {
+    ($step, $unit) = $opts{S} =~ /^(\d+)(\w+)$/
+	or die "Invalid -S step '$opts{S}'";
+    # unit syntax check
+    add_step(0 , $step, $unit);
+} else {
+    $step = $end - $begin;
+    $unit = "sec";
+}
+$end >= $begin or die "Begin date '$opts{B}' before end date '$opts{E}'";
+$end == $begin || $step > 0
+    or die "Step '$opts{S}' cannot reach end date";
+$repeat = $opts{R} || 1;
+$repeat >= 1
+    or die "Repeat '$opts{R}' must be positive integer";
 
 my %allmodes;
 @allmodes{qw(build cvs install keep)} = ();
@@ -90,6 +103,7 @@ print $fh "RELEASE $opts{r}\n";
 print $fh strftime("BEGIN %FT%TZ\n", gmtime($begin));
 print $fh strftime("END %FT%TZ\n", gmtime($end));
 print $fh "STEP $step $unit\n";
+print $fh "REPEAT $repeat\n";
 print $fh "MODES ", join(" ", sort keys %mode), "\n";
 close($fh);
 
@@ -120,16 +134,28 @@ for (my $current = $begin; $current <= $end;) {
     collect_version();
     runcmd("$performdir/bin/setup-html.pl");
 
-    # run performance tests remotely
+    # run repetitions if requested
 
-    my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
-	'-e', "/root/perform/env-$host.sh", '-v');
-    logcmd(@sshcmd);
+    for (my $n = 0; $n < $repeat; $n++) {
+	if ($repeat > 1) {
+	    my $repeatdir = "results/$date/$cvsdate/$n";
+	    mkdir $repeatdir
+		or die "Make directory '$repeatdir' failed: $!";
+	    chdir($repeatdir)
+		or die "Chdir to '$repeatdir' failed: $!";
+	}
 
-    # get result and logs
+	# run performance tests remotely
 
-    collect_result("$opts{h}:/root/perform");
-    collect_dmesg();
+	my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
+	    '-e', "/root/perform/env-$host.sh", '-v');
+	logcmd(@sshcmd);
+
+	# get result and logs
+
+	collect_result("$opts{h}:/root/perform");
+	collect_dmesg();
+    }
 
     # if next step does not hit the end exactly, do an additional test
 
