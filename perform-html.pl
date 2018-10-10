@@ -224,15 +224,19 @@ HEADER
     print $html "<table>\n";
     my @cvsdates = @{$d{$date}{cvsdates}};
 
-    print $html "  <tr>\n    <th>run at cvs checkout</th>\n";
+    print $html "  <tr>\n    <th>cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
+	my $time = encode_entities($cvsdate);
+	print $html "    <th title=\"$time\">$cvsshort</th>\n";
+    }
+    print $html "  <tr>\n    <th>test</th>\n";
+    foreach my $cvsdate (@cvsdates) {
 	my $build = $d{$date}{$cvsdate}{build};
 	$build =~ s,[^/]+/,, if $build;
-	my $time = encode_entities($cvsdate);
 	my $href = $build ? "<a href=\"$build\">" : "";
 	my $enda = $href ? "</a>" : "";
-	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
+	print $html "    <th>${href}build$enda</th>\n";
     }
     print $html "  <tr>\n    <th>kernel build</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -359,14 +363,21 @@ print $html <<"HEADER";
 HEADER
 
 print $html "<table>\n";
-print $html "  <tr>\n    <th>run at date</th>\n";
+print $html "  <tr>\n    <th>run</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
-    my $setup = $d{$date}{setup};
     my $time = encode_entities($date);
-    my $href = $setup ? "<a href=\"$setup\">" : "";
+    my $datehtml = "$date/perform.html";
+    my $href = -f $datehtml ? "<a href=\"$datehtml\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$time\">$href$short$enda</th>\n";
+}
+print $html "  <tr>\n    <th>test</th>\n";
+foreach my $date (@dates) {
+    my $setup = $d{$date}{setup};
+    my $href = $setup ? "<a href=\"$setup\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "    <th>${href}setup$enda</th>\n";
 }
 print $html "  <tr>\n    <th>first cvs checkout</th>\n";
 foreach my $date (@dates) {
