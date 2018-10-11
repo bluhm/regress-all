@@ -283,6 +283,7 @@ HEADER
 		my $enda = $href ? "</a>" : "";
 		print $html "    <td$class$title>$href$status$enda</td>\n";
 	    }
+	    print $html "    <th>unit</th>\n";
 	    print $html "  </tr>\n";
 	    my $vt = $v{$date}{$test}{$cvsdate};
 	    my $maxval = max map { scalar @{$vt->{$_}} } @repeats;
@@ -299,7 +300,7 @@ HEADER
 		    my $number = $vt->{$repeat}[$i]{number};
 		    print $html "    <td>$number</td>\n";
 		}
-		print $html "    <th>$unit0</th>\n";
+		print $html "    <td>$unit0</td>\n";
 		print $html "  </tr>\n";
 	    }
 	}
@@ -443,6 +444,7 @@ HEADER
 	    my $enda = $href ? "</a>" : "";
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
+	print $html "    <th>unit</th>\n";
 	print $html "  </tr>\n";
 	my $vt = $v{$date}{$test};
 	my @vals;
@@ -471,7 +473,7 @@ HEADER
 		    $vt->{$cvsdate}[$i]{number};
 		print $html "    <td>$number</td>\n";
 	    }
-	    print $html "    <th>$unit0</th>\n";
+	    print $html "    <td>$unit0</td>\n";
 	    print $html "  </tr>\n";
 	}
     }
