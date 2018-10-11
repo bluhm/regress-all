@@ -291,7 +291,7 @@ HEADER
 		foreach my $repeat (@repeats) {
 		    my $status = $td->{$repeat}{status};
 		    if ($status ne 'PASS') {
-			print $html "    <td/>\n";
+			print $html "    <td></td>\n";
 			next;
 		    }
 		    my $number = $vt->{$repeat}[$i]{number};
@@ -394,7 +394,7 @@ HEADER
     foreach my $cvsdate (@cvsdates) {
 	my $version = $d{$date}{$cvsdate}{version};
 	unless ($version) {
-	    print $html "    <th/>\n";
+	    print $html "    <th></th>\n";
 	    next;
 	}
 	my $kernel = encode_entities($d{$date}{$cvsdate}{kernel});
@@ -406,7 +406,7 @@ HEADER
     foreach my $cvsdate (@cvsdates) {
 	my $quirks = $d{$date}{$cvsdate}{quirks};
 	unless ($quirks) {
-	    print $html "    <th/>\n";
+	    print $html "    <th></th>\n";
 	    next;
 	}
 	print $html "    <th><a href=\"$quirks\">quirks<a></th>\n";
@@ -465,7 +465,7 @@ HEADER
 	    foreach my $cvsdate (@cvsdates) {
 		my $status = $td->{$cvsdate}{status};
 		if ($status ne 'PASS') {
-		    print $html "    <td/>\n";
+		    print $html "    <td></td>\n";
 		    next;
 		}
 		my $number = $rp0 ? $vt->{$cvsdate}{averages}[$i] :
@@ -548,6 +548,7 @@ foreach my $date (@dates) {
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$time\">$href$short$enda</th>\n";
 }
+print $html "  </tr>\n";
 print $html "  <tr>\n    <th>test</th>\n";
 foreach my $date (@dates) {
     my $setup = $d{$date}{setup};
@@ -555,6 +556,7 @@ foreach my $date (@dates) {
     my $enda = $href ? "</a>" : "";
     print $html "    <th>${href}setup$enda</th>\n";
 }
+print $html "  </tr>\n";
 print $html "  <tr>\n    <th>first cvs checkout</th>\n";
 foreach my $date (@dates) {
     my $cvsdate = (sort @{$d{$date}{cvsdates}})[0];
@@ -562,6 +564,7 @@ foreach my $date (@dates) {
     my $time = encode_entities($cvsdate);
     print $html "    <th title=\"$time\">$cvsshort</th>\n";
 }
+print $html "  </tr>\n";
 print $html "  <tr>\n    <th>last cvs checkout</th>\n";
 foreach my $date (@dates) {
     my $cvsdate = (sort @{$d{$date}{cvsdates}})[-1];
@@ -569,13 +572,22 @@ foreach my $date (@dates) {
     my $time = encode_entities($cvsdate);
     print $html "    <th title=\"$time\">$cvsshort</th>\n";
 }
+print $html "  </tr>\n";
 print $html "  <tr>\n    <th>checkout steps</th>\n";
 foreach my $date (@dates) {
     my $total = @{$d{$date}{cvsdates}};
     my $duration = $d{$date}{stepconf} && $d{$date}{stepconf}{step};
-    my $steptext = $duration && $total ?
-	"$duration / $total" : $duration || $total;
+    my $steptext = $total && $duration ?
+	"$total / $duration" : $total || $duration;
+    $steptext =~ s/\s//g;
     print $html "    <th>$steptext</th>\n";
+}
+print $html "  </tr>\n";
+print $html "  <tr>\n    <th>repetitions</th>\n";
+foreach my $date (@dates) {
+    my $cvsdate0 = $d{$date}{cvsdates}[0];
+    my $repeats = @{$d{$date}{$cvsdate0}{repeats} || []} || "";
+    print $html "    <th>$repeats</th>\n";
 }
 print $html "  </tr>\n";
 
