@@ -22,7 +22,7 @@ use Errno;
 use File::Basename;
 use HTML::Entities;
 use Getopt::Std;
-use List::Util qw(max);
+use List::Util qw(max min);
 use POSIX;
 use URI::Escape;
 
@@ -280,7 +280,10 @@ HEADER
 		my $enda = $href ? "</a>" : "";
 		print $html "    <td$class$title>$href$status$enda</td>\n";
 	    }
-	    print $html "    <th>unit</th>\n";
+	    foreach my $stat (qw(unit mean minimum maximum deviation relative))
+	    {
+		print $html "    <th>$stat</th>\n";
+	    }
 	    print $html "  </tr>\n";
 	    my $vt = $v{$date}{$test}{$cvsdate};
 	    my $maxval = max map { scalar @{$vt->{$_}} } @repeats;
@@ -288,6 +291,8 @@ HEADER
 		my $value0 = $vt->{$repeats[0]}[$i];
 		my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 		print $html "  <tr>\n    <th>$name0</th>\n";
+		my $sum = 0;
+		my @numbers;
 		foreach my $repeat (@repeats) {
 		    my $status = $td->{$repeat}{status};
 		    if ($status ne 'PASS') {
@@ -295,9 +300,30 @@ HEADER
 			next;
 		    }
 		    my $number = $vt->{$repeat}[$i]{number};
+		    $sum += $number;
+		    push @numbers, $number;
 		    print $html "    <td>$number</td>\n";
 		}
-		print $html "    <td>$unit0</td>\n";
+		if (@numbers) {
+		    my $mean = $sum / @numbers;
+		    my $minimum = min @numbers;
+		    my $maximum = max @numbers;
+		    my $variance = 0;
+		    foreach my $number (@numbers) {
+			my $diff = $number - $mean;
+			$variance += $diff * $diff;
+		    }
+		    $variance /= @numbers;
+		    my $deviation = sqrt $variance;
+		    my $relative = $deviation / $mean;
+		    $vt->{mean}[$i] = $mean;
+		    print $html "    <td>$unit0</td>\n";
+		    print $html "    <td>$mean</td>\n";
+		    print $html "    <td>$minimum</td>\n";
+		    print $html "    <td>$maximum</td>\n";
+		    print $html "    <td>$deviation</td>\n";
+		    print $html "    <td>$relative</td>\n";
+		}
 		print $html "  </tr>\n";
 	    }
 	}
@@ -468,7 +494,7 @@ HEADER
 		    print $html "    <td></td>\n";
 		    next;
 		}
-		my $number = $rp0 ? $vt->{$cvsdate}{averages}[$i] :
+		my $number = $rp0 ? $vt->{$cvsdate}{mean}[$i] :
 		    $vt->{$cvsdate}[$i]{number};
 		print $html "    <td>$number</td>\n";
 	    }
