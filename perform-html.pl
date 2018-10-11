@@ -53,49 +53,60 @@ my @results;
 if ($opts{l}) {
     my @latest;
     if ($host) {
-	@latest = glob("latest-$host/*/test.result");
+	@latest = (glob("latest-$host/*/test.result"),
+	    glob("latest-$host/*/*/test.result"));
 	-f $latest[0]
 	    or die "No latest test.result for $host";
     } else {
-	@latest = glob("latest-*/*/test.result");
+	@latest = (glob("latest-*/*/test.result"),
+	    glob("latest-*/*/*/test.result"));
     }
-    @results = map { (readlink(dirname(dirname($_)))
-	or die "Readlink latest '$_' failed: $!") . "/".
-	    basename(dirname($_))."/test.result" } @latest;
+    foreach (@latest) {
+	my ($ldir, $res) = split("/", $_, 2);
+	my $date = readlink($ldir)
+	    or die "Readlink latest '$ldir' failed: $!";
+	$_ = "$date/$res";
+    }
+    @results = sort @latest;
 } else {
-    @results = sort glob("*/*/test.result");
+    # cvs checkout and repeated results
+    @results = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 }
 
 my (%t, %d, %v);
 foreach my $result (@results) {
 
     # parse result file
-    my ($date, $short, $cvsdate, $cvsshort) =
-	$result =~ m,((.+)T.+)/((.+)T.+)/test.result,
+    my ($date, $short, $cvsdate, $cvsshort, $repeat) =
+	$result =~ m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+)/)?test.result,
 	or next;
-    $d{$date}{short} = $short;
+    $d{$date}{short} ||= $short;
     push @{$d{$date}{cvsdates} ||= []}, $cvsdate;
-    $d{$date}{$cvsdate} = {
-	cvsshort => $cvsshort,
-	result => $result,
-    };
-    $d{$date}{log} = "step.log" if -f "$date/step.log";
-    my $stepfile = "$date/stepconf.txt";
-    if (open (my $fh, '<', $stepfile)) {
-	while (<$fh>) {
-	    chomp;
-	    my ($k, $v) = split(/\s+/, $_, 2);
-	    $d{$date}{stepconf}{lc($k)} = $v;
-	}
+    $d{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
+    if (defined $repeat) {
+	push @{$d{$date}{$cvsdate}{repeats} ||= []}, $repeat;
+	$d{$date}{$cvsdate}{repeat}{$result} = $result;
     } else {
-	$!{ENOENT}
-	    or die "Open '$stepfile' for reading failed: $!";
+	$d{$date}{$cvsdate}{$result} = $result;
     }
-    $d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
-    $d{$date}{$cvsdate}{build} = "$date/$cvsdate/build.html"
+    $d{$date}{log} ||= "step.log" if -f "$date/step.log";
+    unless ($d{$date}{stepconf}) {
+	my $stepfile = "$date/stepconf.txt";
+	if (open (my $fh, '<', $stepfile)) {
+	    while (<$fh>) {
+		chomp;
+		my ($k, $v) = split(/\s+/, $_, 2);
+		$d{$date}{stepconf}{lc($k)} = $v;
+	    }
+	} else {
+	    $!{ENOENT}
+		or die "Open '$stepfile' for reading failed: $!";
+	}
+    }
+    $d{$date}{setup} ||= "$date/setup.html" if -f "$date/setup.html";
+    $d{$date}{$cvsdate}{build} ||= "$date/$cvsdate/build.html"
 	if -f "$date/$cvsdate/build.html";
     $_->{severity} *= .5 foreach values %t;
-    my ($total, $pass) = (0, 0);
     open(my $fh, '<', $result)
 	or die "Open '$result' for reading failed: $!";
     my @values;
@@ -114,14 +125,30 @@ foreach my $result (@results) {
 	    };
 	    next;
 	}
-	$v{$date}{$test}{$cvsdate} = [ @values ];
+	my $logfile = dirname($result). "/logs/$test.log";
+	if (defined $repeat) {
+	    $v{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
+	    $t{$test}{$date}{$cvsdate}{$repeat}
+		and warn "Duplicate test '$test' date '$date' ".
+		    "cvsdate '$cvsdate' repeat '$repeat'";
+	    $t{$test}{$date}{$cvsdate}{$repeat} = {
+		status => $status,
+		message => $message,
+	    };
+	    $t{$test}{$date}{$cvsdate}{$repeat}{logfile} =
+		$logfile if -f $logfile;
+	} else {
+	    $v{$date}{$test}{$cvsdate} = [ @values ];
+	    $t{$test}{$date}{$cvsdate}
+		and warn "Duplicate test '$test' date '$date' ".
+		    "cvsdate '$cvsdate'";
+	    $t{$test}{$date}{$cvsdate} = {
+		status => $status,
+		message => $message,
+	    };
+	    $t{$test}{$date}{$cvsdate}{logfile} = $logfile if -f $logfile;
+	}
 	undef @values;
-	$t{$test}{$date}{$cvsdate}
-	    and warn "Duplicate test '$test' date '$date' cvsdate '$cvsdate'";
-	$t{$test}{$date}{$cvsdate} = {
-	    status => $status,
-	    message => $message,
-	};
 	my $severity =
 	    $status eq 'PASS'   ? 1 :
 	    $status eq 'SKIP'   ? 2 :
@@ -134,14 +161,9 @@ foreach my $result (@results) {
 		$t{$test}{$date}{severity} = $severity;
 	}
 	$t{$test}{severity} += $severity;
-	$total++ unless $status eq 'SKIP';
-	$pass++ if $status eq 'PASS';
-	my $logfile = dirname($result). "/logs/$test.log";
-	$t{$test}{$date}{$cvsdate}{logfile} = $logfile if -f $logfile;
     }
     close($fh)
 	or die "Close '$result' after reading failed: $!";
-    $d{$date}{$cvsdate}{pass} = $pass / $total if $total;
 
     # parse version file
     my ($version, $diff, $dmesg, $quirks);
