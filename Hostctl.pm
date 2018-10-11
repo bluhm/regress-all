@@ -26,7 +26,7 @@ use Machine;
 use parent 'Exporter';
 our @EXPORT= qw(usehosts setup_hosts
     collect_version collect_dmesg collect_result
-    cvsbuild_hosts
+    cvsbuild_hosts reorder_kernel
 );
 
 my ($bindir, $user, $firsthost, $lasthost, $date, $verbose);
@@ -177,7 +177,7 @@ sub reorder_kernel {
     my @pidcmds;
     for (my $host = $firsthost; $host le $lasthost; $host++) {
 	my $relinkcmd =
-	    "sha256 -h $cksum /bsd; usr/libexec/reorder_kernel; rm -f $cksum";
+	    "sha256 -h $cksum /bsd; usr/libexec/reorder_kernel; rm $cksum";
 	my @sshcmd = ('ssh', "$user\@$host", $relinkcmd);
 	push @pidcmds, forkcmd(@sshcmd);
     }
