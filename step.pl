@@ -137,11 +137,12 @@ for (my $current = $begin; $current <= $end;) {
     # run repetitions if requested
 
     for (my $n = 0; $n < $repeat; $n++) {
+	my $repeatdir = sprintf("%03d", $n);
 	if ($repeat > 1) {
-	    mkdir $n
-		or die "Make directory '$n' failed: $!";
-	    chdir($n)
-		or die "Chdir to '$n' failed: $!";
+	    mkdir $repeatdir
+		or die "Make directory '$repeatdir' failed: $!";
+	    chdir($repeatdir)
+		or die "Chdir to '$repeatdir' failed: $!";
 	}
 
 	# run performance tests remotely
@@ -157,6 +158,8 @@ for (my $current = $begin; $current <= $end;) {
 
 	if ($repeat > 1) {
 	    reorder_kernel();
+	    chdir("..")
+		or die "Chdir to '..' failed: $!";
 	}
     }
 
