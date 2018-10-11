@@ -60,9 +60,9 @@ if ($opts{S}) {
 $end >= $begin or die "Begin date '$opts{B}' before end date '$opts{E}'";
 $end == $begin || $step > 0
     or die "Step '$opts{S}' cannot reach end date";
-$repeat = $opts{R} || 1;
+$repeat = $opts{N} || 1;
 $repeat >= 1
-    or die "Repeat '$opts{R}' must be positive integer";
+    or die "Repeat '$opts{N}' must be positive integer";
 
 my %allmodes;
 @allmodes{qw(build cvs install keep)} = ();
