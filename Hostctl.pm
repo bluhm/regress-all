@@ -173,21 +173,30 @@ sub cvsbuild_hosts {
 }
 
 sub reorder_kernel {
+    my %args = @_;
+    my $mode = delete $args{mode};
+    my @unknown = keys %args;
+    croak "Unknown args: @unknown" if @unknown;
+
     my $cksum = "/var/db/kernel.SHA256";
     my @pidcmds;
-    for (my $host = $firsthost; $host le $lasthost; $host++) {
-	my $relinkcmd =
-	    "sha256 -h $cksum /bsd; usr/libexec/reorder_kernel; rm $cksum";
-	my @sshcmd = ('ssh', "$user\@$host", $relinkcmd);
-	push @pidcmds, forkcmd(@sshcmd);
+    if ($mode->{relink}) {
+	for (my $host = $firsthost; $host le $lasthost; $host++) {
+	    my $relinkcmd =
+		"sha256 -h $cksum /bsd; usr/libexec/reorder_kernel; rm $cksum";
+	    my @sshcmd = ('ssh', "$user\@$host", $relinkcmd);
+	    push @pidcmds, forkcmd(@sshcmd);
+	}
+	waitcmd(@pidcmds);
     }
-    waitcmd(@pidcmds);
     undef @pidcmds;
-    for (my $host = $firsthost; $host le $lasthost; $host++) {
-	my @sshcmd = ('ssh', "$host\@$Machine::testmaster", "reboot");
-	push @pidcmds, forkcmd(@sshcmd);
+    if ($mode->{relink} || $mode->{reboot}) {
+	for (my $host = $firsthost; $host le $lasthost; $host++) {
+	    my @sshcmd = ('ssh', "$host\@$Machine::testmaster", "reboot");
+	    push @pidcmds, forkcmd(@sshcmd);
+	}
+	waitcmd(@pidcmds);
     }
-    waitcmd(@pidcmds);
 }
 
 1;

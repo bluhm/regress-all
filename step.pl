@@ -30,7 +30,7 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('B:E:h:N:r:S:v', \%opts) or do {
+getopts('B:E:h:N:R:r:S:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -h host [-r release] -B date -E date -S date mode ...
     -h host	user and host for performance test, user defaults to root
@@ -40,14 +40,18 @@ usage: $0 [-v] -h host [-r release] -B date -E date -S date mode ...
     -E date	end date
     -S duration	step in sec, min, hour, day, week, month, year
     -N repeat	number of build, reboot, test repetitions per step
+    -R repmode	repetition mode for kernel: relink, reboot, keep
+    mode ...	mode for machine setup: install, cvs, build, keep
 EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
 $opts{B} or die "No -B begin date";
 my ($begin, $end, $step, $unit, $repeat);
-$begin = str2time($opts{B}) or die "Invalid -B date '$opts{B}'";
-$end = str2time($opts{E} || $opts{B}) or die "Invalid -E date '$opts{E}'";
+$begin = str2time($opts{B})
+    or die "Invalid -B date '$opts{B}'";
+$end = str2time($opts{E} || $opts{B})
+    or die "Invalid -E date '$opts{E}'";
 if ($opts{S}) {
     ($step, $unit) = $opts{S} =~ /^(\d+)(\w+)$/
 	or die "Invalid -S step '$opts{S}'";
@@ -57,12 +61,21 @@ if ($opts{S}) {
     $step = $end - $begin;
     $unit = "sec";
 }
-$end >= $begin or die "Begin date '$opts{B}' before end date '$opts{E}'";
+$end >= $begin
+    or die "Begin date '$opts{B}' before end date '$opts{E}'";
 $end == $begin || $step > 0
     or die "Step '$opts{S}' cannot reach end date";
+
 $repeat = $opts{N} || 1;
 $repeat >= 1
     or die "Repeat '$opts{N}' must be positive integer";
+$opts{N} && $opts{R} or !$opts{N} && !$opts{R}
+    or die "Repeat number and repeat mode must be used together";
+my %allrepmodes;
+@allrepmodes{qw(relink reboot keep)} = ();
+!$opts{R} || exists $allrepmodes{$opts{R}}
+    or die "Unknown repetition mode '$opts{R}'";
+my %repmode = ($opts{R} => 1);
 
 my %allmodes;
 @allmodes{qw(build cvs install keep)} = ();
@@ -104,6 +117,7 @@ print $fh strftime("BEGIN %FT%TZ\n", gmtime($begin));
 print $fh strftime("END %FT%TZ\n", gmtime($end));
 print $fh "STEP $step $unit\n";
 print $fh "REPEAT $repeat\n";
+print $fh "REPMODES ", join(" ", sort keys %repmode), "\n";
 print $fh "MODES ", join(" ", sort keys %mode), "\n";
 close($fh);
 
@@ -156,7 +170,7 @@ for (my $current = $begin; $current <= $end;) {
 	collect_result("$opts{h}:/root/perform");
 
 	if ($repeat > 1) {
-	    reorder_kernel();
+	    reorder_kernel(mode => \%repmode) unless $repmode{keep};
 	    chdir("..")
 		or die "Chdir to '..' failed: $!";
 	}
