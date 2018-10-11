@@ -81,7 +81,7 @@ foreach my $result (@results) {
 	$result =~ m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+)/)?test.result,
 	or next;
     $d{$date}{short} ||= $short;
-    push @{$d{$date}{cvsdates} ||= []}, $cvsdate;
+    push @{$d{$date}{cvsdates} ||= []}, $cvsdate unless $d{$date}{$cvsdate};
     $d{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
     if (defined $repeat) {
 	push @{$d{$date}{$cvsdate}{repeats} ||= []}, $repeat;
@@ -125,6 +125,13 @@ foreach my $result (@results) {
 	    };
 	    next;
 	}
+	my $severity =
+	    $status eq 'PASS'   ? 1 :
+	    $status eq 'SKIP'   ? 2 :
+	    $status eq 'FAIL'   ? 5 :
+	    $status eq 'NOEXIT' ? 6 :
+	    $status eq 'NOTERM' ? 7 :
+	    $status eq 'NORUN'  ? 8 : 10;
 	my $logfile = dirname($result). "/logs/$test.log";
 	if (defined $repeat) {
 	    $v{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
@@ -135,6 +142,10 @@ foreach my $result (@results) {
 		status => $status,
 		message => $message,
 	    };
+	    if (($t{$test}{$date}{$cvsdate}{severity} || 0 ) < $severity) {
+		$t{$test}{$date}{$cvsdate}{status} = $status;
+		$t{$test}{$date}{$cvsdate}{severity} = $severity;
+	    }
 	    $t{$test}{$date}{$cvsdate}{$repeat}{logfile} =
 		$logfile if -f $logfile;
 	} else {
@@ -149,16 +160,9 @@ foreach my $result (@results) {
 	    $t{$test}{$date}{$cvsdate}{logfile} = $logfile if -f $logfile;
 	}
 	undef @values;
-	my $severity =
-	    $status eq 'PASS'   ? 1 :
-	    $status eq 'SKIP'   ? 2 :
-	    $status eq 'FAIL'   ? 5 :
-	    $status eq 'NOEXIT' ? 6 :
-	    $status eq 'NOTERM' ? 7 :
-	    $status eq 'NORUN'  ? 8 : 10;
 	if (($t{$test}{$date}{severity} || 0 ) < $severity) {
-		$t{$test}{$date}{status} = $status;
-		$t{$test}{$date}{severity} = $severity;
+	    $t{$test}{$date}{status} = $status;
+	    $t{$test}{$date}{severity} = $severity;
 	}
 	$t{$test}{severity} += $severity;
     }
@@ -264,6 +268,7 @@ HEADER
 	my $time = encode_entities($cvsdate);
 	print $html "    <th title=\"$time\">$cvsshort</th>\n";
     }
+    print $html "  </tr>\n";
     print $html "  <tr>\n    <th>test</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $build = $d{$date}{$cvsdate}{build};
@@ -272,6 +277,7 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>${href}build$enda</th>\n";
     }
+    print $html "  </tr>\n";
     print $html "  <tr>\n    <th>kernel build</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $version = $d{$date}{$cvsdate}{version};
@@ -283,6 +289,7 @@ HEADER
 	print $html "    <th title=\"$kernel\">".
 	    "<a href=\"$version\">version</a></th>\n";
     }
+    print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $quirks = $d{$date}{$cvsdate}{quirks};
@@ -291,6 +298,12 @@ HEADER
 	    next;
 	}
 	print $html "    <th><a href=\"$quirks\">quirks<a></th>\n";
+    }
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>repetitions</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $repeats = @{$d{$date}{$cvsdate}{repeats} || []} || "";
+	print $html "    <th>$repeats</th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>dmesg after run</th>\n";
@@ -318,16 +331,30 @@ HEADER
 	}
 	print $html "  </tr>\n";
 	my $vt = $v{$date}{$test};
-	my $maxval = max map { scalar @{$vt->{$_}} } @cvsdates;
+	my @vals;
+	foreach my $cvsdate (@cvsdates) {
+	    if ($d{$date}{$cvsdate}{repeats}) {
+		push @vals, map { $vt->{$cvsdate}{$_} }
+		    @{$d{$date}{$cvsdate}{repeats}}
+	    } else {
+		push @vals, $vt->{$cvsdate};
+	    }
+	}
+	my $maxval = max map { scalar @$_ } @vals;
 	for (my $i = 0; $i < $maxval; $i++) {
-	    my $value0 = $vt->{$cvsdates[0]}[$i];
+	    my $rp0 = $d{$date}{$cvsdates[0]}{repeats};
+	    my $value0 = $rp0 ? $vt->{$cvsdates[0]}{$rp0->[0]}[$i] :
+		$vt->{$cvsdates[0]}[$i];
 	    my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 	    print $html "  <tr>\n    <th>$name0</th>\n";
 	    foreach my $cvsdate (@cvsdates) {
 		my $status = $td->{$cvsdate}{status};
-		my $value = $vt->{$cvsdate}[$i];
-		my $number = $status eq 'PASS' ?
-		    $vt->{$cvsdate}[$i]{number} : "";
+		if ($status ne 'PASS') {
+		    print $html "    <td/>\n";
+		    next;
+		}
+		my $number = $rp0 ? $vt->{$cvsdate}{averages}[$i] :
+		    $vt->{$cvsdate}[$i]{number};
 		print $html "    <td>$number</td>\n";
 	    }
 	    print $html "    <th>$unit0</th>\n";
