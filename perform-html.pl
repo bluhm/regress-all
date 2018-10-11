@@ -256,6 +256,14 @@ foreach my $date (@dates) {
     <td>$cvsdate</td>
   </tr>
 HEADER
+
+	print $html "  <tr>\n    <th>repetitions</th>\n";
+	my $repmode = $d{$date}{stepconf}{repmodes};
+	my $reptext = @repeats && $repmode ?
+	    @repeats. " / $repmode" : @repeats;
+	$reptext =~ s/\s//g;
+	print $html "    <td>$reptext</td>\n";
+	print $html "  </tr>\n";
 	print $html "</table>\n";
 
 	print $html "<table>\n";
@@ -349,12 +357,14 @@ FOOTER
 # html per date with cvsdate
 
 foreach my $date (@dates) {
+    my $short = $d{$date}{short};
+    my @cvsdates = sort @{$d{$date}{cvsdates}};
+
     my $htmlfile = "$date/perform.html";
     unlink("$htmlfile.new");
     open(my $html, '>', "$htmlfile.new")
 	or die "Open '$htmlfile.new' for writing failed: $!";
 
-    my $short = $d{$date}{short};
     print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
@@ -392,11 +402,16 @@ HEADER
     my $enda = $href ? "</a>" : "";
     print $html "    <th>${href}log$enda</th>\n";
     print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>steps</th>\n";
+    my $duration = $d{$date}{stepconf}{step};
+    my $steptext = @cvsdates && $duration ?
+	@cvsdates. " / $duration" : @cvsdates || $duration;
+    $steptext =~ s/\s//g;
+    print $html "    <td>$steptext</td>\n";
+    print $html "  </tr>\n";
     print $html "</table>\n";
 
     print $html "<table>\n";
-    my @cvsdates = sort @{$d{$date}{cvsdates}};
-
     print $html "  <tr>\n    <th>cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
@@ -603,7 +618,7 @@ foreach my $date (@dates) {
     print $html "    <th title=\"$time\">$cvsshort</th>\n";
 }
 print $html "  </tr>\n";
-print $html "  <tr>\n    <th>checkout steps</th>\n";
+print $html "  <tr>\n    <th>steps</th>\n";
 foreach my $date (@dates) {
     my $steps = @{$d{$date}{cvsdates}};
     my $duration = $d{$date}{stepconf}{step};
