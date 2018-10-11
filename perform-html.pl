@@ -80,12 +80,12 @@ foreach my $result (@results) {
 	result => $result,
     };
     $d{$date}{log} = "step.log" if -f "$date/step.log";
-    my $stepfile = "$date/step.txt";
+    my $stepfile = "$date/stepconf.txt";
     if (open (my $fh, '<', $stepfile)) {
 	while (<$fh>) {
 	    chomp;
 	    my ($k, $v) = split(/\s+/, $_, 2);
-	    $d{$date}{step}{lc($k)} = $v;
+	    $d{$date}{stepconf}{lc($k)} = $v;
 	}
     } else {
 	$!{ENOENT}
@@ -408,7 +408,7 @@ foreach my $date (@dates) {
 print $html "  <tr>\n    <th>checkout steps</th>\n";
 foreach my $date (@dates) {
     my $total = @{$d{$date}{cvsdates}};
-    my $duration = $d{$date}{step} && $d{$date}{step}{step};
+    my $duration = $d{$date}{stepconf} && $d{$date}{stepconf}{step};
     my $steptext = $duration && $total ?
 	"$duration / $total" : $duration || $total;
     print $html "    <th>$steptext</th>\n";

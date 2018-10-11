@@ -97,8 +97,8 @@ chdir($resultdir)
 createlog(file => "step.log", verbose => $opts{v});
 logmsg("script '$scriptname' started at $date\n");
 
-open(my $fh, '>', "step.txt")
-    or die "Open 'step.txt' for writing failed :$!";
+open(my $fh, '>', "stepconf.txt")
+    or die "Open 'stepconf.txt' for writing failed :$!";
 print $fh "RELEASE $opts{r}\n";
 print $fh strftime("BEGIN %FT%TZ\n", gmtime($begin));
 print $fh strftime("END %FT%TZ\n", gmtime($end));
