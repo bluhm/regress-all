@@ -132,7 +132,6 @@ foreach my $result (@results) {
 	    $status eq 'NOEXIT' ? 6 :
 	    $status eq 'NOTERM' ? 7 :
 	    $status eq 'NORUN'  ? 8 : 10;
-	my $logfile = dirname($result). "/logs/$test.log";
 	if (defined $repeat) {
 	    $v{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
 	    $t{$test}{$date}{$cvsdate}{$repeat}
@@ -146,8 +145,6 @@ foreach my $result (@results) {
 		$t{$test}{$date}{$cvsdate}{status} = $status;
 		$t{$test}{$date}{$cvsdate}{severity} = $severity;
 	    }
-	    $t{$test}{$date}{$cvsdate}{$repeat}{logfile} =
-		$logfile if -f $logfile;
 	} else {
 	    $v{$date}{$test}{$cvsdate} = [ @values ];
 	    $t{$test}{$date}{$cvsdate}
@@ -157,7 +154,6 @@ foreach my $result (@results) {
 		status => $status,
 		message => $message,
 	    };
-	    $t{$test}{$date}{$cvsdate}{logfile} = $logfile if -f $logfile;
 	}
 	undef @values;
 	if (($t{$test}{$date}{severity} || 0 ) < $severity) {
@@ -278,8 +274,9 @@ HEADER
 		my $class = " class=\"result $status\"";
 		my $message = encode_entities($td->{$repeat}{message});
 		my $title = $message ? " title=\"$message\"" : "";
-		my $logfile = $td->{$repeat}{logfile};
-		my $href = $logfile ? "<a href=\"../$logfile\">" : "";
+		my $logfile = "$repeat/logs/$test.log";
+		my $href = -f "$date/$cvsdate/$logfile" ?
+		    "<a href=\"$logfile\">" : "";
 		my $enda = $href ? "</a>" : "";
 		print $html "    <td$class$title>$href$status$enda</td>\n";
 	    }
@@ -439,8 +436,8 @@ HEADER
 	    my $class = " class=\"result $status\"";
 	    my $message = encode_entities($td->{$cvsdate}{message});
 	    my $title = $message ? " title=\"$message\"" : "";
-	    my $logfile = $td->{$cvsdate}{logfile};
-	    my $href = $logfile ? "<a href=\"../$logfile\">" : "";
+	    my $logfile = "$cvsdate/logs/$test.log";
+	    my $href = -f "$date/$logfile" ? "<a href=\"$logfile\">" : "";
 	    my $enda = $href ? "</a>" : "";
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
