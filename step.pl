@@ -154,7 +154,6 @@ for (my $current = $begin; $current <= $end;) {
 	# get result and logs
 
 	collect_result("$opts{h}:/root/perform");
-	collect_dmesg();
 
 	if ($repeat > 1) {
 	    reorder_kernel();
@@ -162,6 +161,7 @@ for (my $current = $begin; $current <= $end;) {
 		or die "Chdir to '..' failed: $!";
 	}
     }
+    collect_dmesg();
 
     # if next step does not hit the end exactly, do an additional test
 
