@@ -211,6 +211,74 @@ foreach my $result (@results) {
 
 my @dates = reverse sort keys %d;
 
+# html per date per cvsdate with repetitions
+
+foreach my $date (@dates) {
+    my $short = $d{$date}{short};
+    my @cvsdates = sort @{$d{$date}{cvsdates}};
+    foreach my $cvsdate (@cvsdates) {
+	my $cvsshort = $d{$date}{cvsshort};
+	my @repeats = sort @{$d{$date}{$cvsdate}{repeats} || []}
+	    or next;
+
+	my $htmlfile = "$date/$cvsdate/perform.html";
+	unlink("$htmlfile.new");
+	open(my $html, '>', "$htmlfile.new")
+	    or die "Open '$htmlfile.new' for writing failed: $!";
+
+	print $html <<"HEADER";
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OpenBSD Perform CVS Date Results</title>
+  <style>
+    th { text-align: left; white-space: nowrap; }
+    tr:hover {background-color: #e0e0e0}
+    td.PASS {background-color: #80ff80;}
+    td.FAIL {background-color: #ff8080;}
+    td.SKIP {background-color: #8080ff;}
+    td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
+    td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
+    td.result, td.result a {color: black;}
+  </style>
+</head>
+
+<body>
+<h1>OpenBSD perform $short cvs $cvsshort test results</h1>
+<table>
+  <tr>
+    <th>created at</th>
+    <td>$now</td>
+  </tr>
+  <tr>
+    <th>run at</th>
+    <td>$date</td>
+  </tr>
+  <tr>
+    <th>cvs checkout</th>
+    <td>$cvsdate</td>
+  </tr>
+HEADER
+	print $html "</table>\n";
+
+	print $html <<"FOOTER";
+</body>
+</html>
+FOOTER
+
+	close($html)
+	    or die "Close '$htmlfile.new' after writing failed: $!";
+	rename("$htmlfile.new", "$htmlfile")
+	    or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
+
+	system("gzip -f -c $htmlfile >$htmlfile.gz.new")
+	    and die "gzip $htmlfile failed: $?";
+	rename("$htmlfile.gz.new", "$htmlfile.gz")
+	    or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+    }
+}
+
 # html per date with cvsdate
 
 foreach my $date (@dates) {
@@ -260,7 +328,7 @@ HEADER
     print $html "</table>\n";
 
     print $html "<table>\n";
-    my @cvsdates = @{$d{$date}{cvsdates}};
+    my @cvsdates = sort @{$d{$date}{cvsdates}};
 
     print $html "  <tr>\n    <th>cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
