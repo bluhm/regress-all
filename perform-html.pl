@@ -217,7 +217,7 @@ foreach my $date (@dates) {
     my $short = $d{$date}{short};
     my @cvsdates = sort @{$d{$date}{cvsdates}};
     foreach my $cvsdate (@cvsdates) {
-	my $cvsshort = $d{$date}{cvsshort};
+	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
 	my @repeats = sort @{$d{$date}{$cvsdate}{repeats} || []}
 	    or next;
 
@@ -256,7 +256,7 @@ foreach my $date (@dates) {
     <td>$date</td>
   </tr>
   <tr>
-    <th>cvs checkout</th>
+    <th>cvs checkout at</th>
     <td>$cvsdate</td>
   </tr>
 HEADER
@@ -334,7 +334,10 @@ HEADER
     foreach my $cvsdate (@cvsdates) {
 	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
 	my $time = encode_entities($cvsdate);
-	print $html "    <th title=\"$time\">$cvsshort</th>\n";
+	my $cvsdatehtml = "$cvsdate/perform.html";
+	my $href = -f "$date/$cvsdatehtml" ? "<a href=\"$cvsdatehtml\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>test</th>\n";
