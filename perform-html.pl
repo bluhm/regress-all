@@ -438,6 +438,8 @@ HEADER
 	    my $title = $message ? " title=\"$message\"" : "";
 	    my $logfile = "$cvsdate/logs/$test.log";
 	    my $href = -f "$date/$logfile" ? "<a href=\"$logfile\">" : "";
+	    my $cvsdatehtml = "$cvsdate/perform.html";
+	    $href = "<a href=\"$cvsdatehtml\">" if -f "$date/$cvsdatehtml";
 	    my $enda = $href ? "</a>" : "";
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
