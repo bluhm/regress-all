@@ -262,6 +262,49 @@ foreach my $date (@dates) {
 HEADER
 	print $html "</table>\n";
 
+	print $html "<table>\n";
+	print $html "  <tr>\n    <th>repeat</th>\n";
+	foreach my $repeat (@repeats) {
+	    print $html "    <th>$repeat</th>\n";
+	}
+	print $html "  </tr>\n";
+	my @tests = sort keys %t;
+	foreach my $test (@tests) {
+	    my $td = $t{$test}{$date} && $t{$test}{$date}{$cvsdate}
+		or next;
+	    print $html "  <tr>\n    <th>$test</th>\n";
+	    foreach my $repeat (@repeats) {
+		my $status = $td->{$repeat}{status} || "";
+		my $class = " class=\"result $status\"";
+		my $message = encode_entities($td->{$repeat}{message});
+		my $title = $message ? " title=\"$message\"" : "";
+		my $logfile = $td->{$repeat}{logfile};
+		my $href = $logfile ? "<a href=\"../$logfile\">" : "";
+		my $enda = $href ? "</a>" : "";
+		print $html "    <td$class$title>$href$status$enda</td>\n";
+	    }
+	    print $html "  </tr>\n";
+	    my $vt = $v{$date}{$test}{$cvsdate};
+	    my $maxval = max map { scalar @{$vt->{$_}} } @repeats;
+	    for (my $i = 0; $i < $maxval; $i++) {
+		my $value0 = $vt->{$repeats[0]}[$i];
+		my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
+		print $html "  <tr>\n    <th>$name0</th>\n";
+		foreach my $repeat (@repeats) {
+		    my $status = $td->{$repeat}{status};
+		    if ($status ne 'PASS') {
+			print $html "    <td/>\n";
+			next;
+		    }
+		    my $number = $vt->{$repeat}[$i]{number};
+		    print $html "    <td>$number</td>\n";
+		}
+		print $html "    <th>$unit0</th>\n";
+		print $html "  </tr>\n";
+	    }
+	}
+	print $html "</table>\n";
+
 	print $html <<"FOOTER";
 </body>
 </html>
