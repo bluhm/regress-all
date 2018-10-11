@@ -138,11 +138,10 @@ for (my $current = $begin; $current <= $end;) {
 
     for (my $n = 0; $n < $repeat; $n++) {
 	if ($repeat > 1) {
-	    my $repeatdir = "results/$date/$cvsdate/$n";
-	    mkdir $repeatdir
-		or die "Make directory '$repeatdir' failed: $!";
-	    chdir($repeatdir)
-		or die "Chdir to '$repeatdir' failed: $!";
+	    mkdir $n
+		or die "Make directory '$n' failed: $!";
+	    chdir($n)
+		or die "Chdir to '$n' failed: $!";
 	}
 
 	# run performance tests remotely
