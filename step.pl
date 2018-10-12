@@ -88,6 +88,9 @@ foreach (qw(install keep)) {
     die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
 
+# better get an errno than random kill by SIGPIPE 
+$SIG{PIPE} = 'IGNORE';
+
 # create directory for this test run with timestamp 2016-07-13T12:30:42Z
 my $date = strftime("%FT%TZ", gmtime);
 

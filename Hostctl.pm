@@ -137,6 +137,7 @@ sub collect_result {
 	    or die "Open pipe to '@paxcmd' failed: $!";
 	while (<$tr>) {
 	    my ($status, $test, $message) = split(" ", $_, 3);
+	    next if $status =~ /VALUE/;
 	    print $pax $test unless $test =~ m,[^\w/],;
 	}
 	close($pax) or die $! ?
