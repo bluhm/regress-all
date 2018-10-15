@@ -324,13 +324,22 @@ HEADER
 		    $variance /= @numbers;
 		    my $deviation = sqrt $variance;
 		    my $relative = $deviation / $mean;
-		    $vt->{mean}[$i] = $mean;
 		    print $html "    <td>$unit0</td>\n";
-		    print $html "    <td>$mean</td>\n";
+		    if ($unit0 eq 'bits/sec') {
+			print $html "    <td>$mean</td>\n";
+		    } else {
+			print $html "    <td><em>$mean</td>\n";
+		    }
 		    print $html "    <td>$minimum</td>\n";
-		    print $html "    <td>$maximum</td>\n";
+		    if ($unit0 eq 'bits/sec') {
+			print $html "    <td><em>$maximum</td>\n";
+		    } else {
+			print $html "    <td>$maximum</td>\n";
+		    }
 		    print $html "    <td>$deviation</td>\n";
 		    print $html "    <td>$relative</td>\n";
+		    $vt->{summary}[$i] = $unit0 eq 'bits/sec' ?
+			$maximum : $mean;
 		}
 		print $html "  </tr>\n";
 	    }
@@ -513,7 +522,7 @@ HEADER
 		    print $html "    <td></td>\n";
 		    next;
 		}
-		my $number = $rp0 ? $vt->{$cvsdate}{mean}[$i] :
+		my $number = $rp0 ? $vt->{$cvsdate}{summary}[$i] :
 		    $vt->{$cvsdate}[$i]{number};
 		print $html "    <td>$number</td>\n";
 	    }
