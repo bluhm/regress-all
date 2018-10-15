@@ -225,6 +225,9 @@ foreach my $t (@tests) {
 	or bad $test, 'NOLOG', "Open log '$logfile' for writing failed: $!";
     $log->autoflush();
 
+    # I have seen startup failures, this may help
+    sleep 1;
+
     print $log "START\t$test\t$date\n\n";
     $log->sync();
 
