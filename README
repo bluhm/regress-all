@@ -3,21 +3,38 @@ is to have a reliable set of tests and run them on a regular basis.
 The result summary is written to a file, log output of each test
 is available.
 
-Logcmd.pm	- common log funtions for run.pl and setup.pl
+A second prupose is to run OpenBSD performance tests.  A certain
+cvs checkout corresponding to a date is created.  The build environment
+is based on the previous release and adapted with commands from
+current.html.  This is mostly updating the build tools to compile
+a kernel from that cvs checkout date.  The results are grouped by
+run date, cvs checkout date, and repetitions.  The tests are run
+multiple times to detect deviations.  Tests consist of iperf3,
+tcpbench, and kernel compile time.
+
+Buildquirks.pm	- create tool chain to compile kernel from certain date
+Hostctl.pm	- run commands on all tests hosts to configure them
+Logcmd.pm	- common log funtions for run.pl, setp.pl, and setup.pl
+Machine.pm	- functions to setup a single machine
+cleanup.pl	- remove old test logs to recover disk space
 env-ot1.sh	- environment variables to be set on the test machine ot1
 mktestlist.pl	- find possible names of tests in regress directory
+perform-html.pl	- convert performance test results into html table
+perform.pl	- run one set up performace test on test machine,
+		  this is started by step.pl
 pkg-ot1.list	- list of packages that must be installed on test machine ot1
 pkg-ot2.list	- list of packages that must be installed on test machine ot2
-regress-html.pl	- convert all test results into html table
+regress-html.pl	- convert all regression test results into html table
 regress.pl	- run one openbsd regression test on test machine,
 		  this is started by run.pl
-run.pl		- do everything, add this to cron job
+run.pl		- do regression tests, add this to cron job
 setup-html.pl	- convert machine setup logs into html table
 setup.pl	- install one test machine,
 		  this is started by run.pl
-testsuite-html.pl - create html of test suites run during regress
 site.list	- list of config files that must be installed on test machine
+step.pl		- do performance tests, add this to cron job
 test.list	- list of /usr/src/regress subdirectories that should be tested
+testsuite-html.pl - create html of test suites run during regress
 
 Several modes for run.pl and setup.pl exist to prepare the test machines.
 
@@ -30,5 +47,7 @@ upgrade	- upgrade with snapshot
 
 Daily test results are published here:
 http://bluhm.genua.de/regress/results/regress.html
+Performance timelines are published here:
+http://bluhm.genua.de/perform/results/perform.html
 
 Thanks to genua GmbH https://www.genua.de/ for sponsoring this work.
