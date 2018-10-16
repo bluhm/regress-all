@@ -319,7 +319,7 @@ HEADER
 		    $relative = $deviation / $mean;
 		    $summary = $vt->{summary}[$i] =
 			$unit0 eq 'bits/sec' ?  $maximum : $mean;
-		    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.01;
+		    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.02;
 		}
 		foreach my $repeat (@repeats) {
 		    my $status = $td->{$repeat}{status};
