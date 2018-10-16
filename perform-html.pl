@@ -260,7 +260,7 @@ HEADER
 
 	print $html "  <tr>\n    <th>repetitions</th>\n";
 	my $repmode = $d{$date}{stepconf}{repmodes};
-	my $reptext = @repeats && $repmode ?
+	my $reptext = @repeats && $repmode && @repeats > 1 ?
 	    @repeats. " / $repmode" : @repeats;
 	$reptext =~ s/\s//g;
 	print $html "    <td>$reptext</td>\n";
@@ -427,7 +427,7 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";
     my $duration = $d{$date}{stepconf}{step};
-    my $steptext = @cvsdates && $duration ?
+    my $steptext = @cvsdates && $duration && @cvsdates > 1 ?
 	@cvsdates. " / $duration" : @cvsdates || $duration;
     $steptext =~ s/\s//g;
     print $html "    <td>$steptext</td>\n";
@@ -480,7 +480,7 @@ HEADER
     foreach my $cvsdate (@cvsdates) {
 	my $repeats = @{$d{$date}{$cvsdate}{repeats} || []} || "";
 	my $repmode = $d{$date}{stepconf}{repmodes};
-	my $reptext = $repeats && $repmode ?
+	my $reptext = $repeats && $repmode && $repeats > 1 ?
 	    "$repeats / $repmode" : $repeats;
 	$reptext =~ s/\s//g;
 	print $html "    <th>$reptext</th>\n";
@@ -649,7 +649,7 @@ print $html "  <tr>\n    <th>steps</th>\n";
 foreach my $date (@dates) {
     my $steps = @{$d{$date}{cvsdates}};
     my $duration = $d{$date}{stepconf}{step};
-    my $steptext = $steps && $duration ?
+    my $steptext = $steps && $duration && $steps > 1 ?
 	"$steps / $duration" : $steps || $duration;
     $steptext =~ s/\s//g;
     print $html "    <th>$steptext</th>\n";
@@ -660,7 +660,7 @@ foreach my $date (@dates) {
     my $cvsdate0 = $d{$date}{cvsdates}[0];
     my $repeats = @{$d{$date}{$cvsdate0}{repeats} || []} || "";
     my $repmode = $d{$date}{stepconf}{repmodes};
-    my $reptext = $repeats && $repmode ?
+    my $reptext = $repeats && $repmode && $repeats > 1 ?
 	"$repeats / $repmode" : $repeats;
     $reptext =~ s/\s//g;
     print $html "    <th>$reptext</th>\n";
