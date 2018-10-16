@@ -398,6 +398,7 @@ foreach my $date (@dates) {
     td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
     td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
     td.result, td.result a {color: black;}
+    td.outlier {color: red;}
   </style>
 </head>
 
@@ -533,7 +534,9 @@ HEADER
 		}
 		my $number = $rp0 ? $vt->{$cvsdate}{summary}[$i] :
 		    $vt->{$cvsdate}[$i]{number};
-		print $html "    <td>$number</td>\n";
+		my $outlier = $rp0 && $vt->{$cvsdate}{outlier}[$i];
+		my $class = $outlier ? ' class="outlier"' : "";
+		print $html "    <td$class>$number</td>\n";
 	    }
 	    print $html "    <td>$unit0</td>\n";
 	    print $html "  </tr>\n";
