@@ -22,7 +22,7 @@ use Errno;
 use File::Basename;
 use HTML::Entities;
 use Getopt::Std;
-use List::Util qw(max min);
+use List::Util qw(max min sum);
 use POSIX;
 use URI::Escape;
 
@@ -237,6 +237,7 @@ foreach my $date (@dates) {
     td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
     td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
     td.result, td.result a {color: black;}
+    td.outlier {color: red;}
   </style>
 </head>
 
@@ -299,8 +300,27 @@ HEADER
 		my $value0 = $vt->{$repeats[0]}[$i];
 		my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 		print $html "  <tr>\n    <th>$name0</th>\n";
-		my $sum = 0;
-		my @numbers;
+		my @numbers = map { $vt->{$_}[$i]{number} }
+		    grep { $td->{$_}{status} eq 'PASS' } @repeats;
+		my ($sum, $mean, $maximum, $minimum, $deviation, $relative,
+		    $summary, $outlier);
+		if (@numbers) {
+		    $sum = sum(@numbers);
+		    $mean = $sum / @numbers;
+		    $minimum = min @numbers;
+		    $maximum = max @numbers;
+		    my $variance = 0;
+		    foreach my $number (@numbers) {
+			my $diff = $number - $mean;
+			$variance += $diff * $diff;
+		    }
+		    $variance /= @numbers;
+		    $deviation = sqrt $variance;
+		    $relative = $deviation / $mean;
+		    $summary = $vt->{summary}[$i] =
+			$unit0 eq 'bits/sec' ?  $maximum : $mean;
+		    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.01;
+		}
 		foreach my $repeat (@repeats) {
 		    my $status = $td->{$repeat}{status};
 		    if ($status ne 'PASS') {
@@ -308,22 +328,12 @@ HEADER
 			next;
 		    }
 		    my $number = $vt->{$repeat}[$i]{number};
-		    $sum += $number;
-		    push @numbers, $number;
-		    print $html "    <td>$number</td>\n";
+		    my $reldev = ($number - $summary) / $summary;
+		    my $title = " title=\"$reldev\"";
+		    my $class = abs($reldev) >= 0.1 ? ' class="outlier"' : "";
+		    print $html "    <td$title$class>$number</td>\n";
 		}
 		if (@numbers) {
-		    my $mean = $sum / @numbers;
-		    my $minimum = min @numbers;
-		    my $maximum = max @numbers;
-		    my $variance = 0;
-		    foreach my $number (@numbers) {
-			my $diff = $number - $mean;
-			$variance += $diff * $diff;
-		    }
-		    $variance /= @numbers;
-		    my $deviation = sqrt $variance;
-		    my $relative = $deviation / $mean;
 		    print $html "    <td>$unit0</td>\n";
 		    if ($unit0 eq 'bits/sec') {
 			print $html "    <td>$mean</td>\n";
@@ -337,9 +347,8 @@ HEADER
 			print $html "    <td>$maximum</td>\n";
 		    }
 		    print $html "    <td>$deviation</td>\n";
-		    print $html "    <td>$relative</td>\n";
-		    $vt->{summary}[$i] = $unit0 eq 'bits/sec' ?
-			$maximum : $mean;
+		    my $class = $outlier ? ' class="outlier"' : "";
+		    print $html "    <td$class>$relative</td>\n";
 		}
 		print $html "  </tr>\n";
 	    }
