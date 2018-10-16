@@ -426,9 +426,9 @@ HEADER
     print $html "    <td>$modes</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";
-    my $duration = $d{$date}{stepconf}{step};
-    my $steptext = @cvsdates && $duration && @cvsdates > 1 ?
-	@cvsdates. " / $duration" : @cvsdates || $duration;
+    my $interval = $d{$date}{stepconf}{step};
+    my $steptext = @cvsdates && $interval && @cvsdates > 1 ?
+	@cvsdates. " / $interval" : @cvsdates || $interval;
     $steptext =~ s/\s//g;
     print $html "    <td>$steptext</td>\n";
     print $html "  </tr>\n";
@@ -648,9 +648,9 @@ print $html "  </tr>\n";
 print $html "  <tr>\n    <th>steps</th>\n";
 foreach my $date (@dates) {
     my $steps = @{$d{$date}{cvsdates}};
-    my $duration = $d{$date}{stepconf}{step};
-    my $steptext = $steps && $duration && $steps > 1 ?
-	"$steps / $duration" : $steps || $duration;
+    my $interval = $d{$date}{stepconf}{step};
+    my $steptext = $steps && $interval && $steps > 1 ?
+	"$steps / $interval" : $steps || $interval;
     $steptext =~ s/\s//g;
     print $html "    <th>$steptext</th>\n";
 }
