@@ -532,11 +532,11 @@ HEADER
 	    print $html "  <tr>\n    <th>$name0</th>\n";
 	    foreach my $cvsdate (@cvsdates) {
 		my $status = $td->{$cvsdate}{status};
-		if ($status ne 'PASS') {
+		if ($status ne 'PASS' && !$rp0) {
 		    print $html "    <td></td>\n";
 		    next;
 		}
-		my $number = $rp0 ? $vt->{$cvsdate}{summary}[$i] :
+		my $number = $rp0 ? $vt->{$cvsdate}{summary}[$i] || "" :
 		    $vt->{$cvsdate}[$i]{number};
 		my $outlier = $rp0 && $vt->{$cvsdate}{outlier}[$i];
 		my $class = $outlier ? ' class="outlier"' : "";
