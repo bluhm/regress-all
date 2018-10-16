@@ -421,6 +421,10 @@ HEADER
     my $enda = $href ? "</a>" : "";
     print $html "    <th>${href}log$enda</th>\n";
     print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>setup modes</th>\n";
+    my $modes = $d{$date}{stepconf}{modes} || "";
+    print $html "    <td>$modes</td>\n";
+    print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";
     my $duration = $d{$date}{stepconf}{step};
     my $steptext = @cvsdates && $duration ?
@@ -618,9 +622,11 @@ print $html "  </tr>\n";
 print $html "  <tr>\n    <th>test</th>\n";
 foreach my $date (@dates) {
     my $setup = $d{$date}{setup};
+    my $modes = $d{$date}{stepconf}{modes};
+    $modes = $modes ? "/$modes" : "";
     my $href = $setup ? "<a href=\"$setup\">" : "";
     my $enda = $href ? "</a>" : "";
-    print $html "    <th>${href}setup$enda</th>\n";
+    print $html "    <th>${href}setup$enda$modes</th>\n";
 }
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>first cvs checkout</th>\n";
