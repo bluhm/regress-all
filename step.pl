@@ -32,13 +32,14 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('B:E:h:N:R:r:S:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -h host [-r release] -B date -E date -S date mode ...
+usage: $0 [-v] -h host [-r release] -B date [-E date] [-S interval]
+    [-N repeat] [-R repmode] mode ...
     -h host	user and host for performance test, user defaults to root
     -v		verbose
     -r release	use release for install and cvs checkout
-    -B date	begin date
-    -E date	end date
-    -S duration	step in sec, min, hour, day, week, month, year
+    -B date	begin date, inclusive
+    -E date	end date, inclusive
+    -S interval	step in sec, min, hour, day, week, month, year
     -N repeat	number of build, reboot, test repetitions per step
     -R repmode	repetition mode for kernel: relink, reboot, keep
     mode ...	mode for machine setup: install, cvs, build, keep
