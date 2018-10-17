@@ -18,6 +18,7 @@
 use strict;
 use warnings;
 use Cwd;
+use Date::Parse;
 use Errno;
 use File::Basename;
 use HTML::Entities;
@@ -204,6 +205,38 @@ foreach my $result (@results) {
     ($d{$date}{$cvsdate}{dmesg} = $dmesg) =~ s,[^/]+/,, if -f $dmesg;
     ($d{$date}{$cvsdate}{quirks} = $quirks) =~ s,[^/]+/,, if -f $quirks;
 }
+
+# write test results into gnuplot data file
+
+-d "gnuplot" || mkdir "gnuplot"
+    or die "Create directory 'gnuplot' failed: $!";
+my %dfh;
+while (my ($date, $vd) = each %v) {
+    my $run = str2time($date);
+    while (my ($test, $vt) = each %$vd) {
+    	my $fh = $dfh{$test};
+	unless ($fh) {
+	    open($fh, '>', "gnuplot/$test.data")
+		or die "Open 'gnuplot/$test.data' for writing failed: $!";
+	    $dfh{$test} = $fh;
+	    print $fh "# run checkout repeat number\n";
+	}
+	while (my ($cvsdate, $vc) = each %$vt) {
+	    my $checkout = str2time($cvsdate);
+	    $vc = { 0 => $vc } if ref $vc ne 'HASH';
+	    while (my ($repeat, $vr) = each %$vc) {
+		my $number = $vr->[0] && $vr->[0]{number}
+		    or next;
+		print $fh "$run $checkout $repeat $number\n";
+	    }
+	}
+    }
+}
+while (my ($test, $fh) = each %dfh) {
+    close($fh)
+	or die "Close 'gnuplot/$test.data' after writing failed: $!";
+}
+undef %dfh;
 
 my @dates = reverse sort keys %d;
 
