@@ -238,14 +238,37 @@ while (my ($test, $fh) = each %dfh) {
 }
 undef %dfh;
 
+# create cvs log file with commits after previous cvsdates
+
+foreach my $dd (values %d) {
+    my %cvsdates;
+    @cvsdates{@{$dd->{cvsdates}}} = ();
+    @{$dd->{cvsdates}} = sort keys %cvsdates;
+    my $cvsprev;
+    foreach my $cvsdate (@{$dd->{cvsdates}}) {
+	if ($cvsprev) {
+	    my $cvslog = "cvslog/sys/$cvsprev-$cvsdate.txt";
+	    unless (-f $cvslog) {
+		my @cmd = ("$performdir/bin/cvslog.pl",
+		    "-B", $cvsprev, "-E", $cvsdate, "-P", "src/sys");
+		system(@cmd)
+		    and die "Command '@cmd' failed: $?";
+	    }
+	    if (-f $cvslog) {
+		$dd->{$cvsdate}{cvslog} = $cvslog;
+	    }
+	}
+	$cvsprev = $cvsdate;
+    }
+}
+
 my @dates = reverse sort keys %d;
 
 # html per date per cvsdate with repetitions
 
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
-    my @cvsdates = sort @{$d{$date}{cvsdates}};
-    foreach my $cvsdate (@cvsdates) {
+    foreach my $cvsdate (@{$d{$date}{cvsdates}}) {
 	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
 	my @repeats = sort @{$d{$date}{$cvsdate}{repeats} || []}
 	    or next;
@@ -409,7 +432,7 @@ FOOTER
 
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
-    my @cvsdates = sort @{$d{$date}{cvsdates}};
+    my @cvsdates = @{$d{$date}{cvsdates}};
 
     my $htmlfile = "$date/perform.html";
     unlink("$htmlfile.new");
@@ -497,6 +520,20 @@ HEADER
 	my $kernel = encode_entities($d{$date}{$cvsdate}{kernel});
 	print $html "    <th title=\"$kernel\">".
 	    "<a href=\"$version\">version</a></th>\n";
+    }
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>kernel cvs</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $cvslog = $d{$date}{$cvsdate}{cvslog};
+	unless ($cvslog) {
+	    print $html "    <th></th>\n";
+	    next;
+	}
+	my %files;
+	@files{@{$d{$date}{$cvsdate}{cvsfiles}}} = ();
+	my $files = encode_entities(join(" ", sort keys %files));
+	print $html "    <th title=\"$files\">".
+	    "<a href=\"../$cvslog\">log</a></th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
@@ -664,7 +701,7 @@ foreach my $date (@dates) {
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>first cvs checkout</th>\n";
 foreach my $date (@dates) {
-    my $cvsdate = (sort @{$d{$date}{cvsdates}})[0];
+    my $cvsdate = $d{$date}{cvsdates}[0];
     my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
     my $time = encode_entities($cvsdate);
     print $html "    <th title=\"$time\">$cvsshort</th>\n";
@@ -672,7 +709,7 @@ foreach my $date (@dates) {
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>last cvs checkout</th>\n";
 foreach my $date (@dates) {
-    my $cvsdate = (sort @{$d{$date}{cvsdates}})[-1];
+    my $cvsdate = $d{$date}{cvsdates}[-1];
     my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
     my $time = encode_entities($cvsdate);
     print $html "    <th title=\"$time\">$cvsshort</th>\n";
