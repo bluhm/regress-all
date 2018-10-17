@@ -159,15 +159,18 @@ while (<$cvs>) {
 	die "Unknown state '$state': $_";
     }
 }
+if ($state eq "header") {
+    my @keys = keys %commit;
+    @keys
+	and die "Unexpected keys '@keys' after log";
+} else {
+    die "Unexpected state '$state' after log";
+}
 
 close($cvs) or die $! ?
     "Close pipe from '@cvscmd' failed: $!" :
     "Command '@cvscmd' failed: $?";
 print "Pipe from command '@cvscmd' finished\n" if $verbose;
-
-use Data::Dumper;
-print Dumper(\%l);
-exit 0;
 
 # write result log file
 
@@ -179,4 +182,22 @@ my $cvslogdir = "results/cvslog/$module/$path";
 
 my $isobegin = strftime("%FT%TZ", gmtime($begin));
 my $isoend = strftime("%FT%TZ", gmtime($end));
-my $logfile = "$cvslogdir/$isobegin--$isoend.log";
+my $logfile = "$cvslogdir/$isobegin--$isoend.txt";
+
+open(my $fh, '>', $logfile)
+    or die "Open '$logfile' for writing failed: $!";
+
+foreach my $date (sort keys %l) {
+    while ((undef, my $commit) = each %{$l{$date}}) {
+	print $fh "\n";
+	my @files = @{$commit->{files}};
+	print $fh "FILES @files\n";
+	print $fh "DATE $date\n";
+	print $fh "AUTHOR $commit->{author}\n";
+	my @message = @{$commit->{message}};
+	print $fh "MESSAGE @message\n";
+    }
+}
+
+close($fh)
+    or die "Close '$logfile' after writing failed: $!";
