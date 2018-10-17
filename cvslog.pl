@@ -186,7 +186,9 @@ my $logfile = "$cvslogdir/$isobegin--$isoend.txt";
 
 open(my $fh, '>', $logfile)
     or die "Open '$logfile' for writing failed: $!";
-
+print $fh "BEGIN $isobegin\n";
+print $fh "END $isoend\n";
+print $fh "PATH $module/$path\n";
 foreach my $date (sort keys %l) {
     while ((undef, my $commit) = each %{$l{$date}}) {
 	print $fh "\n";
@@ -198,6 +200,5 @@ foreach my $date (sort keys %l) {
 	print $fh "MESSAGE @message\n";
     }
 }
-
 close($fh)
     or die "Close '$logfile' after writing failed: $!";
