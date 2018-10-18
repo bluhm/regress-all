@@ -256,6 +256,7 @@ foreach my $dd (values %d) {
 	    }
 	    if (-f $cvslog) {
 		$dd->{$cvsdate}{cvslog} = $cvslog;
+		# XXX fill $dd->{$cvsdate}{cvsfiles}}}
 	    }
 	}
 	$cvsprev = $cvsdate;
@@ -529,11 +530,14 @@ HEADER
 	    print $html "    <th></th>\n";
 	    next;
 	}
-	my %files;
-	@files{@{$d{$date}{$cvsdate}{cvsfiles}}} = ();
-	my $files = encode_entities(join(" ", sort keys %files));
-	print $html "    <th title=\"$files\">".
-	    "<a href=\"../$cvslog\">log</a></th>\n";
+	my $title = "";
+	if ($d{$date}{$cvsdate}{cvsfiles}) {
+	    my %files;
+	    @files{@{$d{$date}{$cvsdate}{cvsfiles}}} = ();
+	    my $files = encode_entities(join(" ", sort keys %files));
+	    $title = " title=\"$files\"";
+	}
+	print $html "    <th$title><a href=\"../$cvslog\">log</a></th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
