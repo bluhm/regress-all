@@ -56,50 +56,66 @@ foreach my $date (@dates) {
     $d{$date}{cvsdates} = \@cvsdates;
 
     foreach my $cvsdate ("", @cvsdates) {
-	my $subdir = "$dir/$cvsdate";
-	chdir($subdir)
-	    or die "Chdir to '$subdir' failed: $!";
-	my %h;
-	foreach my $version (glob("version-*.txt")) {
-	    my ($host) = $version =~ m,version-(.*)\.txt,;
-	    open(my $fh, '<', $version)
-		or die "Open '$version' for reading failed: $!";
-	    my ($time, $short, $arch);
-	    while (<$fh>) {
-		/^kern.version=.*: ((\w+ \w+ +\d+) .*)$/ and
-		    ($time, $short) = ($1, $2);
-		/^hw.machine=(\w+)$/ and $arch = $1;
+	chdir("$dir/$cvsdate")
+	    or die "Chdir to '$dir/$cvsdate' failed: $!";
+
+	my @repeats = grep { -d $_ } glob("[0-9][0-9][0-9]");
+	$d{$date}{$cvsdate}{repeats} = \@repeats;
+
+	foreach my $repeat ("", @repeats) {
+	    chdir("$dir/$cvsdate/$repeat")
+		or die "Chdir to '$dir/$cvsdate/$repeat' failed: $!";
+
+	    my %h;
+	    foreach my $version (glob("version-*.txt")) {
+		my ($host) = $version =~ m,version-(.*)\.txt,;
+		open(my $fh, '<', $version)
+		    or die "Open '$version' for reading failed: $!";
+		my ($time, $short, $arch);
+		while (<$fh>) {
+		    /^kern.version=.*: ((\w+ \w+ +\d+) .*)$/ and
+			($time, $short) = ($1, $2);
+		    /^hw.machine=(\w+)$/ and $arch = $1;
+		}
+		$time or next;
+		(my $dmesg = $version) =~ s,version,dmesg,;
+		(my $dmesgboot = $version) =~ s,version,dmesg-boot,;
+		(my $diff = $version) =~ s,version,diff,;
+		(my $quirks = $version) =~ s,version,quirks,;
+		my $subdir = "";
+		$subdir .= "$cvsdate/" if $cvsdate;
+		$subdir .= "$repeat/" if $repeat;
+		$h{$host} = {
+		    version   => $subdir.$version,
+		    time      => $time,
+		    short     => $short,
+		    arch      => $arch,
+		    dmesg     => -f $dmesg ? $subdir.$dmesg : undef,
+		    dmesgboot => -f $dmesgboot ? $subdir.$dmesgboot : undef,
+		    diff      => -f $diff ? $subdir.$diff : undef,
+		    quirks    => -f $quirks ? $subdir.$quirks : undef,
+		};
+		$m{$host}++;
 	    }
-	    $time or next;
-	    (my $dmesg = $version) =~ s,version,dmesg,;
-	    (my $dmesgboot = $version) =~ s,version,dmesg-boot,;
-	    (my $diff = $version) =~ s,version,diff,;
-	    (my $quirks = $version) =~ s,version,quirks,;
-	    my $cvsdir = $cvsdate ? "$cvsdate/" : "";
-	    $h{$host} = {
-		version   => $cvsdir.$version,
-		time      => $time,
-		short     => $short,
-		arch      => $arch,
-		dmesg     => -f $dmesg ? $cvsdir.$dmesg : undef,
-		dmesgboot => -f $dmesgboot ? $cvsdir.$dmesgboot : undef,
-		diff      => -f $diff ? $cvsdir.$diff : undef,
-		quirks    => -f $quirks ? $cvsdir.$quirks : undef,
-	    };
-	    $m{$host}++;
-	}
-	foreach my $setup (glob("setup-*.log")) {
-	    my ($host) = $setup =~ m,setup-(.*)\.log,;
-	    $h{$host}{setup} = $setup,
-	}
-	foreach my $build (glob("cvsbuild-*.log")) {
-	    my ($host) = $build =~ m,cvsbuild-(.*)\.log,;
-	    $h{$host}{build} = "$cvsdate/$build",
-	}
-	if ($cvsdate) {
-	    $d{$date}{$cvsdate}{host} = \%h;
-	} else {
-	    $d{$date}{host} = \%h;
+	    foreach my $setup (glob("setup-*.log")) {
+		my ($host) = $setup =~ m,setup-(.*)\.log,;
+		$h{$host}{setup} = $setup,
+	    }
+	    foreach my $build (glob("cvsbuild-*.log")) {
+		my ($host) = $build =~ m,cvsbuild-(.*)\.log,;
+		$h{$host}{build} = "$cvsdate/$build",
+	    }
+	    foreach my $reboot (glob("reboot-*.log")) {
+		my ($host) = $reboot =~ m,reboot-(.*)\.log,;
+		$h{$host}{reboot} = "$cvsdate/$reboot",
+	    }
+	    if ($repeat) {
+		$d{$date}{$cvsdate}{$repeat}{host} = \%h;
+	    } elsif ($cvsdate) {
+		$d{$date}{$cvsdate}{host} = \%h;
+	    } else {
+		$d{$date}{host} = \%h;
+	    }
 	}
     }
     chdir($dir)
