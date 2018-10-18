@@ -247,7 +247,7 @@ foreach my $dd (values %d) {
     my $cvsprev;
     foreach my $cvsdate (@{$dd->{cvsdates}}) {
 	if ($cvsprev) {
-	    my $cvslog = "cvslog/sys/$cvsprev-$cvsdate.txt";
+	    my $cvslog = "cvslog/src/sys/$cvsprev--$cvsdate.txt";
 	    unless (-f $cvslog) {
 		my @cmd = ("$performdir/bin/cvslog.pl",
 		    "-B", $cvsprev, "-E", $cvsdate, "-P", "src/sys");
