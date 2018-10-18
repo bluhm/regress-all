@@ -32,7 +32,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('d:h:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] -h host [-r relese] mode ...
+usage: $0 [-v] [-d date] -h host [-r release] mode ...
     -d date	set date string and change to sub directory
     -h host	root\@openbsd-test-machine, login per ssh
     -r release	use release for install and cvs checkout
