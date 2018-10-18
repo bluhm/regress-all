@@ -210,8 +210,9 @@ foreach my $result (@results) {
 
 -d "gnuplot" || mkdir "gnuplot"
     or die "Create directory 'gnuplot' failed: $!";
-open(my $fh, '>', "gnuplot/test.data")
-    or die "Open 'gnuplot/test.data' for writing failed: $!";
+my $testdata = "gnuplot/test.data";
+open(my $fh, '>', "$testdata.new")
+    or die "Open '$testdata.new' for writing failed: $!";
 print $fh "# test subtest run checkout repeat value unit\n";
 foreach my $date (sort keys %v) {
     my $vd = $v{$date};
@@ -227,14 +228,18 @@ foreach my $date (sort keys %v) {
 		foreach my $value (@{$vr || []}) {
 		    my $number = $value->{number};
 		    my $unit = $value->{unit};
-		    print $fh "$test $run $checkout $repeat $number $unit\n";
+		    my $subtest = $value->{name} || "unknown";
+		    print $fh "$test $subtest $run $checkout $repeat ".
+			"$number $unit\n";
 		}
 	    }
 	}
     }
 }
 close($fh)
-    or die "Close 'gnuplot/test.data' after writing failed: $!";
+    or die "Close '$testdata.new' after writing failed: $!";
+rename("$testdata.new", $testdata)
+    or die "Rename '$testdata.new' to '$testdata' failed: $!";
 
 # create cvs log file with commits after previous cvsdates
 
