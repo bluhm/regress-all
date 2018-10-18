@@ -38,6 +38,7 @@ usage: $0 [-v] [-d date] [-D cvsdate] -h host [-R repeat] [mode ...]
     -R repeat	repetition number
     -v		verbose
     reorder	relink kernel using the reorder kernel script
+    reboot	reboot, this is always done
 EOF
     exit(2);
 };
@@ -47,7 +48,7 @@ my $cvsdate = $opts{D};
 my $repeat = $opts{R};
 
 my %allmodes;
-@allmodes{qw(reorder)} = ();
+@allmodes{qw(reorder reboot)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
