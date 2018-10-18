@@ -184,8 +184,8 @@ my $isobegin = strftime("%FT%TZ", gmtime($begin));
 my $isoend = strftime("%FT%TZ", gmtime($end));
 my $logfile = "$cvslogdir/$isobegin--$isoend.txt";
 
-open(my $fh, '>', $logfile)
-    or die "Open '$logfile' for writing failed: $!";
+open(my $fh, '>', "$logfile.new")
+    or die "Open '$logfile.new' for writing failed: $!";
 print $fh "BEGIN $isobegin\n";
 print $fh "END $isoend\n";
 print $fh "PATH $module/$path\n";
@@ -201,4 +201,7 @@ foreach my $date (sort keys %l) {
     }
 }
 close($fh)
-    or die "Close '$logfile' after writing failed: $!";
+    or die "Close '$logfile.new' after writing failed: $!";
+rename("$logfile.new", $logfile)
+    or die "Rename '$logfile.new' to '$logfile' failed: $!";
+
