@@ -210,33 +210,31 @@ foreach my $result (@results) {
 
 -d "gnuplot" || mkdir "gnuplot"
     or die "Create directory 'gnuplot' failed: $!";
-my %dfh;
-while (my ($date, $vd) = each %v) {
+open(my $fh, '>', "gnuplot/test.data")
+    or die "Open 'gnuplot/test.data' for writing failed: $!";
+print $fh "# test subtest run checkout repeat value unit\n";
+foreach my $date (sort keys %v) {
+    my $vd = $v{$date};
     my $run = str2time($date);
-    while (my ($test, $vt) = each %$vd) {
-    	my $fh = $dfh{$test};
-	unless ($fh) {
-	    open($fh, '>', "gnuplot/$test.data")
-		or die "Open 'gnuplot/$test.data' for writing failed: $!";
-	    $dfh{$test} = $fh;
-	    print $fh "# run checkout repeat number\n";
-	}
-	while (my ($cvsdate, $vc) = each %$vt) {
+    foreach my $test (sort keys %$vd) {
+	my $vt = $vd->{$test};
+	foreach my $cvsdate (sort keys %$vt) {
+	    my $vc = $vt->{$cvsdate};
 	    my $checkout = str2time($cvsdate);
 	    $vc = { 0 => $vc } if ref $vc ne 'HASH';
-	    while (my ($repeat, $vr) = each %$vc) {
-		my $number = $vr->[0] && $vr->[0]{number}
-		    or next;
-		print $fh "$run $checkout $repeat $number\n";
+	    foreach my $repeat (sort keys %$vc) {
+		my $vr = $vc->{$repeat};
+		foreach my $value (@{$vr || []}) {
+		    my $number = $value->{number};
+		    my $unit = $value->{unit};
+		    print $fh "$test $run $checkout $repeat $number $unit\n";
+		}
 	    }
 	}
     }
 }
-while (my ($test, $fh) = each %dfh) {
-    close($fh)
-	or die "Close 'gnuplot/$test.data' after writing failed: $!";
-}
-undef %dfh;
+close($fh)
+    or die "Close 'gnuplot/test.data' after writing failed: $!";
 
 # create cvs log file with commits after previous cvsdates
 
