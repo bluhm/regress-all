@@ -89,6 +89,12 @@ PATCH
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "usr.bin/top", "usr.bin/systat" ],
     },
+    '2018-05-16T14:53:43Z' => {
+	comment => "Add kern.witnesswatch sysctl",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/sysctl" ],
+    },
     '2018-06-03T21:30:38Z' => {
 	comment => "add ret protector options as no-ops",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
