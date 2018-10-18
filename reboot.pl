@@ -91,6 +91,6 @@ exit;
 sub reorder_kernel {
     my $cksum = "/var/db/kernel.SHA256";
     logcmd('ssh', "$user\@$host", "sha256 -h /var/db/kernel.SHA256 /bsd");
-    logcmd('ssh', "$user\@$host", "usr/libexec/reorder_kernel");
+    logcmd('ssh', "$user\@$host", "/usr/libexec/reorder_kernel");
     logcmd('ssh', "$user\@$host", "rm /var/db/kernel.SHA256");
 }
