@@ -17,6 +17,7 @@ Hostctl.pm	- run commands on all tests hosts to configure them
 Logcmd.pm	- common log funtions for run.pl, setp.pl, and setup.pl
 Machine.pm	- functions to setup a single machine
 cleanup.pl	- remove old test logs to recover disk space
+cvsbuild.pl	- checkout kernel at certain cvs date and install it
 env-ot1.sh	- environment variables to be set on the test machine ot1
 mktestlist.pl	- find possible names of tests in regress directory
 perform-html.pl	- convert performance test results into html table
@@ -24,13 +25,14 @@ perform.pl	- run one set up performace test on test machine,
 		  this is started by step.pl
 pkg-ot1.list	- list of packages that must be installed on test machine ot1
 pkg-ot2.list	- list of packages that must be installed on test machine ot2
+reboot.pl	- reboot machine, after optionally reordering kernel
 regress-html.pl	- convert all regression test results into html table
 regress.pl	- run one openbsd regression test on test machine,
 		  this is started by run.pl
 run.pl		- do regression tests, add this to cron job
 setup-html.pl	- convert machine setup logs into html table
 setup.pl	- install one test machine,
-		  this is started by run.pl
+		  this is started by run.pl and step.pl
 site.list	- list of config files that must be installed on test machine
 step.pl		- do performance tests, add this to cron job
 test.list	- list of /usr/src/regress subdirectories that should be tested
