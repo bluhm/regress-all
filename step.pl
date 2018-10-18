@@ -41,7 +41,7 @@ usage: $0 [-v] -h host [-r release] -B date [-E date] [-S interval]
     -E date	end date, inclusive
     -S interval	step in sec, min, hour, day, week, month, year
     -N repeat	number of build, reboot, test repetitions per step
-    -R repmode	repetition mode for kernel: relink, reboot, keep
+    -R repmode	repetition mode for kernel: reorder, reboot, keep
     mode ...	mode for machine setup: install, cvs, build, keep
 EOF
     exit(2);
@@ -73,7 +73,7 @@ $repeat >= 1
 $opts{N} && $opts{R} or !$opts{N} && !$opts{R}
     or die "Repeat number and repeat mode must be used together";
 my %allrepmodes;
-@allrepmodes{qw(relink reboot keep)} = ();
+@allrepmodes{qw(reorder reboot keep)} = ();
 !$opts{R} || exists $allrepmodes{$opts{R}}
     or die "Unknown repetition mode '$opts{R}'";
 my %repmode = ($opts{R} => 1);
@@ -174,7 +174,12 @@ for (my $current = $begin; $current <= $end;) {
 	collect_result("$opts{h}:/root/perform");
 
 	if ($repeat > 1) {
-	    reorder_kernel(mode => \%repmode) unless $repmode{keep};
+	    unless ($repmode{keep}) {
+		reboot_hosts(cvsdate => $cvsdate, repeat => $repeatdir,
+		    mode => \%repmode);
+		collect_version();
+		runcmd("$performdir/bin/setup-html.pl");
+	    }
 	    chdir("..")
 		or die "Chdir to '..' failed: $!";
 	}

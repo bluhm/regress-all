@@ -26,7 +26,7 @@ use Machine;
 use parent 'Exporter';
 our @EXPORT= qw(usehosts setup_hosts
     collect_version collect_dmesg collect_result
-    cvsbuild_hosts reorder_kernel
+    cvsbuild_hosts reboot_hosts
 );
 
 my ($bindir, $user, $firsthost, $lasthost, $date, $verbose);
@@ -159,8 +159,8 @@ sub cvsbuild_hosts {
 
     my @pidcmds;
     for (my $host = $firsthost; $host le $lasthost; $host++) {
-	my @cvscmd = ("$bindir/cvsbuild.pl",
-	    '-h', "$user\@$host", '-d', $date, '-D', $cvsdate);
+	my @cvscmd = ("$bindir/cvsbuild.pl", '-h', "$user\@$host",
+	    '-d', $date, '-D', $cvsdate);
 	push @cvscmd, '-v' if $verbose;
 	push @pidcmds, forkcmd(@cvscmd);
     }
@@ -173,29 +173,27 @@ sub cvsbuild_hosts {
     }
 }
 
-sub reorder_kernel {
+sub reboot_hosts {
     my %args = @_;
-    my $mode = delete $args{mode};
+    my $cvsdate = delete $args{cvsdate};
+    my $repeat = delete $args{repeat};
+    my %mode = %{delete $args{mode}};
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
 
-    my $cksum = "/var/db/kernel.SHA256";
     my @pidcmds;
-    if ($mode->{relink}) {
-	for (my $host = $firsthost; $host le $lasthost; $host++) {
-	    my $relinkcmd =
-		"sha256 -h $cksum /bsd; usr/libexec/reorder_kernel; rm $cksum";
-	    my @sshcmd = ('ssh', "$user\@$host", $relinkcmd);
-	    push @pidcmds, forkcmd(@sshcmd);
-	}
-	waitcmd(@pidcmds);
+    for (my $host = $firsthost; $host le $lasthost; $host++) {
+	my @rebootcmd = ("$bindir/reboot.pl", '-h', "$user\@$host",
+	    '-d', $date, '-D', $cvsdate, '-R', $repeat);
+	push @rebootcmd, '-v' if $verbose;
+	push @rebootcmd, keys %mode;
+	push @pidcmds, forkcmd(@rebootcmd);
     }
-    undef @pidcmds;
-    if ($mode->{relink} || $mode->{reboot}) {
-	for (my $host = $firsthost; $host le $lasthost; $host++) {
-	    my @sshcmd = ('ssh', "$host\@$Machine::testmaster", "reboot");
-	    push @pidcmds, forkcmd(@sshcmd);
-	}
+    if (@pidcmds) {
+	# create new summary with setup log
+	sleep 5;
+	runcmd("$bindir/setup-html.pl");
+
 	waitcmd(@pidcmds);
     }
 }
