@@ -28,7 +28,7 @@ our @EXPORT= qw(quirk_comments quirk_patches quirk_commands);
 my %quirks = (
     '2018-04-05T03:32:39Z' => {
 	comment => "remove PF_TRANS_ALTQ",
-	updatedirs => [ "sys/net" ],
+	updatedirs => [ "sys" ],
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
