@@ -60,7 +60,7 @@ foreach my $date (@dates) {
 	    or die "Chdir to '$dir/$cvsdate' failed: $!";
 
 	my @repeats = grep { -d $_ } glob("[0-9][0-9][0-9]");
-	$d{$date}{$cvsdate}{repeats} = \@repeats;
+	$d{$date}{$cvsdate}{repeats} = \@repeats if $cvsdate;
 
 	foreach my $repeat ("", @repeats) {
 	    chdir("$dir/$cvsdate/$repeat")
@@ -107,7 +107,7 @@ foreach my $date (@dates) {
 	    }
 	    foreach my $reboot (glob("reboot-*.log")) {
 		my ($host) = $reboot =~ m,reboot-(.*)\.log,;
-		$h{$host}{reboot} = "$cvsdate/$reboot",
+		$h{$host}{reboot} = "$cvsdate/$repeat/$reboot",
 	    }
 	    if ($repeat) {
 		$d{$date}{$cvsdate}{$repeat}{host} = \%h;
@@ -168,7 +168,10 @@ foreach my $date (@dates) {
     print $html "</table>\n";
     print $html "<table>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
-    print $html "    <th>checkout</th>\n";
+    print $html "    <th>repeat</th>\n"
+	if @cvsdates && @{$d{$date}{$cvsdates[0]}{repeats}};
+    print $html "    <th>checkout</th>\n"
+	if @cvsdates;
     print $html "    <th>kernel</th>\n";
     print $html "    <th>arch</th>\n";
     print $html "    <th>setup</th>\n";
@@ -177,58 +180,69 @@ foreach my $date (@dates) {
     print $html "    <th>quirks</th>\n";
     print $html "  </tr>\n";
 
+    my $h = $d{$date}{host};
     foreach my $cvsdate ("", @cvsdates) {
-	my $h = $cvsdate ? $d{$date}{$cvsdate}{host} : $d{$date}{host};
-	foreach my $host (sort keys %$h) {
-	    print $html "  <tr>\n    <th>$host</th>\n";
-	    if ($cvsdate) {
-		(my $cvsshort = $cvsdate) =~ s/T.*//;
-		print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
-	    } else {
-		print $html "    <td/>\n";
+	$h = $d{$date}{$cvsdate}{host} if $cvsdate;
+	my @repeats = $cvsdate ? @{$d{$date}{$cvsdate}{repeats}} : ();
+	foreach my $repeat ("", @repeats) {
+	    $h = $d{$date}{$cvsdate}{$repeat}{host} if $repeat;
+	    foreach my $host (sort keys %$h) {
+		print $html "  <tr>\n    <th>$host</th>\n";
+		if ($repeat) {
+		    print $html "    <td>$repeat</td>\n";
+		} elsif (@cvsdates && @{$d{$date}{$cvsdates[0]}{repeats}}) {
+		    print $html "    <td></td>\n";
+		}
+		if ($cvsdate) {
+		    (my $cvsshort = $cvsdate) =~ s/T.*//;
+		    print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
+		} elsif (@cvsdates) {
+		    print $html "    <td></td>\n";
+		}
+		my $version = $h->{$host}{version};
+		my $time = encode_entities($h->{$host}{time});
+		my $short = $h->{$host}{short};
+		my $arch = encode_entities($h->{$host}{arch}) || "";
+		my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
+		    $h->{$host}{reboot};
+		my $dmesg = $h->{$host}{dmesg};
+		my $dmesgboot = $h->{$host}{dmesgboot};
+		my $diff = $h->{$host}{diff};
+		my $quirks = $h->{$host}{quirks};
+		if ($version) {
+		    print $html "    <td title=\"$time\">".
+			"<a href=\"$version\">$short</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		print $html "    <td>$arch</td>\n";
+		if ($setup) {
+		    print $html "    <td><a href=\"$setup\">log</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($dmesgboot) {
+		    print $html "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($dmesg) {
+		    print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($diff) {
+		    print $html "    <td><a href=\"$diff\">diff</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($quirks) {
+		    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		print $html "  </tr>\n";
 	    }
-	    my $version = $h->{$host}{version};
-	    my $time = encode_entities($h->{$host}{time});
-	    my $short = $h->{$host}{short};
-	    my $arch = encode_entities($h->{$host}{arch}) || "";
-	    my $setup = $h->{$host}{setup} || $h->{$host}{build};
-	    my $dmesg = $h->{$host}{dmesg};
-	    my $dmesgboot = $h->{$host}{dmesgboot};
-	    my $diff = $h->{$host}{diff};
-	    my $quirks = $h->{$host}{quirks};
-	    if ($version) {
-		print $html "    <td title=\"$time\">".
-		    "<a href=\"$version\">$short</a></td>\n";
-	    } else {
-		print $html "    <td/>\n";
-	    }
-	    print $html "    <td>$arch</td>\n";
-	    if ($setup) {
-		print $html "    <td><a href=\"$setup\">log</a></td>\n";
-	    } else {
-		print $html "    <td/>\n";
-	    }
-	    if ($dmesgboot) {
-		print $html "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
-	    } else {
-		print $html "    <td/>\n";
-	    }
-	    if ($dmesg) {
-		print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
-	    } else {
-		print $html "    <td/>\n";
-	    }
-	    if ($diff) {
-		print $html "    <td><a href=\"$diff\">diff</a></td>\n";
-	    } else {
-		print $html "    <td/>\n";
-	    }
-	    if ($quirks) {
-		print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
-	    } else {
-		print $html "    <td/>\n";
-	    }
-	    print $html "  </tr>\n";
 	}
     }
     print $html "</table>\n";
@@ -297,38 +311,38 @@ foreach my $date (@dates) {
 		print $html "    <td title=\"$time\">".
 		    "<a href=\"$version\">$short</a></td>\n";
 	    } else {
-		print $html "    <td/>\n";
+		print $html "    <td></td>\n";
 	    }
 	    print $html "    <td>$arch</td>\n";
 	    if ($build) {
 		$build =~ s,[^/]+/,,;
 		print $html "    <td><a href=\"$build\">log</a></td>\n";
 	    } else {
-		print $html "    <td/>\n";
+		print $html "    <td></td>\n";
 	    }
 	    if ($dmesgboot) {
 		$dmesgboot =~ s,[^/]+/,,;
 		print $html "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
 	    } else {
-		print $html "    <td/>\n";
+		print $html "    <td></td>\n";
 	    }
 	    if ($dmesg) {
 		$dmesg =~ s,[^/]+/,,;
 		print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
 	    } else {
-		print $html "    <td/>\n";
+		print $html "    <td></td>\n";
 	    }
 	    if ($diff) {
 		$diff =~ s,[^/]+/,,;
 		print $html "    <td><a href=\"$diff\">diff</a></td>\n";
 	    } else {
-		print $html "    <td/>\n";
+		print $html "    <td></td>\n";
 	    }
 	    if ($quirks) {
 		$quirks =~ s,[^/]+/,,;
 		print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
 	    } else {
-		print $html "    <td/>\n";
+		print $html "    <td></td>\n";
 	    }
 	    print $html "  </tr>\n";
 	}
