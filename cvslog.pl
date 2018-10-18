@@ -204,4 +204,3 @@ close($fh)
     or die "Close '$logfile.new' after writing failed: $!";
 rename("$logfile.new", $logfile)
     or die "Rename '$logfile.new' to '$logfile' failed: $!";
-
