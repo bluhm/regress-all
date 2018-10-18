@@ -83,6 +83,12 @@ PATCH
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
+    '2018-05-14T12:31:21Z' => {
+	comment => "report CPU spinning time",
+	updatedirs => [ "sys", "usr.bin/top", "usr.bin/systat" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "usr.bin/top", "usr.bin/systat" ],
+    },
     '2018-06-03T21:30:38Z' => {
 	comment => "add ret protector options as no-ops",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
