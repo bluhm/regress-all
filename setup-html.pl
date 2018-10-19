@@ -134,7 +134,7 @@ foreach my $date (@dates) {
     print $html "</head>\n";
 
     print $html "<body>\n";
-    print $html "<h1>OpenBSD $typename test machine</h1>\n";
+    print $html "<h1>OpenBSD $typename test machine setup</h1>\n";
     print $html "<table>\n";
     print $html "  <tr>\n    <th>created at</th>\n";
     print $html "    <td>$now</td>\n";
@@ -222,7 +222,8 @@ foreach my $date (@dates) {
 		    print $html "    <td></td>\n";
 		}
 		if ($dmesgboot) {
-		    print $html "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
+		    print $html
+			"    <td><a href=\"$dmesgboot\">boot</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
@@ -272,7 +273,7 @@ foreach my $date (@dates) {
 	print $html "</head>\n";
 
 	print $html "<body>\n";
-	print $html "<h1>OpenBSD perform test machine</h1>\n";
+	print $html "<h1>OpenBSD perform test machine build</h1>\n";
 	print $html "<table>\n";
 	print $html "  <tr>\n    <th>created at</th>\n";
 	print $html "    <td>$now</td>\n";
@@ -332,7 +333,8 @@ foreach my $date (@dates) {
 		}
 		if ($dmesgboot) {
 		    $dmesgboot =~ s,[^/]+/,,;
-		    print $html "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
+		    print $html
+			"    <td><a href=\"$dmesgboot\">boot</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
@@ -365,6 +367,116 @@ foreach my $date (@dates) {
 	    or die "Close 'build.html.new' after writing failed: $!";
 	rename("build.html.new", "build.html")
 	    or die "Rename 'build.html.new' to 'build.html' failed: $!";
+
+
+	foreach my $repeat (@repeats) {
+	    my $subdir = "$dir/$cvsdate/$repeat";
+	    chdir($subdir)
+		or die "Chdir to '$subdir' failed: $!";
+
+	    unlink("reboot.html.new");
+	    open(my $html, '>', "reboot.html.new")
+		or die "Open 'reboot.html.new' for writing failed: $!";
+	    print $html "<!DOCTYPE html>\n";
+	    print $html "<html>\n";
+	    print $html "<head>\n";
+	    print $html "  <title>OpenBSD Machine Reboot</title>\n";
+	    print $html "  <style>th { text-align: left; }</style>\n";
+	    print $html "</head>\n";
+
+	    print $html "<body>\n";
+	    print $html "<h1>OpenBSD perform test machine reboot</h1>\n";
+	    print $html "<table>\n";
+	    print $html "  <tr>\n    <th>created at</th>\n";
+	    print $html "    <td>$now</td>\n";
+	    print $html "  </tr>\n";
+	    print $html "  <tr>\n    <th>run at</th>\n";
+	    print $html "    <td>$date</td>\n";
+	    print $html "  </tr>\n";
+	    print $html "  <tr>\n    <th>cvs checkout</th>\n";
+	    print $html "    <td>$cvsdate</td>\n";
+	    print $html "  </tr>\n";
+	    print $html "  <tr>\n    <th>repetition</th>\n";
+	    print $html "    <td>$repeat</td>\n";
+	    print $html "  </tr>\n";
+	    print $html "</table>\n";
+	    print $html "<table>\n";
+	    print $html "  <tr>\n    <th>machine</th>\n";
+	    print $html "    <th>repeat</th>\n";
+	    print $html "    <th>checkout</th>\n";
+	    print $html "    <th>kernel</th>\n";
+	    print $html "    <th>arch</th>\n";
+	    print $html "    <th>reboot</th>\n";
+	    print $html "    <th colspan=\"2\">dmesg</th>\n";
+	    print $html "    <th>diff</th>\n";
+	    print $html "    <th>quirks</th>\n";
+	    print $html "  </tr>\n";
+	    $h = $d{$date}{$cvsdate}{$repeat}{host};
+	    foreach my $host (sort keys %$h) {
+		print $html "  <tr>\n    <th>$host</th>\n";
+		print $html "    <td>$repeat</td>\n";
+		(my $cvsshort = $cvsdate) =~ s/T.*//;
+		print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
+		my $version = $h->{$host}{version};
+		my $time = encode_entities($h->{$host}{time});
+		my $short = $h->{$host}{short};
+		my $arch = encode_entities($h->{$host}{arch}) || "";
+		my $reboot = $h->{$host}{reboot};
+		my $dmesg = $h->{$host}{dmesg};
+		my $dmesgboot = $h->{$host}{dmesgboot};
+		my $diff = $h->{$host}{diff};
+		my $quirks = $h->{$host}{quirks};
+		if ($version) {
+		    $version =~ s,[^/]+/[^/]+/,,;
+		    print $html "    <td title=\"$time\">".
+			"<a href=\"$version\">$short</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		print $html "    <td>$arch</td>\n";
+		if ($reboot) {
+		    $reboot =~ s,[^/]+/[^/]+/,,;
+		    print $html
+			"    <td><a href=\"$reboot\">log</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($dmesgboot) {
+		    $dmesgboot =~ s,[^/]+/[^/]+/,,;
+		    print $html
+			"    <td><a href=\"$dmesgboot\">boot</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($dmesg) {
+		    $dmesg =~ s,[^/]+/[^/]+/,,;
+		    print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($diff) {
+		    $diff =~ s,[^/]+/[^/]+/,,;
+		    print $html "    <td><a href=\"$diff\">diff</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($quirks) {
+		    $quirks =~ s,[^/]+/[^/]+/,,;
+		    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		print $html "  </tr>\n";
+	    }
+	    print $html "</table>\n";
+	    print $html "</body>\n";
+
+	    print $html "</html>\n";
+	    close($html)
+		or die "Close 'reboot.html.new' after writing failed: $!";
+	    rename("reboot.html.new", "reboot.html")
+		or die "Rename 'reboot.html.new' to 'reboot.html' failed: $!";
+	}
     }
 }
 
@@ -382,7 +494,7 @@ print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
 <head>
-  <title>OpenBSD Regress Run</title>
+  <title>OpenBSD Test Run</title>
   <style>th { text-align: left; }</style>
 </head>
 
