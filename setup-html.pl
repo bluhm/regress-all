@@ -519,29 +519,38 @@ foreach my $host (sort keys %m) {
 print $html "  </tr>\n";
 
 foreach my $date (reverse sort keys %d) {
-    foreach my $cvsdate (reverse "", @{$d{$date}{cvsdates} || []}) {
-	my $h;
-	if ($cvsdate) {
-	    print $html "  <tr>\n    <th></th>\n";
-	    $h = $d{$date}{$cvsdate}{host};
-	} else {
-	    my $log = $d{$date}{log} || "";
-	    my $logfile = "$date/$log";
-	    my $href = $log ? "<a href=\"$logfile\">" : "";
-	    my $enda = $href ? "</a>" : "";
-	    print $html "  <tr>\n    <th>$href$date$enda</th>\n";
-	    $h = $d{$date}{host};
+    my @cvsdates = @{$d{$date}{cvsdates} || []};
+    foreach my $cvsdate (reverse "", @cvsdates) {
+	my @repeats = $cvsdate ? @{$d{$date}{$cvsdate}{repeats} || []} : ();
+	foreach my $repeat (reverse "", @repeats) {
+	    my $h;
+	    if ($repeat) {
+		print $html "  <tr>\n    <th></th>\n";
+		$h = $d{$date}{$cvsdate}{$repeat}{host};
+	    } elsif ($cvsdate) {
+		print $html "  <tr>\n    <th></th>\n";
+		$h = $d{$date}{$cvsdate}{host};
+	    } else {
+		my $log = $d{$date}{log} || "";
+		my $logfile = "$date/$log";
+		my $href = $log ? "<a href=\"$logfile\">" : "";
+		my $enda = $href ? "</a>" : "";
+		print $html "  <tr>\n    <th>$href$date$enda</th>\n";
+		$h = $d{$date}{host};
+	    }
+	    foreach my $host (sort keys %m) {
+		my $time = encode_entities($repeat || $cvsdate ||
+		    $h->{$host}{time}) || "";
+		my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
+		    $h->{$host}{reboot} || "";
+		$time ||= "log" if $setup;
+		my $log = "$date/$setup";
+		my $href = $setup ? "<a href=\"$log\">" : "";
+		my $enda = $href ? "</a>" : "";
+		print $html "    <td>$href$time$enda</td>\n";
+	    }
+	    print $html "  </tr>\n";
 	}
-	foreach my $host (sort keys %m) {
-	    my $time = encode_entities($cvsdate || $h->{$host}{time}) || "";
-	    my $setup = $h->{$host}{setup} || $h->{$host}{build} || "";
-	    $time ||= "log" if $setup;
-	    my $log = "$date/$setup";
-	    my $href = $setup ? "<a href=\"$log\">" : "";
-	    my $enda = $href ? "</a>" : "";
-	    print $html "    <td>$href$time$enda</td>\n";
-	}
-	print $html "  </tr>\n";
     }
 }
 print $html "</table>\n";
