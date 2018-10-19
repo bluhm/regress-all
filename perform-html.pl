@@ -107,6 +107,11 @@ foreach my $result (@results) {
     $d{$date}{setup} ||= "$date/setup.html" if -f "$date/setup.html";
     $d{$date}{$cvsdate}{build} ||= "$date/$cvsdate/build.html"
 	if -f "$date/$cvsdate/build.html";
+    if (defined $repeat) {
+	$d{$date}{$cvsdate}{$repeat}{reboot} ||=
+	    "$date/$cvsdate/$repeat/reboot.html"
+	    if -f "$date/$cvsdate/$repeat/reboot.html";
+    }
     $_->{severity} *= .5 foreach values %t;
     open(my $fh, '<', $result)
 	or die "Open '$result' for reading failed: $!";
@@ -331,6 +336,19 @@ HEADER
 	print $html "  <tr>\n    <th>repeat</th>\n";
 	foreach my $repeat (@repeats) {
 	    print $html "    <th>$repeat</th>\n";
+	}
+	print $html "  </tr>\n";
+	print $html "  <tr>\n    <th>machine</th>\n";
+	foreach my $repeat (@repeats) {
+	    if ($repmode) {
+		my $reboot = $d{$date}{$cvsdate}{$repeat}{reboot};
+		$reboot =~ s,[^/]+/[^/]+/,, if $reboot;
+		my $href = $reboot ? "<a href=\"$reboot\">" : "";
+		my $enda = $href ? "</a>" : "";
+		print $html "    <th>$href$repmode$enda</th>\n";
+	    } else {
+		print $html "    <th></th>\n";
+	    }
 	}
 	print $html "  </tr>\n";
 	my @tests = sort keys %t;

@@ -120,9 +120,12 @@ foreach my $date (@dates) {
     }
     chdir($dir)
 	or die "Chdir to '$dir' failed: $!";
-
     $typename = "regress" if -f "run.log";
     $typename = "perform" if -f "step.log";
+
+    my $h = $d{$date}{host};
+    next unless keys %$h;
+
     unlink("setup.html.new");
     open(my $html, '>', "setup.html.new")
 	or die "Open 'setup.html.new' for writing failed: $!";
@@ -179,8 +182,6 @@ foreach my $date (@dates) {
     print $html "    <th>diff</th>\n";
     print $html "    <th>quirks</th>\n";
     print $html "  </tr>\n";
-
-    my $h = $d{$date}{host};
     foreach my $cvsdate ("", @cvsdates) {
 	$h = $d{$date}{$cvsdate}{host} if $cvsdate;
 	my @repeats = $cvsdate ? @{$d{$date}{$cvsdate}{repeats}} : ();
@@ -260,6 +261,8 @@ foreach my $date (@dates) {
 	chdir($subdir)
 	    or die "Chdir to '$subdir' failed: $!";
 
+	my $h = $d{$date}{$cvsdate}{host};
+	next unless keys %$h;
 	my @repeats = @{$d{$date}{$cvsdate}{repeats}};
 
 	unlink("build.html.new");
@@ -296,7 +299,6 @@ foreach my $date (@dates) {
 	print $html "    <th>diff</th>\n";
 	print $html "    <th>quirks</th>\n";
 	print $html "  </tr>\n";
-	my $h = $d{$date}{$cvsdate}{host};
 	foreach my $repeat ("", @repeats) {
 	    $h = $d{$date}{$cvsdate}{$repeat}{host} if $repeat;
 	    foreach my $host (sort keys %$h) {
@@ -368,11 +370,13 @@ foreach my $date (@dates) {
 	rename("build.html.new", "build.html")
 	    or die "Rename 'build.html.new' to 'build.html' failed: $!";
 
-
 	foreach my $repeat (@repeats) {
 	    my $subdir = "$dir/$cvsdate/$repeat";
 	    chdir($subdir)
 		or die "Chdir to '$subdir' failed: $!";
+
+	    $h = $d{$date}{$cvsdate}{$repeat}{host};
+	    next unless keys %$h;
 
 	    unlink("reboot.html.new");
 	    open(my $html, '>', "reboot.html.new")
@@ -411,7 +415,6 @@ foreach my $date (@dates) {
 	    print $html "    <th>diff</th>\n";
 	    print $html "    <th>quirks</th>\n";
 	    print $html "  </tr>\n";
-	    $h = $d{$date}{$cvsdate}{$repeat}{host};
 	    foreach my $host (sort keys %$h) {
 		print $html "  <tr>\n    <th>$host</th>\n";
 		print $html "    <td>$repeat</td>\n";
