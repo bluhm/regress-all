@@ -106,6 +106,12 @@ PATCH
 	cleandirs => [ "gnu/usr.bin/clang" ],
 	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
     },
+    '2018-07-10T09:28:27Z' => {
+	comment => "pf generic packet delay",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+    },
     '2018-07-26T13:20:53Z' => {
 	comment => "infrastructure to install lld",
 	updatedirs => [
