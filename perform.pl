@@ -224,6 +224,20 @@ my @tests = (
     }
 );
 
+my @stats = (
+    {
+	statcmd => [ 'netstat', '-s' ],
+    }, {
+	statcmd => [ 'netstat', '-m' ],
+    }, {
+	statcmd => [ 'vmstat', '-mv' ],
+    }, {
+	statcmd => [ 'vmstat', '-s' ],
+    }, {
+	statcmd => [ 'vmstat', '-iz' ],
+    },
+);
+
 TEST:
 foreach my $t (@tests) {
     my @runcmd = @{$t->{testcmd}};
@@ -244,6 +258,8 @@ foreach my $t (@tests) {
 
     print $log "START\t$test\t$date\n\n";
     $log->sync();
+
+    statistics($test, "before");
 
     defined(my $pid = open(my $out, '-|'))
 	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
@@ -287,6 +303,8 @@ foreach my $t (@tests) {
 	or bad $test, 'NOEXIT', $! ?
 	"Close pipe from '@runcmd' failed: $!" :
 	"Command '@runcmd' failed: $?", $log;
+
+    statistics($test, "after");
 
     my $end = Time::HiRes::time();
     good $test, $end - $begin, $log;
@@ -336,5 +354,30 @@ sub environment {
 	} else {
 	    die "Unknown environment line in '$file': $_";
 	}
+    }
+}
+
+sub statistics {
+    my ($test, $when) = @_;
+    foreach my $s (@stats) {
+	my @statcmd = @{$s->{statcmd}};
+	my $name = "$test.stats-$when-". join("_", @statcmd). ".log";
+	open(my $fh, '>', $name)
+	    or die "Open '$name' for writing failed: $!";
+	defined(my $pid = fork())
+	    or die "fork failed: $!";
+	unless ($pid) {
+	    # child process
+	    open(STDOUT, ">&", $fh)
+		or die "Redirect stdout to '$name' failed: $!";
+	    open(STDERR, ">&", $fh)
+		or die "Redirect stderr to '$name' failed: $!";
+	    exec(@statcmd);
+	    die "Exec failed: $!";
+	}
+	waitpid($pid, 0)
+	    or die "Wait for pid '$pid' failed:$!";
+	$? == 0
+	    or die "Command '@statcmd' failed: $?";
     }
 }
