@@ -93,8 +93,9 @@ my $kconf = `sysctl -n kern.osversion | cut -d# -f1`;
 my $machine = `machine`;
 my $ncpu = `sysctl -n hw.ncpu`;
 chomp($kconf, $machine, $ncpu);
-my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf",
-    'clean', 'config');
+my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf");
+push @cmd, '-s' unless $opts{v};
+push @cmd, 'clean', 'config';
 system(@cmd)
     and die "Clean kernel with '@cmd' failed: $?";
 system('sync');
