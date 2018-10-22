@@ -188,6 +188,17 @@ sub time_parser {
     return 1;
 }
 
+my $wallclock;
+sub wallclock_initialize {
+    $wallclock = Time::HiRes::time();
+    return 1;
+}
+
+sub wallclock_finalize {
+    printf $tr "VALUE %.2f sec wall\n", Time::HiRes::time() - $wallclock;
+    return 1;
+}
+
 my @tests = (
     {
 	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t60'],
@@ -204,9 +215,11 @@ my @tests = (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
+	initialize => \&wallclock_initialize,
 	testcmd => ['time', '-lp', 'make',
 	    "-C/usr/src/sys/arch/$machine/compile/$kconf", "-j$ncpu", '-s'],
 	parser => \&time_parser,
+	finalize => \&wallclock_finalize,
     }
 );
 
@@ -248,6 +261,9 @@ foreach my $t (@tests) {
     eval {
 	local $SIG{ALRM} = sub { die "Test running too long, aborted\n" };
 	alarm($timeout);
+	$t->{initialize}($log)
+	    or bad $test, 'FAIL', "Could not initialize test", $log
+	    if $t->{initialize};
 	while (<$out>) {
 	    print $log $_;
 	    $t->{parser}($_, $log)
@@ -257,7 +273,7 @@ foreach my $t (@tests) {
 	    print if $opts{v};
 	}
 	$t->{finalize}($log)
-	    or bad $test, 'FAIL', "Could not finalize value", $log
+	    or bad $test, 'FAIL', "Could not finalize test", $log
 	    if $t->{finalize};
 	alarm(0);
     };
