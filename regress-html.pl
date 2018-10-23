@@ -194,9 +194,9 @@ print $html "  <tr>\n    <th>run at date</th>\n";
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
     my $setup = $d{$date}{setup};
-    $setup = join("/", map { uri_escape($_) } split("/", $setup)) if $setup;
     my $time = encode_entities($date);
-    my $href = $setup ? "<a href=\"$setup\">" : "";
+    my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
+    my $href = $setup ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$time\">$href$short$enda</th>\n";
 }
@@ -209,12 +209,12 @@ foreach my $date (@dates) {
     }
     my $kernel = encode_entities($d{$date}{kernel});
     my $build = $d{$date}{build};
-    $version = join("/", map { uri_escape($_) } split("/", $version));
-    my $diff = join("/", map { uri_escape($_) }
-	split("/", $d{$date}{diff} || ""));
-    my $href = "";
-    $href = "<a href=\"$version\">" if $build eq "snapshot";
-    $href = "<a href=\"$diff\">" if $build eq "custom" && $diff;
+    my $diff = $d{$date}{diff};
+    my $link;
+    $link = uri_escape($version, "^A-Za-z0-9\-\._~/") if $build eq "snapshot";
+    $link = uri_escape($diff, "^A-Za-z0-9\-\._~/")
+	if $build eq "custom" && $diff;
+    my $href = $link ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
 }
@@ -225,9 +225,9 @@ foreach my $date (@dates) {
 	print $html "    <th/>\n";
 	next;
     }
-    my $dmesg = join("/", map { uri_escape($_) }
-	split("/", $d{$date}{dmesg} || ""));
-    my $href = $dmesg ? "<a href=\"$dmesg\">" : "";
+    my $dmesg = $d{$date}{dmesg};
+    my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
+    my $href = $dmesg ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th>$href$arch$enda</th>\n";
 }
@@ -243,8 +243,9 @@ foreach my $test (@tests) {
 	my $class = " class=\"result $status\"";
 	my $message = encode_entities($t{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
-	my $logfile = uri_escape($t{$test}{$date}{logfile});
-	my $href = $logfile ? "<a href=\"$logfile\">" : "";
+	my $logfile = $t{$test}{$date}{logfile};
+	my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+	my $href = $logfile ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <td$class$title>$href$status$enda</td>\n";
     }
