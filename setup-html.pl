@@ -211,6 +211,7 @@ foreach my $date (@dates) {
 		my $diff = $h->{$host}{diff};
 		my $quirks = $h->{$host}{quirks};
 		if ($version) {
+		    $version = uri_escape($version, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td title=\"$time\">".
 			"<a href=\"$version\">$short</a></td>\n";
 		} else {
@@ -218,27 +219,32 @@ foreach my $date (@dates) {
 		}
 		print $html "    <td>$arch</td>\n";
 		if ($setup) {
+		    $setup = uri_escape($setup, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$setup\">log</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
 		if ($dmesgboot) {
+		    $dmesgboot = uri_escape($dmesgboot, "^A-Za-z0-9\-\._~/");
 		    print $html
 			"    <td><a href=\"$dmesgboot\">boot</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
 		if ($dmesg) {
+		    $dmesg = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
 		if ($diff) {
+		    $diff = uri_escape($diff, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$diff\">diff</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
 		if ($quirks) {
+		    $quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
@@ -321,6 +327,7 @@ foreach my $date (@dates) {
 		my $quirks = $h->{$host}{quirks};
 		if ($version) {
 		    $version =~ s,[^/]+/,,;
+		    $version = uri_escape($version, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td title=\"$time\">".
 			"<a href=\"$version\">$short</a></td>\n";
 		} else {
@@ -329,12 +336,14 @@ foreach my $date (@dates) {
 		print $html "    <td>$arch</td>\n";
 		if ($build) {
 		    $build =~ s,[^/]+/,,;
+		    $build = uri_escape($build, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$build\">log</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
 		if ($dmesgboot) {
 		    $dmesgboot =~ s,[^/]+/,,;
+		    $dmesgboot = uri_escape($dmesgboot, "^A-Za-z0-9\-\._~/");
 		    print $html
 			"    <td><a href=\"$dmesgboot\">boot</a></td>\n";
 		} else {
@@ -342,18 +351,21 @@ foreach my $date (@dates) {
 		}
 		if ($dmesg) {
 		    $dmesg =~ s,[^/]+/,,;
+		    $dmesg = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
 		if ($diff) {
 		    $diff =~ s,[^/]+/,,;
+		    $diff = uri_escape($diff, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$diff\">diff</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
 		if ($quirks) {
 		    $quirks =~ s,[^/]+/,,;
+		    $quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
@@ -431,6 +443,7 @@ foreach my $date (@dates) {
 		my $quirks = $h->{$host}{quirks};
 		if ($version) {
 		    $version =~ s,[^/]+/[^/]+/,,;
+		    $version = uri_escape($version, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td title=\"$time\">".
 			"<a href=\"$version\">$short</a></td>\n";
 		} else {
@@ -439,6 +452,7 @@ foreach my $date (@dates) {
 		print $html "    <td>$arch</td>\n";
 		if ($reboot) {
 		    $reboot =~ s,[^/]+/[^/]+/,,;
+		    $reboot = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
 		    print $html
 			"    <td><a href=\"$reboot\">log</a></td>\n";
 		} else {
@@ -446,6 +460,7 @@ foreach my $date (@dates) {
 		}
 		if ($dmesgboot) {
 		    $dmesgboot =~ s,[^/]+/[^/]+/,,;
+		    $dmesgboot = uri_escape($dmesgboot, "^A-Za-z0-9\-\._~/");
 		    print $html
 			"    <td><a href=\"$dmesgboot\">boot</a></td>\n";
 		} else {
@@ -453,18 +468,21 @@ foreach my $date (@dates) {
 		}
 		if ($dmesg) {
 		    $dmesg =~ s,[^/]+/[^/]+/,,;
+		    $dmesg = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
 		if ($diff) {
 		    $diff =~ s,[^/]+/[^/]+/,,;
+		    $diff = uri_escape($diff, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$diff\">diff</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
 		if ($quirks) {
 		    $quirks =~ s,[^/]+/[^/]+/,,;
+		    $quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
