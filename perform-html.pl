@@ -343,6 +343,8 @@ HEADER
 	    if ($repmode) {
 		my $reboot = $d{$date}{$cvsdate}{$repeat}{reboot};
 		$reboot =~ s,[^/]+/[^/]+/,, if $reboot;
+		$reboot = join("/", map { uri_escape($_) }
+		    split("/", $reboot)) if $reboot;
 		my $href = $reboot ? "<a href=\"$reboot\">" : "";
 		my $enda = $href ? "</a>" : "";
 		print $html "    <th>$href$repmode$enda</th>\n";
@@ -362,8 +364,10 @@ HEADER
 		my $message = encode_entities($td->{$repeat}{message});
 		my $title = $message ? " title=\"$message\"" : "";
 		my $logfile = "$repeat/logs/$test.log";
+		my $link = join("/", map { uri_escape($_) }
+		    split("/", $logfile));
 		my $href = -f "$date/$cvsdate/$logfile" ?
-		    "<a href=\"$logfile\">" : "";
+		    "<a href=\"$link\">" : "";
 		my $enda = $href ? "</a>" : "";
 		print $html "    <td$class$title>$href$status$enda</td>\n";
 	    }
@@ -518,7 +522,8 @@ HEADER
 	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
 	my $time = encode_entities($cvsdate);
 	my $cvsdatehtml = "$cvsdate/perform.html";
-	my $href = -f "$date/$cvsdatehtml" ? "<a href=\"$cvsdatehtml\">" : "";
+	my $link = join("/", map { uri_escape($_) } split("/", $cvsdatehtml));
+	my $href = -f "$date/$cvsdatehtml" ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
     }
@@ -527,7 +532,8 @@ HEADER
     foreach my $cvsdate (@cvsdates) {
 	my $build = $d{$date}{$cvsdate}{build};
 	$build =~ s,[^/]+/,, if $build;
-	my $href = $build ? "<a href=\"$build\">" : "";
+	my $link = join("/", map { uri_escape($_) } split("/", $build));
+	my $href = $build ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>${href}build$enda</th>\n";
     }
@@ -540,8 +546,9 @@ HEADER
 	    next;
 	}
 	my $kernel = encode_entities($d{$date}{$cvsdate}{kernel});
+	my $link = join("/", map { uri_escape($_) } split("/", $version));
 	print $html "    <th title=\"$kernel\">".
-	    "<a href=\"$version\">version</a></th>\n";
+	    "<a href=\"$link\">version</a></th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>kernel cvs</th>\n";
@@ -558,7 +565,8 @@ HEADER
 	    my $files = encode_entities(join(" ", sort keys %files));
 	    $title = " title=\"$files\"";
 	}
-	print $html "    <th$title><a href=\"../$cvslog\">log</a></th>\n";
+	my $link = join("/", map { uri_escape($_) } split("/", $cvslog));
+	print $html "    <th$title><a href=\"../$link\">log</a></th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
@@ -568,7 +576,8 @@ HEADER
 	    print $html "    <th></th>\n";
 	    next;
 	}
-	print $html "    <th><a href=\"$quirks\">quirks<a></th>\n";
+	my $link = join("/", map { uri_escape($_) } split("/", $quirks));
+	print $html "    <th><a href=\"$link\">quirks<a></th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>repetitions</th>\n";
@@ -585,7 +594,8 @@ HEADER
     foreach my $cvsdate (@cvsdates) {
 	my $arch = $d{$date}{$cvsdate}{arch} || "dmesg";
 	my $dmesg = $d{$date}{$cvsdate}{dmesg};
-	my $href = $dmesg ? "<a href=\"$dmesg\">" : "";
+	my $link = join("/", map { uri_escape($_) } split("/", $dmesg));
+	my $href = $dmesg ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>$href$arch$enda</th>\n";
     }
@@ -600,9 +610,11 @@ HEADER
 	    my $message = encode_entities($td->{$cvsdate}{message});
 	    my $title = $message ? " title=\"$message\"" : "";
 	    my $logfile = "$cvsdate/logs/$test.log";
-	    my $href = -f "$date/$logfile" ? "<a href=\"$logfile\">" : "";
+	    my $link = join("/", map { uri_escape($_) } split("/", $logfile));
+	    my $href = -f "$date/$logfile" ? "<a href=\"$link\">" : "";
 	    my $cvsdatehtml = "$cvsdate/perform.html";
-	    $href = "<a href=\"$cvsdatehtml\">" if -f "$date/$cvsdatehtml";
+	    $link = join("/", map { uri_escape($_) } split("/", $cvsdatehtml));
+	    $href = "<a href=\"$link\">" if -f "$date/$cvsdatehtml";
 	    my $enda = $href ? "</a>" : "";
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
@@ -719,7 +731,8 @@ foreach my $date (@dates) {
     my $setup = $d{$date}{setup};
     my $modes = $d{$date}{stepconf}{modes};
     $modes = $modes ? "/$modes" : "";
-    my $href = $setup ? "<a href=\"$setup\">" : "";
+    my $link = join("/", map { uri_escape($_) } split("/", $setup));
+    my $href = $setup ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th>${href}setup$enda$modes</th>\n";
 }
@@ -772,7 +785,8 @@ foreach my $test (@tests) {
 	my $message = encode_entities($t{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
 	my $datehtml = "$date/perform.html";
-	my $href = -f $datehtml ? "<a href=\"$datehtml\">" : "";
+	my $link = join("/", map { uri_escape($_) } split("/", $datehtml));
+	my $href = -f $datehtml ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <td$class$title>$href$status$enda</td>\n";
     }
