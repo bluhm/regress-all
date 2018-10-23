@@ -551,7 +551,8 @@ foreach my $date (reverse sort keys %d) {
 	    } else {
 		my $log = $d{$date}{log} || "";
 		my $logfile = "$date/$log";
-		my $href = $log ? "<a href=\"$logfile\">" : "";
+		my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+		my $href = $log ? "<a href=\"$link\">" : "";
 		my $enda = $href ? "</a>" : "";
 		print $html "  <tr>\n    <th>$href$date$enda</th>\n";
 		$h = $d{$date}{host};
@@ -562,8 +563,9 @@ foreach my $date (reverse sort keys %d) {
 		my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
 		    $h->{$host}{reboot} || "";
 		$time ||= "log" if $setup;
-		my $log = "$date/$setup";
-		my $href = $setup ? "<a href=\"$log\">" : "";
+		my $logfile = "$date/$setup";
+		my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+		my $href = $setup ? "<a href=\"$link\">" : "";
 		my $enda = $href ? "</a>" : "";
 		print $html "    <td>$href$time$enda</td>\n";
 	    }
