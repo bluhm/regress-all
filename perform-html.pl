@@ -213,38 +213,40 @@ foreach my $result (@results) {
 
 # write test results into gnuplot data file
 
--d "gnuplot" || mkdir "gnuplot"
-    or die "Create directory 'gnuplot' failed: $!";
-my $testdata = "gnuplot/test.data";
-open(my $fh, '>', "$testdata.new")
-    or die "Open '$testdata.new' for writing failed: $!";
-print $fh "# test subtest run checkout repeat value unit\n";
-foreach my $date (sort keys %v) {
-    my $vd = $v{$date};
-    my $run = str2time($date);
-    foreach my $test (sort keys %$vd) {
-	my $vt = $vd->{$test};
-	foreach my $cvsdate (sort keys %$vt) {
-	    my $vc = $vt->{$cvsdate};
-	    my $checkout = str2time($cvsdate);
-	    $vc = { 0 => $vc } if ref $vc ne 'HASH';
-	    foreach my $repeat (sort keys %$vc) {
-		my $vr = $vc->{$repeat};
-		foreach my $value (@{$vr || []}) {
-		    my $number = $value->{number};
-		    my $unit = $value->{unit};
-		    my $subtest = $value->{name} || "unknown";
-		    print $fh "$test $subtest $run $checkout $repeat ".
-			"$number $unit\n";
+unless ($opts{l} || $opts{h}) {
+    -d "gnuplot" || mkdir "gnuplot"
+	or die "Create directory 'gnuplot' failed: $!";
+    my $testdata = "gnuplot/test.data";
+    open(my $fh, '>', "$testdata.new")
+	or die "Open '$testdata.new' for writing failed: $!";
+    print $fh "# test subtest run checkout repeat value unit\n";
+    foreach my $date (sort keys %v) {
+	my $vd = $v{$date};
+	my $run = str2time($date);
+	foreach my $test (sort keys %$vd) {
+	    my $vt = $vd->{$test};
+	    foreach my $cvsdate (sort keys %$vt) {
+		my $vc = $vt->{$cvsdate};
+		my $checkout = str2time($cvsdate);
+		$vc = { 0 => $vc } if ref $vc ne 'HASH';
+		foreach my $repeat (sort keys %$vc) {
+		    my $vr = $vc->{$repeat};
+		    foreach my $value (@{$vr || []}) {
+			my $number = $value->{number};
+			my $unit = $value->{unit};
+			my $subtest = $value->{name} || "unknown";
+			print $fh "$test $subtest $run $checkout $repeat ".
+			    "$number $unit\n";
+		    }
 		}
 	    }
 	}
     }
+    close($fh)
+	or die "Close '$testdata.new' after writing failed: $!";
+    rename("$testdata.new", $testdata)
+	or die "Rename '$testdata.new' to '$testdata' failed: $!";
 }
-close($fh)
-    or die "Close '$testdata.new' after writing failed: $!";
-rename("$testdata.new", $testdata)
-    or die "Rename '$testdata.new' to '$testdata' failed: $!";
 
 # create cvs log file with commits after previous cvsdates
 
@@ -264,7 +266,7 @@ foreach my $dd (values %d) {
 	    }
 	    if (-f $cvslog) {
 		$dd->{$cvsdate}{cvslog} = $cvslog;
-		# XXX fill $dd->{$cvsdate}{cvsfiles}}}
+		# XXX fill $dd->{$cvsdate}{cvsfiles}
 	    }
 	}
 	$cvsprev = $cvsdate;
