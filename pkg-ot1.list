@@ -7,6 +7,7 @@ gsed
 iperf3
 net-snmp
 openldap-client--
+openssl
 os-test
 p5-AnyEvent
 p5-BSD-Resource

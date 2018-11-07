@@ -6,6 +6,7 @@ go
 gsed
 net-snmp
 openldap-client--
+openssl
 os-test
 p5-AnyEvent
 p5-BSD-Resource
