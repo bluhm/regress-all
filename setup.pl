@@ -135,20 +135,30 @@ sub copy_scripts {
 
     if (my %patches = quirk_patches()) {
 	my $patchdir = "$resultdir/patches";
-	-d $patchdir || mkdir($patchdir)
-	    or die "Mkdir '$patchdir' failed: $!";
-	while (my ($file, $content) = each %patches) {
-	    my $path = "$patchdir/$file.diff";
-	    open(my $fh, '>', "$path.tmp")
-		or die "Open '$path.tmp' for writing failed: $!";
-	    print $fh $content
-		or die "Write content to '$path.tmp' failed: $!";
-	    close($fh)
-		or die "Close '$path.tmp' after writing failed: $!";
-	    # setup.pl might run in parallel, make file creation atomic
-	    rename("$path.tmp", $path)
-		or die "Rename '$path.tmp' to '$path' failed: $!";
+	if (mkdir("$patchdir.tmp")) {
+	    # only one setup process may fill the directory
+	    while (my ($file, $content) = each %patches) {
+		my $path = "$patchdir/$file.diff";
+		open(my $fh, '>', $path)
+		    or die "Open '$path' for writing failed: $!";
+		print $fh $content
+		    or die "Write content to '$path' failed: $!";
+		close($fh)
+		    or die "Close '$path' after writing failed: $!";
+	    }
+	    # setup.pl might run in parallel, make directory creation atomic
+	    rename("$patchdir.tmp", $patchdir) || $!{EEXIST}
+		or die "Rename '$patchdir.tmp' to '$patchdir' failed: $!";
+	} else {
+	    $!{EEXIST}
+		or die "Mkdir '$patchdir.tmp' failed: $!";
 	}
+	foreach (1..10) {
+	    last if -d $patchdir;
+	    sleep 1;
+	}
+	-d $patchdir
+	    or die "Directory '$patchdir' does not exist";
 	@scpcmd = ('scp');
 	push @scpcmd, '-q' unless $opts{v};
 	push @scpcmd, ('-r', 'patches', "$user\@$host:/root/perform");
