@@ -138,7 +138,7 @@ sub copy_scripts {
 	if (mkdir("$patchdir.tmp")) {
 	    # only one setup process may fill the directory
 	    while (my ($file, $content) = each %patches) {
-		my $path = "$patchdir/$file.diff";
+		my $path = "$patchdir.tmp/$file.diff";
 		open(my $fh, '>', $path)
 		    or die "Open '$path' for writing failed: $!";
 		print $fh $content
@@ -147,13 +147,13 @@ sub copy_scripts {
 		    or die "Close '$path' after writing failed: $!";
 	    }
 	    # setup.pl might run in parallel, make directory creation atomic
-	    rename("$patchdir.tmp", $patchdir) || $!{EEXIST}
+	    rename("$patchdir.tmp", $patchdir) || $!{EEXIST} || $!{ENOTEMPTY}
 		or die "Rename '$patchdir.tmp' to '$patchdir' failed: $!";
 	} else {
 	    $!{EEXIST}
 		or die "Mkdir '$patchdir.tmp' failed: $!";
 	}
-	foreach (1..10) {
+	foreach (1..60) {
 	    last if -d $patchdir;
 	    sleep 1;
 	}
