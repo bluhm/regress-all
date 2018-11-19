@@ -63,6 +63,7 @@ sys/ddb
 sys/dev/fdesc
 sys/dev/kcov
 sys/dev/video
+sys/dev/wscons
 sys/ffs
 sys/fifofs
 sys/fileops
@@ -114,6 +115,7 @@ sys/kern/rlimit-file
 sys/kern/setuid
 sys/kern/sig-stop
 sys/kern/siginfo-fault
+sys/kern/sigio
 sys/kern/signal
 sys/kern/signal-stress
 sys/kern/sigpending
