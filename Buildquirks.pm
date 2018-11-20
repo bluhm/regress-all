@@ -112,6 +112,30 @@ PATCH
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
+    '2018-07-12T22:09:04Z' => {
+	comment => "patch some garbage in GENERIC.MP",
+	updatedirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
+	patches => { 'sys-garbage' => <<'PATCH' },
+Index: sys/arch/amd64/conf/GENERIC.MP
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/arch/amd64/conf/GENERIC.MP,v
+retrieving revision 1.13
+retrieving revision 1.14
+diff -u -p -r1.13 -r1.14
+--- sys/arch/amd64/conf/GENERIC.MP	12 Jul 2018 22:09:04 -0000	1.13
++++ sys/arch/amd64/conf/GENERIC.MP	13 Jul 2018 05:25:24 -0000	1.14
+@@ -1,4 +1,4 @@
+-0;331;0cwit#	$OpenBSD: GENERIC.MP,v 1.13 2018/07/12 22:09:04 deraadt Exp $
++#	$OpenBSD: GENERIC.MP,v 1.13 2018/07/12 22:09:04 deraadt Exp $
+ 
+ include "arch/amd64/conf/GENERIC"
+ 
+PATCH
+    },
+    '2018-07-12T22:09:04Z' => {
+	comment => "zap some garbage in GENERIC.MP",
+	updatedirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
+    },
     '2018-07-26T13:20:53Z' => {
 	comment => "infrastructure to install lld",
 	updatedirs => [
