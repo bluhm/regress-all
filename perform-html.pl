@@ -23,7 +23,7 @@ use Errno;
 use File::Basename;
 use HTML::Entities;
 use Getopt::Std;
-use List::Util qw(max min sum);
+use List::Util qw(first max min sum);
 use POSIX;
 use URI::Escape;
 
@@ -379,7 +379,7 @@ HEADER
 	    my $vt = $v{$date}{$test}{$cvsdate};
 	    my $maxval = max map { scalar @{$vt->{$_}} } @repeats;
 	    for (my $i = 0; $i < $maxval; $i++) {
-		my $value0 = $vt->{$repeats[0]}[$i];
+		my $value0 = first { $_ } map { $vt->{$_}[$i] } @repeats;
 		my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 		print $html "  <tr>\n    <th>$name0</th>\n";
 		my @numbers = map { $vt->{$_}[$i]{number} }
@@ -634,7 +634,8 @@ HEADER
 	my $maxval = max map { scalar @$_ } @vals;
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $rp0 = $d{$date}{$cvsdates[0]}{repeats};
-	    my $value0 = $rp0 ? $vt->{$cvsdates[0]}{$rp0->[0]}[$i] :
+	    my $value0 = $rp0 ?
+		first { $_ } map { $vt->{$cvsdates[0]}{$_}[$i] } @$rp0 :
 		$vt->{$cvsdates[0]}[$i];
 	    my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 	    print $html "  <tr>\n    <th>$name0</th>\n";
