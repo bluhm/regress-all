@@ -197,6 +197,8 @@ open(my $html, '>', "$logfile.html.new")
 print $fh "BEGIN $isobegin\n";
 print $fh "END $isoend\n";
 print $fh "PATH $module/$path\n";
+my $commitnum = keys %l;
+print $fh "COMMITS $commitnum\n";
 
 print $html <<"HEADER";
 <!DOCTYPE html>
@@ -229,6 +231,10 @@ print $html <<"HEADER";
   <tr>
     <th>path</th>
     <td>$module/$path</td>
+  </tr>
+  <tr>
+    <th>commits</th>
+    <td>$commitnum</td>
   </tr>
 </table>
 HEADER
