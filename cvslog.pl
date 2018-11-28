@@ -249,9 +249,7 @@ foreach my $date (sort keys %l) {
 	    my $rev = shift @revisions;
 	    my $link = "$cvsweb/$f#rev$rev";
 	    $files .= "    <td><a href=\"$link\">log</a></td>\n";
-	    my ($prev0, $prev1) = split(/\./, $rev, 2);
-	    $prev1--;
-	    my $prev = "$prev0.$prev1";
+	    (my $prev = $rev) =~ s/(?<=\.)\d+/$&-1/e;
 	    $link = "$cvsweb/$f.diff?r1=$prev&r2=$rev";
 	    $files .= "    <td><a href=\"$link\">diff</a></td>\n";
 	    $link = "$cvsweb/$f?annotate=$rev";
