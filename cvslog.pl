@@ -22,8 +22,12 @@ use Date::Parse;
 use File::Basename;
 use File::Path qw(make_path);
 use Getopt::Std;
+use HTML::Entities;
 use POSIX;
 use Time::Local;
+use URI::Escape;
+
+my $now = strftime("%FT%TZ", gmtime);
 
 use lib dirname($0);
 my $scriptname = "$0 @ARGV";
@@ -94,8 +98,8 @@ while (<$cvs>) {
 	    @keys
 		and die "Unexpected keys '@keys' in log: $_";
 	} elsif ($state eq "message") {
-	    my ($current, $date, $commitid, $author) =
-		@commit{qw(current date commitid author)};
+	    my ($current, $date, $commitid, $author, $revision) =
+		@commit{qw(current date commitid author revision)};
 	    # maybe a bug in cvs; dead commits outside of -d appear in log
 	    if ($begin < $current && $current <= $end) {
 		my $lc = $l{$date}{$commitid} ||= {};
@@ -108,6 +112,7 @@ while (<$cvs>) {
 		    $lc->{message} = $commit{message},
 		}
 		push @{$lc->{files}}, $file;
+		push @{$lc->{revisions}}, $revision;
 	    }
 	    undef %commit;
 	} else {
@@ -182,25 +187,117 @@ my $cvslogdir = "results/cvslog/$module/$path";
 
 my $isobegin = strftime("%FT%TZ", gmtime($begin));
 my $isoend = strftime("%FT%TZ", gmtime($end));
-my $logfile = "$cvslogdir/$isobegin--$isoend.txt";
+my $logfile = "$cvslogdir/$isobegin--$isoend";
 
-open(my $fh, '>', "$logfile.new")
-    or die "Open '$logfile.new' for writing failed: $!";
+open(my $fh, '>', "$logfile.txt.new")
+     or die "Open '$logfile.txt.new' for writing failed: $!";
+open(my $html, '>', "$logfile.html.new")
+    or die "Open '$logfile.html.new' for writing failed: $!";
+
 print $fh "BEGIN $isobegin\n";
 print $fh "END $isoend\n";
 print $fh "PATH $module/$path\n";
+
+print $html <<"HEADER";
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OpenBSD CVS Log</title>
+  <style>
+    th { text-align: left; vertical-align: top; white-space: nowrap; }
+    tr:hover {background-color: #e0e0e0}
+  </style>
+</head>
+
+<body>
+<h1>OpenBSD cvs log</h1>
+<table>
+  <tr>
+    <th>created</th>
+    <td>$now</td>
+  </tr>
+  <tr>
+    <th>begin</th>
+    <td>$isobegin</td>
+  </tr>
+  <tr>
+    <th>end</th>
+    <td>$isoend</td>
+  </tr>
+  <tr>
+    <th>path</th>
+    <td>$module/$path</td>
+  </tr>
+</table>
+HEADER
+
+my $cvsweb = "https://cvsweb.openbsd.org";
 foreach my $date (sort keys %l) {
     while ((undef, my $commit) = each %{$l{$date}}) {
 	print $fh "\n";
-	my @files = @{$commit->{files}};
-	print $fh "FILES @files\n";
 	print $fh "DATE $date\n";
-	print $fh "AUTHOR $commit->{author}\n";
+	my $author = $commit->{author};
+	print $fh "AUTHOR $author\n";
+	my @files = @{$commit->{files}};
+	my @revisions = @{$commit->{revisions}};
+	my $filespan = @files;
+	my $files = "";
+	foreach my $f (@files) {
+	    $files .= "\n  </tr>\n  <tr>\n" if $files;
+	    $files .= "    <td>$f</td>\n";
+	    my $rev = shift @revisions;
+	    my $link = "$cvsweb/$f#rev$rev";
+	    $files .= "    <td><a href=\"$link\">log</a></td>\n";
+	    my ($prev0, $prev1) = split(/\./, $rev, 2);
+	    $prev1--;
+	    my $prev = "$prev0.$prev1";
+	    $link = "$cvsweb/$f.diff?r1=$prev&r2=$rev";
+	    $files .= "    <td><a href=\"$link\">diff</a></td>\n";
+	    $link = "$cvsweb/$f?annotate=$rev";
+	    $files .= "    <td><a href=\"$link\">annotate</a></td>";
+	}
+	print $fh "FILES @files\n";
 	my @message = @{$commit->{message}};
+	my $message = join("<br>\n\t", @message);
 	print $fh "MESSAGE @message\n";
+
+	print $html <<"TABLE";
+<p>
+<table>
+  <tr>
+    <th>date</th>
+    <td colspan="4">$date</td>
+  </tr>
+  <tr>
+    <th>author</th>
+    <td colspan="4">$author</td>
+  </tr>
+  <tr>
+    <th rowspan="$filespan">files</th>
+$files
+  </tr>
+  <tr>
+    <th>message</th>
+    <td colspan="4">
+	$message
+    </td>
+  </tr>
+</table>
+TABLE
     }
 }
+
+print $html <<"FOOTER";
+</body>
+</html>
+FOOTER
+
 close($fh)
-    or die "Close '$logfile.new' after writing failed: $!";
-rename("$logfile.new", $logfile)
-    or die "Rename '$logfile.new' to '$logfile' failed: $!";
+    or die "Close '$logfile.txt.new' after writing failed: $!";
+rename("$logfile.txt.new", "$logfile.txt")
+    or die "Rename '$logfile.txt.new' to '$logfile.txt' failed: $!";
+close($html)
+    or die "Close '$logfile.html.new' after writing failed: $!";
+rename("$logfile.html.new", "$logfile.html")
+    or die "Rename '$logfile.html.new' to '$logfile.html' failed: $!";
