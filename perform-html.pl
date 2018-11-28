@@ -248,6 +248,25 @@ unless ($opts{l} || $opts{h}) {
 	or die "Rename '$testdata.new' to '$testdata' failed: $!";
 }
 
+# create gnuplot graphs for all runs
+
+foreach my $rd (keys %v) {
+    my $makeplot = "$rd-make.svg";
+    my $tcpplot = "$rd-tcp.svg";
+    unless (-f $makeplot) {
+	my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $rd,
+	    "-O", $makeplot, "$performdir/bin/make.gp");
+	system(@cmd)
+	    and die "Command '@cmd' failed: $?";
+    }
+    unless (-f $tcpplot) {
+	my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $rd,
+	    "-O", $tcpplot, "$performdir/bin/tcp.gp");
+	system(@cmd)
+	    and die "Command '@cmd' failed: $?";
+    }
+}
+
 # create cvs log file with commits after previous cvsdates
 
 foreach my $dd (values %d) {
@@ -672,6 +691,9 @@ HEADER
 	}
     }
     print $html "</table>\n";
+
+    print $html "<img src=\"gnupot/$date-tcp.svg\"></img>\n";
+    print $html "<img src=\"gnupot/$date-make.svg\"></img>\n";
 
     print $html <<"FOOTER";
 </body>
