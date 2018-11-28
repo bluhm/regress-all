@@ -205,6 +205,7 @@ print $html <<"HEADER";
 <head>
   <title>OpenBSD CVS Log</title>
   <style>
+    table.commit { border: 1px solid black; }
     th { text-align: left; vertical-align: top; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0}
   </style>
@@ -262,7 +263,7 @@ foreach my $date (sort keys %l) {
 
 	print $html <<"TABLE";
 <p>
-<table>
+<table class="commit">
   <tr>
     <th>date</th>
     <td colspan="4">$date</td>
