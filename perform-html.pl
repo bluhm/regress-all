@@ -264,9 +264,17 @@ foreach my $dd (values %d) {
 		system(@cmd)
 		    and die "Command '@cmd' failed: $?";
 	    }
-	    if (-f "$cvslog.txt") {
+	    if (open (my $fh, '<', "$cvslog.txt")) {
 		$dd->{$cvsdate}{cvslog} = "$cvslog.txt";
-		# XXX fill $dd->{$cvsdate}{cvsfiles}
+		while (<$fh>) {
+		    chomp;
+		    my ($k, @v) = split(/\s+/)
+			or next;
+		    push @{$dd->{$cvsdate}{cvsfiles}}, @v if $k eq 'FILES';
+		}
+	    } else {
+		$!{ENOENT}
+		    or die "Open '$cvslog.txt' for reading failed: $!";
 	    }
 	    if (-f "$cvslog.html") {
 		# If html is available, use its niceer display in link.
