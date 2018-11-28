@@ -76,7 +76,8 @@ my %allrepmodes;
 @allrepmodes{qw(reorder reboot keep)} = ();
 !$opts{R} || exists $allrepmodes{$opts{R}}
     or die "Unknown repetition mode '$opts{R}'";
-my %repmode = ($opts{R} => 1);
+my %repmode;
+%repmode = ($opts{R} => 1) if $opts{R};
 
 my %allmodes;
 @allmodes{qw(build cvs install keep)} = ();
