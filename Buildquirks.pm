@@ -132,6 +132,10 @@ diff -u -p -r1.13 -r1.14
  
 PATCH
     },
+    '2018-07-13T05:25:24Z' => {
+	comment => "zap some garbage in GENERIC.MP",
+	updatedirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
+    },
     '2018-07-26T13:20:53Z' => {
 	comment => "infrastructure to install lld",
 	updatedirs => [
