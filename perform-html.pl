@@ -257,16 +257,20 @@ foreach my $dd (values %d) {
     my $cvsprev;
     foreach my $cvsdate (@{$dd->{cvsdates}}) {
 	if ($cvsprev) {
-	    my $cvslog = "cvslog/src/sys/$cvsprev--$cvsdate.txt";
-	    unless (-f $cvslog) {
+	    my $cvslog = "cvslog/src/sys/$cvsprev--$cvsdate";
+	    unless (-f "$cvslog.txt") {
 		my @cmd = ("$performdir/bin/cvslog.pl",
 		    "-B", $cvsprev, "-E", $cvsdate, "-P", "src/sys");
 		system(@cmd)
 		    and die "Command '@cmd' failed: $?";
 	    }
-	    if (-f $cvslog) {
-		$dd->{$cvsdate}{cvslog} = $cvslog;
+	    if (-f "$cvslog.txt") {
+		$dd->{$cvsdate}{cvslog} = "$cvslog.txt";
 		# XXX fill $dd->{$cvsdate}{cvsfiles}
+	    }
+	    if (-f "$cvslog.html") {
+		# If html is available, use its niceer display in link.
+		$dd->{$cvsdate}{cvslog} = "$cvslog.html";
 	    }
 	}
 	$cvsprev = $cvsdate;
