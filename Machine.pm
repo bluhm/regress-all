@@ -105,8 +105,9 @@ sub update_cvs {
     my $tag = $release || "";
     $tag =~ s/(\d+)\.(\d+)/ -rOPENBSD_${1}_${2}_BASE/;
     $tag = $date ? strftime(" -D%FZ%T", gmtime(str2time($date))) : "";
+    $tag ||= "AC";  # for step checkouts per date preserve quirk patches
     $path = $path ? " $path" : "";
-    logcmd('ssh', "$user\@$host", "cd /usr/src && cvs -qR up -PdAC$tag$path");
+    logcmd('ssh', "$user\@$host", "cd /usr/src && cvs -qR up -Pd$tag$path");
     $path = $path ? " -C$path" : "";
     logcmd('ssh', "$user\@$host", "cd /usr/src && make$path obj");
 }
