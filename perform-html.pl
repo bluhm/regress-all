@@ -266,10 +266,12 @@ foreach my $dd (values %d) {
 	    }
 	    if (open (my $fh, '<', "$cvslog.txt")) {
 		$dd->{$cvsdate}{cvslog} = "$cvslog.txt";
+		$dd->{$cvsdate}{cvscommits} = 0;
 		while (<$fh>) {
 		    chomp;
 		    my ($k, @v) = split(/\s+/)
 			or next;
+		    $dd->{$cvsdate}{cvscommits}++ if $k eq 'DATE';
 		    push @{$dd->{$cvsdate}{cvsfiles}}, @v if $k eq 'FILES';
 		}
 	    } else {
@@ -564,7 +566,7 @@ HEADER
 	    "<a href=\"$link\">version</a></th>\n";
     }
     print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>kernel cvs</th>\n";
+    print $html "  <tr>\n    <th>kernel commits</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $cvslog = $d{$date}{$cvsdate}{cvslog};
 	unless ($cvslog) {
@@ -579,7 +581,9 @@ HEADER
 	    $title = " title=\"$files\"";
 	}
 	my $link = uri_escape($cvslog, "^A-Za-z0-9\-\._~/");
-	print $html "    <th$title><a href=\"../$link\">log</a></th>\n";
+	my $cvscommits = $d{$date}{$cvsdate}{cvscommits};
+	my $num = defined($cvscommits) ? "/$cvscommits" : "";
+	print $html "    <th$title><a href=\"../$link\">log</a>$num</th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
