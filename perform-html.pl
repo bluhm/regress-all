@@ -253,13 +253,13 @@ unless ($opts{l} || $opts{h}) {
 foreach my $rd (keys %v) {
     my $makeplot = "$rd-make.svg";
     my $tcpplot = "$rd-tcp.svg";
-    unless (-f $makeplot) {
+    unless (-f "gnuplot/$makeplot") {
 	my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $rd,
 	    "-O", $makeplot, "$performdir/bin/make.gp");
 	system(@cmd)
 	    and die "Command '@cmd' failed: $?";
     }
-    unless (-f $tcpplot) {
+    unless (-f "gnuplot/$tcpplot") {
 	my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $rd,
 	    "-O", $tcpplot, "$performdir/bin/tcp.gp");
 	system(@cmd)
