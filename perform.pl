@@ -259,7 +259,8 @@ foreach my $t (@tests) {
     print $log "START\t$test\t$date\n\n";
     $log->sync();
 
-    statistics($test, "before");
+    # XXX temporarily disabled
+    #statistics($test, "before");
 
     defined(my $pid = open(my $out, '-|'))
 	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
@@ -304,7 +305,8 @@ foreach my $t (@tests) {
 	"Close pipe from '@runcmd' failed: $!" :
 	"Command '@runcmd' failed: $?", $log;
 
-    statistics($test, "after");
+    # XXX temporarily disabled
+    #statistics($test, "after");
 
     my $end = Time::HiRes::time();
     good $test, $end - $begin, $log;
