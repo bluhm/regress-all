@@ -250,20 +250,15 @@ unless ($opts{l} || $opts{h}) {
 
 # create gnuplot graphs for all runs
 
-foreach my $rd (keys %v) {
-    my $makeplot = "$rd-make.svg";
-    my $tcpplot = "$rd-tcp.svg";
-    unless (-f "gnuplot/$makeplot") {
-	my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $rd,
-	    "-O", $makeplot, "$performdir/bin/make.gp");
-	system(@cmd)
-	    and die "Command '@cmd' failed: $?";
-    }
-    unless (-f "gnuplot/$tcpplot") {
-	my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $rd,
-	    "-O", $tcpplot, "$performdir/bin/tcp.gp");
-	system(@cmd)
-	    and die "Command '@cmd' failed: $?";
+foreach my $date (keys %v) {
+    foreach my $plot (qw(make tcp)) {
+	my $outfile = "$date-$plot.svg";
+	unless (-f "gnuplot/$outfile") {
+	    my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
+		"-P", "$performdir/bin/$plot.gp");
+	    system(@cmd)
+		and die "Command '@cmd' failed: $?";
+	}
     }
 }
 
