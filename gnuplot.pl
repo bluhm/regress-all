@@ -65,8 +65,10 @@ my $testdata = "test.data";
 (my $outfile = basename($plotfile)) =~ s/\.[^.]*//;
 $outfile = "$date-$outfile.svg";
 
-my @plotcmd = ("gnuplot", "-e", "RUN_DATE='$run'", "-e",
-    "DATA_FILE='$testdata'", "-e", "OUT_FILE='$outfile.new'",
+my @plotcmd = ("gnuplot", "-d",
+    "-e", "RUN_DATE='$run'",
+    "-e", "DATA_FILE='$testdata'",
+    "-e", "OUT_FILE='$outfile.new'",
     $plotfile);
 print "Command '@plotcmd' started\n" if $verbose;
 system(@plotcmd)
