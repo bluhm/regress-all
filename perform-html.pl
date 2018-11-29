@@ -372,6 +372,8 @@ HEADER
 	foreach my $repeat (@repeats) {
 	    print $html "    <th>$repeat</th>\n";
 	}
+	print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
 	print $html "  <tr>\n    <th>machine</th>\n";
 	foreach my $repeat (@repeats) {
@@ -386,6 +388,8 @@ HEADER
 		print $html "    <th></th>\n";
 	    }
 	}
+	print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
 	my @tests = sort keys %t;
 	foreach my $test (@tests) {
@@ -453,11 +457,11 @@ HEADER
 		    if ($unit0 eq 'bits/sec') {
 			print $html "    <td>$mean</td>\n";
 		    } else {
-			print $html "    <td><em>$mean</td>\n";
+			print $html "    <td><em>$mean</em></td>\n";
 		    }
 		    print $html "    <td>$minimum</td>\n";
 		    if ($unit0 eq 'bits/sec') {
-			print $html "    <td><em>$maximum</td>\n";
+			print $html "    <td><em>$maximum</em></td>\n";
 		    } else {
 			print $html "    <td>$maximum</td>\n";
 		    }
@@ -561,6 +565,7 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
     }
+    print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>test</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -571,6 +576,7 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>${href}build$enda</th>\n";
     }
+    print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>kernel build</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -584,6 +590,7 @@ HEADER
 	print $html "    <th title=\"$kernel\">".
 	    "<a href=\"$link\">version</a></th>\n";
     }
+    print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>kernel commits</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -604,6 +611,7 @@ HEADER
 	my $num = defined($cvscommits) ? "/$cvscommits" : "";
 	print $html "    <th$title><a href=\"../$link\">log</a>$num</th>\n";
     }
+    print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -615,6 +623,7 @@ HEADER
 	my $link = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
 	print $html "    <th><a href=\"$link\">quirks</a></th>\n";
     }
+    print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>repetitions</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -625,6 +634,7 @@ HEADER
 	$reptext =~ s/\s//g;
 	print $html "    <th>$reptext</th>\n";
     }
+    print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>dmesg after run</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -635,6 +645,7 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>$href$arch$enda</th>\n";
     }
+    print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
     my @tests = sort keys %t;
     foreach my $test (@tests) {
