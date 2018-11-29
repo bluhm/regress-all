@@ -703,9 +703,9 @@ HEADER
     }
     print $html "</table>\n";
 
-    print $html "<img src=\"gnupot/$date-tcp.svg\" ".
+    print $html "<img src=\"../gnuplot/$date-tcp.svg\" ".
 	"alt=\"tcp throughput\">\n";
-    print $html "<img src=\"gnupot/$date-make.svg\" ".
+    print $html "<img src=\"../gnuplot/$date-make.svg\" ".
 	"alt=\"kernel build time\">\n";
 
     print $html <<"FOOTER";
