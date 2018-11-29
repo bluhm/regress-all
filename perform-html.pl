@@ -613,7 +613,7 @@ HEADER
 	    next;
 	}
 	my $link = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
-	print $html "    <th><a href=\"$link\">quirks<a></th>\n";
+	print $html "    <th><a href=\"$link\">quirks</a></th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>repetitions</th>\n";
@@ -692,8 +692,10 @@ HEADER
     }
     print $html "</table>\n";
 
-    print $html "<img src=\"gnupot/$date-tcp.svg\"></img>\n";
-    print $html "<img src=\"gnupot/$date-make.svg\"></img>\n";
+    print $html "<img src=\"gnupot/$date-tcp.svg\" ".
+	"alt=\"tcp throughput\">\n";
+    print $html "<img src=\"gnupot/$date-make.svg\" ".
+	"alt=\"kernel build time\">\n";
 
     print $html <<"FOOTER";
 </body>
