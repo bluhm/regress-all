@@ -677,7 +677,7 @@ HEADER
 	    my $rp0 = $d{$date}{$cvsdates[0]}{repeats};
 	    my $value0 = $rp0 ?
 		first { $_ } map { $vt->{$cvsdates[0]}{$_}[$i] } @$rp0 :
-		$vt->{$cvsdates[0]}[$i];
+		first { $_ } map { $vt->{$_}[$i] } @cvsdates;
 	    my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 	    print $html "  <tr>\n    <th>$name0</th>\n";
 	    foreach my $cvsdate (@cvsdates) {
@@ -686,8 +686,9 @@ HEADER
 		    print $html "    <td></td>\n";
 		    next;
 		}
-		my $number = $rp0 ? $vt->{$cvsdate}{summary}[$i] || "" :
+		my $number = $rp0 ? $vt->{$cvsdate}{summary}[$i] :
 		    $vt->{$cvsdate}[$i]{number};
+		$number //= "";
 		my $outlier = $rp0 && $vt->{$cvsdate}{outlier}[$i];
 		my $class = $outlier ? ' class="outlier"' : "";
 		print $html "    <td$class>$number</td>\n";
