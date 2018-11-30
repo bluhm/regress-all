@@ -31,7 +31,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('vD:P:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -D date -O file file
+usage: $0 [-v] -D date -P file
     -v		verbose
     -D date	run date
     -P file	gnuplot file
