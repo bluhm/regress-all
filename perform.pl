@@ -104,7 +104,7 @@ sleep 1;
 
 sub iperf3_parser {
     my ($line, $log) = @_;
-    if ($line =~ m{ ([\d.]+) +([kmgt]?)bits/sec(?: +(sender|receiver))?}i) {
+    if ($line =~ m{ ([\d.]+) +([kmgt]?)bits/sec(?:.* (sender|receiver))?}i) {
 	my $value = $1;
 	my $unit = lc($2);
 	if ($unit eq '') {
@@ -221,6 +221,13 @@ my @tests = (
 	    "-C/usr/src/sys/arch/$machine/compile/$kconf", "-j$ncpu", '-s'],
 	parser => \&time_parser,
 	finalize => \&wallclock_finalize,
+    }, {
+	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b0', '-w1m', '-t60'],
+	parser => \&iperf3_parser,
+    }, {
+	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b0', '-w1m', '-t60',
+	    '-R'],
+	parser => \&iperf3_parser,
     }
 );
 
