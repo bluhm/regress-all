@@ -26,6 +26,7 @@ use parent 'Exporter';
 our @EXPORT= qw(quirk_comments quirk_patches quirk_commands);
 
 my %quirks = (
+# OpenBSD 6.3, 2018-03-25
     '2018-04-05T03:32:39Z' => {
 	comment => "remove PF_TRANS_ALTQ",
 	updatedirs => [ "sys" ],
@@ -152,6 +153,35 @@ PATCH
 	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper all",
 	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper install",
 	],
+    },
+# OpenBSD 6.4, 2018-10-12
+    '2018-10-16T18:20:58Z' => {
+	comment => "prepare kernel for lld linker",
+	updatedirs => [ "sys" ],
+	buildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP obj",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+    },
+    '2018-10-22T15:18:50Z' => {
+	comment => "cvs vendor branch checkout",
+	updatedirs => [ "gnu/usr.bin/cvs" ],
+	buildcommands => [
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper install",
+	],
+    },
+    '2018-10-22T19:31:30Z' => {
+	comment => "use lld as default linker",
+	updatedirs => [ "share/mk" ],
+	builddirs => [ "share/mk" ],
+    },
+    '2018-10-24T21:19:03' => {
+	comment => "final lld fixes",
+	updatedirs => [ "gnu/usr.bin/llvm" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
     },
 );
 
