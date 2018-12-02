@@ -180,7 +180,7 @@ PATCH
     },
     '2018-10-24T21:19:03' => {
 	comment => "final lld fixes",
-	updatedirs => [ "gnu/usr.bin/llvm" ],
+	updatedirs => [ "gnu/llvm" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
 );
