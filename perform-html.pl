@@ -213,12 +213,33 @@ foreach my $result (@results) {
 
 # write test results into gnuplot data file
 
+my %testplot = (
+	"iperf3_-c10.3.0.33_-w1m"			=> "tcp",
+	"iperf3_-c10.3.0.33_-w1m_-R"			=> "tcp",
+	"iperf3_-c10.3.0.33_-w1m_-t60"			=> "tcp",
+	"iperf3_-c10.3.0.33_-w1m_-t60_-R"		=> "tcp",
+	"tcpbench_-S1000000_-t10_10.3.0.33"		=> "tcp",
+	"tcpbench_-S1000000_-t10_-n100_10.3.0.33"	=> "tcp",
+	"tcpbench_-S1000000_-t60_10.3.0.33"		=> "tcp",
+	"tcpbench_-S1000000_-t60_-n100_10.3.0.33"	=> "tcp",
+	"iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> "udp",
+	"iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"	=> "udp",
+	"time_-lp_make_-CGENERIC.MP_-j8_-s"		=> "make",
+);
+
 unless ($opts{l} || $opts{h}) {
     -d "gnuplot" || mkdir "gnuplot"
 	or die "Create directory 'gnuplot' failed: $!";
-    my $testdata = "gnuplot/test.data";
-    open(my $fh, '>', "$testdata.new")
-	or die "Open '$testdata.new' for writing failed: $!";
+    my $testdata = "gnuplot/test";
+    my %plotfh;
+    @plotfh{values %testplot} = ();
+    foreach my $plot (keys %plotfh) {
+	open($plotfh{$plot}, '>', "$testdata-$plot.data.new")
+	    or die "Open '$testdata-$plot.data.new' for writing failed: $!";
+	print {$plotfh{$plot}} "# test subtest run checkout repeat value unit\n";
+    }
+    open(my $fh, '>', "$testdata.data.new")
+	or die "Open '$testdata.data.new' for writing failed: $!";
     print $fh "# test subtest run checkout repeat value unit\n";
     foreach my $date (sort keys %v) {
 	my $vd = $v{$date};
@@ -235,17 +256,27 @@ unless ($opts{l} || $opts{h}) {
 			my $number = $value->{number};
 			my $unit = $value->{unit};
 			my $subtest = $value->{name} || "unknown";
-			print $fh "$test $subtest $run $checkout $repeat ".
-			    "$number $unit\n";
+			print $fh "$test $subtest ".
+			    "$run $checkout $repeat $number $unit\n";
+			print {$plotfh{$testplot{$test}}} "$test $subtest ".
+			    "$run $checkout $repeat $number $unit\n"
+			    if $testplot{$test};
 		    }
 		}
 	    }
 	}
     }
     close($fh)
-	or die "Close '$testdata.new' after writing failed: $!";
-    rename("$testdata.new", $testdata)
-	or die "Rename '$testdata.new' to '$testdata' failed: $!";
+	or die "Close '$testdata.data.new' after writing failed: $!";
+    rename("$testdata.data.new", "$testdata.data")
+	or die "Rename '$testdata.data.new' to '$testdata.data' failed: $!";
+    foreach my $plot (keys %plotfh) {
+	my $datafile = "$testdata-$plot.data";
+	close($plotfh{$plot})
+	    or die "Close '$datafile.new' after writing failed: $!";
+	rename("$datafile.new", $datafile)
+	    or die "Rename '$datafile.new' to '$datafile' failed: $!";
+    }
 }
 
 # create gnuplot graphs for all runs
