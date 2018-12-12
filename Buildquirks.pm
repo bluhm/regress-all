@@ -102,7 +102,7 @@ PATCH
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2018-06-06T00:14:29Z' => {
-	comment => "add RETGUARD to clang",
+	comment => "add retguard to clang",
 	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [ "gnu/usr.bin/clang" ],
 	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
@@ -153,6 +153,12 @@ PATCH
 	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper all",
 	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper install",
 	],
+    },
+    '2018-08-12T17:07:00Z' => {
+	comment => "refactor retguard in clang",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [ "gnu/usr.bin/clang" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
     },
 # OpenBSD 6.4, 2018-10-12
     '2018-10-16T18:20:58Z' => {
