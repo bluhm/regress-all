@@ -23,7 +23,7 @@ use Date::Parse;
 use POSIX;
 
 use parent 'Exporter';
-our @EXPORT= qw(quirk_comments quirk_patches quirk_commands);
+our @EXPORT= qw(quirks quirk_comments quirk_patches quirk_commands);
 
 my %quirks = (
 # OpenBSD 6.3, 2018-03-25
