@@ -1,4 +1,5 @@
 #!/usr/local/bin/gnuplot
+
 # Copyright (c) 2018 Moritz Buhl <mbuhl@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -12,7 +13,6 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-# plot.gp (c) 2018 by Moritz Buhl mbuhl@genua.de
 
 # plot test results, the following variables are required:
 # DATA_FILE	Path,	plot data file, space separated,
