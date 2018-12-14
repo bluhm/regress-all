@@ -26,53 +26,72 @@ use POSIX;
 use Time::Local;
 
 use lib dirname($0);
+use Buildquirks;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('vD:P:', \%opts) or do {
+getopts('vC:D:T:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -D date -P file
+usage: $0 [-v] [-C date] [-D date] -T tcp|make|udp
     -v		verbose
+    -C date	checkout date
     -D date	run date
-    -P file	gnuplot file
+    -T test	test name (tcp, make, upd)
 EOF
     exit(2);
 };
 my $verbose = $opts{v};
-my $date = $opts{D}
-    or die "No -D run date";
-my $run = str2time($opts{D})
-    or die "Invalid -D date '$opts{D}'";
-my $plotfile = $opts{P}
-    or die "No -P gnuplot file";
+my $run = str2time($opts{D}) or die "Invalid -D date '$opts{D}'" if ($opts{D});
+my $chk = str2time($opts{C}) or die "Invalid -C date '$opts{C}'" if ($opts{C});
+
+my $test = $opts{T} or die "Option -T tcp|make|udp missing";
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';
 
-my $performdir = dirname($0). "/..";
+my $rundir = dirname($0);
+my $performdir = "$rundir/..";
 my $gnuplotdir = "$performdir/results/gnuplot";
-chdir($gnuplotdir)
-    or die "Chdir to '$gnuplotdir' failed: $!";
+chdir($gnuplotdir) or die "Chdir to '$gnuplotdir' failed: $!";
 $gnuplotdir = getcwd();
 
-# collect gnuplot test.data and write output to date-plot.format
+-f "$rundir/plot.gp" or die "No gnuplot file 'plot.gp' in $rundir";
+my $testdata = "test-$test.data";
+-f $testdata or die "No test data file '$testdata";
 
--f $plotfile
-    or die "No gnuplot file '$plotfile' in $gnuplotdir";
-my $testdata = "test.data";
--f $testdata
-    or die "No test data file '$testdata";
-(my $outfile = basename($plotfile)) =~ s/\.[^.]*//;
-$outfile = "$date-$outfile.svg";
+my $quirks = join " ", quirks;
+my $title = (uc $test)." Performance";
+my %tests;
+open (my $fh, '<', $testdata) or die "Open '$testdata' for reading failed: $!";
+
+<$fh>; # skip file head
+my ($tst, $sub, $_2, $_3, $_4, $_5, $unit)  = split(/\s+/, <$fh>);
+$tests{"$tst $sub"} = 1;
+
+while (my $row = <$fh>) {
+    my ($tst, $sub) = split(/\s+/, $row);
+    $tests{"$tst $sub"} = 1;
+}
+
+my $testnames = join(" ", keys %tests);
+
+my $outfile = "$gnuplotdir/";
+$outfile .= "$opts{D}-" if ($run);
+$outfile .= "$opts{C}-" if ($chk);
+$outfile .= "$test.svg";
 
 my @plotcmd = ("gnuplot", "-d",
-    "-e", "RUN_DATE='$run'",
     "-e", "DATA_FILE='$testdata'",
     "-e", "OUT_FILE='$outfile.new'",
-    $plotfile);
+    "-e", "QUIRKS='$quirks'",
+    "-e", "TESTS='$testnames'",
+    "-e", "TITLE='$title'",
+    "-e", "UNIT='$unit'");
+push @plotcmd, "-e", "RUN_DATE='$run'" if ($run);
+push @plotcmd, "-e", "CHECKOUT_DATE='$chk'" if ($chk);
+push @plotcmd, "$rundir/plot.gp";
 print "Command '@plotcmd' started\n" if $verbose;
-system(@plotcmd)
-    and die "system @plotcmd failed: $?";
+system(@plotcmd) and die "system @plotcmd failed: $?";
 print "Command '@plotcmd' finished\n" if $verbose;
 
 rename("$outfile.new", $outfile)

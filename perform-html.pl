@@ -282,13 +282,11 @@ unless ($opts{l} || $opts{h}) {
 # create gnuplot graphs for all runs
 
 foreach my $date (keys %v) {
-    foreach my $plot (qw(make tcp)) {
-	my $outfile = "$date-$plot.svg";
+    foreach my $tst (qw(make tcp udp)) {
+	my $outfile = "$date-$tst.svg";
 	unless (-f "gnuplot/$outfile") {
-	    my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
-		"-P", "$performdir/bin/$plot.gp");
-	    system(@cmd)
-		and die "Command '@cmd' failed: $?";
+	    my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date, "-T", "$tst");
+	    system(@cmd) and die "Command '@cmd' failed: $?";
 	}
     }
 }
@@ -731,9 +729,11 @@ HEADER
     print $html "</table>\n";
 
     print $html "<img src=\"../gnuplot/$date-tcp.svg\" ".
-	"alt=\"tcp throughput\">\n";
+	"alt=\"TCP Performance\">\n<br>";
+    print $html "<img src=\"../gnuplot/$date-udp.svg\" ".
+	"alt=\"UDP Performance\">\n<br>";
     print $html "<img src=\"../gnuplot/$date-make.svg\" ".
-	"alt=\"kernel build time\">\n";
+	"alt=\"MAKE Performance\">\n<br>";
 
     print $html <<"FOOTER";
 </body>
