@@ -282,11 +282,13 @@ unless ($opts{l} || $opts{h}) {
 # create gnuplot graphs for all runs
 
 foreach my $date (keys %v) {
-    foreach my $tst (qw(make tcp udp)) {
-	my $outfile = "$date-$tst.svg";
+    foreach my $plot (qw(make tcp udp)) {
+	my $outfile = "$date-$plot.svg";
 	unless (-f "gnuplot/$outfile") {
-	    my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date, "-T", "$tst");
-	    system(@cmd) and die "Command '@cmd' failed: $?";
+	    my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
+		"-T", "$plot");
+	    system(@cmd)
+		and die "Command '@cmd' failed: $?";
 	}
     }
 }
