@@ -26,7 +26,6 @@ use POSIX;
 use Time::Local;
 
 use lib dirname($0);
-use Buildquirks;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
@@ -69,7 +68,6 @@ my $testdata = "test-$test.data";
 -f $testdata
     or die "No test data file '$testdata' in $gnuplotdir";
 
-my $quirks = join(" ", quirks());
 my $title = uc($test). " Performance";
 my %tests;
 open (my $fh, '<', $testdata)
@@ -94,7 +92,6 @@ $outfile .= "$test.svg";
 my @plotcmd = ("gnuplot", "-d",
     "-e", "DATA_FILE='$testdata'",
     "-e", "OUT_FILE='$outfile.new'",
-    "-e", "QUIRKS='$quirks'",
     "-e", "TESTS='$testnames'",
     "-e", "TITLE='$title'",
     "-e", "UNIT='$unit'");
