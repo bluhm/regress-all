@@ -41,31 +41,42 @@ EOF
     exit(2);
 };
 my $verbose = $opts{v};
-my $run = str2time($opts{D}) or die "Invalid -D date '$opts{D}'" if ($opts{D});
-my $chk = str2time($opts{C}) or die "Invalid -C date '$opts{C}'" if ($opts{C});
-
-my $test = $opts{T} or die "Option -T tcp|make|udp missing";
+my $run = str2time($opts{D})
+    or die "Invalid -D date '$opts{D}'"
+    if ($opts{D});
+my $chk = str2time($opts{C})
+    or die "Invalid -C date '$opts{C}'"
+    if ($opts{C});
+my $test = $opts{T}
+    or die "Option -T tcp|make|udp missing";
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';
 
-my $rundir = dirname($0);
-my $performdir = "$rundir/..";
-my $gnuplotdir = "$performdir/results/gnuplot";
-chdir($gnuplotdir) or die "Chdir to '$gnuplotdir' failed: $!";
+my $performdir = dirname($0). "/..";
+chdir($performdir)
+    or die "Chdir to '$performdir' failed: $!";
+$performdir = getcwd();
+my $gnuplotdir = "results/gnuplot";
+chdir($gnuplotdir)
+    or die "Chdir to '$gnuplotdir' failed: $!";
 $gnuplotdir = getcwd();
 
--f "$rundir/plot.gp" or die "No gnuplot file 'plot.gp' in $rundir";
+my $plotfile = "$performdir/bin/plot.gp";
+-f $plotfile
+    or die "No gnuplot file '$plotfile'";
 my $testdata = "test-$test.data";
--f $testdata or die "No test data file '$testdata";
+-f $testdata
+    or die "No test data file '$testdata' in $gnuplotdir";
 
-my $quirks = join " ", quirks;
-my $title = (uc $test)." Performance";
+my $quirks = join(" ", quirks());
+my $title = uc($test). " Performance";
 my %tests;
-open (my $fh, '<', $testdata) or die "Open '$testdata' for reading failed: $!";
+open (my $fh, '<', $testdata)
+    or die "Open '$testdata' for reading failed: $!";
 
 <$fh>; # skip file head
-my ($tst, $sub, $_2, $_3, $_4, $_5, $unit)  = split(/\s+/, <$fh>);
+my ($tst, $sub, undef, undef, undef, undef, $unit)  = split(/\s+/, <$fh>);
 $tests{"$tst $sub"} = 1;
 
 while (my $row = <$fh>) {
@@ -75,9 +86,9 @@ while (my $row = <$fh>) {
 
 my $testnames = join(" ", keys %tests);
 
-my $outfile = "$gnuplotdir/";
-$outfile .= "$opts{D}-" if ($run);
-$outfile .= "$opts{C}-" if ($chk);
+my $outfile = "";
+$outfile .= "$opts{D}-" if $run;
+$outfile .= "$opts{C}-" if $chk;
 $outfile .= "$test.svg";
 
 my @plotcmd = ("gnuplot", "-d",
@@ -87,11 +98,12 @@ my @plotcmd = ("gnuplot", "-d",
     "-e", "TESTS='$testnames'",
     "-e", "TITLE='$title'",
     "-e", "UNIT='$unit'");
-push @plotcmd, "-e", "RUN_DATE='$run'" if ($run);
-push @plotcmd, "-e", "CHECKOUT_DATE='$chk'" if ($chk);
-push @plotcmd, "$rundir/plot.gp";
+push @plotcmd, "-e", "RUN_DATE='$run'" if $run;
+push @plotcmd, "-e", "CHECKOUT_DATE='$chk'" if $chk;
+push @plotcmd, $plotfile;
 print "Command '@plotcmd' started\n" if $verbose;
-system(@plotcmd) and die "system @plotcmd failed: $?";
+system(@plotcmd)
+    and die "system @plotcmd failed: $?";
 print "Command '@plotcmd' finished\n" if $verbose;
 
 rename("$outfile.new", $outfile)
