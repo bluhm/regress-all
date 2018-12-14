@@ -79,7 +79,9 @@ if (exists("CHECKOUT_DATE")) {
 }
 
 points = (STATS_records / (words(TESTS) / 2)) + 1
-set terminal svg size (30 * points), (480 + (words(TESTS) / 2) * 12) dynamic
+# XXX Scaled image is unreadable small, disable for now.
+#set terminal svg size (30 * points), (480 + (words(TESTS) / 2) * 12) dynamic
+set terminal svg
 
 # draw quirks
 do for [IDX = 1:words(QUIRKS):2] {
