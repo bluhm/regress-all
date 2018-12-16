@@ -33,12 +33,12 @@ if (!exists("DATA_FILE") || !exists("OUT_FILE") || !exists("TESTS")) {
     exit status 1
 }
 
-set border 3
 set datafile separator whitespace
 set key bmargin left vertical Right
 set output OUT_FILE
-if (exists("TITLE")) { set title TITLE }
-if (exists("UNIT")) { set ylabel UNIT }
+
+if (!exists("TITLE")) { TITLE = "" }
+if (!exists("UNIT")) { UNIT = "" }
 if (!exists("QUIRKS")) { QUIRKS = "" }
 
 if (exists("CHECKOUT_DATE")) {
@@ -56,15 +56,21 @@ if (exists("CHECKOUT_DATE")) {
     }
 }
 
-# adjust axes after this check to prevent warnings
+# If there are not data points, create an empty image to prevent future gnuplot
+# invocations. To prevent warnings, set most style settings after this check.
 if (!exists("STATS_records")) {
-    set terminal svg
-    set label "NO DATA" at 0.5,0.5
-    set xrange[0:1]
-    set yrange[0:1]
-    plot 0
+    set terminal svg size 120,80
+    set title TITLE."\nNO DATA" offset first 0,0
+    set yrange [-1:1]
+    unset tics
+    unset key
+    unset border
+    plot 0 lc rgb 'white'
     exit
 }
+
+set title TITLE
+set ylabel UNIT
 
 if (exists("CHECKOUT_DATE")) {
     set xrange[STATS_min_x : (STATS_max_x > STATS_min_x? STATS_max_x : "*")]
@@ -103,7 +109,7 @@ if (exists("CHECKOUT_DATE")) {
 		    ):NaN \
 		):NaN \
 	    ):NaN \
-	) title word(TESTS,test)." ".word(TESTS,test+1)
+	) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
     } else {
 	plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
 	    strcol(4) eq CHECKOUT_DATE? ( \
@@ -111,7 +117,7 @@ if (exists("CHECKOUT_DATE")) {
 		    strcol(2) eq word(TESTS,test+1)? $6:NaN \
 		):NaN \
 	    ):NaN \
-	) title word(TESTS,test)." ".word(TESTS,test+1)
+	) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
     }
 } else {
     if (exists("RUN_DATE")) {
@@ -121,12 +127,12 @@ if (exists("CHECKOUT_DATE")) {
 		    strcol(2) eq word(TESTS,test+1)? $6:NaN \
 		):NaN \
 	    ):NaN \
-	) title word(TESTS,test)." ".word(TESTS,test+1)
+	) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
     } else {
 	plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
 	    strcol(1) eq word(TESTS,test)? ( \
 		strcol(2) eq word(TESTS,test+1)? $6:NaN \
 	    ):NaN \
-	) title word(TESTS,test)." ".word(TESTS,test+1)
+	) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
     }
 }
