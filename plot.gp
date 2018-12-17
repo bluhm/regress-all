@@ -71,12 +71,12 @@ if (!exists("STATS_records")) {
 
 set title TITLE
 set ylabel UNIT
+set xrange[STATS_min_x - 1 : STATS_max_x + 1] # work around min == max
+set yrange[0 : *]
 
 if (exists("CHECKOUT_DATE")) {
-    set xrange[STATS_min_x : (STATS_max_x > STATS_min_x? STATS_max_x : "*")]
     set xlabel "Run #"
 } else {
-    set xrange[STATS_min_x : (STATS_max_x > STATS_min_x? STATS_max_x : "*")]
     set format x "%Y-%m-%d"
     set timefmt "%s"
     set xdata time
