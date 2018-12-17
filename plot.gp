@@ -86,17 +86,22 @@ if (exists("CHECKOUT_DATE")) {
 
 points = (STATS_records / (words(TESTS) / 2)) + 1
 # XXX Scaled image is unreadable small, disable for now.
-#set terminal svg size (30 * points), (480 + (words(TESTS) / 2) * 12) dynamic
+#set terminal svg size (120 + 30 * points), (600 + (words(TESTS) / 2) * 20)
+#set tmargin 120
 set terminal svg
 
 # draw quirks
-do for [IDX = 1:words(QUIRKS):2] {
-    XPOS = word(QUIRKS, IDX)
-    DESCR = word(QUIRKS, IDX+1)
-    set arrow from XPOS/2, graph 0 to XPOS/2, graph 1 nohead
-    set label DESCR at XPOS,STATS_max_y offset -(strlen(DESCR)/2),0
+set style textbox opaque noborder fillcolor rgb "white"
+lbl_index = 1
+do for [i = 1:words(QUIRKS)] {
+    XPOS = (int(word(QUIRKS, i))-STATS_min_x)/(STATS_max_x-STATS_min_x)
+    if (XPOS > 0 && XPOS < 1) {
+	DESCR = sprintf("%d", lbl_index)
+	lbl_index = lbl_index + 1
+	set arrow from graph XPOS,0 to graph XPOS,1 nohead lw 1 lc rgb 'black'
+	set label DESCR at graph XPOS, screen .9 noenhanced front boxed
+    }
 }
-
 
 # draw test results
 if (exists("CHECKOUT_DATE")) {
