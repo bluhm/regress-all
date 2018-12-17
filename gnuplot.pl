@@ -26,6 +26,7 @@ use POSIX;
 use Time::Local;
 
 use lib dirname($0);
+use Buildquirks;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
@@ -83,6 +84,8 @@ while (my $row = <$fh>) {
 }
 
 my $testnames = join(" ", keys %tests);
+my %q = quirks();
+my $quirks = join(" ", sort keys %q);
 
 my $outfile = "";
 $outfile .= "$opts{D}-" if $run;
@@ -92,6 +95,7 @@ $outfile .= "$test.svg";
 my @plotcmd = ("gnuplot", "-d",
     "-e", "DATA_FILE='$testdata'",
     "-e", "OUT_FILE='$outfile.new'",
+    "-e", "QUIRKS='$quirks'",
     "-e", "TESTS='$testnames'",
     "-e", "TITLE='$title'",
     "-e", "UNIT='$unit'");
