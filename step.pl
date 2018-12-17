@@ -233,8 +233,8 @@ sub add_step {
 	$step *= 60 * 60 * 24 * 7;
     } elsif ($unit eq "month") {
 	$mon += $step;
-	$year += int(($mon - 1) / 12);
-	$mon = (($mon - 1) % 12) + 1;
+	$year += int($mon / 12);
+	$mon = $mon % 12;
 	$step = 0;
     } elsif ($unit eq "$year") {
 	$year += $step;
