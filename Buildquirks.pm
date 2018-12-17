@@ -185,9 +185,9 @@ PATCH
 	builddirs => [ "share/mk" ],
     },
     '2018-10-24T21:19:03' => {
-	comment => "final lld fixes",
+	comment => "build clang with final lld fixes",
 	updatedirs => [ "gnu/llvm" ],
-	builddirs => [ "gnu/usr.bin/clang/lld" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
     },
 );
 
