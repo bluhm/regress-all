@@ -335,6 +335,22 @@ foreach my $dd (values %d) {
     }
 }
 
+my %testorder = (
+    "iperf3_-c10.3.0.33_-w1m"				=> 111,
+    "iperf3_-c10.3.0.33_-w1m_-t60"			=> 112,
+    "iperf3_-c10.3.0.33_-w1m_-R"			=> 121,
+    "iperf3_-c10.3.0.33_-w1m_-t60_-R"			=> 122,
+    "tcpbench_-S1000000_-t10_10.3.0.33"			=> 211,
+    "tcpbench_-S1000000_-t60_10.3.0.33"			=> 212,
+    "tcpbench_-S1000000_-t10_-n100_10.3.0.33"		=> 221,
+    "tcpbench_-S1000000_-t60_-n100_10.3.0.33"		=> 222,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m"			=> 311,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> 312,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-R"			=> 321,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> 322,
+    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 400,
+);
+my @tests = reverse sort { $testorder{$b} <=> $testorder{$a} } keys %t;
 my @dates = reverse sort keys %d;
 
 # html per date per cvsdate with repetitions
@@ -420,7 +436,6 @@ HEADER
 	print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
-	my @tests = sort keys %t;
 	foreach my $test (@tests) {
 	    my $td = $t{$test}{$date} && $t{$test}{$date}{$cvsdate}
 		or next;
@@ -676,7 +691,6 @@ HEADER
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
-    my @tests = sort keys %t;
     foreach my $test (@tests) {
 	my $td = $t{$test}{$date} or next;
 	print $html "  <tr>\n    <th>$test</th>\n";
@@ -861,24 +875,6 @@ foreach my $date (@dates) {
 }
 print $html "  </tr>\n";
 
-my %testorder = (
-    "iperf3_-c10.3.0.33_-w1m"				=> 111,
-    "iperf3_-c10.3.0.33_-w1m_-t60"			=> 112,
-    "iperf3_-c10.3.0.33_-w1m_-R"			=> 121,
-    "iperf3_-c10.3.0.33_-w1m_-t60_-R"			=> 122,
-    "tcpbench_-S1000000_-t10_10.3.0.33"			=> 211,
-    "tcpbench_-S1000000_-t60_10.3.0.33"			=> 212,
-    "tcpbench_-S1000000_-t10_-n100_10.3.0.33"		=> 221,
-    "tcpbench_-S1000000_-t60_-n100_10.3.0.33"		=> 222,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m"			=> 311,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> 312,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-R"			=> 321,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> 322,
-    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 400,
-);
-
-my @tests = reverse sort { $testorder{$b} <=> $testorder{$a} || $a cmp $b }
-    keys %t;
 foreach my $test (@tests) {
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $date (@dates) {
