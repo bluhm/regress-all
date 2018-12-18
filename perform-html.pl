@@ -877,7 +877,7 @@ my %testorder = (
     "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 400,
 );
 
-my @tests = sort { $testorder{$b} <=> $testorder{$a} || $a cmp $b }
+my @tests = reverse sort { $testorder{$b} <=> $testorder{$a} || $a cmp $b }
     keys %t;
 foreach my $test (@tests) {
     print $html "  <tr>\n    <th>$test</th>\n";
