@@ -214,17 +214,19 @@ foreach my $result (@results) {
 # write test results into gnuplot data file
 
 my %testplot = (
-	"iperf3_-c10.3.0.33_-w1m"			=> "tcp",
-	"iperf3_-c10.3.0.33_-w1m_-R"			=> "tcp",
-	"iperf3_-c10.3.0.33_-w1m_-t60"			=> "tcp",
-	"iperf3_-c10.3.0.33_-w1m_-t60_-R"		=> "tcp",
-	"tcpbench_-S1000000_-t10_10.3.0.33"		=> "tcp",
-	"tcpbench_-S1000000_-t10_-n100_10.3.0.33"	=> "tcp",
-	"tcpbench_-S1000000_-t60_10.3.0.33"		=> "tcp",
-	"tcpbench_-S1000000_-t60_-n100_10.3.0.33"	=> "tcp",
-	"iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> "udp",
-	"iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"	=> "udp",
-	"time_-lp_make_-CGENERIC.MP_-j8_-s"		=> "make",
+    "iperf3_-c10.3.0.33_-w1m"				=> "tcp",
+    "iperf3_-c10.3.0.33_-w1m_-t60"			=> "tcp",
+    "iperf3_-c10.3.0.33_-w1m_-R"			=> "tcp",
+    "iperf3_-c10.3.0.33_-w1m_-t60_-R"			=> "tcp",
+    "tcpbench_-S1000000_-t10_10.3.0.33"			=> "tcp",
+    "tcpbench_-S1000000_-t60_10.3.0.33"			=> "tcp",
+    "tcpbench_-S1000000_-t10_-n100_10.3.0.33"		=> "tcp",
+    "tcpbench_-S1000000_-t60_-n100_10.3.0.33"		=> "tcp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m"			=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-R"			=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> "udp",
+    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> "make",
 );
 
 unless ($opts{l} || $opts{h}) {
@@ -858,7 +860,23 @@ foreach my $date (@dates) {
 }
 print $html "  </tr>\n";
 
-my @tests = sort { $t{$b}{severity} <=> $t{$a}{severity} || $a cmp $b }
+my %testorder = (
+    "iperf3_-c10.3.0.33_-w1m"				=> 111,
+    "iperf3_-c10.3.0.33_-w1m_-t60"			=> 112,
+    "iperf3_-c10.3.0.33_-w1m_-R"			=> 121,
+    "iperf3_-c10.3.0.33_-w1m_-t60_-R"			=> 122,
+    "tcpbench_-S1000000_-t10_10.3.0.33"			=> 211,
+    "tcpbench_-S1000000_-t60_10.3.0.33"			=> 212,
+    "tcpbench_-S1000000_-t10_-n100_10.3.0.33"		=> 221,
+    "tcpbench_-S1000000_-t60_-n100_10.3.0.33"		=> 222,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m"			=> 311,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> 312,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-R"			=> 321,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> 322,
+    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 400,
+);
+
+my @tests = sort { $testorder{$b} <=> $testorder{$a} || $a cmp $b }
     keys %t;
 foreach my $test (@tests) {
     print $html "  <tr>\n    <th>$test</th>\n";
