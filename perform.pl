@@ -216,18 +216,18 @@ my @tests = (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	initialize => \&wallclock_initialize,
-	testcmd => ['time', '-lp', 'make',
-	    "-C/usr/src/sys/arch/$machine/compile/$kconf", "-j$ncpu", '-s'],
-	parser => \&time_parser,
-	finalize => \&wallclock_finalize,
-    }, {
 	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b0', '-w1m', '-t60'],
 	parser => \&iperf3_parser,
     }, {
 	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b0', '-w1m', '-t60',
 	    '-R'],
 	parser => \&iperf3_parser,
+    }, {
+	initialize => \&wallclock_initialize,
+	testcmd => ['time', '-lp', 'make',
+	    "-C/usr/src/sys/arch/$machine/compile/$kconf", "-j$ncpu", '-s'],
+	parser => \&time_parser,
+	finalize => \&wallclock_finalize,
     }
 );
 
