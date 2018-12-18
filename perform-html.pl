@@ -238,7 +238,8 @@ unless ($opts{l} || $opts{h}) {
     foreach my $plot (keys %plotfh) {
 	open($plotfh{$plot}, '>', "$testdata-$plot.data.new")
 	    or die "Open '$testdata-$plot.data.new' for writing failed: $!";
-	print {$plotfh{$plot}} "# test subtest run checkout repeat value unit\n";
+	print {$plotfh{$plot}}
+	    "# test subtest run checkout repeat value unit\n";
     }
     open(my $fh, '>', "$testdata.data.new")
 	or die "Open '$testdata.data.new' for writing failed: $!";
