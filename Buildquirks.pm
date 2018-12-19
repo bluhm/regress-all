@@ -82,7 +82,7 @@ PATCH
     '2018-04-07T10:05:06Z' => {
 	comment => "update LLVM to 6.0.0",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
-	cleandirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2018-05-14T12:31:21Z' => {
@@ -100,14 +100,14 @@ PATCH
     '2018-06-03T21:30:38Z' => {
 	comment => "add ret protector options as no-ops",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
-	cleandirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2018-06-06T00:14:29Z' => {
 	comment => "add retguard to clang",
 	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [
-	    "sys/arch/amd64/conf/GENERIC.MP",
+	    "sys/arch/amd64/compile/GENERIC.MP",
 	    "gnu/usr.bin/clang",
 	],
 	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
@@ -163,7 +163,7 @@ PATCH
 	comment => "refactor retguard in clang",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [
-	    "sys/arch/amd64/conf/GENERIC.MP",
+	    "sys/arch/amd64/compile/GENERIC.MP",
 	    "gnu/usr.bin/clang",
 	],
 	builddirs => [ "gnu/usr.bin/clang" ],
@@ -195,7 +195,7 @@ PATCH
     '2018-10-24T21:19:03' => {
 	comment => "build clang with final lld fixes",
 	updatedirs => [ "gnu/llvm" ],
-	cleandirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
 );
