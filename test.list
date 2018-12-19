@@ -111,6 +111,7 @@ sys/kern/pty
 sys/kern/pwrite
 sys/kern/pwritev
 sys/kern/rcvtimeo
+sys/kern/recvwait
 sys/kern/rlimit-file
 sys/kern/setuid
 sys/kern/sig-stop
