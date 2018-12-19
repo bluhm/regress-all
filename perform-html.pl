@@ -27,6 +27,9 @@ use List::Util qw(first max min sum);
 use POSIX;
 use URI::Escape;
 
+use lib dirname($0);
+use Buildquirks;
+
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
@@ -658,14 +661,26 @@ HEADER
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
+    my $prevd;
+    my $qi = 0;
     foreach my $cvsdate (@cvsdates) {
 	my $quirks = $d{$date}{$cvsdate}{quirks};
-	unless ($quirks) {
+	if ($quirks) {
+	    my $link = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
+	    print $html "    <th><a href=\"$link\">quirks</a>";
+	    if ($prevd) {
+		print $html "/";
+		print $html $qi++." "
+		    foreach keys %{{quirks($prevd, $cvsdate)}};
+	    }
+	    print $html "</th>\n";
+	} else {
 	    print $html "    <th></th>\n";
-	    next;
 	}
-	my $link = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
-	print $html "    <th><a href=\"$link\">quirks</a></th>\n";
+	if (!$prevd) { # skip the first quirk
+	    $qi++;
+	}
+	$prevd = $cvsdate;
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";

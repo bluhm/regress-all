@@ -94,7 +94,7 @@ set terminal svg
 set style textbox opaque noborder fillcolor rgb "white"
 lbl_index = 1
 do for [i = 1:words(QUIRKS)] {
-    XPOS = (int(word(QUIRKS, i))-STATS_min_x)/(STATS_max_x-STATS_min_x)
+    XPOS = (int(word(QUIRKS, i))-STATS_min_x)/(STATS_max_x-STATS_min_x+1)
     if (XPOS > 0 && XPOS < 1) {
 	DESCR = sprintf("%d", lbl_index)
 	lbl_index = lbl_index + 1
