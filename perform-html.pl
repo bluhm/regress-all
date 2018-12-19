@@ -287,8 +287,8 @@ unless ($opts{l} || $opts{h}) {
 
 # create gnuplot graphs for all runs
 
-foreach my $date (keys %v) {
-    foreach my $plot (qw(make tcp udp)) {
+foreach my $plot (qw(make tcp udp)) {
+    foreach my $date (keys %v) {
 	my $outfile = "$date-$plot.svg";
 	unless (-f "gnuplot/$outfile") {
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
@@ -296,6 +296,12 @@ foreach my $date (keys %v) {
 	    system(@cmd)
 		and die "Command '@cmd' failed: $?";
 	}
+    }
+    my $outfile = "$plot.svg";
+    unless (-f "gnuplot/$outfile") {
+	my @cmd = ("$performdir/bin/gnuplot.pl", "-T", "$plot");
+	system(@cmd)
+	    and die "Command '@cmd' failed: $?";
     }
 }
 
@@ -662,7 +668,7 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
     my $prevd;
-    my $qi = 1;
+    my $qi = 97 + keys %{{quirks(undef, $cvsdates[0])}};
     foreach my $cvsdate (@cvsdates) {
 	my $quirks = $d{$date}{$cvsdate}{quirks};
 	print $html "    <th>";
@@ -672,7 +678,7 @@ HEADER
 	}
 	if ($prevd) {
 	    my @quirks = keys %{{quirks($prevd, $cvsdate)}};
-	    print $html "/", join(",", map { $qi++ } @quirks) if @quirks;
+	    print $html "/", join(",", map { chr($qi++) } @quirks) if @quirks;
 	}
 	print $html "</th>\n";
 	$prevd = $cvsdate;
@@ -901,6 +907,20 @@ foreach my $test (@tests) {
     print $html "  </tr>\n";
 }
 print $html "</table>\n";
+
+print $html "<img src=\"gnuplot/tcp.svg\" ".
+    "alt=\"TCP Performance\">\n<br>";
+print $html "<img src=\"gnuplot/udp.svg\" ".
+    "alt=\"UDP Performance\">\n<br>";
+print $html "<img src=\"gnuplot/make.svg\" ".
+    "alt=\"MAKE Performance\">\n<br>";
+
+print $html "<ol type=\"a\">";
+my %q = quirks();
+foreach my $quirk (sort keys %q) {
+    print $html "<li>$q{$quirk}{comment}</li>";
+}
+print $html "</ol>";
 
 print $html <<"FOOTER";
 <table>
