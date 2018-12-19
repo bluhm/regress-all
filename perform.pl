@@ -202,24 +202,24 @@ sub wallclock_finalize {
 
 my @tests = (
     {
-	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t60'],
+	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t10'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t60', '-R'],
+	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t60', $remote_addr],
+	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t60', '-n100', $remote_addr],
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b0', '-w1m', '-t60'],
+	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b0', '-w1m', '-t10'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b0', '-w1m', '-t60',
+	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b0', '-w1m', '-t10',
 	    '-R'],
 	parser => \&iperf3_parser,
     }, {
