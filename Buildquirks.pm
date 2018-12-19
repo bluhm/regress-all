@@ -201,12 +201,13 @@ PATCH
 );
 
 sub quirks {
-    my $before = str2time($_[0])
+    my ($before, $after);
+    $before = str2time($_[0])
 	or croak "Could not parse date '$_[0]'"
-	if ($_[0]);
-    my $after = str2time($_[1])
+	if $_[0];
+    $after = str2time($_[1])
 	or croak "Could not parse date '$_[1]'"
-	if ($_[1]);
+	if $_[1];
 
     my %q;
     while (my($k, $v) = each %quirks) {
