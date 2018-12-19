@@ -85,6 +85,10 @@ PATCH
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
+    '2018-04-27T15:19:32Z' => {
+	comment => "retpoline for kernel",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
     '2018-05-14T12:31:21Z' => {
 	comment => "report CPU spinning time",
 	updatedirs => [ "sys", "usr.bin/top", "usr.bin/systat" ],
