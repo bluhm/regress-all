@@ -670,7 +670,8 @@ HEADER
 	    print $html "    <th><a href=\"$link\">quirks</a>";
 	    if ($prevd) {
 		print $html "/";
-		print $html $qi++." " for keys %{{quirks($prevd, $cvsdate)}};
+		print $html $qi++." "
+		    foreach keys %{{quirks($prevd, $cvsdate)}};
 	    }
 	    print $html "</th>\n";
 	} else {
