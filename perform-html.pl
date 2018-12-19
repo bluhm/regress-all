@@ -662,24 +662,19 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
     my $prevd;
-    my $qi = 0;
+    my $qi = 1;
     foreach my $cvsdate (@cvsdates) {
 	my $quirks = $d{$date}{$cvsdate}{quirks};
+	print $html "    <th>";
 	if ($quirks) {
 	    my $link = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
-	    print $html "    <th><a href=\"$link\">quirks</a>";
-	    if ($prevd) {
-		print $html "/";
-		print $html $qi++." "
-		    foreach keys %{{quirks($prevd, $cvsdate)}};
-	    }
-	    print $html "</th>\n";
-	} else {
-	    print $html "    <th></th>\n";
+	    print $html "<a href=\"$link\">quirks</a>";
 	}
-	if (!$prevd) { # skip the first quirk
-	    $qi++;
+	if ($prevd) {
+	    my @quirks = keys %{{quirks($prevd, $cvsdate)}};
+	    print $html "/", join(",", map { $qi++ } @quirks) if @quirks;
 	}
+	print $html "</th>\n";
 	$prevd = $cvsdate;
     }
     print $html "    <th></th>\n";  # dummy for unit below
