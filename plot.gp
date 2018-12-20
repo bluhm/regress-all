@@ -22,7 +22,6 @@
 #			format: "test1 subtest1 test2 sub2 ... testN subN"
 #
 # The following variables are optional:
-# CHECKOUT_DATE	UNIX time stamp, filter for a "checkout" value
 # QUIRKS	String, format: "date1 descr1 date2 descr2 ... dateN descrN"
 # RUN_DATE	UNIX time stamp, filter for a "run" value
 # TITLE		String,	plot title
@@ -41,19 +40,10 @@ if (!exists("TITLE")) { TITLE = "" }
 if (!exists("UNIT")) { UNIT = "" }
 if (!exists("QUIRKS")) { QUIRKS = "" }
 
-if (exists("CHECKOUT_DATE")) {
-    if (exists("RUN_DATE")) {
-	stats DATA_FILE using 4:(strcol(3) eq RUN_DATE?
-	    (strcol(4) eq CHECKOUT_DATE? $6:NaN):NaN) nooutput
-    } else {
-	stats DATA_FILE using 4:(strcol(4) eq CHECKOUT_DATE? $6:NaN) nooutput
-    }
+if (exists("RUN_DATE")) {
+    stats DATA_FILE using 4:(strcol(3) eq RUN_DATE? $6:NaN) nooutput
 } else {
-    if (exists("RUN_DATE")) {
-	stats DATA_FILE using 4:(strcol(3) eq RUN_DATE? $6:NaN) nooutput
-    } else {
-	stats DATA_FILE using 4:6 nooutput
-    }
+    stats DATA_FILE using 4:6 nooutput
 }
 
 # If there are not data points, create an empty image to prevent future gnuplot
@@ -73,16 +63,11 @@ set title TITLE
 set ylabel UNIT
 set xrange[STATS_min_x - 1 : STATS_max_x + 1] # work around min == max
 set yrange[0 : *]
-
-if (exists("CHECKOUT_DATE")) {
-    set xlabel "Run #"
-} else {
-    set format x "%Y-%m-%d"
-    set timefmt "%s"
-    set xdata time
-    set xlabel "Checkout (date)" offset 0,-1
-    set xtics rotate by 45 offset -2,-2.5
-}
+set format x "%Y-%m-%d"
+set timefmt "%s"
+set xdata time
+set xlabel "Checkout (date)" offset 0,-1
+set xtics rotate by 45 offset -2,-2.5
 
 points = (STATS_records / (words(TESTS) / 2)) + 1
 # XXX Scaled image is unreadable small, disable for now.
@@ -105,40 +90,18 @@ do for [i = 1:words(QUIRKS)] {
 }
 
 # draw test results
-if (exists("CHECKOUT_DATE")) {
-    if (exists("RUN_DATE")) {
-	plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
-	    strcol(3) eq RUN_DATE? ( \
-		strcol(4) eq CHECKOUT_DATE? ( \
-		    strcol(1) eq word(TESTS,test)? ( \
-			strcol(2) eq word(TESTS,test+1)? $6:NaN \
-		    ):NaN \
-		):NaN \
-	    ):NaN \
-	) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
-    } else {
-	plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
-	    strcol(4) eq CHECKOUT_DATE? ( \
-		strcol(1) eq word(TESTS,test)? ( \
-		    strcol(2) eq word(TESTS,test+1)? $6:NaN \
-		):NaN \
-	    ):NaN \
-	) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
-    }
-} else {
-    if (exists("RUN_DATE")) {
-	plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
-	    strcol(3) eq RUN_DATE? ( \
-		strcol(1) eq word(TESTS,test)? ( \
-		    strcol(2) eq word(TESTS,test+1)? $6:NaN \
-		):NaN \
-	    ):NaN \
-	) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
-    } else {
-	plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
+if (exists("RUN_DATE")) {
+    plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
+	strcol(3) eq RUN_DATE? ( \
 	    strcol(1) eq word(TESTS,test)? ( \
 		strcol(2) eq word(TESTS,test+1)? $6:NaN \
 	    ):NaN \
-	) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
-    }
+	):NaN \
+    ) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
+} else {
+    plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
+	strcol(1) eq word(TESTS,test)? ( \
+	    strcol(2) eq word(TESTS,test+1)? $6:NaN \
+	):NaN \
+    ) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
 }

@@ -32,9 +32,8 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('vC:D:T:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-C date] [-D date] -T tcp|make|udp
+usage: $0 [-v] [-D date] -T tcp|make|udp
     -v		verbose
-    -C date	checkout date
     -D date	run date
     -T test	test name (tcp, make, upd)
 EOF
@@ -44,9 +43,6 @@ my $verbose = $opts{v};
 my $run = str2time($opts{D})
     or die "Invalid -D date '$opts{D}'"
     if ($opts{D});
-my $chk = str2time($opts{C})
-    or die "Invalid -C date '$opts{C}'"
-    if ($opts{C});
 my $test = $opts{T}
     or die "Option -T tcp|make|udp missing";
 
@@ -89,7 +85,6 @@ my $quirks = join(" ", sort keys %q);
 
 my $outfile = "";
 $outfile .= "$opts{D}-" if $run;
-$outfile .= "$opts{C}-" if $chk;
 $outfile .= "$test.svg";
 
 my @plotcmd = ("gnuplot", "-d",
@@ -100,7 +95,6 @@ my @plotcmd = ("gnuplot", "-d",
     "-e", "TITLE='$title'",
     "-e", "UNIT='$unit'");
 push @plotcmd, "-e", "RUN_DATE='$run'" if $run;
-push @plotcmd, "-e", "CHECKOUT_DATE='$chk'" if $chk;
 push @plotcmd, $plotfile;
 print "Command '@plotcmd' started\n" if $verbose;
 system(@plotcmd)
