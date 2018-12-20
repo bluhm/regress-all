@@ -89,6 +89,154 @@ PATCH
 	comment => "retpoline for kernel",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2018-05-02T13:20:12Z' => {
+	comment => "revert remaining puc commit for com",
+	updatedirs => [ "sys/dev/pci" ],
+	patches => { 'sys-puc' => <<'PATCH' },
+Index: sys/dev/pci/puc.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/puc.c,v
+retrieving revision 1.25
+retrieving revision 1.26
+diff -u -p -r1.25 -r1.26
+--- sys/dev/pci/puc.c	15 Apr 2018 15:07:25 -0000	1.25
++++ sys/dev/pci/puc.c	2 May 2018 19:11:01 -0000	1.26
+@@ -61,7 +61,6 @@
+ #include <dev/pci/pcireg.h>
+ #include <dev/pci/pcivar.h>
+ #include <dev/pci/pucvar.h>
+-#include <dev/pci/pcidevs.h>
+ 
+ #include <dev/ic/comreg.h>
+ #include <dev/ic/comvar.h>
+@@ -79,7 +78,6 @@ int	puc_pci_detach(struct device *, int)
+ const char *puc_pci_intr_string(struct puc_attach_args *);
+ void	*puc_pci_intr_establish(struct puc_attach_args *, int,
+     int (*)(void *), void *, char *);
+-int	puc_pci_xr17v35x_intr(void *arg);
+ 
+ struct cfattach puc_pci_ca = {
+ 	sizeof(struct puc_pci_softc), puc_pci_match,
+@@ -127,20 +125,9 @@ puc_pci_intr_establish(struct puc_attach
+ {
+ 	struct puc_pci_softc *sc = paa->puc;
+ 	struct puc_softc *psc = &sc->sc_psc;
+-
+-	if (psc->sc_xr17v35x) {
+-		psc->sc_ports[paa->port].real_intrhand = func;
+-		psc->sc_ports[paa->port].real_intrhand_arg = arg;
+-		if (paa->port == 0)
+-			psc->sc_ports[paa->port].intrhand =
+-			    pci_intr_establish(sc->pc, sc->ih, type,
+-			    puc_pci_xr17v35x_intr, sc, name);
+-		return (psc->sc_ports[paa->port].real_intrhand);
+-	} else {
+-		psc->sc_ports[paa->port].intrhand =
+-		    pci_intr_establish(sc->pc, sc->ih, type, func, arg, name);
+-		return (psc->sc_ports[paa->port].intrhand);
+-	}
++	
++	psc->sc_ports[paa->port].intrhand =
++	    pci_intr_establish(sc->pc, sc->ih, type, func, arg, name);
+ 
+ 	return (psc->sc_ports[paa->port].intrhand);
+ }
+@@ -159,10 +146,6 @@ puc_pci_attach(struct device *parent, st
+ 	sc->sc_desc = puc_find_description(PCI_VENDOR(pa->pa_id),
+ 	    PCI_PRODUCT(pa->pa_id), PCI_VENDOR(subsys), PCI_PRODUCT(subsys));
+ 
+-	if (PCI_VENDOR(pa->pa_id) == PCI_VENDOR_EXAR &&
+-	    PCI_PRODUCT(pa->pa_id) == PCI_PRODUCT_EXAR_XR17V354)
+-		sc->sc_xr17v35x = 1;
+-
+ 	puc_print_ports(sc->sc_desc);
+ 
+ 	for (i = 0; i < PUC_NBARS; i++) {
+@@ -336,6 +319,7 @@ puc_find_description(u_int16_t vend, u_i
+ const char *
+ puc_port_type_name(int type)
+ {
++
+ 	if (PUC_IS_COM(type))
+ 		return "com";
+ 	if (PUC_IS_LPT(type))
+@@ -363,23 +347,4 @@ puc_print_ports(const struct puc_device_
+ 		printf("%d lpt", nlpt);
+ 	}
+ 	printf("\n");
+-}
+-
+-int
+-puc_pci_xr17v35x_intr(void *arg)
+-{
+-	struct puc_pci_softc *sc = arg;
+-	struct puc_softc *psc = &sc->sc_psc;
+-	int ports, i;
+-
+-	ports = bus_space_read_1(psc->sc_bar_mappings[0].t,
+-	    psc->sc_bar_mappings[0].h, UART_EXAR_INT0);
+-
+-	for (i = 0; i < 8; i++) {
+-		if ((ports & (1 << i)) && psc->sc_ports[i].real_intrhand)
+-			(*(psc->sc_ports[i].real_intrhand))(
+-			    psc->sc_ports[i].real_intrhand_arg);
+-	}
+-
+-	return (1);
+ }
+Index: sys/dev/pci/pucdata.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/pucdata.c,v
+retrieving revision 1.108
+retrieving revision 1.109
+diff -u -p -r1.108 -r1.109
+--- sys/dev/pci/pucdata.c	15 Apr 2018 15:07:25 -0000	1.108
++++ sys/dev/pci/pucdata.c	2 May 2018 19:11:01 -0000	1.109
+@@ -2062,10 +2062,10 @@ const struct puc_device_description puc_
+ 	    {   PCI_VENDOR_EXAR, PCI_PRODUCT_EXAR_XR17V354,	0, 0 },
+ 	    {   0xffff, 0xffff,					0, 0 },
+ 	    {
+-		{ PUC_PORT_COM_125MHZ, 0x10, 0x0000 },
+-		{ PUC_PORT_COM_125MHZ, 0x10, 0x0400 },
+-		{ PUC_PORT_COM_125MHZ, 0x10, 0x0800 },
+-		{ PUC_PORT_COM_125MHZ, 0x10, 0x0C00 },
++		{ PUC_PORT_COM_MUL8, 0x10, 0x0000 },
++		{ PUC_PORT_COM_MUL8, 0x10, 0x0400 },
++		{ PUC_PORT_COM_MUL8, 0x10, 0x0800 },
++		{ PUC_PORT_COM_MUL8, 0x10, 0x0C00 },
+ 	    },
+ 	},
+ 
+Index: sys/dev/pci/pucvar.h
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/pucvar.h,v
+retrieving revision 1.15
+retrieving revision 1.16
+diff -u -p -r1.15 -r1.16
+--- sys/dev/pci/pucvar.h	15 Apr 2018 15:07:25 -0000	1.15
++++ sys/dev/pci/pucvar.h	2 May 2018 19:11:01 -0000	1.16
+@@ -72,7 +72,6 @@ static const struct puc_port_type puc_po
+ 	{ PUC_PORT_COM_MUL8,	COM_FREQ * 8	},
+ 	{ PUC_PORT_COM_MUL10,	COM_FREQ * 10	},
+ 	{ PUC_PORT_COM_MUL128,	COM_FREQ * 128	},
+-	{ PUC_PORT_COM_125MHZ,	125000000	},
+ };
+ 
+ #define PUC_IS_LPT(type)	((type) == PUC_PORT_LPT)
+@@ -118,11 +117,7 @@ struct puc_softc {
+ 		struct device   *dev;
+ 		/* filled in by port attachments */
+ 		void	*intrhand;
+-		int	(*real_intrhand)(void *);
+-		void	*real_intrhand_arg;
+ 	} sc_ports[PUC_MAX_PORTS];
+-
+-	int			sc_xr17v35x;
+ };
+ 
+ const struct puc_device_description *
+PATCH
+    },
     '2018-05-14T12:31:21Z' => {
 	comment => "report CPU spinning time",
 	updatedirs => [ "sys", "usr.bin/top", "usr.bin/systat" ],
