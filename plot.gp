@@ -84,7 +84,7 @@ do for [i = 1:words(QUIRKS)] {
 	DESCR = sprintf("%c", 96 + lbl_index)
 	set arrow from graph XPOS,0 to graph XPOS,1 nohead lw 1 lc rgb 'black'
 	set label DESCR at graph XPOS, graph 1 noenhanced \
-	    offset character -.5, character 0.5 front boxed
+	    offset character -.5, character 0.7 front boxed
     }
     lbl_index = lbl_index + 1
 }
