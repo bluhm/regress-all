@@ -27,6 +27,7 @@ our @EXPORT= qw(quirks quirk_comments quirk_patches quirk_commands);
 
 my %quirks = (
 # OpenBSD 6.3, 2018-03-25
+    '2018-03-24T20:27:40Z' => { comment => "OpenBSD/amd64 6.3 release" },
     '2018-04-05T03:32:39Z' => {
 	comment => "remove PF_TRANS_ALTQ",
 	updatedirs => [ "sys" ],
@@ -321,6 +322,7 @@ PATCH
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
 # OpenBSD 6.4, 2018-10-12
+    '2018-10-11T19:37:31Z' => { comment => "OpenBSD/amd64 6.4 release" },
     '2018-10-16T18:20:58Z' => {
 	comment => "prepare kernel for lld linker",
 	updatedirs => [ "sys" ],
