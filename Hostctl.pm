@@ -29,6 +29,13 @@ our @EXPORT= qw(usehosts setup_hosts
     cvsbuild_hosts reboot_hosts
 );
 
+my %lasthosts = (
+    ot1  => "ot4",
+    ot6  => "ot6",
+    ot12 => "ot13",
+    ot14 => "ot15",
+);
+
 my ($bindir, $user, $firsthost, $lasthost, $date, $verbose);
 
 sub usehosts {
@@ -39,6 +46,8 @@ sub usehosts {
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
 
+    $lasthost = $lasthosts{$firsthost}
+	and return;
     for (my $host = $firsthost;
 	-f "$bindir/pkg-$host.list";
 	$lasthost = $host++) {
