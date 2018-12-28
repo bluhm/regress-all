@@ -83,7 +83,7 @@ while (my $row = <$fh>) {
     $tests{"$tst $sub"} = 1;
 }
 
-my $testnames = join(" ", keys %tests);
+my $testnames = join(" ", sort keys %tests);
 my %q = quirks();
 my $quirks = join(" ", sort keys %q);
 
