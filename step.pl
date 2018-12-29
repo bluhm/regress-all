@@ -199,6 +199,12 @@ for (my $current = $begin; $current <= $end;) {
 chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
 
+# remove possible preliminary created images before stepping was finished
+foreach (glob("results/gnuplot/$date-*")) {
+    unlink($_)
+	or warn "Unlink image '$_' failed: $!";
+}
+
 runcmd("bin/setup-html.pl");
 runcmd("bin/perform-html.pl", "-h", $host);
 runcmd("bin/perform-html.pl");
