@@ -218,16 +218,20 @@ foreach my $result (@results) {
 
 my %testplot = (
     "iperf3_-c10.3.0.33_-w1m"				=> "tcp",
+    "iperf3_-c10.3.0.33_-w1m_-t10"			=> "tcp",
     "iperf3_-c10.3.0.33_-w1m_-t60"			=> "tcp",
     "iperf3_-c10.3.0.33_-w1m_-R"			=> "tcp",
+    "iperf3_-c10.3.0.33_-w1m_-t10_-R"			=> "tcp",
     "iperf3_-c10.3.0.33_-w1m_-t60_-R"			=> "tcp",
     "tcpbench_-S1000000_-t10_10.3.0.33"			=> "tcp",
     "tcpbench_-S1000000_-t60_10.3.0.33"			=> "tcp",
     "tcpbench_-S1000000_-t10_-n100_10.3.0.33"		=> "tcp",
     "tcpbench_-S1000000_-t60_-n100_10.3.0.33"		=> "tcp",
     "iperf3_-c10.3.0.33_-u_-b0_-w1m"			=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10"		=> "udp",
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> "udp",
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-R"			=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R"		=> "udp",
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> "udp",
     "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> "make",
 );
