@@ -66,8 +66,7 @@ set yrange[0 : *]
 set format x "%Y-%m-%d"
 set timefmt "%s"
 set xdata time
-set xlabel "Checkout (date)" offset 0,-1
-set xtics rotate by 45 offset -2,-2.5
+set xlabel "Checkout (date)"
 
 points = (STATS_records / (words(TESTS) / 2)) + 1
 # XXX Scaled image is unreadable small, disable for now.
