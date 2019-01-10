@@ -239,6 +239,7 @@ my %testplot = (
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R"		=> "udp",
     "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R"		=> "udp",
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> "udp",
+    "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> "make",
     "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> "make",
 );
 
@@ -377,7 +378,8 @@ my %testorder = (
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R"		=> 1321,
     "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R"		=> 2321,
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> 1322,
-    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 3000,
+    "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> 3004,
+    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 3008,
 );
 my @tests = reverse sort { $testorder{$b} <=> $testorder{$a} } keys %t;
 my @dates = reverse sort keys %d;
