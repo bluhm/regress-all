@@ -215,7 +215,6 @@ symlink($date, "results/latest-$host")
 unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
-runcmd("bin/perform-html.pl", "-l", "-h", $host);
 runcmd("bin/perform-html.pl", "-l");
 
 $date = strftime("%FT%TZ", gmtime);
