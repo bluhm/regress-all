@@ -189,7 +189,7 @@ foreach my $result (@results) {
     }
     unless (-f $version) {
 	# if host is specified, only print result for this one
-	delete $d{$date}{$cvsdate} if $host;
+	delete $d{$date} if $host;
 	next;
     }
     ($d{$date}{$cvsdate}{version} = $version) =~ s,[^/]+/,,;
