@@ -326,10 +326,9 @@ PATCH
     '2018-10-16T18:20:58Z' => {
 	comment => "prepare kernel for lld linker",
 	updatedirs => [ "sys" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	buildcommands => [
-	    "make -C sys/arch/amd64/compile/GENERIC.MP obj",
 	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
-	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
 	],
     },
     '2018-10-22T15:18:50Z' => {
@@ -346,10 +345,31 @@ PATCH
 	updatedirs => [ "share/mk" ],
 	builddirs => [ "share/mk" ],
     },
-    '2018-10-24T21:19:03' => {
+    '2018-10-24T21:19:03Z' => {
 	comment => "build clang with final lld fixes",
 	updatedirs => [ "gnu/llvm" ],
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+    '2018-12-30T23:08:05Z' => {
+	comment => "clang turns on retpoline by default",
+	updatedirs => [
+	    "gnu/llvm",
+	    "sys/arch/amd64/conf",
+	],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
+	buildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	],
+    },
+    '2019-01-12T23:36:35Z' => {
+	comment => "build clang itself without retpoline",
+	updatedirs => [ "gnu/usr.bin/clang" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
 );
