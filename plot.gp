@@ -33,7 +33,7 @@ if (!exists("DATA_FILE") || !exists("OUT_FILE") || !exists("TESTS")) {
 }
 
 set datafile separator whitespace
-set key bmargin left vertical Right
+set key outside right top vertical Right
 set output OUT_FILE
 
 if (!exists("TITLE")) { TITLE = "" }
