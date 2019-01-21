@@ -17,7 +17,7 @@
 # plot test results, the following variables are required:
 # DATA_FILE	Path,	plot data file, space separated,
 #			format: "test subtest run checkout repeat value unit"
-# OUT_FILE	Path,	svg output file 
+# OUT_FILE	Path,	png output file
 # TESTS		String,	testnames to filter and plot, space separated,
 #			format: "test1 subtest1 test2 sub2 ... testN subN"
 #
@@ -49,7 +49,7 @@ if (exists("RUN_DATE")) {
 # If there are not data points, create an empty image to prevent future gnuplot
 # invocations. To prevent warnings, set most style settings after this check.
 if (!exists("STATS_records")) {
-    set terminal svg size 120,80
+    set terminal png size 120,80
     set title TITLE."\nNO DATA" offset first 0,0
     set yrange [-1:1]
     unset tics
@@ -70,9 +70,9 @@ set xlabel "Checkout (date)"
 
 points = (STATS_records / (words(TESTS) / 2)) + 1
 # XXX Scaled image is unreadable small, disable for now.
-#set terminal svg size (120 + 30 * points), (600 + (words(TESTS) / 2) * 20)
+#set terminal png size (120 + 30 * points), (600 + (words(TESTS) / 2) * 20)
 #set tmargin 120
-set terminal svg
+set terminal png
 
 # draw quirks
 set style textbox opaque noborder fillcolor rgb "white"

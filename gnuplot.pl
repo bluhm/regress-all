@@ -85,7 +85,7 @@ my $quirks = join(" ", sort keys %q);
 
 my $outfile = "";
 $outfile .= "$opts{D}-" if $run;
-$outfile .= "$test.svg";
+$outfile .= "$test.png";
 
 my @plotcmd = ("gnuplot", "-d",
     "-e", "DATA_FILE='$testdata'",
