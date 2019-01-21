@@ -69,7 +69,7 @@ set xdata time
 set xlabel "Checkout (date)"
 
 points = (STATS_records / (words(TESTS) / 2)) + 1
-set terminal png 1360, 768
+set terminal png size 1360, 768
 
 # draw quirks
 set style textbox opaque noborder fillcolor rgb "white"
