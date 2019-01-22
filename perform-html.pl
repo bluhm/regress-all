@@ -616,9 +616,10 @@ HEADER
     my $enda = $href ? "</a>" : "";
     print $html "    <th>${href}log$enda</th>\n";
     print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>setup modes</th>\n";
-    my $modes = $d{$date}{stepconf}{modes} || "";
-    print $html "    <td>$modes</td>\n";
+    print $html "  <tr>\n    <th>release setup modes</th>\n";
+    my $release = $d{$date}{stepconf}{release};
+    my $modes = $d{$date}{stepconf}{modes};
+    print $html "    <td>$release/$modes</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";
     my $interval = $d{$date}{stepconf}{step};
@@ -867,12 +868,12 @@ print $html "  </tr>\n";
 print $html "  <tr>\n    <th>test</th>\n";
 foreach my $date (@dates) {
     my $setup = $d{$date}{setup};
+    my $release = $d{$date}{stepconf}{release};
     my $modes = $d{$date}{stepconf}{modes};
-    $modes = $modes ? "/$modes" : "";
     my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
     my $href = $setup ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
-    print $html "    <th>${href}setup$enda$modes</th>\n";
+    print $html "    <th>$href$release/$modes$enda</th>\n";
 }
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>first cvs checkout</th>\n";
