@@ -55,6 +55,10 @@ my %quirks = (
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
+    '2017-11-16T18:12:27Z' => {
+	comment => "move kernel source file dwiic.c",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 # OpenBSD 6.3, 2018-03-25
     '2018-03-24T20:27:40Z' => { comment => "OpenBSD/amd64 6.3 release" },
     '2018-04-05T03:32:39Z' => {
