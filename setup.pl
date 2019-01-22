@@ -61,8 +61,8 @@ foreach (qw(install upgrade)) {
 my $release;
 if ($opts{r}) {
     die "Upgrade to release not supported" if $mode{upgrade};
-    $release = $opts{r};
-    die "Release must be major.minor" unless $release =~ /^\d.\d$/;
+    ($release = $opts{r}) =~ /^\d+\.\d+$/
+	or die "Release '$release' must be major.minor format";
 }
 
 my $regressdir = dirname($0). "/..";

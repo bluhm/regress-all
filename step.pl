@@ -32,7 +32,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('B:E:h:N:R:r:S:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -h host [-r release] -B date [-E date] [-S interval]
+usage: $0 [-v] -h host -r release -B date [-E date] [-S interval]
     [-N repeat] [-R repmode] mode ...
     -h host	user and host for performance test, user defaults to root
     -v		verbose
@@ -47,6 +47,9 @@ EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
+$opts{r} or die "No -r specified";
+$opts{r} =~ /^\d+\.\d+$/
+    or die "Release '$opts{r}' must be major.minor format";
 $opts{B} or die "No -B begin date";
 my ($begin, $end, $step, $unit, $repeat);
 $begin = str2time($opts{B})
