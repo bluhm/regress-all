@@ -615,7 +615,7 @@ HEADER
     my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
     my $href = $log ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
-    print $html "    <th>${href}log$enda</th>\n";
+    print $html "    <td>${href}log$enda</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>release setup modes</th>\n";
     my $setup = $d{$date}{setup};
