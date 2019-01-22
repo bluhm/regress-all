@@ -618,9 +618,13 @@ HEADER
     print $html "    <th>${href}log$enda</th>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>release setup modes</th>\n";
+    my $setup = $d{$date}{setup};
     my $release = $d{$date}{stepconf}{release};
     my $modes = $d{$date}{stepconf}{modes};
-    print $html "    <td>$release/$modes</td>\n";
+    $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
+    $href = $setup ? "<a href=\"../$link\">" : "";
+    $enda = $href ? "</a>" : "";
+    print $html "    <td>$href$release/$modes$enda</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";
     my $interval = $d{$date}{stepconf}{step};
