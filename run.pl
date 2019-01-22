@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2016-2018 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2019 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -84,7 +84,7 @@ usehosts(bindir => "$regressdir/bin", date => $date,
 
 setup_hosts(mode => \%mode) unless $mode{keep};
 collect_version();
-runcmd("$regressdir/bin/setup-html.pl");
+setup_html();
 
 # run regression tests remotely
 
@@ -147,3 +147,10 @@ runcmd("bin/regress-html.pl", "-l");
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' finished at $date\n");
+
+exit;
+
+sub setup_html {
+    eval { runcmd("$regressdir/bin/setup-html.pl") };
+    warn $@ if $@;
+}

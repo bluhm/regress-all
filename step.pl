@@ -137,7 +137,7 @@ usehosts(bindir => "$performdir/bin", date => $date,
 
 setup_hosts(mode => \%mode, release => $opts{r}) unless $mode{keep};
 collect_version();
-runcmd("$performdir/bin/setup-html.pl");
+setup_html();
 
 # update in single steps
 
@@ -154,7 +154,7 @@ for (my $current = $begin; $current <= $end;) {
 	or die "Chdir to '$cvsdir' failed: $!";
     cvsbuild_hosts(cvsdate => $cvsdate);
     collect_version();
-    runcmd("$performdir/bin/setup-html.pl");
+    setup_html();
 
     # run repetitions if requested
 
@@ -182,7 +182,7 @@ for (my $current = $begin; $current <= $end;) {
 		reboot_hosts(cvsdate => $cvsdate, repeat => $repeatdir,
 		    mode => \%repmode);
 		collect_version();
-		runcmd("$performdir/bin/setup-html.pl");
+		setup_html();
 	    }
 	    chdir("..")
 		or die "Chdir to '..' failed: $!";
@@ -253,4 +253,9 @@ sub add_step {
 
     my $after = timegm($sec, $min, $hour, $mday, $mon, $year) + $step;
     return $after;
+}
+
+sub setup_html {
+    eval { runcmd("$performdir/bin/setup-html.pl") };
+    warn $@ if $@;
 }
