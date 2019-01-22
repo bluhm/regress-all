@@ -40,7 +40,153 @@ my %quirks = (
 	updatecommands => [
 	    "cvs -qR up -PdC -rOPENBSD_6_3_BASE gnu/usr.bin/cvs",
 	],
-	patches => { 'cvs-vendor' => <<'PATCH' },
+	patches => { 'cvs-vendor' => patch_cvs_vendor() },
+	buildcommands => [
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper install",
+	],
+    },
+    '2018-04-07T10:05:06Z' => {
+	comment => "update LLVM to 6.0.0",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+    '2018-04-27T15:19:32Z' => {
+	comment => "retpoline for kernel",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
+    '2018-05-02T13:20:12Z' => {
+	comment => "revert remaining puc commit for com",
+	updatedirs => [ "sys/dev/pci" ],
+	patches => { 'sys-puc' => patch_sys_puc() },
+    },
+    '2018-05-14T12:31:21Z' => {
+	comment => "report CPU spinning time",
+	updatedirs => [ "sys", "usr.bin/top", "usr.bin/systat" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "usr.bin/top", "usr.bin/systat" ],
+    },
+    '2018-05-16T14:53:43Z' => {
+	comment => "Add kern.witnesswatch sysctl",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/sysctl" ],
+    },
+    '2018-06-03T21:30:38Z' => {
+	comment => "add ret protector options as no-ops",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+    '2018-06-06T00:14:29Z' => {
+	comment => "add retguard to clang",
+	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	    "gnu/usr.bin/clang",
+	],
+	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
+    },
+    '2018-07-10T09:28:27Z' => {
+	comment => "pf generic packet delay",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+    },
+    '2018-07-12T22:09:04Z' => {
+	comment => "patch some garbage in GENERIC.MP",
+	updatedirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
+	patches => { 'sys-garbage' => patch_sys_garbage() },
+    },
+    '2018-07-13T05:25:24Z' => {
+	comment => "zap some garbage in GENERIC.MP",
+	updatedirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
+    },
+    '2018-07-26T13:20:53Z' => {
+	comment => "infrastructure to install lld",
+	updatedirs => [
+	    "share/mk",
+	    "gnu/usr.bin/clang/lld",
+	    "gnu/usr.bin/binutils-2.17",
+	],
+	builddirs => [
+	    "share/mk",
+	    "gnu/usr.bin/clang/lld",
+	],
+	buildcommands => [
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper install",
+	],
+    },
+    '2018-08-12T17:07:00Z' => {
+	comment => "refactor retguard in clang",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	    "gnu/usr.bin/clang",
+	],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+# OpenBSD 6.4, 2018-10-12
+    '2018-10-11T19:37:31Z' => { comment => "OpenBSD/amd64 6.4 release" },
+    '2018-10-16T18:20:58Z' => {
+	comment => "prepare kernel for lld linker",
+	updatedirs => [ "sys" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	buildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	],
+    },
+    '2018-10-22T15:18:50Z' => {
+	comment => "cvs vendor branch checkout",
+	updatedirs => [ "gnu/usr.bin/cvs" ],
+	buildcommands => [
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper install",
+	],
+    },
+    '2018-10-22T19:31:30Z' => {
+	comment => "use lld as default linker",
+	updatedirs => [ "share/mk" ],
+	builddirs => [ "share/mk" ],
+    },
+    '2018-10-24T21:19:03Z' => {
+	comment => "build clang with final lld fixes",
+	updatedirs => [ "gnu/llvm" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+    '2018-12-30T23:08:05Z' => {
+	comment => "clang turns on retpoline by default",
+	updatedirs => [
+	    "gnu/llvm",
+	    "sys/arch/amd64/conf",
+	],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
+	buildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	],
+    },
+    '2019-01-12T23:36:35Z' => {
+	comment => "build clang itself without retpoline",
+	updatedirs => [ "gnu/usr.bin/clang" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+);
+
+#### Patches ####
+
+sub patch_cvs_vendor {
+	return <<'PATCH';
 Index: gnu/usr.bin/cvs/src/rcs.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/gnu/usr.bin/cvs/src/rcs.c,v
@@ -74,26 +220,10 @@ diff -u -p -r1.26 rcs.c
  	}
      }
 PATCH
-	buildcommands => [
-	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper obj",
-	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper all",
-	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper install",
-	],
-    },
-    '2018-04-07T10:05:06Z' => {
-	comment => "update LLVM to 6.0.0",
-	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
-	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
-	builddirs => [ "gnu/usr.bin/clang" ],
-    },
-    '2018-04-27T15:19:32Z' => {
-	comment => "retpoline for kernel",
-	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
-    },
-    '2018-05-02T13:20:12Z' => {
-	comment => "revert remaining puc commit for com",
-	updatedirs => [ "sys/dev/pci" ],
-	patches => { 'sys-puc' => <<'PATCH' },
+}
+
+sub patch_sys_puc {
+	return <<'PATCH';
 Index: sys/dev/pci/puc.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/puc.c,v
@@ -237,44 +367,10 @@ diff -u -p -r1.15 -r1.16
  
  const struct puc_device_description *
 PATCH
-    },
-    '2018-05-14T12:31:21Z' => {
-	comment => "report CPU spinning time",
-	updatedirs => [ "sys", "usr.bin/top", "usr.bin/systat" ],
-	prebuildcommands => [ "make includes" ],
-	builddirs => [ "usr.bin/top", "usr.bin/systat" ],
-    },
-    '2018-05-16T14:53:43Z' => {
-	comment => "Add kern.witnesswatch sysctl",
-	updatedirs => [ "sys" ],
-	prebuildcommands => [ "make includes" ],
-	builddirs => [ "sbin/sysctl" ],
-    },
-    '2018-06-03T21:30:38Z' => {
-	comment => "add ret protector options as no-ops",
-	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
-	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
-	builddirs => [ "gnu/usr.bin/clang" ],
-    },
-    '2018-06-06T00:14:29Z' => {
-	comment => "add retguard to clang",
-	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ],
-	cleandirs => [
-	    "sys/arch/amd64/compile/GENERIC.MP",
-	    "gnu/usr.bin/clang",
-	],
-	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
-    },
-    '2018-07-10T09:28:27Z' => {
-	comment => "pf generic packet delay",
-	updatedirs => [ "sys" ],
-	prebuildcommands => [ "make includes" ],
-	builddirs => [ "sbin/pfctl" ],
-    },
-    '2018-07-12T22:09:04Z' => {
-	comment => "patch some garbage in GENERIC.MP",
-	updatedirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
-	patches => { 'sys-garbage' => <<'PATCH' },
+}
+
+sub patch_sys_garbage {
+	return <<'PATCH';
 Index: sys/arch/amd64/conf/GENERIC.MP
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/arch/amd64/conf/GENERIC.MP,v
@@ -290,89 +386,8 @@ diff -u -p -r1.13 -r1.14
  include "arch/amd64/conf/GENERIC"
  
 PATCH
-    },
-    '2018-07-13T05:25:24Z' => {
-	comment => "zap some garbage in GENERIC.MP",
-	updatedirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
-    },
-    '2018-07-26T13:20:53Z' => {
-	comment => "infrastructure to install lld",
-	updatedirs => [
-	    "share/mk",
-	    "gnu/usr.bin/clang/lld",
-	    "gnu/usr.bin/binutils-2.17",
-	],
-	builddirs => [
-	    "share/mk",
-	    "gnu/usr.bin/clang/lld",
-	],
-	buildcommands => [
-	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper obj",
-	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper all",
-	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper install",
-	],
-    },
-    '2018-08-12T17:07:00Z' => {
-	comment => "refactor retguard in clang",
-	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
-	cleandirs => [
-	    "sys/arch/amd64/compile/GENERIC.MP",
-	    "gnu/usr.bin/clang",
-	],
-	builddirs => [ "gnu/usr.bin/clang" ],
-    },
-# OpenBSD 6.4, 2018-10-12
-    '2018-10-11T19:37:31Z' => { comment => "OpenBSD/amd64 6.4 release" },
-    '2018-10-16T18:20:58Z' => {
-	comment => "prepare kernel for lld linker",
-	updatedirs => [ "sys" ],
-	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
-	buildcommands => [
-	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
-	],
-    },
-    '2018-10-22T15:18:50Z' => {
-	comment => "cvs vendor branch checkout",
-	updatedirs => [ "gnu/usr.bin/cvs" ],
-	buildcommands => [
-	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper obj",
-	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper all",
-	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper install",
-	],
-    },
-    '2018-10-22T19:31:30Z' => {
-	comment => "use lld as default linker",
-	updatedirs => [ "share/mk" ],
-	builddirs => [ "share/mk" ],
-    },
-    '2018-10-24T21:19:03Z' => {
-	comment => "build clang with final lld fixes",
-	updatedirs => [ "gnu/llvm" ],
-	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
-	builddirs => [ "gnu/usr.bin/clang" ],
-    },
-    '2018-12-30T23:08:05Z' => {
-	comment => "clang turns on retpoline by default",
-	updatedirs => [
-	    "gnu/llvm",
-	    "sys/arch/amd64/conf",
-	],
-	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
-	builddirs => [ "gnu/usr.bin/clang" ],
-	buildcommands => [
-	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
-	],
-    },
-    '2019-01-12T23:36:35Z' => {
-	comment => "build clang itself without retpoline",
-	updatedirs => [ "gnu/usr.bin/clang" ],
-	cleandirs => [
-	    "gnu/usr.bin/clang",
-	    "sys/arch/amd64/compile/GENERIC.MP",
-	],
-	builddirs => [ "gnu/usr.bin/clang" ],
-    },
-);
+}
+#### Subs ####
 
 sub quirks {
     my ($before, $after);
