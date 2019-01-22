@@ -1,6 +1,6 @@
 # get build over incompatible source changes with minimal effort
 
-# Copyright (c) 2018 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2019 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -25,7 +25,36 @@ use POSIX;
 use parent 'Exporter';
 our @EXPORT= qw(quirks quirk_comments quirk_patches quirk_commands);
 
+#### Quirks ####
+
 my %quirks = (
+# OpenBSD 6.2, 2017-10-04
+    '2017-10-04T03:27:49Z' => { comment => "OpenBSD/amd64 6.2 release" },
+    # cvs has a bug and cannot check out vendor branches between commits
+    '2017-10-04T21:45:15Z' => {
+	comment => "fix cvs vendor branch checkout",
+	updatecommands => [
+	    "cvs -qR up -PdC -rOPENBSD_6_2_BASE gnu/usr.bin/cvs",
+	],
+	patches => { 'cvs-vendor' => patch_cvs_vendor() },
+	buildcommands => [
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/cvs -f Makefile.bsd-wrapper install",
+	],
+    },
+    '2017-10-04T21:45:16Z' => {
+	comment => "update LLVM to 5.0.0",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+    '2017-12-25T12:09:20Z' => {
+	comment => "update LLVM to 5.0.1",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
 # OpenBSD 6.3, 2018-03-25
     '2018-03-24T20:27:40Z' => { comment => "OpenBSD/amd64 6.3 release" },
     '2018-04-05T03:32:39Z' => {
