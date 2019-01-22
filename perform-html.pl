@@ -300,7 +300,7 @@ unless ($opts{l} || $opts{h}) {
 
 foreach my $plot (qw(make tcp udp)) {
     foreach my $date (keys %v) {
-	my $outfile = "$date-$plot.svg";
+	my $outfile = "$date-$plot.png";
 	unless (-f "gnuplot/$outfile") {
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
 		"-T", "$plot");
@@ -308,7 +308,7 @@ foreach my $plot (qw(make tcp udp)) {
 		and die "Command '@cmd' failed: $?";
 	}
     }
-    my $outfile = "$plot.svg";
+    my $outfile = "$plot.png";
     unless (-f "gnuplot/$outfile") {
 	my @cmd = ("$performdir/bin/gnuplot.pl", "-T", "$plot");
 	system(@cmd)
@@ -785,11 +785,11 @@ HEADER
     }
     print $html "</table>\n";
 
-    print $html "<img src=\"../gnuplot/$date-tcp.svg\" ".
+    print $html "<img src=\"../gnuplot/$date-tcp.png\" ".
 	"alt=\"TCP Performance\">\n<br>";
-    print $html "<img src=\"../gnuplot/$date-udp.svg\" ".
+    print $html "<img src=\"../gnuplot/$date-udp.png\" ".
 	"alt=\"UDP Performance\">\n<br>";
-    print $html "<img src=\"../gnuplot/$date-make.svg\" ".
+    print $html "<img src=\"../gnuplot/$date-make.png\" ".
 	"alt=\"MAKE Performance\">\n<br>";
 
     print $html <<"FOOTER";
@@ -930,11 +930,11 @@ foreach my $test (@tests) {
 }
 print $html "</table>\n";
 
-print $html "<img src=\"gnuplot/tcp.svg\" ".
+print $html "<img src=\"gnuplot/tcp.png\" ".
     "alt=\"TCP Performance\">\n<br>";
-print $html "<img src=\"gnuplot/udp.svg\" ".
+print $html "<img src=\"gnuplot/udp.png\" ".
     "alt=\"UDP Performance\">\n<br>";
-print $html "<img src=\"gnuplot/make.svg\" ".
+print $html "<img src=\"gnuplot/make.png\" ".
     "alt=\"MAKE Performance\">\n<br>";
 
 print $html "<ol type=\"a\">";
