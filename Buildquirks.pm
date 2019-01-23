@@ -49,6 +49,18 @@ my %quirks = (
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
+    '2017-11-13T11:30:11Z' => {
+	comment => "pfctl pf packet rate matching",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+    },
+    '2017-12-11T05:27:40Z' => {
+	comment => "sysctl struct vfsconf",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/sysctl" ],
+    },
     '2017-12-25T12:09:20Z' => {
 	comment => "clang update LLVM to 5.0.1",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
