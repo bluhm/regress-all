@@ -208,7 +208,7 @@ foreach (glob("results/gnuplot/$date-*")) {
 	or warn "Unlink image '$_' failed: $!";
 }
 
-runcmd("bin/setup-html.pl");
+setup_html();
 runcmd("bin/perform-html.pl", "-h", $host);
 runcmd("bin/perform-html.pl");
 
@@ -253,9 +253,4 @@ sub add_step {
 
     my $after = timegm($sec, $min, $hour, $mday, $mon, $year) + $step;
     return $after;
-}
-
-sub setup_html {
-    eval { runcmd("$performdir/bin/setup-html.pl") };
-    warn $@ if $@;
 }

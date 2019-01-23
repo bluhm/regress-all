@@ -24,9 +24,11 @@ use Logcmd;
 use Machine;
 
 use parent 'Exporter';
-our @EXPORT= qw(usehosts setup_hosts
+our @EXPORT= qw(
+    usehosts setup_hosts
     collect_version collect_dmesg collect_result
     cvsbuild_hosts reboot_hosts
+    setup_html
 );
 
 my %lasthosts = (
@@ -80,7 +82,7 @@ sub setup_hosts {
 	if ($mode{install} || $mode{upgrade}) {
 	    # create new summary with setup log
 	    sleep 5;
-	    runcmd("$bindir/setup-html.pl");
+	    setup_html();
 
 	    # change config of dhcpd has races, cannot install simultaneously
 	    waitcmd(@pidcmds);
@@ -90,7 +92,7 @@ sub setup_hosts {
     if (@pidcmds) {
 	# create new summary with setup log
 	sleep 5;
-	runcmd("$bindir/setup-html.pl");
+	setup_html();
 
 	waitcmd(@pidcmds);
     }
@@ -183,7 +185,7 @@ sub cvsbuild_hosts {
     if (@pidcmds) {
 	# create new summary with setup log
 	sleep 5;
-	runcmd("$bindir/setup-html.pl");
+	setup_html();
 
 	waitcmd(@pidcmds);
     }
@@ -208,10 +210,16 @@ sub reboot_hosts {
     if (@pidcmds) {
 	# create new summary with setup log
 	sleep 5;
-	runcmd("$bindir/setup-html.pl");
+	setup_html();
 
 	waitcmd(@pidcmds);
     }
+}
+
+# there may be races with other running instances, make it non fatal
+sub setup_html {
+    eval { runcmd("$bindir/setup-html.pl") };
+    warn $@ if $@;
 }
 
 1;

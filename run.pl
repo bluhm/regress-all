@@ -133,7 +133,7 @@ collect_dmesg();
 chdir($regressdir)
     or die "Chdir to '$regressdir' failed: $!";
 
-runcmd("bin/setup-html.pl");
+setup_html();
 runcmd("bin/regress-html.pl", "-h", $host);
 runcmd("bin/regress-html.pl");
 
@@ -149,8 +149,3 @@ $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' finished at $date\n");
 
 exit;
-
-sub setup_html {
-    eval { runcmd("$regressdir/bin/setup-html.pl") };
-    warn $@ if $@;
-}
