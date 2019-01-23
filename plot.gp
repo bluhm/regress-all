@@ -33,7 +33,7 @@ if (!exists("DATA_FILE") || !exists("OUT_FILE") || !exists("TESTS")) {
 }
 
 set datafile separator whitespace
-set key outside right top vertical Right
+set key outside left bottom horizontal Left
 set output OUT_FILE
 
 if (!exists("TITLE")) { TITLE = "" }
@@ -49,7 +49,7 @@ if (exists("RUN_DATE")) {
 # If there are not data points, create an empty image to prevent future gnuplot
 # invocations. To prevent warnings, set most style settings after this check.
 if (!exists("STATS_records")) {
-    set terminal png size 120,80
+    set terminal png size 240,80
     set title TITLE."\nNO DATA" offset first 0,0
     set yrange [-1:1]
     unset tics
