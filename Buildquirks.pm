@@ -44,13 +44,13 @@ my %quirks = (
 	],
     },
     '2017-10-04T21:45:16Z' => {
-	comment => "update LLVM to 5.0.0",
+	comment => "clang update LLVM to 5.0.0",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2017-12-25T12:09:20Z' => {
-	comment => "update LLVM to 5.0.1",
+	comment => "clang update LLVM to 5.0.1",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
@@ -62,7 +62,7 @@ my %quirks = (
 # OpenBSD 6.3, 2018-03-25
     '2018-03-24T20:27:40Z' => { comment => "OpenBSD/amd64 6.3 release" },
     '2018-04-05T03:32:39Z' => {
-	comment => "remove PF_TRANS_ALTQ",
+	comment => "pfctl remove PF_TRANS_ALTQ",
 	updatedirs => [ "sys" ],
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
@@ -81,7 +81,7 @@ my %quirks = (
 	],
     },
     '2018-04-07T10:05:06Z' => {
-	comment => "update LLVM to 6.0.0",
+	comment => "clang update LLVM to 6.0.0",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
@@ -96,25 +96,25 @@ my %quirks = (
 	patches => { 'sys-puc' => patch_sys_puc() },
     },
     '2018-05-14T12:31:21Z' => {
-	comment => "report CPU spinning time",
+	comment => "top systat report CPU spinning time",
 	updatedirs => [ "sys", "usr.bin/top", "usr.bin/systat" ],
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "usr.bin/top", "usr.bin/systat" ],
     },
     '2018-05-16T14:53:43Z' => {
-	comment => "Add kern.witnesswatch sysctl",
+	comment => "sysctl add kern.witnesswatch",
 	updatedirs => [ "sys" ],
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/sysctl" ],
     },
     '2018-06-03T21:30:38Z' => {
-	comment => "add ret protector options as no-ops",
+	comment => "clang add ret protector options as no-ops",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2018-06-06T00:14:29Z' => {
-	comment => "add retguard to clang",
+	comment => "clang add retguard",
 	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [
 	    "sys/arch/amd64/compile/GENERIC.MP",
@@ -123,7 +123,7 @@ my %quirks = (
 	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
     },
     '2018-07-10T09:28:27Z' => {
-	comment => "pf generic packet delay",
+	comment => "pfctl pf generic packet delay",
 	updatedirs => [ "sys" ],
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
@@ -138,7 +138,7 @@ my %quirks = (
 	updatedirs => [ "sys/arch/amd64/conf/GENERIC.MP" ],
     },
     '2018-07-26T13:20:53Z' => {
-	comment => "infrastructure to install lld",
+	comment => "binutils infrastructure to install lld",
 	updatedirs => [
 	    "share/mk",
 	    "gnu/usr.bin/clang/lld",
@@ -155,7 +155,7 @@ my %quirks = (
 	],
     },
     '2018-08-12T17:07:00Z' => {
-	comment => "refactor retguard in clang",
+	comment => "clang refactor retguard",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [
 	    "sys/arch/amd64/compile/GENERIC.MP",
@@ -188,7 +188,7 @@ my %quirks = (
 	builddirs => [ "share/mk" ],
     },
     '2018-10-24T21:19:03Z' => {
-	comment => "build clang with final lld fixes",
+	comment => "clang with final lld fixes",
 	updatedirs => [ "gnu/llvm" ],
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
@@ -206,7 +206,7 @@ my %quirks = (
 	],
     },
     '2019-01-12T23:36:35Z' => {
-	comment => "build clang itself without retpoline",
+	comment => "clang builds itself without retpoline",
 	updatedirs => [ "gnu/usr.bin/clang" ],
 	cleandirs => [
 	    "gnu/usr.bin/clang",
