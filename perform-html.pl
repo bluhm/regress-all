@@ -809,7 +809,6 @@ HEADER
     }
     print $html "</table>";
 
-
     print $html <<"FOOTER";
 </body>
 </html>
