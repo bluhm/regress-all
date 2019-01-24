@@ -33,7 +33,7 @@ if (!exists("DATA_FILE") || !exists("OUT_FILE") || !exists("TESTS")) {
 }
 
 set datafile separator whitespace
-set key outside right top vertical Right
+set key outside left bottom horizontal Left
 set output OUT_FILE
 
 if (!exists("TITLE")) { TITLE = "" }
@@ -49,7 +49,7 @@ if (exists("RUN_DATE")) {
 # If there are not data points, create an empty image to prevent future gnuplot
 # invocations. To prevent warnings, set most style settings after this check.
 if (!exists("STATS_records")) {
-    set terminal png size 120,80
+    set terminal png size 240,80
     set title TITLE."\nNO DATA" offset first 0,0
     set yrange [-1:1]
     unset tics
@@ -77,10 +77,13 @@ lbl_index = 1
 do for [i = 1:words(QUIRKS)] {
     XPOS = (int(word(QUIRKS, i))-STATS_min_x)/(STATS_max_x-STATS_min_x+1)
     if (XPOS > 0 && XPOS < 1) {
-	DESCR = sprintf("%c", 96 + lbl_index)
+	DESCR = sprintf("%c", 64 + lbl_index)
 	set arrow from graph XPOS,0 to graph XPOS,1 nohead lw 1 lc rgb 'black'
 	set label DESCR at graph XPOS, graph 1 noenhanced \
 	    offset character -.5, character 0.7 front boxed
+    }
+    if (lbl_index == 26) { # jump from Z to a
+	lbl_index = lbl_index + 6
     }
     lbl_index = lbl_index + 1
 }

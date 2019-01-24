@@ -310,11 +310,9 @@ foreach my $plot (qw(make tcp udp)) {
 	}
     }
     my $outfile = "$plot.png";
-    unless (-f "gnuplot/$outfile") {
-	my @cmd = ("$performdir/bin/gnuplot.pl", "-T", "$plot");
-	system(@cmd)
-	    and die "Command '@cmd' failed: $?";
-    }
+    my @cmd = ("$performdir/bin/gnuplot.pl", "-T", "$plot");
+    system(@cmd)
+	and die "Command '@cmd' failed: $?";
 }
 
 # create cvs log file with commits after previous cvsdates
@@ -696,7 +694,7 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
     my $prevd;
-    my $qi = 97 + keys %{{quirks(undef, $cvsdates[0])}};
+    my $qi = 65 + keys %{{quirks(undef, $cvsdates[0])}};
     foreach my $cvsdate (@cvsdates) {
 	my $quirks = $d{$date}{$cvsdate}{quirks};
 	print $html "    <th>";
@@ -706,7 +704,9 @@ HEADER
 	}
 	if ($prevd) {
 	    my @quirks = keys %{{quirks($prevd, $cvsdate)}};
-	    print $html "/", join(",", map { chr($qi++) } @quirks) if @quirks;
+	    print $html "/", join(",", map {
+		    chr(($qi > 90? 6 + $qi++ : $qi++))
+		} @quirks) if @quirks;
 	}
 	print $html "</th>\n";
 	$prevd = $cvsdate;
@@ -797,6 +797,18 @@ HEADER
 	"alt=\"UDP Performance\">\n<br>";
     print $html "<img src=\"../gnuplot/$date-make.png\" ".
 	"alt=\"MAKE Performance\">\n<br>";
+
+    my %q = quirks();
+    my @sorted_quirks = sort keys %q;
+    print $html "<table>";
+    for my $qi (0 .. $#sorted_quirks) {
+	my $letter = chr(($qi > 25? $qi + 6 : $qi) + 65);
+	print $html "<tr>";
+	print $html "<th>$letter</th><td>$q{$sorted_quirks[$qi]}{comment}</td>";
+	print $html "</tr>";
+    }
+    print $html "</table>";
+
 
     print $html <<"FOOTER";
 </body>
@@ -943,12 +955,16 @@ print $html "<img src=\"gnuplot/udp.png\" ".
 print $html "<img src=\"gnuplot/make.png\" ".
     "alt=\"MAKE Performance\">\n<br>";
 
-print $html "<ol type=\"a\">";
 my %q = quirks();
-foreach my $quirk (sort keys %q) {
-    print $html "<li>$q{$quirk}{comment}</li>";
+my @sorted_quirks = sort keys %q;
+print $html "<table>";
+for my $qi (0 .. $#sorted_quirks) {
+    my $letter = chr(($qi > 25? $qi + 6 : $qi) + 65);
+    print $html "<tr>";
+    print $html "<th>$letter</th><td>$q{$sorted_quirks[$qi]}{comment}</td>";
+    print $html "</tr>";
 }
-print $html "</ol>";
+print $html "</table>";
 
 print $html <<"FOOTER";
 <table>
