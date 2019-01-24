@@ -310,11 +310,9 @@ foreach my $plot (qw(make tcp udp)) {
 	}
     }
     my $outfile = "$plot.png";
-    unless (-f "gnuplot/$outfile") {
-	my @cmd = ("$performdir/bin/gnuplot.pl", "-T", "$plot");
-	system(@cmd)
-	    and die "Command '@cmd' failed: $?";
-    }
+    my @cmd = ("$performdir/bin/gnuplot.pl", "-T", "$plot");
+    system(@cmd)
+	and die "Command '@cmd' failed: $?";
 }
 
 # create cvs log file with commits after previous cvsdates
