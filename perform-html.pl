@@ -402,6 +402,7 @@ my @dates = reverse sort keys %d;
 
 foreach my $date (@dates) {
     my $short = $d{$date}{short};
+    my $hostcore = "$d{$date}{host}/$d{$date}{core}";
     foreach my $cvsdate (@{$d{$date}{cvsdates}}) {
 	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
 	my @repeats = sort @{$d{$date}{$cvsdate}{repeats} || []}
@@ -443,6 +444,10 @@ foreach my $date (@dates) {
     <td>$date</td>
   </tr>
   <tr>
+    <th>test host with cpu cores</th>
+    <td>$hostcore</td>
+  </tr>
+  <tr>
     <th>cvs checkout at</th>
     <td>$cvsdate</td>
   </tr>
@@ -453,7 +458,12 @@ HEADER
 	my $reptext = @repeats && $repmode && @repeats > 1 ?
 	    @repeats. " / $repmode" : @repeats;
 	$reptext =~ s/\s//g;
-	print $html "    <td>$reptext</td>\n";
+	my $build = $d{$date}{$cvsdate}{build};
+	$build =~ s,[^/]+/[^/]+/,, if $build;
+	my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
+	my $href = $build ? "<a href=\"$link\">" : "";
+	my $enda = $href ? " info</a>" : "";
+	print $html "    <td>$href$reptext$enda</td>\n";
 	print $html "  </tr>\n";
 	print $html "</table>\n";
 
@@ -641,7 +651,7 @@ HEADER
     my $modes = $d{$date}{stepconf}{modes};
     $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
     $href = $setup ? "<a href=\"../$link\">" : "";
-    $enda = $href ? "</a>" : "";
+    $enda = $href ? " info</a>" : "";
     print $html "    <td>$href$release/$modes$enda</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";
@@ -743,22 +753,6 @@ HEADER
 	    "$repeats / $repmode" : $repeats;
 	$reptext =~ s/\s//g;
 	print $html "    <th>$reptext</th>\n";
-    }
-    print $html "    <th></th>\n";  # dummy for unit below
-    print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>dmesg after test</th>\n";
-    foreach my $cvsdate (@cvsdates) {
-	my @hostdmesg;
-	foreach my $hostname (@{$d{$date}{$cvsdate}{hosts}}) {
-	    my $dmesg = $d{$date}{$cvsdate}{$hostname}{dmesg};
-	    $dmesg =~ s,[^/]+/,, if $dmesg;
-	    my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
-	    my $href = $dmesg ? "<a href=\"$link\">" : "";
-	    my $enda = $href ? "</a>" : "";
-	    push @hostdmesg, "$href$hostname$enda";
-	}
-	my $hostdmesg = join("/", @hostdmesg);
-	print $html "    <th>$hostdmesg</th>\n";
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
@@ -915,15 +909,11 @@ foreach my $date (@dates) {
     print $html "    <th>$hostname/$core</th>\n";
 }
 print $html "  </tr>\n";
-print $html "  <tr>\n    <th>machine setup</th>\n";
+print $html "  <tr>\n    <th>release setup</th>\n";
 foreach my $date (@dates) {
-    my $setup = $d{$date}{setup};
     my $release = $d{$date}{stepconf}{release};
     my $modes = $d{$date}{stepconf}{modes};
-    my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
-    my $href = $setup ? "<a href=\"$link\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <th>$href$release/$modes$enda</th>\n";
+    print $html "    <th>$release/$modes</th>\n";
 }
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>first cvs checkout</th>\n";
