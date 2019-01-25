@@ -28,7 +28,7 @@ our @EXPORT= qw(quirks quirk_comments quirk_patches quirk_commands);
 #### Quirks ####
 
 my %quirks = (
-# OpenBSD 6.2, 2017-10-04
+# OpenBSD 6.2, 2017-10-04Z
     '2017-10-04T03:27:49Z' => { comment => "OpenBSD/amd64 6.2 release" },
     # cvs has a bug and cannot check out vendor branches between commits
     '2017-10-04T21:45:15Z' => {
@@ -71,7 +71,7 @@ my %quirks = (
 	comment => "move kernel source file dwiic.c",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
-# OpenBSD 6.3, 2018-03-25
+# OpenBSD 6.3, 2018-03-24Z
     '2018-03-24T20:27:40Z' => { comment => "OpenBSD/amd64 6.3 release" },
     '2018-04-05T03:32:39Z' => {
 	comment => "pfctl remove PF_TRANS_ALTQ",
@@ -175,7 +175,7 @@ my %quirks = (
 	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
-# OpenBSD 6.4, 2018-10-12
+# OpenBSD 6.4, 2018-10-11Z
     '2018-10-11T19:37:31Z' => { comment => "OpenBSD/amd64 6.4 release" },
     '2018-10-16T18:20:58Z' => {
 	comment => "prepare kernel for lld linker",
