@@ -216,10 +216,10 @@ my @tests = (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b0', '-w1m', '-t10'],
+	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b10G', '-w1m', '-t10'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b0', '-w1m', '-t10',
+	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b10G', '-w1m', '-t10',
 	    '-R'],
 	parser => \&iperf3_parser,
     }, {
