@@ -472,7 +472,7 @@ HEADER
 		$reboot =~ s,[^/]+/[^/]+/,, if $reboot;
 		my $link = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
 		my $href = $reboot ? "<a href=\"$link\">" : "";
-		my $enda = $href ? "</a>" : "";
+		my $enda = $href ? " info</a>" : "";
 		print $html "    <th>$href$repmode$enda</th>\n";
 	    } else {
 		print $html "    <th></th>\n";
@@ -635,7 +635,7 @@ HEADER
     my $core = $d{$date}{core};
     print $html "    <td>$hostname/$core</td>\n";
     print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>initial release setup modes</th>\n";
+    print $html "  <tr>\n    <th>machine release setup</th>\n";
     my $setup = $d{$date}{setup};
     my $release = $d{$date}{stepconf}{release};
     my $modes = $d{$date}{stepconf}{modes};
@@ -672,7 +672,7 @@ HEADER
 	$build =~ s,[^/]+/,, if $build;
 	my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
 	my $href = $build ? "<a href=\"$link\">" : "";
-	my $enda = $href ? "</a>" : "";
+	my $enda = $href ? " info</a>" : "";
 	print $html "    <th>${href}build$enda</th>\n";
     }
     print $html "    <th></th>\n";  # dummy for unit below
@@ -709,7 +709,7 @@ HEADER
 	my $link = uri_escape($cvslog, "^A-Za-z0-9\-\._~/");
 	my $cvscommits = $d{$date}{$cvsdate}{cvscommits};
 	my $num = defined($cvscommits) ? "/$cvscommits" : "";
-	print $html "    <th$title><a href=\"../$link\">log</a>$num</th>\n";
+	print $html "    <th$title><a href=\"../$link\">cvslog</a>$num</th>\n";
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
@@ -746,7 +746,7 @@ HEADER
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>dmesg after run</th>\n";
+    print $html "  <tr>\n    <th>dmesg after test</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my @hostdmesg;
 	foreach my $hostname (@{$d{$date}{$cvsdate}{hosts}}) {
@@ -891,7 +891,7 @@ print $html <<"HEADER";
   </tr>
   <tr>
     <th>test</th>
-    <td><a href=\"run.html\">run</a></td>
+    <td><a href=\"run.html\">run info</a></td>
   </tr>
 </table>
 HEADER

@@ -172,7 +172,7 @@ print $html <<"HEADER";
   </tr>
   <tr>
     <th>test</th>
-    <td><a href=\"run.html\">run</a></td>
+    <td><a href=\"run.html\">run info</a></td>
 </tr>
 </table>
 HEADER
