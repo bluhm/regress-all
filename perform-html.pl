@@ -176,24 +176,17 @@ foreach my $result (@results) {
 	or die "Close '$result' after reading failed: $!";
 
     # parse version file
-    my ($version, $diff, $dmesg, $quirks);
+    my $version;
     if ($host) {
 	$version = "$date/$cvsdate/version-$host.txt";
-	$diff = "$date/$cvsdate/diff-$host.txt";
-	$dmesg = "$date/$cvsdate/dmesg-$host.txt";
-	$quirks = "$date/$cvsdate/quirks-$host.txt";
     } else {
 	$version = (glob("$date/$cvsdate/version-*.txt"))[0];
-	($diff = $version) =~ s,/version-,/diff-,;
-	($dmesg = $version) =~ s,/version-,/dmesg-,;
-	($quirks = $version) =~ s,/version-,/quirks-,;
     }
     unless (-f $version) {
 	# if host is specified, only print result for this one
 	delete $d{$date} if $host;
 	next;
     }
-    ($d{$date}{$cvsdate}{version} = $version) =~ s,[^/]+/,,;
     open($fh, '<', $version)
 	or die "Open '$version' for reading failed: $!";
     while (<$fh>) {
@@ -210,9 +203,18 @@ foreach my $result (@results) {
 	    $d{$date}{$cvsdate}{arch} = $1;
 	}
     }
-    ($d{$date}{$cvsdate}{diff} = $diff) =~ s,[^/]+/,, if -f $diff;
-    ($d{$date}{$cvsdate}{dmesg} = $dmesg) =~ s,[^/]+/,, if -f $dmesg;
-    ($d{$date}{$cvsdate}{quirks} = $quirks) =~ s,[^/]+/,, if -f $quirks;
+    foreach my $v (sort glob("$date/$cvsdate/version-*.txt")) {
+	$v =~ m,/version-(.+)\.txt$,;
+	my $h = $1;
+	next if $d{$date}{$cvsdate}{$h};
+	$d{$date}{$cvsdate}{$h} = {};
+	push @{$d{$date}{$cvsdate}{hosts} ||= []}, $h;
+	(my $quirks = $v) =~ s,/version-,/quirks-,;
+	(my $dmesg = $v) =~ s,/version-,/dmesg-,;
+	$d{$date}{$cvsdate}{version} ||= $v;
+	$d{$date}{$cvsdate}{quirks} ||= $quirks if -f $quirks;
+	$d{$date}{$cvsdate}{$h}{dmesg} = $dmesg if -f $dmesg;
+    }
 }
 
 # write test results into gnuplot data file
@@ -662,7 +664,7 @@ HEADER
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>test</th>\n";
+    print $html "  <tr>\n    <th>machine</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $build = $d{$date}{$cvsdate}{build};
 	$build =~ s,[^/]+/,, if $build;
@@ -681,6 +683,7 @@ HEADER
 	    next;
 	}
 	my $kernel = encode_entities($d{$date}{$cvsdate}{kernel});
+	$version =~ s,[^/]+/,,;
 	my $link = uri_escape($version, "^A-Za-z0-9\-\._~/");
 	print $html "    <th title=\"$kernel\">".
 	    "<a href=\"$link\">version</a></th>\n";
@@ -715,6 +718,7 @@ HEADER
 	my $quirks = $d{$date}{$cvsdate}{quirks};
 	print $html "    <th>";
 	if ($quirks) {
+	    $quirks =~ s,[^/]+/,,;
 	    my $link = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
 	    print $html "<a href=\"$link\">quirks</a>";
 	}
@@ -742,12 +746,17 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>dmesg after run</th>\n";
     foreach my $cvsdate (@cvsdates) {
-	my $arch = $d{$date}{$cvsdate}{arch} || "dmesg";
-	my $dmesg = $d{$date}{$cvsdate}{dmesg};
-	my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
-	my $href = $dmesg ? "<a href=\"$link\">" : "";
-	my $enda = $href ? "</a>" : "";
-	print $html "    <th>$href$arch$enda</th>\n";
+	my @hostdmesg;
+	foreach my $h (@{$d{$date}{$cvsdate}{hosts}}) {
+	    my $dmesg = $d{$date}{$cvsdate}{$h}{dmesg};
+	    $dmesg =~ s,[^/]+/,, if $dmesg;
+	    my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
+	    my $href = $dmesg ? "<a href=\"$link\">" : "";
+	    my $enda = $href ? "</a>" : "";
+	    push @hostdmesg, "$href$h$enda";
+	}
+	my $hostdmesg = join("/", @hostdmesg);
+	print $html "    <th>$hostdmesg</th>\n";
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
@@ -897,7 +906,7 @@ foreach my $date (@dates) {
     print $html "    <th title=\"$time\">$href$short$enda</th>\n";
 }
 print $html "  </tr>\n";
-print $html "  <tr>\n    <th>test</th>\n";
+print $html "  <tr>\n    <th>machine setup</th>\n";
 foreach my $date (@dates) {
     my $setup = $d{$date}{setup};
     my $release = $d{$date}{stepconf}{release};
