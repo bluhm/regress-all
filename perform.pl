@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2019 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -180,13 +180,63 @@ sub tcpbench_finalize {
 
 sub time_parser {
     my ($line, $log) = @_;
-    if (/^(\w+) +(\d+\.\d+)$/) {
+    if ($line =~ /^(\w+) +(\d+\.\d+)$/) {
 	print $tr "VALUE $2 sec $1\n";
     }
-    if (/^ *(\d+)  ([\w ]+)$/) {
-	print $tr "SUBVALUE $1 count $2\n";
+    if (/$line =~ ^ *(\d+)  ([\w ]+)$/) {
+	print $tr "SUBVALUE $1 1 $2\n";
     }
     return 1;
+}
+
+sub fsmark_initialize {
+    return wallclock_initialize(@_);
+}
+
+my @fsmark_keys;
+my @fsmark_values;
+my @fsmark_units;
+sub fsmark_parser {
+    my ($line, $log) = @_;
+    return time_parser(@_) if @fsmark_values;
+    if (@fsmark_keys) {
+	@fsmark_values = split(" ", $line);
+	if (@fsmark_keys != @fsmark_values) {
+	    print $log "FAILED not 5 values\n" if $log;
+	    print "FAILED not 5 values\n" if $opts{v};
+	    return;
+	}
+	for (my $i = 0; $i < 5; $i++) {
+	    my $value = $fsmark_values[$i];
+	    my $unit = $fsmark_units[$i];
+	    my $key = $fsmark_keys[$i];
+	    $value /= 1000000 if $key eq "overhead";
+	    print $tr "SUB" unless $key eq "files" || $key eq "overhead";
+	    print $tr "VALUE $value $unit $key\n";
+	}
+    } else {
+	@fsmark_keys = map { lc($_) } $line =~
+	    m{^(FSUse)%\s+(Count)\s+(Size)\s+(Files)/sec\s+App (Overhead)$};
+	if (@fsmark_keys) {
+	    @fsmark_units = qw(percent 1 bytes 1/sec sec);
+	    if (@fsmark_units != @fsmark_keys) {
+		print $log "FAILED not 5 keys\n" if $log;
+		print "FAILED not 5 keys\n" if $opts{v};
+		return;
+	    }
+	}
+    }
+    return 1;
+}
+
+sub fsmark_finalize {
+    my ($log) = @_;
+    unless (@fsmark_values) {
+	print $log "FAILED no values\n" if $log;
+	print "FAILED no values\n" if $opts{v};
+	return;
+    }
+    return wallclock_finalize(@_);
 }
 
 my $wallclock;
@@ -196,7 +246,7 @@ sub wallclock_initialize {
 }
 
 sub wallclock_finalize {
-    printf $tr "VALUE %.2f sec wall\n", Time::HiRes::time() - $wallclock;
+    printf $tr "SUBVALUE %.2f sec wall\n", Time::HiRes::time() - $wallclock;
     return 1;
 }
 
@@ -228,6 +278,12 @@ my @tests = (
 	    "-C/usr/src/sys/arch/$machine/compile/$kconf", "-j$ncpu", '-s'],
 	parser => \&time_parser,
 	finalize => \&wallclock_finalize,
+    }, {
+	initialize => \&fsmark_initialize,
+	testcmd => ['time', '-lp', 'fs_mark',
+	    '-d/var/cache/fs_mark', '-D8', '-N16', '-n256', '-t8'],
+	parser => \&fsmark_parser,
+	finalize => \&fsmark_finalize,
     }
 );
 
@@ -291,9 +347,11 @@ foreach my $t (@tests) {
 	    if $t->{initialize};
 	while (<$out>) {
 	    print $log $_;
-	    $t->{parser}($_, $log)
-		or bad $test, 'FAIL', "Could not parse value", $log
-		if $t->{parser};
+	    if ($t->{parser}) {
+		local $_ = $_;
+		$t->{parser}($_, $log)
+		    or bad $test, 'FAIL', "Could not parse value", $log
+	    }
 	    s/[^\s[:print:]]/_/g;
 	    print if $opts{v};
 	}
