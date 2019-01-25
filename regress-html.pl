@@ -131,7 +131,7 @@ foreach my $result (@results) {
 	    $d{$date}{kernel} .= "\n    $1";
 	    $d{$date}{location} = $1;
 	}
-	/^hw.machine=(\w+)$/ and $d{$date}{arch} = $1;
+	/^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
     }
     $d{$date}{build} = $d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
 	"snapshot" : "custom";

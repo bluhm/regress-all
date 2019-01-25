@@ -176,44 +176,41 @@ foreach my $result (@results) {
 	or die "Close '$result' after reading failed: $!";
 
     # parse version file
-    my $version;
-    if ($host) {
-	$version = "$date/$cvsdate/version-$host.txt";
-    } else {
-	$version = (glob("$date/$cvsdate/version-*.txt"))[0];
-    }
-    unless (-f $version) {
+    if ($host && ! -f "$date/$cvsdate/version-$host.txt") {
 	# if host is specified, only print result for this one
-	delete $d{$date} if $host;
+	delete $d{$date};
 	next;
     }
-    open($fh, '<', $version)
-	or die "Open '$version' for reading failed: $!";
-    while (<$fh>) {
-	if (/^kern.version=(.*(?:cvs : (\w+))?: (\w+ \w+ +\d+ .*))$/) {
-	    $d{$date}{$cvsdate}{kernel} = $1;
-	    $d{$date}{$cvsdate}{cvs} = $2;
-	    $d{$date}{$cvsdate}{time} = $3;
-	    <$fh> =~ /(\S+)/;
-	    $d{$date}{$cvsdate}{kernel} .= "\n    $1";
-	    $d{$date}{$cvsdate}{location} = $1;
-	}
-	if (/^hw.machine=(\w+)$/) {
-	    $d{$date}{arch} ||= $1;
-	    $d{$date}{$cvsdate}{arch} = $1;
-	}
-    }
-    foreach my $v (sort glob("$date/$cvsdate/version-*.txt")) {
-	$v =~ m,/version-(.+)\.txt$,;
-	my $h = $1;
-	next if $d{$date}{$cvsdate}{$h};
-	$d{$date}{$cvsdate}{$h} = {};
-	push @{$d{$date}{$cvsdate}{hosts} ||= []}, $h;
-	(my $quirks = $v) =~ s,/version-,/quirks-,;
-	(my $dmesg = $v) =~ s,/version-,/dmesg-,;
-	$d{$date}{$cvsdate}{version} ||= $v;
+    foreach my $version (sort glob("$date/$cvsdate/version-*.txt")) {
+	$version =~ m,/version-(.+)\.txt$,;
+	my $hostname = $1;
+
+	next if $d{$date}{$cvsdate}{$hostname};
+	push @{$d{$date}{$cvsdate}{hosts} ||= []}, $hostname;
+	$d{$date}{$cvsdate}{$hostname} = {};
+	$d{$date}{host} ||= $hostname;
+	(my $dmesg = $version) =~ s,/version-,/dmesg-,;
+	$d{$date}{$cvsdate}{$hostname}{dmesg} ||= $dmesg if -f $dmesg;
+
+	next if $d{$date}{$cvsdate}{version};
+	$d{$date}{$cvsdate}{version} = $version;
+	(my $quirks = $version) =~ s,/version-,/quirks-,;
 	$d{$date}{$cvsdate}{quirks} ||= $quirks if -f $quirks;
-	$d{$date}{$cvsdate}{$h}{dmesg} = $dmesg if -f $dmesg;
+
+	open($fh, '<', $version)
+	    or die "Open '$version' for reading failed: $!";
+	while (<$fh>) {
+	    if (/^kern.version=(.*(?:cvs : (\w+))?: (\w+ \w+ +\d+ .*))$/) {
+		$d{$date}{$cvsdate}{kernel} = $1;
+		$d{$date}{$cvsdate}{cvs} = $2;
+		$d{$date}{$cvsdate}{time} = $3;
+		<$fh> =~ /(\S+)/;
+		$d{$date}{$cvsdate}{kernel} .= "\n    $1";
+		$d{$date}{$cvsdate}{location} = $1;
+	    }
+	    /^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
+	    /^hw.ncpu=(\d+)$/ and $d{$date}{core} ||= $1;
+	}
     }
 }
 
@@ -633,7 +630,12 @@ HEADER
     my $enda = $href ? "</a>" : "";
     print $html "    <td>${href}log$enda</td>\n";
     print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>release setup modes</th>\n";
+    print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
+    my $hostname = $d{$date}{host};
+    my $core = $d{$date}{core};
+    print $html "    <td>$hostname/$core</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>initial release setup modes</th>\n";
     my $setup = $d{$date}{setup};
     my $release = $d{$date}{stepconf}{release};
     my $modes = $d{$date}{stepconf}{modes};
@@ -747,13 +749,13 @@ HEADER
     print $html "  <tr>\n    <th>dmesg after run</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my @hostdmesg;
-	foreach my $h (@{$d{$date}{$cvsdate}{hosts}}) {
-	    my $dmesg = $d{$date}{$cvsdate}{$h}{dmesg};
+	foreach my $hostname (@{$d{$date}{$cvsdate}{hosts}}) {
+	    my $dmesg = $d{$date}{$cvsdate}{$hostname}{dmesg};
 	    $dmesg =~ s,[^/]+/,, if $dmesg;
 	    my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
 	    my $href = $dmesg ? "<a href=\"$link\">" : "";
 	    my $enda = $href ? "</a>" : "";
-	    push @hostdmesg, "$href$h$enda";
+	    push @hostdmesg, "$href$hostname$enda";
 	}
 	my $hostdmesg = join("/", @hostdmesg);
 	print $html "    <th>$hostdmesg</th>\n";
@@ -904,6 +906,13 @@ foreach my $date (@dates) {
     my $href = -f $datehtml ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$time\">$href$short$enda</th>\n";
+}
+print $html "  </tr>\n";
+print $html "  <tr>\n    <th>host cores</th>\n";
+foreach my $date (@dates) {
+    my $hostname = $d{$date}{host};
+    my $core = $d{$date}{core};
+    print $html "    <th>$hostname/$core</th>\n";
 }
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>machine setup</th>\n";
