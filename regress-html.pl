@@ -105,38 +105,34 @@ foreach my $result (@results) {
     $d{$date}{pass} = $pass / $total if $total;
 
     # parse version file
-    my ($version, $diff, $dmesg);
-    if ($host) {
-	$version = "$date/version-$host.txt";
-	$diff = "$date/diff-$host.txt";
-	$dmesg = "$date/dmesg-$host.txt";
-    } else {
-	$version = (glob("$date/version-*.txt"))[0];
-	($diff = $version) =~ s,/version-,/diff-,;
-	($dmesg = $version) =~ s,/version-,/dmesg-,;
-    }
-    unless (-f $version) {
+    if ($host && ! -f "$date/version-$host.txt") {
 	# if host is specified, only print result for this one
 	delete $d{$date} if $host;
 	next;
     }
-    $d{$date}{version} = $version;
-    open($fh, '<', $version)
-	or die "Open '$version' for reading failed: $!";
-    while (<$fh>) {
-	if (/^kern.version=(.*: (\w+ \w+ +\d+ .*))$/) {
-	    $d{$date}{kernel} = $1;
-	    $d{$date}{time} = $2;
-	    <$fh> =~ /(\S+)/;
-	    $d{$date}{kernel} .= "\n    $1";
-	    $d{$date}{location} = $1;
+    foreach my $version (sort glob("$date/version-*.txt")) {
+	next if $d{$date}{version};
+	$d{$date}{version} = $version;
+	(my $dmesg = $version) =~ s,/version-,/dmesg-,;
+	$d{$date}{dmesg} ||= $dmesg if -f $dmesg;
+	(my $diff = $version) =~ s,/version-,/diff-,;
+	$d{$date}{diff} ||= $diff if -f $diff;
+
+	open($fh, '<', $version)
+	    or die "Open '$version' for reading failed: $!";
+	while (<$fh>) {
+	    if (/^kern.version=(.*: (\w+ \w+ +\d+ .*))$/) {
+		$d{$date}{kernel} = $1;
+		$d{$date}{time} = $2;
+		<$fh> =~ /(\S+)/;
+		$d{$date}{kernel} .= "\n    $1";
+		$d{$date}{location} = $1;
+	    }
+	    /^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
 	}
-	/^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
+	$d{$date}{build} = $d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
+	    "snapshot" : "custom";
     }
-    $d{$date}{build} = $d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
-	"snapshot" : "custom";
-    $d{$date}{diff} = $diff if -f $diff;
-    $d{$date}{dmesg} = $dmesg if -f $dmesg;
 }
 
 my $htmlfile = $opts{l} ? "latest" : "regress";
