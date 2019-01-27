@@ -394,6 +394,7 @@ my %testorder = (
     "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60_-R"		=> 1422,
     "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> 3004,
     "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 3008,
+    "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> 4008,
 );
 my @tests = reverse sort { $testorder{$b} <=> $testorder{$a} } keys %t;
 my @dates = reverse sort keys %d;
