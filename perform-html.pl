@@ -217,6 +217,7 @@ foreach my $result (@results) {
 
 # write test results into gnuplot data file
 
+my @plots = qw(tcp udp make fs);
 my %testplot = (
     "iperf3_-c10.3.0.33_-w1m"				=> "tcp",
     "iperf3_-c10.3.0.33_-w1m_-t10"			=> "tcp",
@@ -250,6 +251,7 @@ my %testplot = (
     "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60_-R"		=> "udp",
     "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> "make",
     "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> "make",
+    "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> "fs",
 );
 
 unless ($opts{l} || $opts{h}) {
@@ -307,7 +309,7 @@ unless ($opts{l} || $opts{h}) {
 
 # create gnuplot graphs for all runs
 
-foreach my $plot (qw(make tcp udp)) {
+foreach my $plot (@plots) {
     foreach my $date (keys %v) {
 	my $outfile = "$date-$plot.png";
 	if ($opts{g} || ! -f "gnuplot/$outfile") {
@@ -814,12 +816,10 @@ HEADER
     }
     print $html "</table>\n";
 
-    print $html "<img src=\"../gnuplot/$date-tcp.png\" ".
-	"alt=\"TCP Performance\">\n<br>";
-    print $html "<img src=\"../gnuplot/$date-udp.png\" ".
-	"alt=\"UDP Performance\">\n<br>";
-    print $html "<img src=\"../gnuplot/$date-make.png\" ".
-	"alt=\"MAKE Performance\">\n<br>";
+    foreach my $plot (@plots) {
+	print $html "<img src=\"../gnuplot/$date-$plot.png\" alt=\"".
+	    uc $plot. " Performance\">\n<br>";
+    }
 
     my %q = quirks();
     my @sorted_quirks = sort keys %q;
@@ -973,12 +973,10 @@ foreach my $test (@tests) {
 }
 print $html "</table>\n";
 
-print $html "<img src=\"gnuplot/tcp.png\" ".
-    "alt=\"TCP Performance\">\n<br>";
-print $html "<img src=\"gnuplot/udp.png\" ".
-    "alt=\"UDP Performance\">\n<br>";
-print $html "<img src=\"gnuplot/make.png\" ".
-    "alt=\"MAKE Performance\">\n<br>";
+foreach my $plot (@plots) {
+    print $html "<img src=\"gnuplot/$plot.png\" alt=\"".
+	uc $plot. " Performance\">\n<br>";
+}
 
 my %q = quirks();
 my @sorted_quirks = sort keys %q;
