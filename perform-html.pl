@@ -34,9 +34,10 @@ use Buildquirks;
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('h:l', \%opts) or do {
+getopts('gh:l', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-l] [-h host]
+usage: $0 [-gl] [-h host]
+    -g		generate all gnuplot files, even if they already exist
     -h host     user and host for version information, user defaults to root
     -l		create latest.html with one column of the latest results
 EOF
@@ -309,7 +310,7 @@ unless ($opts{l} || $opts{h}) {
 foreach my $plot (qw(make tcp udp)) {
     foreach my $date (keys %v) {
 	my $outfile = "$date-$plot.png";
-	unless (-f "gnuplot/$outfile") {
+	if ($opts{g} || ! -f "gnuplot/$outfile") {
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
 		"-T", "$plot");
 	    system(@cmd)
