@@ -55,6 +55,12 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
+    '2017-11-28T16:05:46Z' => {
+	comment => "pfctl pf divert type",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+    },
     '2017-12-11T05:27:40Z' => {
 	comment => "sysctl struct vfsconf",
 	updatedirs => [ "sys" ],
@@ -224,6 +230,12 @@ my %quirks = (
 	    "gnu/usr.bin/clang",
 	    "sys/arch/amd64/compile/GENERIC.MP",
 	],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+    '2019-01-27T17:29:36Z' => {
+	comment => "clang update LLVM to 7.0.1",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
 );
