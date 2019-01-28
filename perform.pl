@@ -189,17 +189,23 @@ sub time_parser {
     return 1;
 }
 
-sub fsmark_initialize {
-    return wallclock_initialize(@_);
-}
-
 my @fsmark_keys;
 my @fsmark_values;
 my @fsmark_units;
 sub fsmark_parser {
     my ($line, $log) = @_;
-    return time_parser(@_) if @fsmark_values;
-    if (@fsmark_keys) {
+    if (!@fsmark_keys) {
+	@fsmark_keys = map { lc($_) } $line =~
+	    m{^(FSUse)%\s+(Count)\s+(Size)\s+(Files)/sec\s+App (Overhead)$};
+	if (@fsmark_keys) {
+	    @fsmark_units = qw(percent 1 bytes 1/sec sec);
+	    if (@fsmark_units != @fsmark_keys) {
+		print $log "FAILED not 5 keys\n" if $log;
+		print "FAILED not 5 keys\n" if $opts{v};
+		return;
+	    }
+	}
+    } elsif (!@fsmark_values) {
 	@fsmark_values = split(" ", $line);
 	if (@fsmark_keys != @fsmark_values) {
 	    print $log "FAILED not 5 values\n" if $log;
@@ -211,19 +217,8 @@ sub fsmark_parser {
 	    my $unit = $fsmark_units[$i];
 	    my $key = $fsmark_keys[$i];
 	    $value /= 1000000 if $key eq "overhead";
-	    print $tr "SUB" unless $key eq "files" || $key eq "overhead";
+	    print $tr "SUB" unless $key eq "files";
 	    print $tr "VALUE $value $unit $key\n";
-	}
-    } else {
-	@fsmark_keys = map { lc($_) } $line =~
-	    m{^(FSUse)%\s+(Count)\s+(Size)\s+(Files)/sec\s+App (Overhead)$};
-	if (@fsmark_keys) {
-	    @fsmark_units = qw(percent 1 bytes 1/sec sec);
-	    if (@fsmark_units != @fsmark_keys) {
-		print $log "FAILED not 5 keys\n" if $log;
-		print "FAILED not 5 keys\n" if $opts{v};
-		return;
-	    }
 	}
     }
     return 1;
@@ -236,7 +231,7 @@ sub fsmark_finalize {
 	print "FAILED no values\n" if $opts{v};
 	return;
     }
-    return wallclock_finalize(@_);
+    return 1;
 }
 
 my $wallclock;
@@ -279,7 +274,6 @@ my @tests = (
 	parser => \&time_parser,
 	finalize => \&wallclock_finalize,
     }, {
-	initialize => \&fsmark_initialize,
 	testcmd => ['time', '-lp', 'fs_mark',
 	    '-d/var/cache/fs_mark', '-D8', '-N16', '-n256', '-t8'],
 	parser => \&fsmark_parser,
