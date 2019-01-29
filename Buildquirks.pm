@@ -57,7 +57,7 @@ my %quirks = (
     },
     '2017-11-28T16:05:46Z' => {
 	comment => "pfctl pf divert type",
-	updatedirs => [ "sys" ],
+	updatedirs => [ "sys", "sbin/pfctl" ],
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
