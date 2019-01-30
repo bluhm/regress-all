@@ -21,6 +21,7 @@ use Cwd;
 use File::Basename;
 use HTML::Entities;
 use Getopt::Std;
+use Date::Parse;
 use POSIX;
 use URI::Escape;
 
@@ -44,8 +45,16 @@ chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
 my $typename = "";
-my @dates = $opts{d} || map { dirname($_) }
-    (glob("*T*/run.log"), glob("*T*/step.log"));
+my @dates;
+if ($opts{d}) {
+    @dates = $opts{d};
+} else {
+    @dates =
+	# run times older than two weeks are irrelevant
+	grep { str2time($now) - str2time($_) <= 60*60*24*14 }
+	map { dirname($_) }
+	(glob("*T*/run.log"), glob("*T*/step.log"));
+}
 my (%d, %m);
 foreach my $date (@dates) {
     $dir = "$regressdir/results/$date";
