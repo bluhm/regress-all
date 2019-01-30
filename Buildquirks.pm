@@ -77,6 +77,12 @@ my %quirks = (
 	comment => "move kernel source file dwiic.c",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2018-02-06T23:44:48Z' => {
+	comment => "pfctl pf syncookies",
+	updatedirs => [ "sys", "sbin/pfctl" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+    },
 # OpenBSD 6.3, 2018-03-24Z
     '2018-03-24T20:27:40Z' => { comment => "OpenBSD/amd64 6.3 release" },
     '2018-04-05T03:32:39Z' => {
