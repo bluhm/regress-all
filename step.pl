@@ -212,14 +212,6 @@ setup_html();
 runcmd("bin/perform-html.pl", "-h", $host);
 runcmd("bin/perform-html.pl");
 
-unlink("results/latest-$host");
-symlink($date, "results/latest-$host")
-    or die "Make symlink 'results/latest-$host' failed: $!";
-unlink("results/latest");
-symlink($date, "results/latest")
-    or die "Make symlink 'results/latest' failed: $!";
-runcmd("bin/perform-html.pl", "-l");
-
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' finished at $date\n");
 
