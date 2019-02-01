@@ -36,7 +36,7 @@ usage: $0 [-v] -h host -r release -B date [-E date] [-S interval]
     [-N repeat] [-R repmode] mode ...
     -h host	user and host for performance test, user defaults to root
     -v		verbose
-    -r release	use release for install and cvs checkout
+    -r release	use release for install and cvs checkout, X.Y or current
     -B date	begin date, inclusive
     -E date	end date, inclusive
     -S interval	step in sec, min, hour, day, week, month, year
@@ -48,8 +48,11 @@ EOF
 };
 $opts{h} or die "No -h specified";
 $opts{r} or die "No -r specified";
-$opts{r} =~ /^\d+\.\d+$/
-    or die "Release '$opts{r}' must be major.minor format";
+my $release;
+if ($opts{r} ne "current") {
+    ($release = $opts{r}) =~ /^\d+\.\d+$/
+	or die "Release '$opts{r}' must be major.minor format";
+}
 $opts{B} or die "No -B begin date";
 my ($begin, $end, $step, $unit, $repeat);
 $begin = str2time($opts{B})
@@ -135,7 +138,7 @@ usehosts(bindir => "$performdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 (my $host = $opts{h}) =~ s/.*\@//;
 
-setup_hosts(mode => \%mode, release => $opts{r}) unless $mode{keep};
+setup_hosts(mode => \%mode, release => $release) unless $mode{keep};
 collect_version();
 setup_html();
 

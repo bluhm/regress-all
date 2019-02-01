@@ -35,7 +35,7 @@ getopts('d:h:r:v', \%opts) or do {
 usage: $0 [-v] [-d date] -h host [-r release] mode ...
     -d date	set date string and change to sub directory
     -h host	root\@openbsd-test-machine, login per ssh
-    -r release	use release for install and cvs checkout
+    -r release	use release for install and cvs checkout, X.Y or current
     -v		verbose
     build	build system from source /usr/src
     cvs		clean cvs update /usr/src and make obj
@@ -59,7 +59,7 @@ foreach (qw(install upgrade)) {
     die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
 my $release;
-if ($opts{r}) {
+if ($opts{r} && $opts{r} ne "current") {
     die "Upgrade to release not supported" if $mode{upgrade};
     ($release = $opts{r}) =~ /^\d+\.\d+$/
 	or die "Release '$release' must be major.minor format";
