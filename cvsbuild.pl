@@ -69,7 +69,7 @@ if ($sysctl{'kern.version'} =~
     /#cvs : D(\d{4}).(\d\d).(\d\d).(\d\d).(\d\d).(\d\d):/) {
     $before = "$1-$2-${3}T$4:$5:${6}Z";
 } elsif ($sysctl{'kern.version'} =~
-    /: (\w{3} \w{3} \d?\d \d\d:\d\d:\d\d \w+ \d{4})\n/) {
+    /: (\w{3} \w{3}  ?\d?\d \d\d:\d\d:\d\d \w+ \d{4})\n/) {
     $before = $1;
 }
 if ($before) {
