@@ -567,6 +567,12 @@ foreach my $date (reverse sort keys %d) {
 		$h = $d{$date}{host};
 	    }
 	    foreach my $host (sort keys %m) {
+		unless ($d{$date}{host}{$host} ||
+		    $d{$date}{$cvsdate}{host}{$host} ||
+		    $d{$date}{$cvsdate}{$repeat}{host}{$host}) {
+		    print $html "    <td></td>\n";
+		    next;
+		}
 		my $time = encode_entities($repeat || $cvsdate ||
 		    $h->{$host}{time}) || "";
 		my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
