@@ -46,7 +46,10 @@ my %quirks = (
     '2017-10-04T21:45:16Z' => {
 	comment => "clang update LLVM to 5.0.0",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
-	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2017-11-13T11:30:11Z' => {
@@ -70,7 +73,10 @@ my %quirks = (
     '2017-12-25T12:09:20Z' => {
 	comment => "clang update LLVM to 5.0.1",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
-	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2017-11-16T18:12:27Z' => {
@@ -107,7 +113,10 @@ my %quirks = (
     '2018-04-07T10:05:06Z' => {
 	comment => "clang update LLVM to 6.0.0",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
-	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
     '2018-04-27T15:19:32Z' => {
@@ -116,7 +125,7 @@ my %quirks = (
     },
     '2018-05-02T13:20:12Z' => {
 	comment => "revert remaining puc commit for com",
-	updatedirs => [ "sys/dev/pci" ],
+	updatedirs => [ "sys" ],
 	patches => { 'sys-puc' => patch_sys_puc() },
     },
     '2018-05-14T12:31:21Z' => {
@@ -141,8 +150,8 @@ my %quirks = (
 	comment => "clang add retguard",
 	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [
-	    "sys/arch/amd64/compile/GENERIC.MP",
 	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
 	],
 	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
     },
@@ -182,8 +191,8 @@ my %quirks = (
 	comment => "clang refactor retguard",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [
-	    "sys/arch/amd64/compile/GENERIC.MP",
 	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
 	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
@@ -193,9 +202,6 @@ my %quirks = (
 	comment => "prepare kernel for lld linker",
 	updatedirs => [ "sys" ],
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
-	buildcommands => [
-	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
-	],
     },
     '2018-10-22T15:18:50Z' => {
 	comment => "cvs vendor branch checkout",
@@ -219,15 +225,9 @@ my %quirks = (
     },
     '2018-12-30T23:08:05Z' => {
 	comment => "clang turns on retpoline by default",
-	updatedirs => [
-	    "gnu/llvm",
-	    "sys/arch/amd64/conf",
-	],
+	updatedirs => [ "sys", "gnu/llvm" ],
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
-	buildcommands => [
-	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
-	],
     },
     '2019-01-12T23:36:35Z' => {
 	comment => "clang builds itself without retpoline",
@@ -241,7 +241,10 @@ my %quirks = (
     '2019-01-27T17:29:36Z' => {
 	comment => "clang update LLVM to 7.0.1",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
-	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
 );
