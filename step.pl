@@ -205,13 +205,12 @@ for (my $current = $begin; $current <= $end;) {
 chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
 
+setup_html();
 # remove possible preliminary created images before stepping was finished
 foreach (glob("results/gnuplot/$date-*")) {
     unlink($_)
 	or warn "Unlink image '$_' failed: $!";
 }
-
-setup_html();
 runcmd("bin/perform-html.pl");
 
 $date = strftime("%FT%TZ", gmtime);
