@@ -212,7 +212,6 @@ foreach (glob("results/gnuplot/$date-*")) {
 }
 
 setup_html();
-runcmd("bin/perform-html.pl", "-h", $host);
 runcmd("bin/perform-html.pl");
 
 $date = strftime("%FT%TZ", gmtime);
