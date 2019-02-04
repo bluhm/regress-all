@@ -247,6 +247,17 @@ my %quirks = (
 	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
+    '2019-01-30T03:08:12Z' => {
+	comment => "clang implement save function arguments",
+	updatedirs => [ "gnu/llvm" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+    '2019-02-03T10:58:51Z' => {
+	comment => "save function arguments for ddb traces",
+	updatedirs => [ "sys" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 );
 
 #### Patches ####
