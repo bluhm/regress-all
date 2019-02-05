@@ -256,12 +256,15 @@ my %quirks = (
     '2019-02-03T10:58:51Z' => {
 	comment => "save function arguments for ddb traces",
 	updatedirs => [ "sys" ],
+	patches => { 'llvm-save-func' => patch_llvm_save_func() },
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
 );
 
 #### Patches ####
 
+# Checking out with existing vendor branch and commits on top was broken.
+# This is needed to cvs update llvm.
 sub patch_cvs_vendor {
 	return <<'PATCH';
 Index: gnu/usr.bin/cvs/src/rcs.c
@@ -299,6 +302,8 @@ diff -u -p -r1.26 rcs.c
 PATCH
 }
 
+# A partial backout prevents kernel compilation.  Repair the tree
+# when the first backout happend.
 sub patch_sys_puc {
 	return <<'PATCH';
 Index: sys/dev/pci/puc.c
@@ -446,6 +451,8 @@ diff -u -p -r1.15 -r1.16
 PATCH
 }
 
+# Accidental garbage commited near the RCS Id prevents further checkout
+# and configuring the kernel.  Patch it at the right spot.
 sub patch_sys_garbage {
 	return <<'PATCH';
 Index: sys/arch/amd64/conf/GENERIC.MP
@@ -464,6 +471,57 @@ diff -u -p -r1.13 -r1.14
  
 PATCH
 }
+
+# The first attempt to implement clang -msave-args contained bugs.
+# Fix them early to prevent a buggy compiler.
+sub patch_llvm_save_func {
+	return <<'PATCH';
+Index: gnu/llvm/lib/Target/X86/X86FrameLowering.cpp
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/gnu/llvm/lib/Target/X86/X86FrameLowering.cpp,v
+retrieving revision 1.6
+retrieving revision 1.7
+diff -u -p -r1.6 -r1.7
+--- gnu/llvm/lib/Target/X86/X86FrameLowering.cpp	30 Jan 2019 03:08:12 -0000	1.6
++++ gnu/llvm/lib/Target/X86/X86FrameLowering.cpp	5 Feb 2019 02:12:41 -0000	1.7
+@@ -1750,7 +1750,7 @@ void X86FrameLowering::emitEpilogue(Mach
+ 
+     if (X86FI->getSaveArgSize()) {
+       // LEAVE is effectively mov rbp,rsp; pop rbp
+-      BuildMI(MBB, MBBI, DL, TII.get(X86::LEAVE64), MachineFramePtr)
++      BuildMI(MBB, MBBI, DL, TII.get(X86::LEAVE64))
+         .setMIFlag(MachineInstr::FrameDestroy);
+     } else {
+       // Pop EBP.
+Index: gnu/llvm/lib/Target/X86/X86Subtarget.h
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/gnu/llvm/lib/Target/X86/X86Subtarget.h,v
+retrieving revision 1.4
+retrieving revision 1.5
+diff -u -p -r1.4 -r1.5
+--- gnu/llvm/lib/Target/X86/X86Subtarget.h	30 Jan 2019 03:08:12 -0000	1.4
++++ gnu/llvm/lib/Target/X86/X86Subtarget.h	4 Feb 2019 17:08:56 -0000	1.5
+@@ -401,7 +401,7 @@ protected:
+   unsigned stackAlignment = 4;
+ 
+   /// Whether function prologues should save register arguments on the stack.
+-  unsigned SaveArgs;
++  bool SaveArgs = false;
+ 
+   /// Max. memset / memcpy size that is turned into rep/movs, rep/stos ops.
+   ///
+@@ -481,7 +481,7 @@ public:
+     return &getInstrInfo()->getRegisterInfo();
+   }
+ 
+-  unsigned getSaveArgs() const { return SaveArgs; }
++  bool getSaveArgs() const { return SaveArgs; }
+ 
+   /// Returns the minimum alignment known to hold of the
+   /// stack frame on entry to the function and which must be maintained by every
+PATCH
+}
+
 #### Subs ####
 
 sub quirks {
