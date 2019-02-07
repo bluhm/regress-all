@@ -86,10 +86,6 @@ sub setup_hosts {
 	    # create new summary with setup log
 	    sleep 5;
 	    setup_html();
-
-	    # change config of dhcpd has races, cannot install simultaneously
-	    waitcmd(@pidcmds);
-	    undef @pidcmds;
 	}
     }
     if (@pidcmds) {
