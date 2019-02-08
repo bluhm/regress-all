@@ -50,7 +50,7 @@ sub reboot {
 
 sub install_pxe {
     my ($release) = @_;
-    logcmd('ssh', "$host\@$testmaster", "install", $release || ());
+    logcmd('ssh', "$host\@$testmaster", "install", "-r", $release || ());
 }
 
 sub upgrade_pxe {
