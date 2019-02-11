@@ -250,6 +250,7 @@ my %quirks = (
     '2019-01-30T03:08:12Z' => {
 	comment => "clang implement save function arguments",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	patches => { 'llvm-save-func' => patch_llvm_save_func() },
 	cleandirs => [
 	    "gnu/usr.bin/clang",
 	    "sys/arch/amd64/compile/GENERIC.MP",
@@ -259,7 +260,6 @@ my %quirks = (
     '2019-02-03T10:58:51Z' => {
 	comment => "save function arguments for ddb traces",
 	updatedirs => [ "sys" ],
-	patches => { 'llvm-save-func' => patch_llvm_save_func() },
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
 );
