@@ -262,6 +262,12 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2019-02-18T13:11:44Z' => {
+	comment => "pfctl pf len ioctl get states",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+    },
 );
 
 #### Patches ####
