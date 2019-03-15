@@ -311,7 +311,7 @@ unless ($opts{l} || $opts{h}) {
 
 foreach my $plot (@plots) {
     foreach my $date (keys %v) {
-	my $outfile = "$date-$plot.png";
+	my $outfile = "$date-$plot.html";
 	if ($opts{g} || ! -f "gnuplot/$outfile") {
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
 		"-T", "$plot");
@@ -319,7 +319,6 @@ foreach my $plot (@plots) {
 		and die "Command '@cmd' failed: $?";
 	}
     }
-    my $outfile = "$plot.png";
     my @cmd = ("$performdir/bin/gnuplot.pl", "-T", "$plot");
     system(@cmd)
 	and die "Command '@cmd' failed: $?";
@@ -621,6 +620,7 @@ foreach my $date (@dates) {
     td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
     td.result, td.result a {color: black;}
     td.outlier {color: red;}
+    iframe {width: 100%; border: none; min-height: 1024px}
   </style>
 </head>
 
@@ -817,8 +817,8 @@ HEADER
     print $html "</table>\n";
 
     foreach my $plot (@plots) {
-	print $html "<img src=\"../gnuplot/$date-$plot.png\" alt=\"".
-	    uc $plot. " Performance\">\n<br>";
+	print $html "<iframe src=\"../gnuplot/$date-$plot.html\" alt=\"".
+		uc $plot. " Performance\"></iframe>\n<br>";
     }
 
     my %q = quirks();
@@ -875,6 +875,7 @@ print $html <<"HEADER";
     td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
     td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
     td.result, td.result a {color: black;}
+    iframe {width: 100%; border: none; min-height: 1024px;}
   </style>
 </head>
 
@@ -974,8 +975,8 @@ foreach my $test (@tests) {
 print $html "</table>\n";
 
 foreach my $plot (@plots) {
-    print $html "<img src=\"gnuplot/$plot.png\" alt=\"".
-	uc $plot. " Performance\">\n<br>";
+    print $html "<iframe src=\"gnuplot/$plot.html\" alt=\"".
+	uc $plot. " Performance\"></iframe>\n<br>";
 }
 
 my %q = quirks();

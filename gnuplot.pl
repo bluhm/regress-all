@@ -43,6 +43,7 @@ my $verbose = $opts{v};
 my $run = str2time($opts{D})
     or die "Invalid -D date '$opts{D}'"
     if ($opts{D});
+my $date = $opts{D} if ($opts{D});
 my $test = $opts{T}
     or die "Option -T tcp|make|udp|fs missing";
 
@@ -58,9 +59,9 @@ chdir($gnuplotdir)
     or die "Chdir to '$gnuplotdir' failed: $!";
 $gnuplotdir = getcwd();
 
-my $plotfile = "$performdir/bin/plot.gp";
--f $plotfile
-    or die "No gnuplot file '$plotfile'";
+my $testfile = "$performdir/bin/plot.gp";
+-f $testfile
+    or die "No gnuplot file '$testfile'";
 my $testdata = "test-$test.data";
 -f $testdata
     or die "No test data file '$testdata' in $gnuplotdir";
@@ -83,23 +84,84 @@ my $testnames = join(" ", sort keys %tests);
 my %q = quirks();
 my $quirks = join(" ", sort keys %q);
 
-my $outfile = "";
-$outfile .= "$opts{D}-" if $run;
-$outfile .= "$test.png";
+my $outprefix = "";
+$outprefix .= "$date-" if $run;
+$outprefix .= "$test";
 
 my @plotcmd = ("gnuplot", "-d",
     "-e", "DATA_FILE='$testdata'",
-    "-e", "OUT_FILE='$outfile.new'",
+    "-e", "OUT_PREFIX='$outprefix'",
     "-e", "QUIRKS='$quirks'",
     "-e", "TESTS='$testnames'",
     "-e", "TITLE='$title'",
     "-e", "UNIT='$unit'");
 push @plotcmd, "-e", "RUN_DATE='$run'" if $run;
-push @plotcmd, $plotfile;
+push @plotcmd, $testfile;
 print "Command '@plotcmd' started\n" if $verbose;
 system(@plotcmd)
     and die "system @plotcmd failed: $?";
 print "Command '@plotcmd' finished\n" if $verbose;
 
-rename("$outfile.new", $outfile)
-    or die "Rename '$outfile.new' to '$outfile' failed: $!";
+my $htmlfile = "";
+$htmlfile .= "$date-" if $date;
+$htmlfile .= "$test.html";
+unlink("$htmlfile.new");
+open(my $html, '>', "$htmlfile.new")
+    or die "Open '$htmlfile.new' for writing failed: $!";
+my $htmltitle = uc $opts{T}. " Performance";
+$htmltitle .= ", run $date" if $date;
+
+print $html "<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenBSD Perform $htmltitle Results</title>
+    <style>
+	img {
+	    position: absolute;
+	    left: 0;
+	    right: 0;
+	}
+	input {
+	    z-index: 2;
+	    margin: 0 50px;
+	}
+	input[type=\"checkbox\"]:not(:checked)".(" + * "x(3 * keys %tests)).
+	"+ img {
+	    display: none;
+	}
+    </style>
+</head>
+<body>";
+
+my $i = 1;
+foreach my $cmd (sort keys %tests) {
+    print $html "<input checked type=checkbox>$cmd
+	<img src=\"key_$i.png\" alt=\"Key $i\">
+	<br>";
+    $i++;
+}
+
+if ($date) {
+    print $html "<img src=\"$date-$test\_0.png\" alt=\"".
+	uc $test. " Performance\" style=\"z-index: 1\">";
+} else {
+    print $html "<img src=\"$test\_0.png\" alt=\"".
+	uc $test. " Performance\" style=\"z-index: 1\">";
+}
+
+$i = 1;
+foreach my $cmd (sort keys %tests) {
+    if ($date) {
+	print $html "<img src=\"$date-$test\_$i.png\" alt=\"$cmd\">";
+    } else {
+	print $html "<img src=\"$test\_$i.png\" alt=\"$cmd\">";
+    }
+    print $html "<span></span><span></span>";
+    $i++;
+}
+
+print $html "</body>
+</html>";
+
+rename("$htmlfile.new", $htmlfile)
+    or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
