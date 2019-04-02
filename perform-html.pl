@@ -818,7 +818,7 @@ HEADER
 
     foreach my $plot (@plots) {
 	print $html "<iframe src=\"../gnuplot/$date-$plot.html\" alt=\"".
-		uc $plot. " Performance\"></iframe>\n<br>";
+	    uc $plot. " Performance\"></iframe>\n<br>";
     }
 
     my %q = quirks();
