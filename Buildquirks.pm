@@ -268,6 +268,15 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
+    '2019-04-01Z11:29:15Z' => {
+	comment => "clang no stack protector if retguard",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
 );
 
 #### Patches ####
