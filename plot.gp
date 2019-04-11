@@ -17,7 +17,7 @@
 # plot test results, the following variables are required:
 # DATA_FILE	Path,	plot data file, space separated,
 #			format: "test subtest run checkout repeat value unit"
-# OUT_FILE	Path,	png output file
+# OUT_PREFIX	Path,	png output file
 # TESTS		String,	testnames to filter and plot, space separated,
 #			format: "test1 subtest1 test2 sub2 ... testN subN"
 #
@@ -27,14 +27,12 @@
 # TITLE		String,	plot title
 # UNIT		String, unit for the y-axis
 
-if (!exists("DATA_FILE") || !exists("OUT_FILE") || !exists("TESTS")) {
-    exit error "Please define DATA_FILE, OUT_FILE and TESTS."
+if (!exists("DATA_FILE") || !exists("OUT_PREFIX") || !exists("TESTS")) {
+    exit error "Please define DATA_FILE, OUT_PREFIX and TESTS."
     exit status 1
 }
 
 set datafile separator whitespace
-set key outside left bottom horizontal Left
-set output OUT_FILE
 
 if (!exists("TITLE")) { TITLE = "" }
 if (!exists("UNIT")) { UNIT = "" }
@@ -53,23 +51,24 @@ if (!exists("STATS_records")) {
     set title TITLE."\nNO DATA" offset first 0,0
     set yrange [-1:1]
     unset tics
-    unset key
     unset border
     plot 0 lc rgb 'white'
     exit
 }
 
+set xrange[STATS_min_x - 1 : STATS_max_x + 1] # work around min == max
+set yrange[0 : STATS_max_y]
 set title TITLE
 set ylabel UNIT
-set xrange[STATS_min_x - 1 : STATS_max_x + 1] # work around min == max
-set yrange[0 : *]
 set format x "%Y-%m-%d"
 set timefmt "%s"
 set xdata time
 set xlabel "Checkout (date)"
-
-points = (STATS_records / (words(TESTS) / 2)) + 1
-set terminal png size 1360, 768
+set tics out
+set border 3
+set output OUT_PREFIX."_0.png"
+set terminal png transparent size 1360, 768
+unset key
 
 # draw quirks
 set style textbox opaque noborder fillcolor rgb "white"
@@ -88,19 +87,36 @@ do for [i = 1:words(QUIRKS)] {
     lbl_index = lbl_index + 1
 }
 
-# draw test results
-if (exists("RUN_DATE")) {
-    plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
-	strcol(3) eq RUN_DATE? ( \
-	    strcol(1) eq word(TESTS,test)? ( \
-		strcol(2) eq word(TESTS,test+1)? $6:NaN \
-	    ):NaN \
-	):NaN \
-    ) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
-} else {
-    plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
-	strcol(1) eq word(TESTS,test)? ( \
-	    strcol(2) eq word(TESTS,test+1)? $6:NaN \
-	):NaN \
-    ) title word(TESTS,test)." ".word(TESTS,test+1) noenhanced
+# draw frame
+plot 0 notitle lc bgnd
+
+# draw data
+set title tc bgnd
+set xtics tc bgnd
+set ytics tc bgnd
+set xlabel tc bgnd
+set ylabel tc bgnd
+set border lc bgnd
+unset border
+unset arrow
+unset label
+
+do for [test = 1:words(TESTS):2] {
+    i = test/2+1
+    set output OUT_PREFIX."_".i.".png"
+    if (exists("RUN_DATE")) {
+        plot DATA_FILE using 4:( \
+            strcol(3) eq RUN_DATE? ( \
+                strcol(1) eq word(TESTS,test)? ( \
+                    strcol(2) eq word(TESTS,test+1)? $6:NaN \
+                ):NaN \
+            ):NaN \
+        ) with points lc i pt i
+    } else {
+        plot DATA_FILE using 4:( \
+            strcol(1) eq word(TESTS,test)? ( \
+                strcol(2) eq word(TESTS,test+1)? $6:NaN \
+            ):NaN \
+        ) with points lc i pt i
+    }
 }
