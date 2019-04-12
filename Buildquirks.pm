@@ -268,7 +268,7 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
-    '2019-04-01Z11:29:15Z' => {
+    '2019-04-01T11:29:15Z' => {
 	comment => "clang no stack protector if retguard",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [
