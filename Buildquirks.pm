@@ -268,6 +268,15 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
+    '2019-03-05T14:01:08Z' => {
+	comment => "clang with libLLVM",
+	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
+    },
     '2019-04-02T03:02:47Z' => {
 	comment => "clang no stack protector if retguard",
 	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ],
