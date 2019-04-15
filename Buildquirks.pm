@@ -268,6 +268,16 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
+    '2019-03-01T16:46:11Z' => {
+	comment => "binutils for libLLVM",
+	updatedirs => [ "gnu/usr.bin/binutils", "gnu/usr.bin/binutils-2.17" ],
+	cleandirs => [
+	    "gnu/usr.bin/binutils",
+	    "gnu/usr.bin/binutils-2.17",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [ "gnu/usr.bin/binutils", "gnu/usr.bin/binutils-2.17" ]
+    },
     '2019-03-05T14:01:08Z' => {
 	comment => "clang with libLLVM",
 	updatedirs => [ "share/mk", "gnu/llvm", "gnu/usr.bin/clang" ],
