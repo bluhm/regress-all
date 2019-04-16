@@ -279,7 +279,6 @@ my %quirks = (
 	    "make -C gnu/usr.bin/binutils -f Makefile.bsd-wrapper install",
 	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper install",
 	],
-	builddirs => [ "gnu/usr.bin/binutils", "gnu/usr.bin/binutils-2.17" ]
     },
     '2019-03-05T14:01:08Z' => {
 	comment => "clang with libLLVM",
