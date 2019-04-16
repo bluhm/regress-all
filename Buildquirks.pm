@@ -271,10 +271,13 @@ my %quirks = (
     '2019-03-01T16:46:11Z' => {
 	comment => "binutils for libLLVM",
 	updatedirs => [ "gnu/usr.bin/binutils", "gnu/usr.bin/binutils-2.17" ],
-	cleandirs => [
-	    "gnu/usr.bin/binutils",
-	    "gnu/usr.bin/binutils-2.17",
-	    "sys/arch/amd64/compile/GENERIC.MP",
+	buildcommands => [
+	    "make -C gnu/usr.bin/binutils -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/binutils -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/binutils -f Makefile.bsd-wrapper install",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper install",
 	],
 	builddirs => [ "gnu/usr.bin/binutils", "gnu/usr.bin/binutils-2.17" ]
     },
