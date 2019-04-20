@@ -264,11 +264,11 @@ unless ($opts{l} || $opts{h}) {
 	open($plotfh{$plot}, '>', "$testdata-$plot.data.new")
 	    or die "Open '$testdata-$plot.data.new' for writing failed: $!";
 	print {$plotfh{$plot}}
-	    "# test subtest run checkout repeat value unit\n";
+	    "# test subtest run checkout repeat value unit host\n";
     }
     open(my $fh, '>', "$testdata.data.new")
 	or die "Open '$testdata.data.new' for writing failed: $!";
-    print $fh "# test subtest run checkout repeat value unit\n";
+    print $fh "# test subtest run checkout repeat value unit host\n";
     foreach my $date (sort keys %v) {
 	my $vd = $v{$date};
 	my $run = str2time($date);
@@ -284,10 +284,11 @@ unless ($opts{l} || $opts{h}) {
 			my $number = $value->{number};
 			my $unit = $value->{unit};
 			my $subtest = $value->{name} || "unknown";
+			my $host = $d{$date}{host};
 			print $fh "$test $subtest ".
-			    "$run $checkout $repeat $number $unit\n";
+			    "$run $checkout $repeat $number $unit $host\n";
 			print {$plotfh{$testplot{$test}}} "$test $subtest ".
-			    "$run $checkout $repeat $number $unit\n"
+			    "$run $checkout $repeat $number $unit $host\n"
 			    if $testplot{$test};
 		    }
 		}
