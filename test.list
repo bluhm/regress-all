@@ -16,6 +16,7 @@ include
 lib/csu
 lib/libc
 lib/libcrypto
+lib/libcsi
 lib/libedit
 lib/libevent
 lib/libexpat
@@ -111,6 +112,7 @@ sys/kern/pty
 sys/kern/pwrite
 sys/kern/pwritev
 sys/kern/rcvtimeo
+sys/kern/realpath
 sys/kern/recvwait
 sys/kern/rlimit-file
 sys/kern/setuid
@@ -134,6 +136,7 @@ sys/kern/unfdpass
 sys/kern/unixsock
 sys/kern/unveil
 sys/kern/wait
+sys/mfs_noperm
 sys/net/etherip
 sys/net/gif
 sys/net/loop
@@ -205,6 +208,7 @@ usr.bin/m4
 usr.bin/mail
 usr.bin/make
 usr.bin/mandoc
+usr.bin/netstat
 usr.bin/openssl
 usr.bin/patch
 usr.bin/pkg-config
