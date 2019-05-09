@@ -166,6 +166,7 @@ sys/netinet6/nd6
 sys/netinet6/pktinfo_addr
 sys/netinet6/recvmsg
 sys/netinet6/rh0
+sys/netinet6/rip6cksum
 sys/nfs
 sys/ptrace
 sys/sys/tree
