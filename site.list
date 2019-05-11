@@ -2,6 +2,7 @@
 /etc/fstab.site
 /etc/hostname.*
 /etc/hosts.site
+/etc/iked.conf
 /etc/inetd.conf
 /etc/installurl
 /etc/mk.conf
