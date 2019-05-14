@@ -300,6 +300,11 @@ my %quirks = (
     },
 # OpenBSD 6.5, 2019-04-13Z
     '2019-04-13T20:56:59Z' => { comment => "OpenBSD/amd64 6.5 release" },
+    '2019-05-08T23:53:40Z' => {
+	comment => "add ucrcom to files",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-ucrcom' => patch_sys_files_ucrcom() },
+    },
 );
 
 #### Patches ####
@@ -560,6 +565,32 @@ diff -u -p -r1.4 -r1.5
  
    /// Returns the minimum alignment known to hold of the
    /// stack frame on entry to the function and which must be maintained by every
+PATCH
+}
+
+# Add ucrcom(4) a (very simple) driver for the serial console of (some)
+sub patch_sys_files_ucrcom {
+	return <<'PATCH';
+Index: sys/dev/usb/files.usb
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/dev/usb/files.usb,v
+retrieving revision 1.137
+retrieving revision 1.138
+diff -u -p -r1.137 -r1.138
+--- sys/dev/usb/files.usb	27 Mar 2019 22:08:51 -0000	1.137
++++ sys/dev/usb/files.usb	9 May 2019 00:20:57 -0000	1.138
+@@ -341,6 +341,11 @@ file	dev/usb/umcs.c			umcs
+ device	uscom: ucombus
+ attach	uscom at uhub
+ file	dev/usb/uscom.c			uscom
++
++# Chromebook serial
++device	ucrcom: ucombus
++attach	ucrcom at uhub
++file	dev/usb/ucrcom.c		ucrcom
+ 
+ # Exar XR21V1410
+ device	uxrcom: ucombus
 PATCH
 }
 
