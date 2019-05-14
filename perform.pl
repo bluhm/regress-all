@@ -183,7 +183,7 @@ sub time_parser {
     if ($line =~ /^(\w+) +(\d+\.\d+)$/) {
 	print $tr "VALUE $2 sec $1\n";
     }
-    if (/$line =~ ^ *(\d+)  ([\w ]+)$/) {
+    if ($line =~ /^ *(\d+)  ([\w ]+)$/) {
 	print $tr "SUBVALUE $1 1 $2\n";
     }
     return 1;
