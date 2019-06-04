@@ -37,6 +37,7 @@ usage: $0 [-v] [-d date] [-D cvsdate] -h host [-R repeat] [mode ...]
     -h host	root\@openbsd-test-machine, login per ssh
     -R repeat	repetition number
     -v		verbose
+    sort	relink kernel sorting the order of the object files
     reorder	relink kernel using the reorder kernel script
     reboot	reboot, this is always done
 EOF
@@ -48,7 +49,7 @@ my $cvsdate = $opts{D};
 my $repeat = $opts{R};
 
 my %allmodes;
-@allmodes{qw(reorder reboot)} = ();
+@allmodes{qw(sort reorder reboot)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
@@ -77,7 +78,8 @@ createhost($user, $host);
 
 # execute commands
 
-reorder_kernel() if $mode{reorder};
+sort_kernel() if $mode{sort};
+reorder_kernel() if $mode{sort} || $mode{reorder};
 reboot();
 get_version();
 
@@ -87,6 +89,22 @@ $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' finished at $date\n");
 
 exit;
+
+sub sort_kernel {
+    my ($src, $dst, $file);
+
+    $src = "/usr/src/sys/arch/amd64/compile/GENERIC.MP/obj/Makefile";
+    $dst = "/usr/share/relink/kernel/GENERIC.MP/Makefile";
+    $file = "/root/perform/patches/makefile-sort.diff";
+    logcmd('ssh', "$user\@$host", "cp $src $dst");
+    logcmd('ssh', "$user\@$host", "patch -p0 <$file");
+
+    $src = "/usr/src/sys/conf/makegap.sh";
+    $dst = "/usr/share/relink/kernel/GENERIC.MP/makegap.sh";
+    $file = "/root/perform/patches/makegap-zero.diff";
+    logcmd('ssh', "$user\@$host", "cp $src $dst");
+    logcmd('ssh', "$user\@$host", "patch -p0 <$file");
+}
 
 sub reorder_kernel {
     my $cksum = "/var/db/kernel.SHA256";

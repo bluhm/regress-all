@@ -309,6 +309,48 @@ my %quirks = (
 
 #### Patches ####
 
+# disable random sort of kernel object files, needed by reboot.pl
+sub patch_makefile_sort {
+	return <<'PATCH';
+--- /usr/src/sys/arch/amd64/compile/GENERIC.MP/obj/Makefile	Sat Jun  1 12:39:49 2019
++++ /usr/share/relink/kernel/GENERIC.MP/Makefile	Tue Jun  4 23:06:56 2019
+@@ -50,7 +50,7 @@ CWARNFLAGS=	-Werror -Wall -Wimplicit-function-declarat
+ CMACHFLAGS=	-mcmodel=kernel -mno-red-zone -mno-sse2 -mno-sse -mno-3dnow \
+ 		-mno-mmx -msoft-float -fno-omit-frame-pointer
+ CMACHFLAGS+=	-ffreestanding ${NOPIE_FLAGS}
+-SORTR=		sort -R
++SORTR=		sort
+ .if ${IDENT:M-DNO_PROPOLICE}
+ CMACHFLAGS+=	-fno-stack-protector
+ .endif
+PATCH
+}
+
+# disable random kernel kernel gap, needed by reboot.pl
+sub patch_makegap_zero {
+	return <<'PATCH';
+--- /usr/src/sys/conf/makegap.sh	Thu Jan 25 15:09:52 2018
++++ /usr/share/relink/kernel/GENERIC.MP/makegap.sh	Tue Jun  4 23:07:48 2019
+@@ -1,15 +1,7 @@
+ #!/bin/sh -
+ 
+ random_uniform() {
+-	local	_upper_bound
+-
+-	if [[ $1 -gt 0 ]]; then
+-		_upper_bound=$(($1 - 1))
+-	else
+-		_upper_bound=0
+-	fi
+-
+-	echo `jot -r 1 0 $_upper_bound 2>/dev/null`
++	echo 0
+ }
+ 
+ umask 007
+PATCH
+}
+
 # Checking out with existing vendor branch and commits on top was broken.
 # This is needed to cvs update llvm.
 sub patch_cvs_vendor {
@@ -623,7 +665,10 @@ sub quirk_comments {
 
 sub quirk_patches {
     my %q = quirks(@_);
-    return map { %{$q{$_}{patches} || {}} } sort keys %q;
+    return
+	'makefile-sort' => patch_makefile_sort(),
+	'makegap-zero'  => patch_makegap_zero(),
+	map { %{$q{$_}{patches} || {}} } sort keys %q;
 }
 
 sub quirk_commands {
