@@ -95,15 +95,15 @@ sub sort_kernel {
 
     $src = "/usr/src/sys/arch/amd64/compile/GENERIC.MP/obj/Makefile";
     $dst = "/usr/share/relink/kernel/GENERIC.MP/Makefile";
-    $file = "/root/perform/patches/makefile-sort.diff";
+    $file = "/root/perform/patches/makefile-norandom.diff";
     logcmd('ssh', "$user\@$host", "cp $src $dst");
-    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 <$file");
+    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 $dst <$file");
 
     $src = "/usr/src/sys/conf/makegap.sh";
     $dst = "/usr/share/relink/kernel/GENERIC.MP/makegap.sh";
-    $file = "/root/perform/patches/makegap-zero.diff";
+    $file = "/root/perform/patches/makegap-norandom.diff";
     logcmd('ssh', "$user\@$host", "cp $src $dst");
-    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 <$file");
+    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 $dst <$file");
 }
 
 sub reorder_kernel {

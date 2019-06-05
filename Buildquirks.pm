@@ -310,7 +310,7 @@ my %quirks = (
 #### Patches ####
 
 # disable random sort of kernel object files, needed by reboot.pl
-sub patch_makefile_sort {
+sub patch_makefile_norandom {
 	return <<'PATCH';
 --- /usr/src/sys/arch/amd64/compile/GENERIC.MP/obj/Makefile	Sat Jun  1 12:39:49 2019
 +++ /usr/share/relink/kernel/GENERIC.MP/Makefile	Tue Jun  4 23:06:56 2019
@@ -327,7 +327,7 @@ PATCH
 }
 
 # disable random kernel kernel gap, needed by reboot.pl
-sub patch_makegap_zero {
+sub patch_makegap_norandom {
 	return <<'PATCH';
 --- /usr/src/sys/conf/makegap.sh	Thu Jan 25 15:09:52 2018
 +++ /usr/share/relink/kernel/GENERIC.MP/makegap.sh	Tue Jun  4 23:07:48 2019
@@ -666,8 +666,8 @@ sub quirk_comments {
 sub quirk_patches {
     my %q = quirks(@_);
     return
-	'makefile-sort' => patch_makefile_sort(),
-	'makegap-zero'  => patch_makegap_zero(),
+	'makefile-norandom' => patch_makefile_norandom(),
+	'makegap-norandom'  => patch_makegap_norandom(),
 	map { %{$q{$_}{patches} || {}} } sort keys %q;
 }
 
