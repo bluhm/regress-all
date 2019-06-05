@@ -689,7 +689,7 @@ sub quirk_commands {
 	}
 	foreach my $patch (sort keys %{$v->{patches} || {}}) {
 	    my $file = "/root/perform/patches/$patch.diff";
-	    push @c, "cd /usr/src && patch -p0 <$file";
+	    push @c, "cd /usr/src && patch -NuF0 -p0 <$file";
 	}
 	foreach my $cmd (@{$v->{prebuildcommands} || []}) {
 	    push @c, "cd /usr/src && $cmd";

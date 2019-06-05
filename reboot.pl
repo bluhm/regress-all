@@ -97,13 +97,13 @@ sub sort_kernel {
     $dst = "/usr/share/relink/kernel/GENERIC.MP/Makefile";
     $file = "/root/perform/patches/makefile-sort.diff";
     logcmd('ssh', "$user\@$host", "cp $src $dst");
-    logcmd('ssh', "$user\@$host", "patch -p0 <$file");
+    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 <$file");
 
     $src = "/usr/src/sys/conf/makegap.sh";
     $dst = "/usr/share/relink/kernel/GENERIC.MP/makegap.sh";
     $file = "/root/perform/patches/makegap-zero.diff";
     logcmd('ssh', "$user\@$host", "cp $src $dst");
-    logcmd('ssh', "$user\@$host", "patch -p0 <$file");
+    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 <$file");
 }
 
 sub reorder_kernel {
