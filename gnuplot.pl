@@ -120,6 +120,7 @@ print $html "<!DOCTYPE html>
 	    position: absolute;
 	    left: 0;
 	    right: 0;
+	    max-width: 100%;
 	}
 	input {
 	    z-index: 2;
