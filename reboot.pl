@@ -87,28 +87,3 @@ get_version();
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' finished at $date\n");
-
-exit;
-
-sub sort_kernel {
-    my ($src, $dst, $file);
-
-    $src = "/usr/src/sys/arch/amd64/compile/GENERIC.MP/obj/Makefile";
-    $dst = "/usr/share/relink/kernel/GENERIC.MP/Makefile";
-    $file = "/root/perform/patches/makefile-norandom.diff";
-    logcmd('ssh', "$user\@$host", "cp $src $dst");
-    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 $dst <$file");
-
-    $src = "/usr/src/sys/conf/makegap.sh";
-    $dst = "/usr/share/relink/kernel/GENERIC.MP/makegap.sh";
-    $file = "/root/perform/patches/makegap-norandom.diff";
-    logcmd('ssh', "$user\@$host", "cp $src $dst");
-    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 $dst <$file");
-}
-
-sub reorder_kernel {
-    my $cksum = "/var/db/kernel.SHA256";
-    logcmd('ssh', "$user\@$host", "sha256 -h /var/db/kernel.SHA256 /bsd");
-    logcmd('ssh', "$user\@$host", "/usr/libexec/reorder_kernel");
-    logcmd('ssh', "$user\@$host", "rm /var/db/kernel.SHA256");
-}
