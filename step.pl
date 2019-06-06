@@ -138,7 +138,7 @@ usehosts(bindir => "$performdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 (my $host = $opts{h}) =~ s/.*\@//;
 
-setup_hosts(mode => \%mode, release => $release) unless $mode{keep};
+setup_hosts(release => $release, mode => \%mode) unless $mode{keep};
 collect_version();
 setup_html();
 
@@ -155,7 +155,7 @@ for (my $current = $begin; $current <= $end;) {
 	or die "Make directory '$cvsdir' failed: $!";
     chdir($cvsdir)
 	or die "Chdir to '$cvsdir' failed: $!";
-    cvsbuild_hosts(cvsdate => $cvsdate);
+    cvsbuild_hosts(cvsdate => $cvsdate, mode => \%repmode);
     collect_version();
     setup_html();
 

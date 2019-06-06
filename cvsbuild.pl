@@ -32,17 +32,28 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('d:D:h:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] [-D cvsdate] -h host
+usage: $0 [-v] [-d date] [-D cvsdate] -h host [mode ...]
     -d date	set date string and change to sub directory
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
     -v		verbose
+    sort	relink kernel sorting the order of the object files
+    reorder	relink kernel using the reorder kernel script
+    reboot	reboot, this is always done
 EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
 my $date = $opts{d};
 my $cvsdate = $opts{D};
+
+my %allmodes;
+@allmodes{qw(sort reorder reboot)} = ();
+@ARGV or die "No mode specified";
+my %mode = map {
+    die "Unknown mode: $_" unless exists $allmodes{$_};
+    $_ => 1;
+} @ARGV;
 
 my $performdir = dirname($0). "/..";
 chdir($performdir)
@@ -86,6 +97,8 @@ if ($before) {
 
 update_cvs(undef, $cvsdate, "sys");
 make_kernel();
+sort_kernel() if $mode{sort};
+reorder_kernel() if $mode{sort} || $mode{reorder};
 reboot();
 get_version();
 

@@ -62,8 +62,8 @@ sub usehosts {
 
 sub setup_hosts {
     my %args = @_;
-    my %mode = %{delete $args{mode}};
     my $release = delete $args{release};
+    my %mode = %{delete $args{mode}};
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
 
@@ -171,6 +171,7 @@ sub collect_result {
 sub cvsbuild_hosts {
     my %args = @_;
     my $cvsdate = delete $args{cvsdate};
+    my %mode = %{delete $args{mode}};
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
 
@@ -179,6 +180,7 @@ sub cvsbuild_hosts {
 	my @cvscmd = ("$bindir/cvsbuild.pl", '-h', "$user\@$host",
 	    '-d', $date, '-D', $cvsdate);
 	push @cvscmd, '-v' if $verbose;
+	push @cvscmd, keys %mode;
 	push @pidcmds, forkcmd(@cvscmd);
     }
     if (@pidcmds) {
