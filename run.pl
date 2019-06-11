@@ -38,6 +38,7 @@ usage: $0 [-v] -h host mode ...
     install	install from snapshot
     keep	keep installed host as is, skip setup
     kernel	build kernel from source /usr/src/sys
+    reboot	before running tests
     upgrade	upgrade with snapshot
 EOF
     exit(2);
@@ -45,13 +46,13 @@ EOF
 $opts{h} or die "No -h specified";
 
 my %allmodes;
-@allmodes{qw(build cvs install keep kernel upgrade)} = ();
+@allmodes{qw(build cvs install keep kernel reboot upgrade)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
-foreach (qw(install keep upgrade)) {
+foreach (qw(install keep reboot upgrade)) {
     die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
 
@@ -82,7 +83,8 @@ logmsg("script '$scriptname' started at $date\n");
 usehosts(bindir => "$regressdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 
-setup_hosts(mode => \%mode) unless $mode{keep};
+setup_hosts(mode => \%mode) unless $mode{keep} || $mode{reboot};
+reboot_hosts(mode => \%mode) if $mode{reboot};
 collect_version();
 setup_html();
 
