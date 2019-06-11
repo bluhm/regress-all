@@ -203,7 +203,9 @@ sub reboot_hosts {
     my @pidcmds;
     for (my $host = $firsthost; $host le $lasthost; $host++) {
 	my @rebootcmd = ("$bindir/reboot.pl", '-h', "$user\@$host",
-	    '-d', $date, '-D', $cvsdate, '-R', $repeat);
+	    '-d', $date);
+	push @rebootcmd, '-D', $cvsdate if $cvsdate;
+	push @rebootcmd, '-R', $repeat if $repeat;
 	push @rebootcmd, '-v' if $verbose;
 	push @rebootcmd, keys %mode;
 	push @pidcmds, forkcmd(@rebootcmd);
