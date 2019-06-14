@@ -29,7 +29,7 @@ our @EXPORT= qw(createhost reboot
     install_pxe upgrade_pxe get_version
     checkout_cvs update_cvs diff_cvs
     make_kernel make_build
-    sort_kernel reorder_kernel
+    gap_kernel sort_kernel reorder_kernel
 );
 
 # XXX explicit IP address in source code
@@ -163,6 +163,20 @@ sub make_build {
 }
 
 # make relink kernel
+
+sub gap_kernel {
+    my ($src, $dst, $file);
+
+    $src = "/usr/src/sys/arch/amd64/compile/GENERIC.MP/obj/Makefile";
+    $dst = "/usr/share/relink/kernel/GENERIC.MP/Makefile";
+    $file = "/root/perform/patches/makefile-norandom.diff";
+    logcmd('ssh', "$user\@$host", "cp $src $dst");
+    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 $dst <$file");
+
+    $src = "/usr/src/sys/conf/makegap.sh";
+    $dst = "/usr/share/relink/kernel/GENERIC.MP/makegap.sh";
+    logcmd('ssh', "$user\@$host", "cp $src $dst");
+}
 
 sub sort_kernel {
     my ($src, $dst, $file);
