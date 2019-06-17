@@ -72,6 +72,7 @@ sys/kern/__syscall
 sys/kern/accept
 sys/kern/access
 sys/kern/bind
+sys/kern/clock_gettime
 sys/kern/cmsgsize
 sys/kern/descrip
 sys/kern/dup2
