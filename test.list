@@ -237,6 +237,7 @@ usr.sbin/ospfd
 usr.sbin/pkg_add
 usr.sbin/rebound
 usr.sbin/relayd
+usr.sbin/rpki-client
 usr.sbin/snmpd
 usr.sbin/switchd
 usr.sbin/syslogd
