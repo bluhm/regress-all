@@ -89,7 +89,9 @@ foreach my $result (@results) {
 	};
 	my $severity =
 	    $status eq 'PASS'   ? 1 :
-	    $status eq 'SKIP'   ? 2 :
+	    $status eq 'XFAIL'  ? 2 :
+	    $status eq 'SKIP'   ? 3 :
+	    $status eq 'XPASS'  ? 4 :
 	    $status eq 'FAIL'   ? 5 :
 	    $status eq 'NOEXIT' ? 6 :
 	    $status eq 'NOTERM' ? 7 :
@@ -155,8 +157,10 @@ print $html <<"HEADER";
     th { text-align: left; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0}
     td.PASS {background-color: #80ff80;}
-    td.FAIL {background-color: #ff8080;}
+    td.XFAIL {background-color: #80ffc0;}
     td.SKIP {background-color: #8080ff;}
+    td.XPASS {background-color: #ff80c0;}
+    td.FAIL {background-color: #ff8080;}
     td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
     td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
     td.result, td.result a {color: black;}
@@ -258,6 +262,14 @@ print $html <<"FOOTER";
   <tr>
     <th>FAIL</th>
     <td>make regress failed, string FAILED in test output</td>
+  </tr>
+  <tr>
+    <th>XFAIL</th>
+    <td>make regress passed, string EXPECTED_FAIL in test output</td>
+  </tr>
+  <tr>
+    <th>XPASS</th>
+    <td>make regress failed, string UNEXPECTED_PASS in test output</td>
   </tr>
   <tr>
     <th>SKIP</th>

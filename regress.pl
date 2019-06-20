@@ -118,7 +118,7 @@ foreach my $test (@tests) {
     $log->sync();
 
     my $skipped = 0;
-    my @errors;
+    my (@xfailed, @xpassed, @failed);
     my @runcmd = qw(make regress);
     defined(my $pid = open(my $out, '-|'))
 	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
@@ -142,8 +142,10 @@ foreach my $test (@tests) {
 	    print $log $_;
 	    s/[^\s[:print:]]/_/g;
 	    print if $opts{v};
-	    push @errors, $prev, if /^FAILED$/;
+	    push @failed, $prev, if /^FAILED$/;
+	    push @xpassed, $prev, if /^UNEXPECTED_PASS(ED)?$/;
 	    $skipped++ if /^SKIPPED$/;
+	    push @xfailed, $prev, if /^EXPECTED_FAIL(ED)?$/;
 	    chomp($prev = $_);
 	}
 	alarm(0);
@@ -158,8 +160,10 @@ foreach my $test (@tests) {
 	"Close pipe from '@runcmd' failed: $!" :
 	"Command '@runcmd' failed: $?", $log;
 
+    bad $test, 'FAIL', join(", ", @failed), $log if @failed;
+    bad $test, 'XPASS', join(", ", @xpassed), $log if @xpassed;
     bad $test, 'SKIP', "Test skipped itself", $log if $skipped;
-    bad $test, 'FAIL', join(", ", @errors), $log if @errors;
+    bad $test, 'XFAIL', join(", ", @xfailed), $log if @xfailed;
     my $end = Time::HiRes::time();
     good $test, $end - $begin, $log;
 
