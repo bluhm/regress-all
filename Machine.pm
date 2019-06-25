@@ -140,7 +140,7 @@ sub diff_cvs {
 
 sub make_kernel {
     my $version = $sysctl{'kern.version'};
-    $version =~ m{:/usr/src/sys/([\w./]+)$}m
+    $version =~ m{:(:?/usr/src)?/sys/([\w./]+)$}m
 	or die "No kernel path in version: $version";
     my $path = $1;
     my $ncpu = $sysctl{'hw.ncpu'};
