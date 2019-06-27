@@ -113,8 +113,12 @@ foreach my $result (@results) {
 	next;
     }
     foreach my $version (sort glob("$date/version-*.txt")) {
+	$version =~ m,/version-(.+)\.txt$,;
+	my $hostname = $1;
+
 	next if $d{$date}{version};
 	$d{$date}{version} = $version;
+	$d{$date}{host} ||= $hostname;
 	(my $dmesg = $version) =~ s,/version-,/dmesg-,;
 	$d{$date}{dmesg} ||= $dmesg if -f $dmesg;
 	(my $diff = $version) =~ s,/version-,/diff-,;
@@ -218,18 +222,19 @@ foreach my $date (@dates) {
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
 }
-print $html "  <tr>\n    <th>architecture</th>\n";
+print $html "  <tr>\n    <th>host architecture</th>\n";
 foreach my $date (@dates) {
     my $arch = $d{$date}{arch};
     unless ($arch) {
 	print $html "    <th/>\n";
 	next;
     }
+    my $hostname = $d{$date}{host};
     my $dmesg = $d{$date}{dmesg};
     my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
     my $href = $dmesg ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
-    print $html "    <th>$href$arch$enda</th>\n";
+    print $html "    <th>$hostname/$href$arch$enda</th>\n";
 }
 print $html "  </tr>\n";
 
