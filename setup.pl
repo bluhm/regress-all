@@ -41,6 +41,7 @@ usage: $0 [-v] [-d date] -h host [-r release] mode ...
     cvs		clean cvs update /usr/src and make obj
     install	install from snapshot
     kernel	build kernel from source /usr/src/sys
+    keep	only copy version and scripts
     upgrade	upgrade with snapshot
 EOF
     exit(2);
@@ -49,7 +50,7 @@ $opts{h} or die "No -h specified";
 my $date = $opts{d};
 
 my %allmodes;
-@allmodes{qw(build cvs install kernel upgrade)} = ();
+@allmodes{qw(build cvs install kernel keep upgrade)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
