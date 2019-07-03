@@ -305,6 +305,15 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-ucrcom' => patch_sys_files_ucrcom() },
     },
+    '2019-06-23T22:21:06Z' => {
+	comment => "clang update LLVM to 8.0.0",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
 );
 
 #### Patches ####
