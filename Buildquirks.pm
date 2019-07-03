@@ -305,6 +305,30 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-ucrcom' => patch_sys_files_ucrcom() },
     },
+    '2019-06-23T17:18:50Z' => {
+	comment => "sysctl kinfo_proc add p_pledge",
+	updatedirs => [ "sys", "lib/libkvm", "bin/ps" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [
+	    "lib/libkvm",
+	    "bin/ps",
+	    "usr.bin/pkill",
+	    "usr.bin/systat",
+	    "usr.bin/top",
+	],
+    },
+    '2019-06-25T14:08:57Z' => {
+	comment => "sysctl kinfo_proc move p_pledge",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [
+	    "lib/libkvm",
+	    "bin/ps",
+	    "usr.bin/pkill",
+	    "usr.bin/systat",
+	    "usr.bin/top",
+	],
+    },
     '2019-06-17T22:31:48Z' => {
 	comment => "libcxx update libc++, libc++abi, libunwind to 8.0.0",
 	updatedirs => [ "src/lib/libcxx", "lib/libcxxabi",  "lib/libunwind" ],
