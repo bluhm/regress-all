@@ -308,8 +308,8 @@ my %quirks = (
     '2019-06-17T22:31:48Z' => {
 	comment => "libcxx update libc++, libc++abi, libunwind to 8.0.0",
 	updatedirs => [ "lib/libcxx", "lib/libcxxabi",  "lib/libunwind" ],
-	cleandirs => [ "lib/libcxx", "lib/libcxxabi",  "lib/libunwind" ],
-	builddirs => [ "lib/libcxx", "lib/libcxxabi",  "lib/libunwind" ],
+	cleandirs => [ "lib/libcxx", "lib/libcxxabi" ],
+	builddirs => [ "lib/libcxx", "lib/libcxxabi" ],
     },
     '2019-06-23T17:18:50Z' => {
 	comment => "sysctl kinfo_proc add p_pledge",
