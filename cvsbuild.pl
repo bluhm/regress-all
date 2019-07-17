@@ -50,7 +50,6 @@ my $cvsdate = $opts{D};
 
 my %allmodes;
 @allmodes{qw(gap sort reorder reboot)} = ();
-@ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
     $_ => 1;
