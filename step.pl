@@ -41,7 +41,7 @@ usage: $0 [-v] -h host -r release -B date [-E date] [-S interval]
     -E date	end date, inclusive
     -S interval	step in sec, min, hour, day, week, month, year
     -N repeat	number of build, reboot, test repetitions per step
-    -R repmode	repetition mode for kernel: gap, sort, reorder, reboot, keep
+    -R repmode	repetition kernel mode: align, gap, sort, reorder, reboot, keep
     mode ...	mode for machine setup: install, cvs, build, keep
 EOF
     exit(2);
@@ -79,7 +79,7 @@ $repeat >= 1
 $opts{N} && $opts{R} or !$opts{N} && !$opts{R}
     or die "Repeat number and repeat mode must be used together";
 my %allrepmodes;
-@allrepmodes{qw(gap sort reorder reboot keep)} = ();
+@allrepmodes{qw(align gap sort reorder reboot keep)} = ();
 !$opts{R} || exists $allrepmodes{$opts{R}}
     or die "Unknown repetition mode '$opts{R}'";
 my %repmode;
