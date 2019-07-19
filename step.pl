@@ -181,7 +181,7 @@ for (my $current = $begin; $current <= $end;) {
 	collect_result("$opts{h}:/root/perform");
 
 	if ($repeat > 1) {
-	    unless ($repmode{keep}) {
+	    unless ($repmode{keep} || $n + 1 == $repeat) {
 		reboot_hosts(cvsdate => $cvsdate, repeat => $repeatdir,
 		    mode => \%repmode);
 		collect_version();
