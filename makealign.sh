@@ -13,23 +13,32 @@ OBJS="$@"
 
 PAGE_SIZE=$(sysctl -n hw.pagesize)
 
-# create template
-for f in $OBJS;
-do
-	TEMPLATE=$(cat <<- EOF
-	$TEMPLATE
-	. = ALIGN($PAGE_SIZE);
-	$f(SECTION);
-EOF)
-done
-
-while read l;
-do
-	SECTION=$(echo "$l" | grep -o '\s*\*(\(.*\))$')
-	if [ $? -eq 0 ]; then
-		echo "$TEMPLATE" | \
-		    sed "s/SECTION/$(echo $SECTION| cut -c 2- | tr -d '()')/"
-	else
-		echo "$l"
-	fi
-done <$LDSCRIPT
+{
+	# create template
+	for obj in $OBJS;
+	do
+		echo "\t\t. = ALIGN($PAGE_SIZE);"
+		echo "\t\t${obj}ALIGNSECTION"
+	done
+	echo OBJECTS
+	cat $LDSCRIPT
+} |
+sed "$(cat <<EOS
+1,/^OBJECTS\$/{
+    H
+    d
+}
+/^[	 ]*\*(\..*) *\$/G
+EOS)" |
+sed "$(cat <<EOS
+/^[	 ]*\*(\..*) *\$/,/^OBJECTS$/{
+    /^[	 ]*\*(\..*) *\$/{
+	s/.*\*\((\..*)\).*/\1/
+	h
+	d
+    }
+    /ALIGNSECTION/G
+    s/ALIGNSECTION\n//
+    /^OBJECTS$/d
+}
+EOS)"
