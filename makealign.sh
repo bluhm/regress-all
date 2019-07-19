@@ -1,9 +1,9 @@
 #!/bin/sh -
 # adapt kernel linker script to align all objects to page size
 
-if [[ $# < 7 ]]; then
+if [[ $# -lt 8 ]]; then
 	echo usage: makealign.sh ld.script \
-	    locore0.o gap.o ... param.o ioconf.o vers.o 2>&1
+	    locore0.o gap.o ... param.o ioconf.o vers.o swapgeneric.o 1>&2
 	exit 2
 fi
 

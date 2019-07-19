@@ -29,7 +29,7 @@ our @EXPORT= qw(createhost reboot
     install_pxe upgrade_pxe get_version
     checkout_cvs update_cvs diff_cvs
     make_kernel make_build
-    gap_kernel sort_kernel reorder_kernel
+    align_kernel gap_kernel sort_kernel reorder_kernel
 );
 
 # XXX explicit IP address in source code
@@ -163,6 +163,29 @@ sub make_build {
 }
 
 # make relink kernel
+
+sub align_kernel {
+    my ($src, $dst, $file);
+
+    $src = "/usr/src/sys/arch/amd64/compile/GENERIC.MP/obj/Makefile";
+    $dst = "/usr/share/relink/kernel/GENERIC.MP/Makefile";
+    $file = "/root/perform/patches/makefile-norandom.diff";
+    logcmd('ssh', "$user\@$host", "cp $src $dst");
+    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 $dst <$file");
+
+    $file = "/root/perform/patches/makefile-linkalign.diff";
+    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 $dst <$file");
+    $file = "/usr/share/relink/kernel/GENERIC.MP/ld.script";
+    logcmd('ssh', "$user\@$host", "rm $file");
+    $file = "/usr/share/relink/kernel/GENERIC.MP";
+    logcmd('ssh', "$user\@$host", "make -C $file ld.script");
+
+    $src = "/usr/src/sys/conf/makegap.sh";
+    $dst = "/usr/share/relink/kernel/GENERIC.MP/makegap.sh";
+    $file = "/root/perform/patches/makegap-norandom.diff";
+    logcmd('ssh', "$user\@$host", "cp $src $dst");
+    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 $dst <$file");
+}
 
 sub gap_kernel {
     my ($src, $dst, $file);

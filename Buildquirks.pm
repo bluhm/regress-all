@@ -348,6 +348,26 @@ my %quirks = (
 
 #### Patches ####
 
+# modify linker script to align all object sections at page boundary
+sub patch_makefile_linkalign {
+	return <<'PATCH';
+--- /usr/src/sys/arch/amd64/compile/GENERIC.MP/obj/Makefile	Thu Jul 18 10:19:11 2019
++++ /usr/share/relink/kernel/GENERIC.MP/Makefile	Fri Jul 19 18:13:10 2019
+@@ -1124,7 +1124,10 @@ locore.o: assym.h
+ 	   echo "#GP-on-iretq fault handling would be broken"; exit 1; }
+ 
+ ld.script: ${_machdir}/conf/ld.script
+-	cp ${_machdir}/conf/ld.script $@
++	rm -f $@
++	/root/perform/makealign.sh ${_machdir}/conf/ld.script \
++	    ${SYSTEM_OBJ} vers.o swapgeneric.o >$@.tmp
++	mv $@.tmp $@
+ 
+ gapdummy.o:
+ 	echo '__asm(".section .rodata,\"a\"");' > gapdummy.c
+PATCH
+}
+
 # disable random sort of kernel object files, needed by reboot.pl
 sub patch_makefile_norandom {
 	return <<'PATCH';
@@ -705,6 +725,7 @@ sub quirk_comments {
 sub quirk_patches {
     my %q = quirks(@_);
     return
+	'makefile-linkalign' => patch_makefile_linkalign(),
 	'makefile-norandom' => patch_makefile_norandom(),
 	'makegap-norandom'  => patch_makegap_norandom(),
 	map { %{$q{$_}{patches} || {}} } sort keys %q;

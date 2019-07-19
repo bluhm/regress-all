@@ -37,6 +37,7 @@ usage: $0 [-v] [-d date] [-D cvsdate] -h host [mode ...]
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
     -v		verbose
+    align	relink kernel aligning all object at page size, no randomness
     gap		relink kernel sorting object files, but use random gap
     sort	relink kernel sorting object files at fixed position
     reorder	relink kernel using the reorder kernel script
@@ -49,7 +50,7 @@ my $date = $opts{d};
 my $cvsdate = $opts{D};
 
 my %allmodes;
-@allmodes{qw(gap sort reorder reboot)} = ();
+@allmodes{qw(align gap sort reorder reboot)} = ();
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
     $_ => 1;
@@ -97,9 +98,15 @@ if ($before) {
 
 update_cvs(undef, $cvsdate, "sys");
 make_kernel();
-gap_kernel() if $mode{gap};
-sort_kernel() if $mode{sort} && !$mode{gap};
-reorder_kernel() if $mode{gap} || $mode{sort} || $mode{reorder};
+if ($mode{align}) {
+    align_kernel();
+} elsif ($mode{gap}) {
+    gap_kernel();
+} elsif ($mode{sort}) {
+    sort_kernel();
+}
+reorder_kernel()
+    if $mode{align} || $mode{gap} || $mode{sort} || $mode{reorder};
 reboot();
 get_version();
 
