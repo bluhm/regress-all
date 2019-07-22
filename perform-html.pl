@@ -759,7 +759,8 @@ HEADER
 	$reptext =~ s/\s//g;
 	print $html "    <th>$reptext</th>\n";
     }
-    print $html "    <th></th>\n";  # dummy for unit below
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     foreach my $test (@tests) {
 	my $td = $t{$test}{$date} or next;
@@ -778,7 +779,9 @@ HEADER
 	    my $enda = $href ? "</a>" : "";
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
-	print $html "    <th>unit</th>\n";
+	foreach my $stat (qw(unit mean minimum maximum deviation relative)) {
+	    print $html "    <th>$stat</th>\n";
+	}
 	print $html "  </tr>\n";
 	my $vt = $v{$date}{$test};
 	my @vals;
@@ -798,20 +801,58 @@ HEADER
 		first { $_ } map { $vt->{$_}[$i] } @cvsdates;
 	    my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 	    print $html "  <tr>\n    <th>$name0</th>\n";
+	    my @numbers = map { $rp0 ?
+		$vt->{$_}{summary}[$i] : $vt->{$_}[$i]{number} }
+		grep { $td->{$_}{status} eq 'PASS' } @cvsdates;
+	    my ($sum, $mean, $maximum, $minimum, $deviation, $relative,
+		$summary, $outlier);
+	    if (@numbers) {
+		$sum = sum(@numbers);
+		$mean = $sum / @numbers;
+		$minimum = min @numbers;
+		$maximum = max @numbers;
+		my $variance = 0;
+		foreach my $number (@numbers) {
+		    my $diff = $number - $mean;
+		    $variance += $diff * $diff;
+		}
+		$variance /= @numbers;
+		$deviation = sqrt $variance;
+		$relative = $deviation / $mean;
+		$summary = $vt->{summary}[$i] =
+		    $unit0 eq 'bits/sec' ?  $maximum : $mean;
+		$outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
+	    }
 	    foreach my $cvsdate (@cvsdates) {
 		my $status = $td->{$cvsdate}{status};
 		if ($status ne 'PASS' && !$rp0) {
 		    print $html "    <td></td>\n";
 		    next;
 		}
-		my $number = $rp0 ? $vt->{$cvsdate}{summary}[$i] :
-		    $vt->{$cvsdate}[$i]{number};
+		my $number = $rp0 ?
+		    $vt->{$cvsdate}{summary}[$i] : $vt->{$cvsdate}[$i]{number};
 		$number //= "";
 		my $outlier = $rp0 && $vt->{$cvsdate}{outlier}[$i];
 		my $class = $outlier ? ' class="outlier"' : "";
 		print $html "    <td$class>$number</td>\n";
 	    }
-	    print $html "    <td>$unit0</td>\n";
+	    if (@numbers) {
+		print $html "    <td>$unit0</td>\n";
+		if ($unit0 eq 'bits/sec') {
+		    print $html "    <td>$mean</td>\n";
+		} else {
+		    print $html "    <td><em>$mean</em></td>\n";
+		}
+		print $html "    <td>$minimum</td>\n";
+		if ($unit0 eq 'bits/sec') {
+		    print $html "    <td><em>$maximum</em></td>\n";
+		} else {
+		    print $html "    <td>$maximum</td>\n";
+		}
+		print $html "    <td>$deviation</td>\n";
+		my $class = $outlier ? ' class="outlier"' : "";
+		print $html "    <td$class>$relative</td>\n";
+	    }
 	    print $html "  </tr>\n";
 	}
     }
