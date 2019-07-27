@@ -97,7 +97,7 @@ foreach my $result (@results) {
 	    $status eq 'NOTERM' ? 7 :
 	    $status eq 'NORUN'  ? 8 : 10;
 	$t{$test}{severity} += $severity;
-	$total++ unless $status eq 'SKIP';
+	$total++ unless $status eq 'SKIP' || $status eq 'XFAIL';
 	$pass++ if $status eq 'PASS';
 	my $logfile = dirname($result). "/logs/$test/make.log";
 	$t{$test}{$date}{logfile} = $logfile if -f $logfile;
