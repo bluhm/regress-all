@@ -97,6 +97,7 @@ diff_cvs() if $mode{build};
 reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
 install_packages($release) if $mode{install} || $mode{upgrade};
+build_tools() if $mode{install} || $mode{upgrade};
 
 # finish setup log
 
@@ -168,12 +169,35 @@ sub copy_scripts {
 
 sub install_packages {
     my ($release) = @_;
-    if (-f "$bindir/pkg-$host.list") {
-	eval {
-	    logcmd('ssh', "$user\@$host", 'pkg_add',
-		'-l', "regress/pkg-$host.list",
-		'-Ivx', $release ? () : '-Dsnap')
-	};
-	logmsg "WARNING: command failed\n" if $@;
+    return unless -f "$bindir/pkg-$host.list";
+
+    eval {
+	logcmd('ssh', "$user\@$host", 'pkg_add',
+	    '-l', "regress/pkg-$host.list",
+	    '-Ivx', $release ? () : '-Dsnap')
+    };
+    logmsg "WARNING: command failed\n" if $@;
+}
+
+# build and install addtitional tools
+
+sub build_tools {
+    return unless -f "$bindir/build-$host.list";
+
+    open(my $fh, '<', "$bindir/build-$host.list")
+	or die "Open '$bindir/build-$host.list' for reading failed: $!";
+    chomp(my @tools = <$fh>);
+    close($fh)
+	or die "Close '$bindir/build-$host.list' after reading failed: $!";
+
+    foreach my $build (@tools) {
+	my @scpcmd = ('scp', '-r');
+	push @scpcmd, '-q' unless $opts{v};
+	push @scpcmd, ("$bindir/../$build", "$user\@$host:/root/");
+	runcmd(@scpcmd);
+    }
+    foreach my $build (@tools) {
+	logcmd('ssh', "$user\@$host", 'make', '-C', "/root/$build", 'all');
+	logcmd('ssh', "$user\@$host", 'make', '-C', "/root/$build", 'install');
     }
 }
