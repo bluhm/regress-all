@@ -56,9 +56,6 @@ my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
-foreach (qw(install upgrade)) {
-    die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
-}
 my $release;
 if ($opts{r} && $opts{r} ne "current") {
     die "Upgrade to release not supported" if $mode{upgrade};
@@ -87,8 +84,8 @@ createhost($user, $host);
 
 # execute commands
 
-install_pxe($release) if $mode{install};
-upgrade_pxe() if $mode{upgrade};
+install_pxe($release) if $mode{install} && !$mode{keep};
+upgrade_pxe() if $mode{upgrade} && !$mode{keep};
 get_version();
 copy_scripts();
 checkout_cvs($release) if $mode{install};
