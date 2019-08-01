@@ -124,6 +124,7 @@ sys/kern/signal
 sys/kern/signal-stress
 sys/kern/sigpending
 sys/kern/sigprof
+sys/kern/sigpthread
 sys/kern/sigsuspend
 sys/kern/sosplice
 sys/kern/stackjmp
@@ -136,6 +137,7 @@ sys/kern/unalign
 sys/kern/unfdpass
 sys/kern/unixsock
 sys/kern/unveil
+sys/kern/unveil-unmount
 sys/kern/wait
 sys/mfs_noperm
 sys/net/etherip
