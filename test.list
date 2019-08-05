@@ -114,6 +114,7 @@ sys/kern/pwrite
 sys/kern/pwritev
 sys/kern/rcvtimeo
 sys/kern/realpath
+sys/kern/realpath-unmount
 sys/kern/recvwait
 sys/kern/rlimit-file
 sys/kern/setuid
