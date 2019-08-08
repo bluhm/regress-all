@@ -18,6 +18,7 @@
 use strict;
 use warnings;
 use Cwd;
+use Date::Parse;
 use File::Basename;
 use Getopt::Std;
 use POSIX;
@@ -46,7 +47,11 @@ EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
+!$opts{d} || str2time($opts{d})
+    or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
+!$opts{D} || str2time($opts{D})
+    or die "Invalid -D cvsdate '$opts{D}'";
 my $cvsdate = $opts{D};
 
 my %allmodes;
@@ -62,7 +67,7 @@ chdir($performdir)
 $performdir = getcwd();
 my $resultdir = "$performdir/results";
 $resultdir .= "/$date" if $date;
-$resultdir .= "/$cvsdate" if $cvsdate;
+$resultdir .= "/$cvsdate" if $date && $cvsdate;
 chdir($resultdir)
     or die "Chdir to '$resultdir' failed: $!";
 
@@ -105,8 +110,7 @@ if ($mode{align}) {
 } elsif ($mode{sort}) {
     sort_kernel();
 }
-reorder_kernel()
-    if $mode{align} || $mode{gap} || $mode{sort} || $mode{reorder};
+reorder_kernel() unless $mode{reboot};
 reboot();
 get_version();
 

@@ -76,7 +76,8 @@ sub setup_hosts {
 	    next;
 	}
 
-	my @setupcmd = ("$bindir/setup.pl", '-h', "$user\@$host", '-d', $date);
+	my @setupcmd = ("$bindir/setup.pl", '-h', "$user\@$host");
+	push @setupcmd, '-d', $date if $date;
 	push @setupcmd, '-v' if $verbose;
 	push @setupcmd, '-r', $release if $release;
 	push @setupcmd, keys %mode;
@@ -177,8 +178,9 @@ sub cvsbuild_hosts {
 
     my @pidcmds;
     for (my $host = $firsthost; $host le $lasthost; $host++) {
-	my @cvscmd = ("$bindir/cvsbuild.pl", '-h', "$user\@$host",
-	    '-d', $date, '-D', $cvsdate);
+	my @cvscmd = ("$bindir/cvsbuild.pl", '-h', "$user\@$host");
+	push @cvscmd, '-d', $date if $date;
+	push @cvscmd, '-D', $cvsdate if $cvsdate;
 	push @cvscmd, '-v' if $verbose;
 	push @cvscmd, keys %mode;
 	push @pidcmds, forkcmd(@cvscmd);
@@ -202,8 +204,8 @@ sub reboot_hosts {
 
     my @pidcmds;
     for (my $host = $firsthost; $host le $lasthost; $host++) {
-	my @rebootcmd = ("$bindir/reboot.pl", '-h', "$user\@$host",
-	    '-d', $date);
+	my @rebootcmd = ("$bindir/reboot.pl", '-h', "$user\@$host");
+	push @rebootcmd, '-d', $date if $date;
 	push @rebootcmd, '-D', $cvsdate if $cvsdate;
 	push @rebootcmd, '-R', $repeat if $repeat;
 	push @rebootcmd, '-v' if $verbose;
