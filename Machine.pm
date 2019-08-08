@@ -174,7 +174,7 @@ sub align_kernel {
     logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 $dst <$file");
 
     $file = "/root/perform/patches/makefile-linkalign.diff";
-    logcmd('ssh', "$user\@$host", "patch -NuF3 -p0 $dst <$file");
+    logcmd('ssh', "$user\@$host", "patch -NuF0 -p0 $dst <$file");
     $file = "/usr/share/relink/kernel/GENERIC.MP/ld.script";
     logcmd('ssh', "$user\@$host", "rm $file");
     $file = "/usr/share/relink/kernel/GENERIC.MP";
