@@ -53,7 +53,7 @@ my $date = $opts{d};
 !$opts{D} || str2time($opts{D})
     or die "Invalid -D cvsdate '$opts{D}'";
 my $cvsdate = $opts{D};
-!$opts{R} || $opts{D} =~ /^\d{3}$/
+!$opts{R} || $opts{R} =~ /^\d{3}$/
     or die "Invalid -R repeat '$opts{R}'";
 my $repeat = $opts{R};
 
