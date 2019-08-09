@@ -30,7 +30,7 @@ my %opts;
 getopts('h:l', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-l] [-h host]
-    -h host     user and host for version information, user defaults to root
+    -h host	user and host for version information, user defaults to root
     -l		create latest.html with one column of the latest results
 EOF
     exit(2);

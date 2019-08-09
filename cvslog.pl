@@ -36,9 +36,9 @@ my %opts;
 getopts('B:E:P:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -B date [-E date] -P cvspath
-    -v          verbose
-    -B date     begin date, exclusive
-    -E date     end date, inclusive
+    -v		verbose
+    -B date	begin date, exclusive
+    -E date	end date, inclusive
     -P cvspath	module and path with cvs files
 EOF
     exit(2);

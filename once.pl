@@ -36,7 +36,7 @@ usage: $0 [-v] [-D cvsdate] -h host [-k kernel] [test ...]
     -h host	user and host for performance test, user defaults to root
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
     -v		verbose
-    test ...    test mode: all, net, tcp, udp, build, kernel, fs
+    test ...	test mode: all, net, tcp, udp, build, kernel, fs
 EOF
     exit(2);
 };

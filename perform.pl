@@ -27,10 +27,10 @@ my %opts;
 getopts('e:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-e environment] [-t timeout] [test ...]
-    -t timeout  timeout for a single test, default 1 hour
-    -e environ  parse environment for tests from shell script
-    -v          verbose
-    test ...    test mode: all, net, tcp, udp, build, kernel, fs
+    -t timeout	timeout for a single test, default 1 hour
+    -e environ	parse environment for tests from shell script
+    -v		verbose
+    test ...	test mode: all, net, tcp, udp, build, kernel, fs
 EOF
     exit(2);
 };
