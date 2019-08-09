@@ -29,13 +29,14 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('D:h:v', \%opts) or do {
+getopts('D:h:k:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-D cvsdate] -h host mode
+usage: $0 [-v] [-D cvsdate] -h host [-k kernel] [test ...]
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for performance test, user defaults to root
+    -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
     -v		verbose
-    mode	kernel mode: align, gap, sort, reorder, reboot, keep
+    test ...    test mode: all, net, tcp, udp, build, kernel, fs
 EOF
     exit(2);
 };
@@ -46,9 +47,14 @@ my $cvsdate = $opts{D};
 
 my %allmodes;
 @allmodes{qw(align gap sort reorder reboot keep)} = ();
-@ARGV or die "No mode specified";
-my %mode = map {
-    die "Unknown mode: $_" unless exists $allmodes{$_};
+!$opts{k} || exists $allmodes{$opts{k}}
+    or die "Unknown kernel mode '$opts{k}'";
+my %kernelmode;
+$kernelmode{$opts{k}} = 1 if $opts{k};
+
+@allmodes{qw(all net tcp udp build kernel fs)} = ();
+my %testmode = map {
+    die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
 
@@ -72,13 +78,14 @@ logmsg("script '$scriptname' started at $date\n");
 usehosts(bindir => "$performdir/bin", host => $opts{h}, verbose => $opts{v});
 (my $host = $opts{h}) =~ s/.*\@//;
 
-cvsbuild_hosts(cvsdate => $cvsdate, mode => \%mode) unless $mode{keep};
+cvsbuild_hosts(cvsdate => $cvsdate, mode => \%kernelmode)
+    unless $kernelmode{keep};
 collect_version();
 
 # run performance tests remotely
 
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
-    '-e', "/root/perform/env-$host.sh", '-v');
+    '-e', "/root/perform/env-$host.sh", '-v', keys %testmode);
 logcmd(@sshcmd);
 
 $date = strftime("%FT%TZ", gmtime);
