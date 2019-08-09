@@ -21,6 +21,7 @@ cvsbuild.pl	- checkout kernel at certain cvs date and install it
 cvslog.pl	- collect all cvs commit messages between two dates
 env-ot1.sh	- environment variables to be set on the test machine ot1
 mktestlist.pl	- find possible names of tests in regress directory
+once.pl		- run performance test once, used for manual testing
 perform-html.pl	- convert performance test results into html table
 perform.pl	- run one set up performace test on test machine,
 		  this is started by step.pl
