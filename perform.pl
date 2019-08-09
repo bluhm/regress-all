@@ -25,11 +25,28 @@ use Time::HiRes;
 
 my %opts;
 getopts('e:t:v', \%opts) or do {
-    print STDERR "usage: $0 [-v] [-e environment] [-t timeout]\n";
+    print STDERR <<"EOF";
+usage: $0 [-v] [-e environment] [-t timeout] [mode ...]
+    -t timeout  timeout for a single test, default 1 hour
+    -e environ  parse environment for tests from shell script
+    -v          verbose
+    mode ...    test selection: all, net, tcp, udp, build, kernel, fs
+EOF
     exit(2);
 };
 my $timeout = $opts{t} || 60*60;
 environment($opts{e}) if $opts{e};
+
+my %allmodes;
+@allmodes{qw(all net tcp udp build kernel fs)} = ();
+my %mode = map {
+    die "Unknown mode: $_" unless exists $allmodes{$_};
+    $_ => 1;
+} @ARGV;
+$mode{all} = 1 unless @ARGV;
+@mode{qw(net build fs)} = 1..3 if $mode{all};
+@mode{qw(tcp udp)} = 1..2 if $mode{net};
+@mode{qw(kernel)} = 1 if $mode{build};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -77,29 +94,36 @@ my $remote_ssh = $ENV{REMOTE_SSH}
 
 # iperf3 and tcpbench tests
 
-my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3');
-system(@sshcmd);
-@sshcmd = ('ssh', '-f', $remote_ssh, 'iperf3', '-s', '-D');
-system(@sshcmd)
-    and die "Start iperf3 server with '@sshcmd' failed: $?";
+if ($mode{tcp} || $mode{udp}) {
+    my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3');
+    system(@sshcmd);
+    @sshcmd = ('ssh', '-f', $remote_ssh, 'iperf3', '-s', '-D');
+    system(@sshcmd)
+	and die "Start iperf3 server with '@sshcmd' failed: $?";
+}
 
-@sshcmd = ('ssh', $remote_ssh, 'pkill', 'tcpbench');
-system(@sshcmd);
-@sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
-system(@sshcmd)
-    and die "Start tcpbench server with '@sshcmd' failed: $?";
+if ($mode{tcp}) {
+    my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'tcpbench');
+    system(@sshcmd);
+    @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
+    system(@sshcmd)
+	and die "Start tcpbench server with '@sshcmd' failed: $?";
+}
 
 my $kconf = `sysctl -n kern.osversion | cut -d# -f1`;
 my $machine = `machine`;
 my $ncpu = `sysctl -n hw.ncpu`;
 chomp($kconf, $machine, $ncpu);
-my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf");
-push @cmd, '-s' unless $opts{v};
-push @cmd, 'clean', 'config';
-system(@cmd)
-    and die "Clean kernel with '@cmd' failed: $?";
-system('sync');
 
+if ($mode{kernel}) {
+    my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf");
+    push @cmd, '-s' unless $opts{v};
+    push @cmd, 'clean', 'config';
+    system(@cmd)
+	and die "Clean kernel with '@cmd' failed: $?";
+}
+
+system('sync');
 sleep 1;
 
 sub iperf3_parser {
@@ -245,7 +269,8 @@ sub wallclock_finalize {
     return 1;
 }
 
-my @tests = (
+my @tests;
+push @tests, (
     {
 	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t10'],
 	parser => \&iperf3_parser,
@@ -260,26 +285,35 @@ my @tests = (
 	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
-    }, {
+    }
+) if $mode{tcp};
+push @tests, (
+    {
 	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b10G', '-w1m', '-t10'],
 	parser => \&iperf3_parser,
     }, {
 	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b10G', '-w1m', '-t10',
 	    '-R'],
 	parser => \&iperf3_parser,
-    }, {
+    }
+) if $mode{udp};
+push @tests, (
+    {
 	initialize => \&wallclock_initialize,
 	testcmd => ['time', '-lp', 'make',
 	    "-C/usr/src/sys/arch/$machine/compile/$kconf", "-j$ncpu", '-s'],
 	parser => \&time_parser,
 	finalize => \&wallclock_finalize,
-    }, {
+    }
+) if $mode{kernel};
+push @tests, (
+    {
 	testcmd => ['time', '-lp', 'fs_mark',
 	    '-d/var/cache/fs_mark', '-D8', '-N16', '-n256', '-t8'],
 	parser => \&fsmark_parser,
 	finalize => \&fsmark_finalize,
     }
-);
+) if $mode{fs};
 
 my @stats = (
     {
@@ -378,8 +412,10 @@ chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
 
 # kill remote commands or ssh will hang forever
-@sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3', 'tcpbench');
-system(@sshcmd);
+if ($mode{tcp} || $mode{udp}) {
+    my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3', 'tcpbench');
+    system(@sshcmd);
+}
 
 # create a tgz file with all log files
 my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$performdir/test.log.tgz");
