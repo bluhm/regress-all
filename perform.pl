@@ -90,6 +90,8 @@ sub good {
     $tr->sync();
 }
 
+my $local_addr = $ENV{LOCAL_ADDR}
+    or die "Environemnt LOCAL_ADDR not set";
 my $remote_addr = $ENV{REMOTE_ADDR}
     or die "Environemnt REMOTE_ADDR not set";
 my $remote_ssh = $ENV{REMOTE_SSH}
@@ -205,6 +207,16 @@ sub tcpbench_finalize {
     return 1;
 }
 
+sub udpbench_parser {
+    my ($line, $log) = @_;
+    if ($line =~ m{^(send|recv): .*, bit/s ([\d.e+]+)$}) {
+	my $direction = $1;
+	my $value = $2;
+	print $tr "VALUE $value bits/sec $direction\n";
+    }
+    return 1;
+}
+
 sub time_parser {
     my ($line, $log) = @_;
     if ($line =~ /^(\w+) +(\d+\.\d+)$/) {
@@ -303,6 +315,25 @@ push @tests, (
 	parser => \&iperf3_parser,
     }
 ) if $testmode{udp} || $testmode{iperf};
+push @tests, (
+    {
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh,
+	    'send', $remote_addr],
+	parser => \&udpbench_parser,
+    }, {
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh,
+	    'recv', $local_addr],
+	parser => \&udpbench_parser,
+    }, {
+	testcmd => ['udpbench', '-l1472', '-t10', '-r', $remote_ssh,
+	    'send', $remote_addr],
+	parser => \&udpbench_parser,
+    }, {
+	testcmd => ['udpbench', '-l1472', '-t10', '-r', $remote_ssh,
+	    'recv', $local_addr],
+	parser => \&udpbench_parser,
+    }
+) if $testmode{udpbench};
 push @tests, (
     {
 	initialize => \&wallclock_initialize,
