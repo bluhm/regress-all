@@ -42,6 +42,7 @@ usage: $0 [-v] [-d date] -h host [-r release] mode ...
     install	install from snapshot
     kernel	build kernel from source /usr/src/sys
     keep	only copy version and scripts
+    tools	build and install tools needed for some tests
     upgrade	upgrade with snapshot
 EOF
     exit(2);
@@ -50,7 +51,7 @@ $opts{h} or die "No -h specified";
 my $date = $opts{d};
 
 my %allmodes;
-@allmodes{qw(build cvs install kernel keep upgrade)} = ();
+@allmodes{qw(build cvs install kernel keep tools upgrade)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
@@ -97,7 +98,7 @@ diff_cvs() if $mode{build};
 reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
 install_packages($release) if $mode{install} || $mode{upgrade};
-build_tools() if $mode{install} || $mode{upgrade};
+build_tools() if $mode{install} || $mode{upgrade} || $mode{tools};
 
 # finish setup log
 
