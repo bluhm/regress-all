@@ -39,14 +39,14 @@ environment($opts{e}) if $opts{e};
 
 my %allmodes;
 @allmodes{qw(all net tcp udp build kernel fs)} = ();
-my %mode = map {
-    die "Unknown mode: $_" unless exists $allmodes{$_};
+my %testmode = map {
+    die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
-$mode{all} = 1 unless @ARGV;
-@mode{qw(net build fs)} = 1..3 if $mode{all};
-@mode{qw(tcp udp)} = 1..2 if $mode{net};
-@mode{qw(kernel)} = 1 if $mode{build};
+$testmode{all} = 1 unless @ARGV;
+@testmode{qw(net build fs)} = 1..3 if $testmode{all};
+@testmode{qw(tcp udp)} = 1..2 if $testmode{net};
+@testmode{qw(kernel)} = 1 if $testmode{build};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -94,7 +94,7 @@ my $remote_ssh = $ENV{REMOTE_SSH}
 
 # iperf3 and tcpbench tests
 
-if ($mode{tcp} || $mode{udp}) {
+if ($testmode{tcp} || $testmode{udp}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'iperf3', '-s', '-D');
@@ -102,7 +102,7 @@ if ($mode{tcp} || $mode{udp}) {
 	and die "Start iperf3 server with '@sshcmd' failed: $?";
 }
 
-if ($mode{tcp}) {
+if ($testmode{tcp}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'tcpbench');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
@@ -115,7 +115,7 @@ my $machine = `machine`;
 my $ncpu = `sysctl -n hw.ncpu`;
 chomp($kconf, $machine, $ncpu);
 
-if ($mode{kernel}) {
+if ($testmode{kernel}) {
     my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf");
     push @cmd, '-s' unless $opts{v};
     push @cmd, 'clean', 'config';
@@ -286,7 +286,7 @@ push @tests, (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }
-) if $mode{tcp};
+) if $testmode{tcp};
 push @tests, (
     {
 	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b10G', '-w1m', '-t10'],
@@ -296,7 +296,7 @@ push @tests, (
 	    '-R'],
 	parser => \&iperf3_parser,
     }
-) if $mode{udp};
+) if $testmode{udp};
 push @tests, (
     {
 	initialize => \&wallclock_initialize,
@@ -305,7 +305,7 @@ push @tests, (
 	parser => \&time_parser,
 	finalize => \&wallclock_finalize,
     }
-) if $mode{kernel};
+) if $testmode{kernel};
 push @tests, (
     {
 	testcmd => ['time', '-lp', 'fs_mark',
@@ -313,7 +313,7 @@ push @tests, (
 	parser => \&fsmark_parser,
 	finalize => \&fsmark_finalize,
     }
-) if $mode{fs};
+) if $testmode{fs};
 
 my @stats = (
     {
@@ -412,7 +412,7 @@ chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
 
 # kill remote commands or ssh will hang forever
-if ($mode{tcp} || $mode{udp}) {
+if ($testmode{tcp} || $testmode{udp}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3', 'tcpbench');
     system(@sshcmd);
 }
