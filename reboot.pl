@@ -32,7 +32,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('d:D:h:R:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] [-D cvsdate] -h host [-R repeat] [mode ...]
+usage: $0 [-v] [-d date] [-D cvsdate] -h host [-R repeat] [kernel ...]
     -d date	set date string and change to sub directory
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
@@ -60,8 +60,8 @@ my $repeat = $opts{R};
 my %allmodes;
 @allmodes{qw(align gap sort reorder reboot)} = ();
 @ARGV or die "No mode specified";
-my %mode = map {
-    die "Unknown mode: $_" unless exists $allmodes{$_};
+my %kernelmode = map {
+    die "Unknown kernel mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
 
@@ -87,15 +87,14 @@ createhost($user, $host);
 
 # execute commands
 
-if ($mode{align}) {
+if ($kernelmode{align}) {
     align_kernel();
-} elsif ($mode{gap}) {
+} elsif ($kernelmode{gap}) {
     gap_kernel();
-} elsif ($mode{sort}) {
+} elsif ($kernelmode{sort}) {
     sort_kernel();
 }
-reorder_kernel()
-    if $mode{align} || $mode{gap} || $mode{sort} || $mode{reorder};
+reorder_kernel() unless $kernelmode{reboot};
 reboot();
 get_version();
 
