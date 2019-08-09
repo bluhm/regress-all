@@ -155,7 +155,13 @@ for (my $current = $begin; $current <= $end;) {
 	or die "Make directory '$cvsdir' failed: $!";
     chdir($cvsdir)
 	or die "Chdir to '$cvsdir' failed: $!";
-    cvsbuild_hosts(cvsdate => $cvsdate, mode => \%repmode);
+    my %cvsmode = %repmode;
+    if ($repmode{keep}) {
+	# cannot keep the kernel after building a new one
+	delete $cvsmode{keep};
+	$cvsmode{reboot} = ();
+    }
+    cvsbuild_hosts(cvsdate => $cvsdate, mode => \%cvsmode);
     collect_version();
     setup_html();
 
