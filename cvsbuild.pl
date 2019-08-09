@@ -110,7 +110,8 @@ if ($mode{align}) {
 } elsif ($mode{sort}) {
     sort_kernel();
 }
-reorder_kernel() unless $mode{reboot};
+reorder_kernel()
+    if $mode{align} || $mode{gap} || $mode{sort} || $mode{reorder};
 reboot();
 get_version();
 
