@@ -30,19 +30,21 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('B:E:h:N:R:r:S:v', \%opts) or do {
+getopts('B:E:h:k:N:r:S:s:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -h host -r release -B date [-E date] [-S interval]
-    [-N repeat] [-R repmode] mode ...
-    -h host	user and host for performance test, user defaults to root
-    -v		verbose
-    -r release	use release for install and cvs checkout, X.Y or current
+usage: $0 [-v] -h host -r release [-s setup] -B date [-E date] [-S interval]
+    [-N repeat] [-k kernel] test ...
     -B date	begin date, inclusive
     -E date	end date, inclusive
-    -S interval	step in sec, min, hour, day, week, month, year
+    -h host	user and host for performance test, user defaults to root
+    -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
     -N repeat	number of build, reboot, test repetitions per step
-    -R repmode	repetition kernel mode: align, gap, sort, reorder, reboot, keep
-    mode ...	mode for machine setup: install, cvs, build, keep
+    -r release	use release for install and cvs checkout, X.Y or current
+    -S interval	step in sec, min, hour, day, week, month, year
+    -s setup	setup mode: install, cvs, build, keep
+    -v		verbose
+     test ...	test mode: all, net, tcp, udp, make, fs,
+		iperf, tcpbench, udpbench
 EOF
     exit(2);
 };
@@ -76,25 +78,29 @@ $end == $begin || $step > 0
 $repeat = $opts{N} || 1;
 $repeat >= 1
     or die "Repeat '$opts{N}' must be positive integer";
-$opts{N} && $opts{R} or !$opts{N} && !$opts{R}
-    or die "Repeat number and repeat mode must be used together";
-my %allrepmodes;
-@allrepmodes{qw(align gap sort reorder reboot keep)} = ();
-!$opts{R} || exists $allrepmodes{$opts{R}}
-    or die "Unknown repetition mode '$opts{R}'";
-my %repmode;
-%repmode = ($opts{R} => 1) if $opts{R};
-
 my %allmodes;
+@allmodes{qw(align gap sort reorder reboot keep)} = ();
+!$opts{k} || exists $allmodes{$opts{k}}
+    or die "Unknown kernel mode '$opts{k}'";
+my %kernelmode;
+$kernelmode{$opts{k}} = 1 if $opts{k};
+
 @allmodes{qw(build cvs install keep)} = ();
-@ARGV or die "No mode specified";
-my %mode = map {
-    die "Unknown mode: $_" unless exists $allmodes{$_};
+!$opts{s} || exists $allmodes{$opts{s}}
+    or die "Unknown setup mode '$opts{s}'";
+my %setupmode;
+$setupmode{$opts{s}} = 1 if $opts{s};
+
+@allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench)} = ();
+my %testmode = map {
+    die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
-foreach (qw(install keep)) {
-    die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
-}
+$testmode{all} = 1 unless @ARGV;
+@testmode{qw(net make fs)} = 1..3 if $testmode{all};
+@testmode{qw(tcp udp)} = 1..2 if $testmode{net};
+@testmode{qw(tcpbench)} = 1 if $testmode{tcp};
+@testmode{qw(udpbench)} = 1 if $testmode{udp};
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';
@@ -128,8 +134,9 @@ print $fh strftime("BEGIN %FT%TZ\n", gmtime($begin));
 print $fh strftime("END %FT%TZ\n", gmtime($end));
 print $fh "STEP $step $unit\n";
 print $fh "REPEAT $repeat\n";
-print $fh "REPMODES ", join(" ", sort keys %repmode), "\n";
-print $fh "MODES ", join(" ", sort keys %mode), "\n";
+print $fh "KERNELMODES ", join(" ", sort keys %kernelmode), "\n";
+print $fh "SETUPMODES ", join(" ", sort keys %setupmode), "\n";
+print $fh "TESTMODES ", join(" ", sort keys %testmode), "\n";
 close($fh);
 
 # setup remote machines
@@ -138,7 +145,7 @@ usehosts(bindir => "$performdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 (my $host = $opts{h}) =~ s/.*\@//;
 
-setup_hosts(release => $release, mode => \%mode) unless $mode{keep};
+setup_hosts(release => $release, mode => \%setupmode) unless $setupmode{keep};
 collect_version();
 setup_html();
 
@@ -155,11 +162,11 @@ for (my $current = $begin; $current <= $end;) {
 	or die "Make directory '$cvsdir' failed: $!";
     chdir($cvsdir)
 	or die "Chdir to '$cvsdir' failed: $!";
-    my %cvsmode = %repmode;
-    if ($repmode{keep}) {
+    my %cvsmode = %kernelmode;
+    if ($kernelmode{keep}) {
 	# cannot keep the kernel after building a new one
 	delete $cvsmode{keep};
-	$cvsmode{reboot} = ();
+	$cvsmode{reboot} = 1;
     }
     cvsbuild_hosts(cvsdate => $cvsdate, mode => \%cvsmode);
     collect_version();
@@ -179,7 +186,7 @@ for (my $current = $begin; $current <= $end;) {
 	# run performance tests remotely
 
 	my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
-	    '-e', "/root/perform/env-$host.sh", '-v');
+	    '-e', "/root/perform/env-$host.sh", '-v', keys %testmode);
 	logcmd(@sshcmd);
 
 	# get result and logs
@@ -187,9 +194,9 @@ for (my $current = $begin; $current <= $end;) {
 	collect_result("$opts{h}:/root/perform");
 
 	if ($repeat > 1) {
-	    unless ($repmode{keep} || $n + 1 == $repeat) {
+	    unless ($kernelmode{keep} || $n + 1 == $repeat) {
 		reboot_hosts(cvsdate => $cvsdate, repeat => $repeatdir,
-		    mode => \%repmode);
+		    mode => \%kernelmode);
 		collect_version();
 		setup_html();
 	    }
