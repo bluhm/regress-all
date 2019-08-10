@@ -30,7 +30,7 @@ usage: $0 [-v] [-e environment] [-t timeout] [test ...]
     -t timeout	timeout for a single test, default 1 hour
     -e environ	parse environment for tests from shell script
     -v		verbose
-    test ...	test mode: all, net, tcp, udp, build, kernel, fs,
+    test ...	test mode: all, net, tcp, udp, make, fs,
 		    iperf, tcpbench, udpbench
 EOF
     exit(2);
@@ -39,17 +39,16 @@ my $timeout = $opts{t} || 60*60;
 environment($opts{e}) if $opts{e};
 
 my %allmodes;
-@allmodes{qw(all net tcp udp build kernel fs iperf tcpbench udpbench)} = ();
+@allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench)} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
 $testmode{all} = 1 unless @ARGV;
-@testmode{qw(net build fs)} = 1..3 if $testmode{all};
+@testmode{qw(net make fs)} = 1..3 if $testmode{all};
 @testmode{qw(tcp udp)} = 1..2 if $testmode{net};
 @testmode{qw(tcpbench)} = 1 if $testmode{tcp};
 @testmode{qw(udpbench)} = 1 if $testmode{udp};
-@testmode{qw(kernel)} = 1 if $testmode{build};
 
 my $dir = dirname($0);
 chdir($dir)

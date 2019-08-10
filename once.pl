@@ -36,7 +36,7 @@ usage: $0 [-v] [-D cvsdate] -h host [-k kernel] [test ...]
     -h host	user and host for performance test, user defaults to root
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
     -v		verbose
-    test ...	test mode: all, net, tcp, udp, build, kernel, fs
+    test ...	test mode: all, net, tcp, udp, make, fs
 		    iperf, tcpbench, udpbench
 
 EOF
@@ -54,7 +54,7 @@ my %allmodes;
 my %kernelmode;
 $kernelmode{$opts{k}} = 1 if $opts{k};
 
-@allmodes{qw(all net tcp udp build kernel fs iperf tcpbench udpbench)} = ();
+@allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench)} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
