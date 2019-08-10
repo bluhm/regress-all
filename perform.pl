@@ -211,7 +211,7 @@ sub udpbench_parser {
     my ($line, $log) = @_;
     if ($line =~ m{^(send|recv): .*, bit/s ([\d.e+]+)$}) {
 	my $direction = $1;
-	my $value = $2;
+	my $value = 0 + $2;
 	print $tr "VALUE $value bits/sec $direction\n";
     }
     return 1;
