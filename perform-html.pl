@@ -670,11 +670,12 @@ HEADER
     print $html "  <tr>\n    <th>machine release setup</th>\n";
     my $setup = $d{$date}{setup};
     my $release = $d{$date}{stepconf}{release};
-    my $modes = $d{$date}{stepconf}{modes};
+    my $setupmodes = $d{$date}{stepconf}{setupmodes} ||
+	$d{$date}{stepconf}{modes};
     $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
     $href = $setup ? "<a href=\"../$link\">" : "";
     $enda = $href ? " info</a>" : "";
-    print $html "    <td>$href$release/$modes$enda</td>\n";
+    print $html "    <td>$href$release/$setupmodes$enda</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";
     my $interval = $d{$date}{stepconf}{step};
@@ -975,8 +976,9 @@ print $html "  </tr>\n";
 print $html "  <tr>\n    <th>release setup</th>\n";
 foreach my $date (@dates) {
     my $release = $d{$date}{stepconf}{release};
-    my $modes = $d{$date}{stepconf}{modes};
-    print $html "    <th>$release/$modes</th>\n";
+    my $setupmodes = $d{$date}{stepconf}{setupmodes} ||
+	$d{$date}{stepconf}{modes};
+    print $html "    <th>$release/$setupmodes</th>\n";
 }
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>first cvs checkout</th>\n";
