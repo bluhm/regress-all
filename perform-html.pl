@@ -474,16 +474,17 @@ foreach my $date (@dates) {
 HEADER
 
 	print $html "  <tr>\n    <th>repetitions</th>\n";
-	my $repmode = $d{$date}{stepconf}{repmodes};
-	my $reptext = @repeats && $repmode && @repeats > 1 ?
-	    @repeats. " / $repmode" : @repeats;
-	$reptext =~ s/\s//g;
+	my $kernelmode = $d{$date}{stepconf}{kernelmodes} ||
+	    $d{$date}{stepconf}{repmodes};
+	my $kerneltext = @repeats && $kernelmode && @repeats > 1 ?
+	    @repeats. " / $kernelmode" : @repeats;
+	$kerneltext =~ s/\s//g;
 	my $build = $d{$date}{$cvsdate}{build};
 	$build =~ s,[^/]+/[^/]+/,, if $build;
 	my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
 	my $href = $build ? "<a href=\"$link\">" : "";
 	my $enda = $href ? " info</a>" : "";
-	print $html "    <td>$href$reptext$enda</td>\n";
+	print $html "    <td>$href$kerneltext$enda</td>\n";
 	print $html "  </tr>\n";
 	print $html "</table>\n";
 
@@ -497,13 +498,13 @@ HEADER
 	print $html "  </tr>\n";
 	print $html "  <tr>\n    <th>machine</th>\n";
 	foreach my $repeat (@repeats) {
-	    if ($repmode) {
+	    if ($kernelmode) {
 		my $reboot = $d{$date}{$cvsdate}{$repeat}{reboot};
 		$reboot =~ s,[^/]+/[^/]+/,, if $reboot;
 		my $link = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
 		my $href = $reboot ? "<a href=\"$link\">" : "";
 		my $enda = $href ? " info</a>" : "";
-		print $html "    <th>$href$repmode$enda</th>\n";
+		print $html "    <th>$href$kernelmode$enda</th>\n";
 	    } else {
 		print $html "    <th></th>\n";
 	    }
@@ -769,11 +770,12 @@ HEADER
     print $html "  <tr>\n    <th>repetitions</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $repeats = @{$d{$date}{$cvsdate}{repeats} || []} || "";
-	my $repmode = $d{$date}{stepconf}{repmodes};
-	my $reptext = $repeats && $repmode && $repeats > 1 ?
-	    "$repeats / $repmode" : $repeats;
-	$reptext =~ s/\s//g;
-	print $html "    <th>$reptext</th>\n";
+	my $kernelmode = $d{$date}{stepconf}{kernelmodes} ||
+	    $d{$date}{stepconf}{repmodes};
+	my $kerneltext = $repeats && $kernelmode && $repeats > 1 ?
+	    "$repeats / $kernelmode" : $repeats;
+	$kerneltext =~ s/\s//g;
+	print $html "    <th>$kerneltext</th>\n";
     }
     print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	"<th></th>\n";  # dummy for unit and stats below
@@ -1007,11 +1009,12 @@ print $html "  <tr>\n    <th>repetitions</th>\n";
 foreach my $date (@dates) {
     my $cvsdate0 = $d{$date}{cvsdates}[0];
     my $repeats = @{$d{$date}{$cvsdate0}{repeats} || []} || "";
-    my $repmode = $d{$date}{stepconf}{repmodes};
-    my $reptext = $repeats && $repmode && $repeats > 1 ?
-	"$repeats / $repmode" : $repeats;
-    $reptext =~ s/\s//g;
-    print $html "    <th>$reptext</th>\n";
+    my $kernelmode = $d{$date}{stepconf}{kernelmodes} ||
+	$d{$date}{stepconf}{repmodes};
+    my $kerneltext = $repeats && $kernelmode && $repeats > 1 ?
+	"$repeats / $kernelmode" : $repeats;
+    $kerneltext =~ s/\s//g;
+    print $html "    <th>$kerneltext</th>\n";
 }
 print $html "  </tr>\n";
 
