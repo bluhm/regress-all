@@ -47,8 +47,9 @@ my %testmode = map {
 $testmode{all} = 1 unless @ARGV;
 @testmode{qw(net make fs)} = 1..3 if $testmode{all};
 @testmode{qw(tcp udp)} = 1..2 if $testmode{net};
-@testmode{qw(tcpbench)} = 1 if $testmode{tcp};
-@testmode{qw(udpbench)} = 1 if $testmode{udp};
+@testmode{qw(iperftcp iperfudp)} = 1..2 if $testmode{iperf};
+@testmode{qw(iperftcp tcpbench)} = 1..2 if $testmode{tcp};
+@testmode{qw(iperfudp udpbench)} = 1..2 if $testmode{udp};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -98,7 +99,7 @@ my $remote_ssh = $ENV{REMOTE_SSH}
 
 # iperf3 and tcpbench tests
 
-if ($testmode{tcp} || $testmode{udp} || $testmode{iperf}) {
+if ($testmode{iperftcp} || $testmode{iperfudp}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'iperf3', '-s', '-D');
@@ -106,7 +107,7 @@ if ($testmode{tcp} || $testmode{udp} || $testmode{iperf}) {
 	and die "Start iperf3 server with '@sshcmd' failed: $?";
 }
 
-if ($testmode{tcp} || $testmode{tcpbench}) {
+if ($testmode{tcpbench}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'tcpbench');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
@@ -292,7 +293,7 @@ push @tests, (
 	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
-) if $testmode{tcp} || $testmode{iperf};
+) if $testmode{iperftcp};
 push @tests, (
     {
 	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr],
@@ -313,7 +314,7 @@ push @tests, (
 	    '-R'],
 	parser => \&iperf3_parser,
     }
-) if $testmode{udp} || $testmode{iperf};
+) if $testmode{iperfudp};
 push @tests, (
     {
 	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh,
@@ -448,8 +449,7 @@ chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
 
 # kill remote commands or ssh will hang forever
-if ($testmode{tcp} || $testmode{udp} || $testmode{iperf} ||
-    $testmode{tcpbench}) {
+if ($testmode{iperftcp} || $testmode{iperfudp} || $testmode{tcpbench}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3', 'tcpbench');
     system(@sshcmd);
 }
