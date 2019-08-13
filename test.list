@@ -231,7 +231,9 @@ usr.bin/wc
 usr.bin/xargs
 usr.sbin/acme-client
 usr.sbin/arp
-usr.sbin/bgpd
+usr.sbin/bgpd/config
+usr.sbin/bgpd/integrationtests
+usr.sbin/bgpd/unittests
 usr.sbin/httpd
 usr.sbin/ifstated
 usr.sbin/ldapd
