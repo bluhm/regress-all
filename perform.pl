@@ -119,7 +119,7 @@ my $machine = `machine`;
 my $ncpu = `sysctl -n hw.ncpu`;
 chomp($kconf, $machine, $ncpu);
 
-if ($testmode{kernel}) {
+if ($testmode{make}) {
     my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf");
     push @cmd, '-s' unless $opts{v};
     push @cmd, 'clean', 'config';
@@ -341,7 +341,7 @@ push @tests, (
 	parser => \&time_parser,
 	finalize => \&wallclock_finalize,
     }
-) if $testmode{kernel};
+) if $testmode{make};
 push @tests, (
     {
 	testcmd => ['time', '-lp', 'fs_mark',
