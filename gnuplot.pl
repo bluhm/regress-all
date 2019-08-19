@@ -116,19 +116,42 @@ print $html "<!DOCTYPE html>
 <head>
     <title>OpenBSD Perform $htmltitle Results</title>
     <style>
+	body {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
 	img {
 	    position: absolute;
 	    left: 0;
 	    right: 0;
 	    max-width: 100%;
+	    margin-top: 300px;
 	}
 	input {
 	    z-index: 2;
-	    margin: 0 50px;
+	    margin: 0 2px;
 	}
-	input[type=\"checkbox\"]:not(:checked)".(" + * "x(3 * keys %tests)).
+	input[type=\"checkbox\"]:not(:checked)".(" + * "x(2 * keys %tests)).
 	"+ img {
 	    display: none;
+	}
+	body :nth-child(6n) {
+	    break-after: always;
+	}
+	label {
+	    display: inherit;
+	    width: calc(33vw - 28px);
+	    align-items: center;
+	}
+	.key {
+	    position: unset;
+	    margin: 0 2px;
+	    height: 24px;
+	}
+	#combined {
+	    z-index: 2;
+	    opacity: 0;
 	}
     </style>
 </head>
@@ -136,9 +159,11 @@ print $html "<!DOCTYPE html>
 
 my $i = 1;
 foreach my $cmd (sort keys %tests) {
-    print $html "<input checked type=checkbox>$cmd
-	<img src=\"key_$i.png\" alt=\"Key $i\">
-	<br>";
+    print $html "<input id=\"checkbox-$i\" checked type=checkbox>
+	<label for=\"checkbox-$i\">
+	<img class=\"key\" src=\"key_$i.png\" alt=\"Key $i\">
+	$cmd
+	</label>";
     $i++;
 }
 
@@ -157,8 +182,14 @@ foreach my $cmd (sort keys %tests) {
     } else {
 	print $html "<img src=\"$test\_$i.png\" alt=\"$cmd\">";
     }
-    print $html "<span></span><span></span>";
+    print $html "<span></span>";
     $i++;
+}
+
+if ($date) {
+    print $html "<img id=\"combined\" src=\"$date-$test\_combined.png\">";
+} else {
+    print $html "<img id=\"combined\" src=\"$test\_combined.png\">";
 }
 
 print $html "</body>

@@ -638,7 +638,7 @@ foreach my $date (@dates) {
     td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
     td.result, td.result a {color: black;}
     td.outlier {color: red;}
-    iframe {width: 100%; border: none; min-height: 1024px}
+    iframe {width: 100%; border: none; min-height: 1200px}
   </style>
 </head>
 
