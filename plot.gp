@@ -90,6 +90,24 @@ do for [i = 1:words(QUIRKS)] {
 # draw frame
 plot 0 notitle lc bgnd
 
+# draw complete plot
+set output OUT_PREFIX."_combined.png"
+if (exists("RUN_DATE")) {
+    plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
+        strcol(3) eq RUN_DATE? ( \
+            strcol(1) eq word(TESTS,test)? ( \
+                strcol(2) eq word(TESTS,test+1)? $6:NaN \
+            ):NaN \
+        ):NaN \
+    ) with points lc test/2+1 pt test/2+1
+} else {
+    plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
+        strcol(1) eq word(TESTS,test)? ( \
+            strcol(2) eq word(TESTS,test+1)? $6:NaN \
+        ):NaN \
+    ) with points lc test/2+1 pt test/2+1
+}
+
 # draw data
 set title tc bgnd
 set xtics tc bgnd

@@ -130,6 +130,10 @@ print $html "<!DOCTYPE html>
 	"+ img {
 	    display: none;
 	}
+	#combined {
+	    z-index: 2;
+	    opacity: 0;
+	}
     </style>
 </head>
 <body>";
@@ -159,6 +163,12 @@ foreach my $cmd (sort keys %tests) {
     }
     print $html "<span></span><span></span>";
     $i++;
+}
+
+if ($date) {
+    print $html "<img id=\"combined\" src=\"$date-$test\_combined.png\">";
+} else {
+    print $html "<img id=\"combined\" src=\"$test\_combined.png\">";
 }
 
 print $html "</body>
