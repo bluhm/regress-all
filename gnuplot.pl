@@ -149,6 +149,7 @@ print $html "<!DOCTYPE html>
 	    position: unset;
 	    margin: 0 2px;
 	    height: 24px;
+	    width: 16px;
 	}
 	#frame {
 	    z-index: 1;
