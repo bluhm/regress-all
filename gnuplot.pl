@@ -117,16 +117,17 @@ print $html "<!DOCTYPE html>
     <title>OpenBSD Perform $htmltitle Results</title>
     <style>
 	body {
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
+	    display: flex;
+	    flex-direction: row;
+	    flex-wrap: wrap;
+	    margin-top: 768px;
 	}
 	img {
 	    position: absolute;
 	    left: 0;
 	    right: 0;
 	    max-width: 100%;
-	    margin-top: 300px;
+	    top: 0;
 	}
 	input {
 	    z-index: 2;
