@@ -180,7 +180,7 @@ $i = 1;
 foreach my $cmd (sort keys %tests) {
     print $html "<img src=\"";
     print $html "$date-" if ($date);
-    print $html "$test\_$i.png\" alt=\"$cmd\">";
+    print $html "$test\_$i.png\" alt=\"$cmd\"><span></span>";
     $i++;
 }
 
