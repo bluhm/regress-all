@@ -59,7 +59,6 @@ my $repeat = $opts{R};
 
 my %allmodes;
 @allmodes{qw(align gap sort reorder reboot)} = ();
-@ARGV or die "No mode specified";
 my %kernelmode = map {
     die "Unknown kernel mode: $_" unless exists $allmodes{$_};
     $_ => 1;
@@ -94,7 +93,8 @@ if ($kernelmode{align}) {
 } elsif ($kernelmode{sort}) {
     sort_kernel();
 }
-reorder_kernel() unless $kernelmode{reboot};
+reorder_kernel() if $kernelmode{align} || $kernelmode{gap} ||
+    $kernelmode{sort} || $kernelmode{reorder};
 reboot();
 get_version();
 
