@@ -161,6 +161,7 @@ sys/netinet/carp
 sys/netinet/frag
 sys/netinet/in_pcbbind
 sys/netinet/ipsec
+sys/netinet/mcast
 sys/netinet/pmtu
 sys/netinet/recvmsg
 sys/netinet/sendsrcaddr
