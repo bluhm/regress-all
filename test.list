@@ -167,6 +167,7 @@ sys/netinet/recvmsg
 sys/netinet/sendsrcaddr
 sys/netinet6/autoport
 sys/netinet6/frag6
+sys/netinet6/mcast6
 sys/netinet6/nd6
 sys/netinet6/pktinfo_addr
 sys/netinet6/recvmsg
