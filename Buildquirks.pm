@@ -349,6 +349,15 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-uhci' => patch_sys_uhci_activate() },
     },
+    '2019-09-01T16:40:03Z' => {
+	comment => "clang update LLVM to 8.0.1",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
 );
 
 #### Patches ####
