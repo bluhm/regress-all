@@ -344,6 +344,11 @@ my %quirks = (
 	    "usr.bin/top",
 	],
     },
+    '2019-08-28T22:39:09Z' => {
+	comment => "uhci PCI ACPI attach fail",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-uhci' => patch_sys_uhci_activate() },
+    },
 );
 
 #### Patches ####
@@ -692,6 +697,46 @@ diff -u -p -r1.137 -r1.138
  
  # Exar XR21V1410
  device	uxrcom: ucombus
+PATCH
+}
+
+# Supermicro X8DTH-i/6/iF/6F fails to attach uhci(4) via PCI and AHCI.
+sub patch_sys_uhci_activate {
+	return <<'PATCH';
+Index: sys/dev/pci/uhci_pci.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/uhci_pci.c,v
+retrieving revision 1.33
+retrieving revision 1.34
+diff -u -p -r1.33 -r1.34
+--- sys/dev/pci/uhci_pci.c	16 May 2014 18:17:03 -0000	1.33
++++ sys/dev/pci/uhci_pci.c	5 Sep 2019 17:59:12 -0000	1.34
+@@ -86,6 +86,9 @@ uhci_pci_activate(struct device *self, i
+ {
+ 	struct uhci_pci_softc *sc = (struct uhci_pci_softc *)self;
+ 
++	if (sc->sc.sc_size == 0)
++		return 0;
++
+ 	/* On resume, set legacy support attribute and enable intrs */
+ 	switch (act) {
+ 	case DVACT_RESUME:
+@@ -190,6 +193,7 @@ uhci_pci_attach(struct device *parent, s
+ 
+ unmap_ret:
+ 	bus_space_unmap(sc->sc.iot, sc->sc.ioh, sc->sc.sc_size);
++	sc->sc.sc_size = 0;
+ 	splx(s);
+ }
+ 
+@@ -218,6 +222,7 @@ uhci_pci_attach_deferred(struct device *
+ unmap_ret:
+ 	bus_space_unmap(sc->sc.iot, sc->sc.ioh, sc->sc.sc_size);
+ 	pci_intr_disestablish(sc->sc_pc, sc->sc_ih);
++	sc->sc.sc_size = 0;
+ 	splx(s);
+ }
+ 
 PATCH
 }
 
