@@ -27,6 +27,7 @@ p5-YAML
 p5-ldap
 posixtestsuite
 rsync--
+rsyslog
 scapy
 sudo--
 sysclean
