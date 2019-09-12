@@ -117,16 +117,17 @@ print $html "<!DOCTYPE html>
     <title>OpenBSD Perform $htmltitle Results</title>
     <style>
 	body {
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
+	    display: flex;
+	    flex-direction: row;
+	    flex-wrap: wrap;
+	    margin-top: 768px;
 	}
 	img {
 	    position: absolute;
 	    left: 0;
 	    right: 0;
 	    max-width: 100%;
-	    margin-top: 300px;
+	    top: 0;
 	}
 	input {
 	    z-index: 2;
@@ -148,6 +149,10 @@ print $html "<!DOCTYPE html>
 	    position: unset;
 	    margin: 0 2px;
 	    height: 24px;
+	    width: 16px;
+	}
+	#frame {
+	    z-index: 1;
 	}
 	#combined {
 	    z-index: 2;
@@ -167,30 +172,21 @@ foreach my $cmd (sort keys %tests) {
     $i++;
 }
 
-if ($date) {
-    print $html "<img src=\"$date-$test\_0.png\" alt=\"".
-	uc $test. " Performance\" style=\"z-index: 1\">";
-} else {
-    print $html "<img src=\"$test\_0.png\" alt=\"".
-	uc $test. " Performance\" style=\"z-index: 1\">";
-}
+print $html "<img id=\"frame\" src=\"";
+print $html "$date-" if ($date);
+print $html "$test\_0.png\" alt=\"".  uc $test. " Performance\">";
 
 $i = 1;
 foreach my $cmd (sort keys %tests) {
-    if ($date) {
-	print $html "<img src=\"$date-$test\_$i.png\" alt=\"$cmd\">";
-    } else {
-	print $html "<img src=\"$test\_$i.png\" alt=\"$cmd\">";
-    }
-    print $html "<span></span>";
+    print $html "<img src=\"";
+    print $html "$date-" if ($date);
+    print $html "$test\_$i.png\" alt=\"$cmd\"><span></span>";
     $i++;
 }
 
-if ($date) {
-    print $html "<img id=\"combined\" src=\"$date-$test\_combined.png\">";
-} else {
-    print $html "<img id=\"combined\" src=\"$test\_combined.png\">";
-}
+print $html "<img id=\"combined\" src=\"";
+print $html "$date-" if ($date);
+print $html "$test\_combined.png\">";
 
 print $html "</body>
 </html>";
