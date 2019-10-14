@@ -358,6 +358,8 @@ my %quirks = (
 	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
+# OpenBSD 6.6, 2019-10-12Z
+    '2019-10-12T17:05:22Z' => { comment => "OpenBSD/amd64 6.6 release" },
 );
 
 #### Patches ####
