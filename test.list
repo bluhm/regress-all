@@ -38,6 +38,7 @@ misc/os-test
 misc/posixtestsuite
 misc/sse2
 sbin/disklabel
+sbin/ifconfig
 sbin/iked
 sbin/ipsecctl
 sbin/isakmpd
