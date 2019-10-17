@@ -344,6 +344,11 @@ my %quirks = (
 	    "usr.bin/top",
 	],
     },
+    '2019-08-02T02:17:35Z' => {
+	comment => "per-process itimers, missing part of commit",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-time' => patch_sys_sys_time() },
+    },
     '2019-08-28T22:39:09Z' => {
 	comment => "uhci PCI ACPI attach fail",
 	updatedirs => [ "sys" ],
@@ -708,6 +713,28 @@ diff -u -p -r1.137 -r1.138
  
  # Exar XR21V1410
  device	uxrcom: ucombus
+PATCH
+}
+
+sub patch_sys_sys_time {
+	return <<'PATCH';
+Index: sys/sys/time.h
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/sys/time.h,v
+retrieving revision 1.44
+retrieving revision 1.45
+diff -u -p -r1.44 -r1.45
+--- sys/sys/time.h	3 Jul 2019 22:39:33 -0000	1.44
++++ sys/sys/time.h	2 Aug 2019 03:33:15 -0000	1.45
+@@ -298,7 +298,7 @@ struct proc;
+ int	clock_gettime(struct proc *, clockid_t, struct timespec *);
+ 
+ int	itimerfix(struct timeval *);
+-int	itimerdecr(struct itimerval *itp, int usec);
++int	itimerdecr(struct itimerspec *itp, long nsec);
+ void	itimerround(struct timeval *);
+ int	settime(const struct timespec *);
+ int	ratecheck(struct timeval *, const struct timeval *);
 PATCH
 }
 
