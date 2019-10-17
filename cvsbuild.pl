@@ -101,7 +101,7 @@ if ($before) {
     }
 }
 
-update_cvs(undef, $cvsdate, "sys");
+update_cvs(undef, $cvsdate, "sys") if $cvsdate;
 make_kernel();
 if ($kernelmode{align}) {
     align_kernel();
