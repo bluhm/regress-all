@@ -91,7 +91,7 @@ do for [i = 1:words(QUIRKS)] {
 plot 0 notitle lc bgnd
 
 # draw complete plot
-set output OUT_PREFIX."_combined.png"
+set output OUT_PREFIX.".png"
 if (exists("RUN_DATE")) {
     plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
         strcol(3) eq RUN_DATE? ( \

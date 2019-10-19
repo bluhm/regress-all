@@ -186,7 +186,7 @@ foreach my $cmd (sort keys %tests) {
 
 print $html "<img id=\"combined\" src=\"";
 print $html "$date-" if ($date);
-print $html "$test\_combined.png\">";
+print $html "$test.png\">";
 
 print $html "</body>
 </html>";
