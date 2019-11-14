@@ -26,9 +26,10 @@ use Time::HiRes;
 my %opts;
 getopts('e:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-e environment] [-t timeout] [test ...]
+usage: $0 [-6v] [-e environment] [-t timeout] [test ...]
     -t timeout	timeout for a single test, default 1 hour
     -e environ	parse environment for tests from shell script
+    -6		use IPv6 instead of IPv4
     -v		verbose
     test ...	test mode: all, net, tcp, udp, make, fs,
 		    iperf, tcpbench, udpbench
@@ -90,10 +91,17 @@ sub good {
     $tr->sync();
 }
 
-my $local_addr = $ENV{LOCAL_ADDR}
-    or die "Environemnt LOCAL_ADDR not set";
-my $remote_addr = $ENV{REMOTE_ADDR}
-    or die "Environemnt REMOTE_ADDR not set";
+if ($opts{6}) {
+    my $local_addr = $ENV{LOCAL_ADDR6}
+	or die "Environemnt LOCAL_ADDR6 not set";
+    my $remote_addr = $ENV{REMOTE_ADDR6}
+	or die "Environemnt REMOTE_ADDR6 not set";
+} else {
+    my $local_addr = $ENV{LOCAL_ADDR}
+	or die "Environemnt LOCAL_ADDR not set";
+    my $remote_addr = $ENV{REMOTE_ADDR}
+	or die "Environemnt REMOTE_ADDR not set";
+}
 my $remote_ssh = $ENV{REMOTE_SSH}
     or die "Environemnt REMOTE_SSH not set";
 
