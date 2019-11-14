@@ -44,7 +44,8 @@ usage: $0 [-v] -h host -r release [-s setup] -B date [-E date] [-S interval]
     -s setup	setup mode: install, cvs, build, keep
     -v		verbose
      test ...	test mode: all, net, tcp, udp, make, fs,
-		iperf, tcpbench, udpbench
+		iperf, tcpbench, udpbench,
+		net6, tcp6, udp6, iperf6, tcpbench6, udpbench6
 EOF
     exit(2);
 };
@@ -91,16 +92,20 @@ $kernelmode{$opts{k}} = 1 if $opts{k};
 my %setupmode;
 $setupmode{$opts{s}} = 1 if $opts{s};
 
-@allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench)} = ();
+@allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench
+    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6)} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
 $testmode{all} = 1 unless @ARGV;
-@testmode{qw(net make fs)} = 1..3 if $testmode{all};
+@testmode{qw(net net6 make fs)} = 1..3 if $testmode{all};
 @testmode{qw(tcp udp)} = 1..2 if $testmode{net};
+@testmode{qw(tcp6 udp6)} = 1..2 if $testmode{net6};
 @testmode{qw(tcpbench)} = 1 if $testmode{tcp};
+@testmode{qw(tcpbench6)} = 1 if $testmode{tcp6};
 @testmode{qw(udpbench)} = 1 if $testmode{udp};
+@testmode{qw(udpbench6)} = 1 if $testmode{udp6};
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';
