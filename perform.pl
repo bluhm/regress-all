@@ -31,8 +31,9 @@ usage: $0 [-v] [-e environment] [-t timeout] [test ...]
     -e environ	parse environment for tests from shell script
     -v		verbose
     test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
-		udpbench, iperftcp, iperfudp,
-    		net6, tcp6, udp6, iperf6, tcpbench6, iperftcp6, iperfudp6
+		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
+		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
+		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6
 EOF
     exit(2);
 };
@@ -47,14 +48,18 @@ my %testmode = map {
     $_ => 1;
 } @ARGV;
 $testmode{all} = 1 unless @ARGV;
-@testmode{qw(net net6 make fs)} = 1..4 if $testmode{all};
-@testmode{qw(tcp udp)} = 1..2 if $testmode{net};
+@testmode{qw(net make fs)} = 1..4 if $testmode{all};
+@testmode{qw(net4 net6)} = 1..4 if $testmode{net};
+@testmode{qw(tcp4 udp4)} = 1..2 if $testmode{net4};
 @testmode{qw(tcp6 udp6)} = 1..2 if $testmode{net6};
-@testmode{qw(iperftcp iperfudp)} = 1..2 if $testmode{iperf};
+@testmode{qw(iperf4 iperf6)} = 1..2 if $testmode{iperf};
+@testmode{qw(iperftcp4 iperfudp4)} = 1..2 if $testmode{iperf4};
 @testmode{qw(iperftcp6 iperfudp6)} = 1..2 if $testmode{iperf6};
-@testmode{qw(iperftcp tcpbench)} = 1..2 if $testmode{tcp};
+@testmode{qw(tcp4 tcp6)} = 1..2 if $testmode{tcp};
+@testmode{qw(iperftcp4 tcpbench4)} = 1..2 if $testmode{tcp4};
 @testmode{qw(iperftcp6 tcpbench6)} = 1..2 if $testmode{tcp6};
-@testmode{qw(iperfudp udpbench)} = 1..2 if $testmode{udp};
+@testmode{qw(udp4 udp6)} = 1..2 if $testmode{udp};
+@testmode{qw(iperfudp4 udpbench4)} = 1..2 if $testmode{udp4};
 @testmode{qw(iperfudp6 udpbench6)} = 1..2 if $testmode{udp6};
 
 my $dir = dirname($0);
@@ -114,7 +119,7 @@ if ($testmode{iperftcp6} || $testmode{iperfudp6} || $testmode{net6} ||
 
 # iperf3 and tcpbench tests
 
-if ($testmode{iperftcp} || $testmode{iperfudp}) {
+if ($testmode{iperftcp4} || $testmode{iperfudp4}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'iperf3', '-s', '-D');
@@ -130,7 +135,7 @@ if ($testmode{iperftcp6} || $testmode{iperfudp6}) {
 	and die "Start iperf3 server with '@sshcmd' failed: $?";
 }
 
-if ($testmode{tcpbench}) {
+if ($testmode{tcpbench4}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'tcpbench');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
@@ -324,7 +329,7 @@ push @tests, (
 	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
-) if $testmode{iperftcp};
+) if $testmode{iperftcp4};
 push @tests, (
     {
 	testcmd => ['iperf3', "-c$remote_addr6", '-w1m', '-t10'],
@@ -344,7 +349,7 @@ push @tests, (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }
-) if $testmode{tcpbench};
+) if $testmode{tcpbench4};
 push @tests, (
     {
 	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr6],
@@ -365,7 +370,7 @@ push @tests, (
 	    '-R'],
 	parser => \&iperf3_parser,
     }
-) if $testmode{iperfudp};
+) if $testmode{iperfudp4};
 push @tests, (
     {
 	testcmd => ['iperf3', "-c$remote_addr6", '-u', '-b10G', '-w1m', '-t10'],
@@ -394,7 +399,7 @@ push @tests, (
 	    'recv', $local_addr],
 	parser => \&udpbench_parser,
     }
-) if $testmode{udpbench};
+) if $testmode{udpbench4};
 push @tests, (
     {
 	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh6,

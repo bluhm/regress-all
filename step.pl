@@ -100,11 +100,14 @@ my %testmode = map {
 } @ARGV;
 $testmode{all} = 1 unless @ARGV;
 @testmode{qw(net net6 make fs)} = 1..4 if $testmode{all};
-@testmode{qw(tcp udp)} = 1..2 if $testmode{net};
+@testmode{qw(net4 net6)} = 1..2 if $testmode{net};
+@testmode{qw(tcp4 udp4)} = 1..2 if $testmode{net4};
 @testmode{qw(tcp6 udp6)} = 1..2 if $testmode{net6};
-@testmode{qw(tcpbench)} = 1 if $testmode{tcp};
+@testmode{qw(tcp4 tcp6)} = 1 if $testmode{tcp};
+@testmode{qw(tcpbench4)} = 1 if $testmode{tcp4};
 @testmode{qw(tcpbench6)} = 1 if $testmode{tcp6};
-@testmode{qw(udpbench)} = 1 if $testmode{udp};
+@testmode{qw(udp4 udp6)} = 1 if $testmode{udp};
+@testmode{qw(udpbench4)} = 1 if $testmode{udp4};
 @testmode{qw(udpbench6)} = 1 if $testmode{udp6};
 
 # better get an errno than random kill by SIGPIPE
