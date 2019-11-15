@@ -26,13 +26,13 @@ use Time::HiRes;
 my %opts;
 getopts('e:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-6v] [-e environment] [-t timeout] [test ...]
+usage: $0 [-v] [-e environment] [-t timeout] [test ...]
     -t timeout	timeout for a single test, default 1 hour
     -e environ	parse environment for tests from shell script
-    -6		use IPv6 instead of IPv4
     -v		verbose
-    test ...	test mode: all, net, tcp, udp, make, fs,
-		    iperf, tcpbench, udpbench
+    test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
+		udpbench, iperftcp, iperfudp,
+    		net6, tcp6, udp6, iperf6, tcpbench6, iperftcp6, iperfudp6
 EOF
     exit(2);
 };
@@ -40,17 +40,22 @@ my $timeout = $opts{t} || 60*60;
 environment($opts{e}) if $opts{e};
 
 my %allmodes;
-@allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench)} = ();
+@allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench
+    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6)} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
 $testmode{all} = 1 unless @ARGV;
-@testmode{qw(net make fs)} = 1..3 if $testmode{all};
+@testmode{qw(net net6 make fs)} = 1..4 if $testmode{all};
 @testmode{qw(tcp udp)} = 1..2 if $testmode{net};
+@testmode{qw(tcp6 udp6)} = 1..2 if $testmode{net6};
 @testmode{qw(iperftcp iperfudp)} = 1..2 if $testmode{iperf};
+@testmode{qw(iperftcp6 iperfudp6)} = 1..2 if $testmode{iperf6};
 @testmode{qw(iperftcp tcpbench)} = 1..2 if $testmode{tcp};
+@testmode{qw(iperftcp6 tcpbench6)} = 1..2 if $testmode{tcp6};
 @testmode{qw(iperfudp udpbench)} = 1..2 if $testmode{udp};
+@testmode{qw(iperfudp6 udpbench6)} = 1..2 if $testmode{udp6};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -91,19 +96,21 @@ sub good {
     $tr->sync();
 }
 
-if ($opts{6}) {
-    my $local_addr = $ENV{LOCAL_ADDR6}
-	or die "Environemnt LOCAL_ADDR6 not set";
-    my $remote_addr = $ENV{REMOTE_ADDR6}
-	or die "Environemnt REMOTE_ADDR6 not set";
-} else {
-    my $local_addr = $ENV{LOCAL_ADDR}
-	or die "Environemnt LOCAL_ADDR not set";
-    my $remote_addr = $ENV{REMOTE_ADDR}
-	or die "Environemnt REMOTE_ADDR not set";
-}
+my $local_addr = $ENV{LOCAL_ADDR}
+    or die "Environemnt LOCAL_ADDR not set";
+my $remote_addr = $ENV{REMOTE_ADDR}
+    or die "Environemnt REMOTE_ADDR not set";
 my $remote_ssh = $ENV{REMOTE_SSH}
     or die "Environemnt REMOTE_SSH not set";
+
+if ($testmode{iperftcp6} || $testmode{iperfudp6} || $testmode{net6} ||
+	$testmode{tcp6} || $testmode{udp6} || $testmode{iperf6} ||
+	$testmode{tcpbench6} || $testmode{udpbench6}) {
+    my $local_addr6 = $ENV{LOCAL_ADDR6}
+	or die "Environemnt LOCAL_ADDR6 not set";
+    my $remote_addr6 = $ENV{REMOTE_ADDR6}
+	or die "Environemnt REMOTE_ADDR6 not set";
+}
 
 # iperf3 and tcpbench tests
 
@@ -115,10 +122,26 @@ if ($testmode{iperftcp} || $testmode{iperfudp}) {
 	and die "Start iperf3 server with '@sshcmd' failed: $?";
 }
 
+if ($testmode{iperftcp6} || $testmode{iperfudp6}) {
+    my @sshcmd = ('ssh', $remote_ssh6, 'pkill', 'iperf3');
+    system(@sshcmd);
+    @sshcmd = ('ssh', '-f', $remote_ssh6, 'iperf3', '-s', '-D');
+    system(@sshcmd)
+	and die "Start iperf3 server with '@sshcmd' failed: $?";
+}
+
 if ($testmode{tcpbench}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'tcpbench');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
+    system(@sshcmd)
+	and die "Start tcpbench server with '@sshcmd' failed: $?";
+}
+
+if ($testmode{tcpbench6}) {
+    my @sshcmd = ('ssh', $remote_ssh6, 'pkill', 'tcpbench');
+    system(@sshcmd);
+    @sshcmd = ('ssh', '-f', $remote_ssh6, 'tcpbench', '-s', '-r0', '-S1000000');
     system(@sshcmd)
 	and die "Start tcpbench server with '@sshcmd' failed: $?";
 }
@@ -304,6 +327,15 @@ push @tests, (
 ) if $testmode{iperftcp};
 push @tests, (
     {
+	testcmd => ['iperf3', "-c$remote_addr6", '-w1m', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	testcmd => ['iperf3', "-c$remote_addr6", '-w1m', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{iperftcp6};
+push @tests, (
+    {
 	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
@@ -315,6 +347,17 @@ push @tests, (
 ) if $testmode{tcpbench};
 push @tests, (
     {
+	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
+    }, {
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
+    }
+) if $testmode{tcpbench6};
+push @tests, (
+    {
 	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b10G', '-w1m', '-t10'],
 	parser => \&iperf3_parser,
     }, {
@@ -323,6 +366,16 @@ push @tests, (
 	parser => \&iperf3_parser,
     }
 ) if $testmode{iperfudp};
+push @tests, (
+    {
+	testcmd => ['iperf3', "-c$remote_addr6", '-u', '-b10G', '-w1m', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	testcmd => ['iperf3', "-c$remote_addr6", '-u', '-b10G', '-w1m', '-t10',
+	    '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{iperfudp6};
 push @tests, (
     {
 	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh,
@@ -342,6 +395,25 @@ push @tests, (
 	parser => \&udpbench_parser,
     }
 ) if $testmode{udpbench};
+push @tests, (
+    {
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh6,
+	    'send', $remote_addr6],
+	parser => \&udpbench_parser,
+    }, {
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh6,
+	    'recv', $local_addr],
+	parser => \&udpbench_parser,
+    }, {
+	testcmd => ['udpbench', '-l1472', '-t10', '-r', $remote_ssh6,
+	    'send', $remote_addr6],
+	parser => \&udpbench_parser,
+    }, {
+	testcmd => ['udpbench', '-l1472', '-t10', '-r', $remote_ssh6,
+	    'recv', $local_addr],
+	parser => \&udpbench_parser,
+    }
+) if $testmode{udpbench6};
 push @tests, (
     {
 	initialize => \&wallclock_initialize,

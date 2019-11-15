@@ -99,7 +99,7 @@ my %testmode = map {
     $_ => 1;
 } @ARGV;
 $testmode{all} = 1 unless @ARGV;
-@testmode{qw(net net6 make fs)} = 1..3 if $testmode{all};
+@testmode{qw(net net6 make fs)} = 1..4 if $testmode{all};
 @testmode{qw(tcp udp)} = 1..2 if $testmode{net};
 @testmode{qw(tcp6 udp6)} = 1..2 if $testmode{net6};
 @testmode{qw(tcpbench)} = 1 if $testmode{tcp};
