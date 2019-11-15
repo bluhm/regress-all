@@ -96,11 +96,6 @@ my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
-$testmode{all} = 1 unless @ARGV;
-@testmode{qw(net make fs)} = 1..3 if $testmode{all};
-@testmode{qw(tcp udp)} = 1..2 if $testmode{net};
-@testmode{qw(tcpbench)} = 1 if $testmode{tcp};
-@testmode{qw(udpbench)} = 1 if $testmode{udp};
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';
