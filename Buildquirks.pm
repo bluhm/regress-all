@@ -365,6 +365,11 @@ my %quirks = (
     },
 # OpenBSD 6.6, 2019-10-12Z
     '2019-10-12T17:05:22Z' => { comment => "OpenBSD/amd64 6.6 release" },
+    '2019-11-03T20:16:01Z' => {
+	comment => "sys_shmctl fix copyin",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-shm' => patch_sys_shm_copyin() },
+    },
 );
 
 #### Patches ####
@@ -775,6 +780,29 @@ diff -u -p -r1.33 -r1.34
  	splx(s);
  }
  
+PATCH
+}
+
+# Fix previous commit: missed a ds_copyin() moved in rev 1.72
+sub patch_sys_shm_copyin {
+	return <<'PATCH';
+Index: sys/kern/sysv_shm.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/kern/sysv_shm.c,v
+retrieving revision 1.73
+retrieving revision 1.74
+diff -u -p -r1.73 -r1.74
+--- sys/kern/sysv_shm.c	3 Nov 2019 20:16:01 -0000	1.73
++++ sys/kern/sysv_shm.c	4 Nov 2019 00:48:22 -0000	1.74
+@@ -296,7 +296,7 @@ sys_shmctl(struct proc *p, void *v, regi
+ 	int		error;
+ 
+ 	if (cmd == IPC_SET) {
+-		error = ds_copyin(buf, &inbuf, sizeof(inbuf));
++		error = copyin(buf, &inbuf, sizeof(inbuf));
+ 		if (error)
+ 			return (error);
+ 	}
 PATCH
 }
 
