@@ -334,10 +334,10 @@ push @tests, (
 ) if $testmode{iperftcp4};
 push @tests, (
     {
-	testcmd => ['iperf3', "-c$remote_addr6", '-w1m', '-t10'],
+	testcmd => ['iperf3', '-6', "-c$remote_addr6", '-w1m', '-t10'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['iperf3', "-c$remote_addr6", '-w1m', '-t10', '-R'],
+	testcmd => ['iperf3', '-6', "-c$remote_addr6", '-w1m', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{iperftcp6};
@@ -375,11 +375,12 @@ push @tests, (
 ) if $testmode{iperfudp4};
 push @tests, (
     {
-	testcmd => ['iperf3', "-c$remote_addr6", '-u', '-b10G', '-w1m', '-t10'],
+	testcmd => ['iperf3', '-6', "-c$remote_addr6", '-u', '-b10G', '-w1m',
+	    '-t10'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['iperf3', "-c$remote_addr6", '-u', '-b10G', '-w1m', '-t10',
-	    '-R'],
+	testcmd => ['iperf3', '-6', "-c$remote_addr6", '-u', '-b10G', '-w1m',
+	    '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{iperfudp6};
