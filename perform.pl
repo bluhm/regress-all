@@ -536,7 +536,8 @@ chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
 
 # kill remote commands or ssh will hang forever
-if ($testmode{iperftcp} || $testmode{iperfudp} || $testmode{tcpbench}) {
+if ($testmode{iperftcp4} || $testmode{iperfudp4} || $testmode{tcpbench4} ||
+    $testmode{iperftcp6} || $testmode{iperfudp6} || $testmode{tcpbench6}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'iperf3', 'tcpbench');
     system(@sshcmd);
 }
