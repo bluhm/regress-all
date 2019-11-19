@@ -120,7 +120,7 @@ my $remote_addr6 = $ENV{REMOTE_ADDR6}
 # iperf3 and tcpbench tests
 
 if ($testmode{iperftcp4} || $testmode{iperfudp4}) {
-    my @sshcmd = ('ssh', $remote_ssh, 'pkill', '-f', 'iperf3', '-4');
+    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "iperf3 -4"');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'iperf3', '-4', '-s', '-D');
     system(@sshcmd)
@@ -128,7 +128,7 @@ if ($testmode{iperftcp4} || $testmode{iperfudp4}) {
 }
 
 if ($testmode{iperftcp6} || $testmode{iperfudp6}) {
-    my @sshcmd = ('ssh', $remote_ssh, 'pkill', '-f', 'iperf3', '-6');
+    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "iperf3 -6"');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'iperf3', '-6', '-s', '-D');
     system(@sshcmd)
@@ -136,7 +136,7 @@ if ($testmode{iperftcp6} || $testmode{iperfudp6}) {
 }
 
 if ($testmode{tcpbench4}) {
-    my @sshcmd = ('ssh', $remote_ssh, 'pkill', '-f', 'tcpbench', '-4');
+    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "tcpbench -4"');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-4', '-s', '-r0',
 	'-S1000000');
@@ -145,7 +145,7 @@ if ($testmode{tcpbench4}) {
 }
 
 if ($testmode{tcpbench6}) {
-    my @sshcmd = ('ssh', $remote_ssh, 'pkill', '-f', 'tcpbench', '-6');
+    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "tcpbench -6"');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-6', '-s', '-r0',
 	'-S1000000');
