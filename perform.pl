@@ -34,6 +34,7 @@ usage: $0 [-v] [-e environment] [-t timeout] [test ...]
 		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
 		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
 		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6
+		linuxnet linuxiperftcp4 linuxiperftcp6
 EOF
     exit(2);
 };
@@ -43,7 +44,8 @@ environment($opts{e}) if $opts{e};
 my %allmodes;
 @allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
-    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6)} = ();
+    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
+    linuxnet linuxiperftcp4 linuxiperftcp6)} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
@@ -53,12 +55,13 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(net4 net6)} = 1..2 if $testmode{net};
 @testmode{qw(tcp4 udp4)} = 1..2 if $testmode{net4};
 @testmode{qw(tcp6 udp6)} = 1..2 if $testmode{net6};
+@testmode{qw(linuxiperftcp4 linuxiperftcp6)} = 1..2 if $testmode{linuxnet};
 @testmode{qw(iperf4 iperf6)} = 1..2 if $testmode{iperf};
-@testmode{qw(iperftcp4 iperfudp4)} = 1..2 if $testmode{iperf4};
-@testmode{qw(iperftcp6 iperfudp6)} = 1..2 if $testmode{iperf6};
+@testmode{qw(iperftcp4 iperfudp4 linuxiperftcp4)} = 1..3 if $testmode{iperf4};
+@testmode{qw(iperftcp6 iperfudp6 linuxiperftcp6)} = 1..3 if $testmode{iperf6};
 @testmode{qw(tcp4 tcp6)} = 1..2 if $testmode{tcp};
-@testmode{qw(iperftcp4 tcpbench4)} = 1..2 if $testmode{tcp4};
-@testmode{qw(iperftcp6 tcpbench6)} = 1..2 if $testmode{tcp6};
+@testmode{qw(iperftcp4 tcpbench4 linuxiperftcp4)} = 1..3 if $testmode{tcp4};
+@testmode{qw(iperftcp6 tcpbench6 linuxiperftcp6)} = 1..3 if $testmode{tcp6};
 @testmode{qw(udp4 udp6)} = 1..2 if $testmode{udp};
 @testmode{qw(iperfudp4 udpbench4)} = 1..2 if $testmode{udp4};
 @testmode{qw(iperfudp6 udpbench6)} = 1..2 if $testmode{udp6};
@@ -116,6 +119,8 @@ my $local_addr6 = $ENV{LOCAL_ADDR6}
     or die "Environemnt LOCAL_ADDR6 not set";
 my $remote_addr6 = $ENV{REMOTE_ADDR6}
     or die "Environemnt REMOTE_ADDR6 not set";
+my $linux_addr = $ENV{LINUX_ADDR};
+my $linux_addr6 = $ENV{LINUX_ADDR6};
 
 # iperf3 and tcpbench tests
 
@@ -341,6 +346,24 @@ push @tests, (
 	parser => \&iperf3_parser,
     }
 ) if $testmode{iperftcp6};
+push @tests, (
+    {
+	testcmd => ['iperf3', "-c$linux_addr", '-w400k', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	testcmd => ['iperf3', "-c$linux_addr", '-w400k', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{linuxiperftcp4} && $linux_addr;
+push @tests, (
+    {
+	testcmd => ['iperf3', '-6', "-c$linux_addr6", '-w400k', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	testcmd => ['iperf3', '-6', "-c$linux_addr6", '-w400k', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{linuxiperftcp6} && $linux_addr6;
 push @tests, (
     {
 	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr],
