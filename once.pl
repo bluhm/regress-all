@@ -39,7 +39,8 @@ usage: $0 [-v] [-D cvsdate] -h host [-k kernel] [test ...]
     test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
 		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
 		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
-		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6
+		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6,
+		linuxnet, linuxiperftcp4, linuxiperftcp6
 
 EOF
     exit(2);
@@ -58,7 +59,8 @@ $kernelmode{$opts{k}} = 1 if $opts{k};
 
 @allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
-    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6)} = ();
+    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
+    linuxnet linuxiperftcp4 linuxiperftcp6)} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
