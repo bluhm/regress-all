@@ -348,19 +348,19 @@ push @tests, (
 ) if $testmode{iperftcp6};
 push @tests, (
     {
-	testcmd => ['iperf3', "-c$linux_addr", '-w400k', '-t10'],
+	testcmd => ['iperf3', "-c$linux_addr", '-t10'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['iperf3', "-c$linux_addr", '-w400k', '-t10', '-R'],
+	testcmd => ['iperf3', "-c$linux_addr", '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{linuxiperftcp4} && $linux_addr;
 push @tests, (
     {
-	testcmd => ['iperf3', '-6', "-c$linux_addr6", '-w400k', '-t10'],
+	testcmd => ['iperf3', '-6', "-c$linux_addr6", '-t10'],
 	parser => \&iperf3_parser,
     }, {
-	testcmd => ['iperf3', '-6', "-c$linux_addr6", '-w400k', '-t10', '-R'],
+	testcmd => ['iperf3', '-6', "-c$linux_addr6", '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{linuxiperftcp6} && $linux_addr6;
