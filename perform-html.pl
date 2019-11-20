@@ -534,7 +534,7 @@ HEADER
 	    }
 	    print $html "  </tr>\n";
 	    my $vt = $v{$date}{$test}{$cvsdate};
-	    my $maxval = max map { scalar @{$vt->{$_}} } @repeats;
+	    my $maxval = max map { scalar @{$vt->{$_} || []} } @repeats;
 	    for (my $i = 0; $i < $maxval; $i++) {
 		my $value0 = first { $_ } map { $vt->{$_}[$i] } @repeats;
 		my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
@@ -812,7 +812,7 @@ HEADER
 		push @vals, $vt->{$cvsdate};
 	    }
 	}
-	my $maxval = max map { scalar @$_ } @vals;
+	my $maxval = max map { scalar @{$_ || []} } @vals;
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $rp0 = $d{$date}{$cvsdates[0]}{repeats};
 	    my $value0 = $rp0 ?
