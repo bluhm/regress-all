@@ -132,13 +132,15 @@ print $html "<!DOCTYPE html>
 	input {
 	    z-index: 2;
 	    margin: 0 2px;
+	    width: 24px;
+	    height: 16px;
 	}
 	input[type=\"checkbox\"]:not(:checked)".(" + * "x(2 * keys %tests)).
 	"+ img {
 	    display: none;
 	}
 	body :nth-child(6n) {
-	    break-after: always;
+	    page-break-after: always;
 	}
 	label {
 	    display: inherit;
