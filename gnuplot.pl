@@ -131,7 +131,7 @@ print $html "<!DOCTYPE html>
 	}
 	input {
 	    z-index: 2;
-	    margin: 0 2px;
+	    margin: 0;
 	    width: 24px;
 	    height: 16px;
 	}
