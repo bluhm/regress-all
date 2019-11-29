@@ -450,6 +450,10 @@ foreach my $date (@dates) {
     td.result, td.result a {color: black;}
     td.outlier {color: red;}
   </style>
+  <script>
+    /* readjust the height of each iframe to it's content */
+    Array.from(document.getElementsByTagName('iframe')).forEach(iframe => { iframe.height = iframe.contentWindow.document.body.scrollHeight+"px"; });
+  </script>
 </head>
 
 <body>
