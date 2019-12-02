@@ -370,6 +370,17 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-shm' => patch_sys_shm_copyin() },
     },
+    '2019-11-27T01:13:04Z' => {
+	comment => "kernel provides msyscall as a noop",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+    },
+    # XXX Someone should build and reboot the kernel between these two quirks.
+    '2019-11-29T06:34:46Z' => {
+	comment => "ls.so uses msyscall to permit syscalls",
+	updatedirs => [ "libexec/ld.so" ],
+	builddirs => [ "libexec/ld.so" ],
+    },
 );
 
 #### Patches ####
