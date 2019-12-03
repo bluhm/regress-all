@@ -373,9 +373,13 @@ my %quirks = (
     '2019-11-27T01:13:04Z' => {
 	comment => "kernel provides msyscall as a noop",
 	updatedirs => [ "sys" ],
-	prebuildcommands => [ "make includes" ],
+	prebuildcommands => [
+	    "make includes",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
-    # XXX Someone should build and reboot the kernel between these two quirks.
+    # XXX Someone should reboot the kernel between these two quirks.
     '2019-11-29T06:34:46Z' => {
 	comment => "ls.so uses msyscall to permit syscalls",
 	updatedirs => [ "libexec/ld.so" ],
