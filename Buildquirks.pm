@@ -376,6 +376,7 @@ my %quirks = (
 	prebuildcommands => [
 	    "make includes",
 	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
 	],
 	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
