@@ -105,6 +105,7 @@ sys/kern/mount
 sys/kern/nanosleep
 sys/kern/noexec
 sys/kern/open
+sys/kern/pipe
 sys/kern/pledge
 sys/kern/pread
 sys/kern/preadv
