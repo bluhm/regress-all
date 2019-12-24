@@ -372,7 +372,8 @@ foreach my $dd (values %d) {
     }
 }
 
-# 1110, explain most significant to least significant digits
+my %testorder;
+# explain most significant to least significant digits
 # - 0xxxx type
 #   1xxxx network ot12/ot13
 #   2xxxx network ot14/ot15
@@ -408,7 +409,9 @@ foreach my $dd (values %d) {
 #   xxxx4 iperf tcp window 2m
 #   xxxx5 iperf tcp window 400k
 #   xxxx6 iperf tcp window 410k
-my @testorder = (
+BEGIN {
+    # put testorder in begin block to check consistency during compile time
+    my @testorder = (
     "iperf3_-c10.3.0.33_-w1m_-t10"				=> 11111,
     "iperf3_-c10.3.2.35_-w1m_-t10"				=> 21111,
     "iperf3_-c10.3.0.33_-w1m_-t60"				=> 11112,
@@ -467,16 +470,16 @@ my @testorder = (
     "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10"			=> 21413,
     "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R"			=> 11423,
     "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R"			=> 21423,
-    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b0_-w1m_-t10"		=> 11311,
-    "iperf3_-cfdd7:e83e:66bc:302::35_-u_-b0_-w1m_-t10"		=> 21311,
-    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b0_-w1m_-t60"		=> 11312,
-    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b0_-w1m_-t10_-R"	=> 11321,
-    "iperf3_-cfdd7:e83e:66bc:302::35_-u_-b0_-w1m_-t10_-R"	=> 21321,
-    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b0_-w1m_-t60_-R"	=> 11322,
-    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b10G_-w1m_-t10"	=> 11413,
-    "iperf3_-cfdd7:e83e:66bc:302::35_-u_-b10G_-w1m_-t10"	=> 21413,
-    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b10G_-w1m_-t10_-R"	=> 11423,
-    "iperf3_-cfdd7:e83e:66bc:302::35_-u_-b10G_-w1m_-t10_-R"	=> 21423,
+    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b0_-w1m_-t10"		=> 12311,
+    "iperf3_-cfdd7:e83e:66bc:302::35_-u_-b0_-w1m_-t10"		=> 22311,
+    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b0_-w1m_-t60"		=> 12312,
+    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b0_-w1m_-t10_-R"	=> 12321,
+    "iperf3_-cfdd7:e83e:66bc:302::35_-u_-b0_-w1m_-t10_-R"	=> 22321,
+    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b0_-w1m_-t60_-R"	=> 12322,
+    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b10G_-w1m_-t10"	=> 12413,
+    "iperf3_-cfdd7:e83e:66bc:302::35_-u_-b10G_-w1m_-t10"	=> 22413,
+    "iperf3_-cfdd7:e83e:66bc:300::33_-u_-b10G_-w1m_-t10_-R"	=> 12423,
+    "iperf3_-cfdd7:e83e:66bc:302::35_-u_-b10G_-w1m_-t10_-R"	=> 22423,
     "udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33"		=> 11511,
     "udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32"		=> 11521,
     "udpbench_-l36_-t10_-r_ot13_send_10.3.0.33"			=> 11531,
@@ -496,13 +499,22 @@ my @testorder = (
     "time_-lp_make_-CGENERIC.MP_-j4_-s"				=> 40040,
     "time_-lp_make_-CGENERIC.MP_-j8_-s"				=> 40080,
     "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"		=> 50080,
-);
-my %testorder = @testorder;
-warn "testorder keys not unique" if 2 * keys %testorder != @testorder;
-my %testvalues = reverse @testorder;
-warn "testorder values not unique" if 2 * keys %testvalues != @testorder;
+    );
+    %testorder = @testorder;
+    if (2 * keys %testorder != @testorder) {
+	die "testorder keys not unique";
+    }
+    my %testvalues = reverse @testorder;
+    if (2 * keys %testvalues != @testorder) {
+	my %dup;
+	foreach (values %testorder) {
+	    warn "duplicate testorder value $_\n" if ++$dup{$_} > 1;
+	}
+	die "testorder values not unique";
+    }
+}
 foreach my $test (keys %t) {
-    warn "testorder missing test $test" unless $testorder{$test};
+    warn "testorder missing test $test\n" unless $testorder{$test};
 }
 my @tests = reverse sort { $testorder{$b} <=> $testorder{$a} } keys %t;
 my @dates = reverse sort keys %d;
