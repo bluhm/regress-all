@@ -372,6 +372,33 @@ foreach my $dd (values %d) {
     }
 }
 
+# 1110, explain most significant to least significant digits
+# - 0xxx
+#   1xxx network ot12/ot13
+#   2xxx network ot14/ot15
+#   3xxx make kernel
+#   4xxx file system
+# - x0xx
+#   x1xx iperf tcp
+#   x2xx tcpbench
+#   x3xx iperf udp
+#   x4xx iperf udp 10Gbit
+#   x5xx udpbench
+# - xx0x
+#   xx1x iperf forward direction
+#   xx2x iperf reverse direction
+#   xx1x tcpbench single connction
+#   xx2x tcpbench 100 connections
+#   xx1x udpbench small packets
+#   xx2x udpbench large packets
+# - xxx0
+#   xxx1 10 secondes timeout
+#   xxx2 60 secondes timeout
+#   xxx1 udpbench send direction
+#   xxx2 udpbench receive direction
+#   xxx4 4 make processes
+#   xxx8 8 make processes
+#   xxx8 8 fs_mark threads
 my %testorder = (
     "iperf3_-c10.3.0.33_-w1m"				=> 1110,
     "iperf3_-c10.3.0.33_-w1m_-t10"			=> 1111,
