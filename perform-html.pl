@@ -373,74 +373,78 @@ foreach my $dd (values %d) {
 }
 
 # 1110, explain most significant to least significant digits
-# - 0xxx
-#   1xxx network ot12/ot13
-#   2xxx network ot14/ot15
-#   3xxx make kernel
-#   4xxx file system
-# - x0xx
-#   x1xx iperf tcp
-#   x2xx tcpbench
-#   x3xx iperf udp
-#   x4xx iperf udp 10Gbit
-#   x5xx udpbench
-# - xx0x
-#   xx1x iperf forward direction
-#   xx2x iperf reverse direction
-#   xx1x tcpbench single connction
-#   xx2x tcpbench 100 connections
-#   xx1x udpbench small packets
-#   xx2x udpbench large packets
-# - xxx0
-#   xxx1 10 secondes timeout
-#   xxx2 60 secondes timeout
-#   xxx1 udpbench send direction
-#   xxx2 udpbench receive direction
-#   xxx4 4 make processes
-#   xxx8 8 make processes
-#   xxx8 8 fs_mark threads
+# - 0xxxx
+#   1xxxx network ot12/ot13
+#   2xxxx network ot14/ot15
+#   3xxxx network ot14/lt16
+#   4xxxx make kernel
+#   5xxxx file system
+# - x0xxx
+#   x1xxx network IPv6
+#   x2xxx network IPv6
+# - xx0xx
+#   xx1xx iperf tcp
+#   xx2xx tcpbench
+#   xx3xx iperf udp
+#   xx4xx iperf udp 10Gbit
+#   xx5xx udpbench
+# - xxx0x
+#   xxx1x iperf forward direction
+#   xxx2x iperf reverse direction
+#   xxx1x tcpbench single connction
+#   xxx2x tcpbench 100 connections
+#   xxx1x udpbench small packets
+#   xxx2x udpbench large packets
+# - xxxx0
+#   xxxx1 10 secondes timeout
+#   xxxx2 60 secondes timeout
+#   xxxx1 udpbench send direction
+#   xxxx2 udpbench receive direction
+#   xxxx4 4 make processes
+#   xxxx8 8 make processes
+#   xxxx8 8 fs_mark threads
 my %testorder = (
-    "iperf3_-c10.3.0.33_-w1m"				=> 1110,
-    "iperf3_-c10.3.0.33_-w1m_-t10"			=> 1111,
-    "iperf3_-c10.3.2.35_-w1m_-t10"			=> 2111,
-    "iperf3_-c10.3.0.33_-w1m_-t60"			=> 1112,
-    "iperf3_-c10.3.0.33_-w1m_-R"			=> 1120,
-    "iperf3_-c10.3.0.33_-w1m_-t10_-R"			=> 1121,
-    "iperf3_-c10.3.2.35_-w1m_-t10_-R"			=> 2121,
-    "iperf3_-c10.3.0.33_-w1m_-t60_-R"			=> 1122,
-    "tcpbench_-S1000000_-t10_10.3.0.33"			=> 1211,
-    "tcpbench_-S1000000_-t10_10.3.2.35"			=> 2211,
-    "tcpbench_-S1000000_-t60_10.3.0.33"			=> 1212,
-    "tcpbench_-S1000000_-t10_-n100_10.3.0.33"		=> 1221,
-    "tcpbench_-S1000000_-t10_-n100_10.3.2.35"		=> 2221,
-    "tcpbench_-S1000000_-t60_-n100_10.3.0.33"		=> 1222,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m"			=> 1310,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10"		=> 1311,
-    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10"		=> 2311,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> 1312,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-R"			=> 1320,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R"		=> 1321,
-    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R"		=> 2321,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> 1322,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m"			=> 1410,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10"		=> 1411,
-    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10"		=> 2411,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60"		=> 1412,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-R"		=> 1420,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R"		=> 1421,
-    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R"		=> 2421,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60_-R"		=> 1422,
-    "udpbench_-l36_-t10_-r_ot13_send_10.3.0.33"		=> 1511,
-    "udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32"		=> 1512,
-    "udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33"	=> 1521,
-    "udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32"	=> 1522,
-    "udpbench_-l36_-t10_-r_ot15_send_10.3.2.35"		=> 2511,
-    "udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34"		=> 2512,
-    "udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35"	=> 2521,
-    "udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34"	=> 2522,
-    "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> 3004,
-    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 3008,
-    "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> 4008,
+    "iperf3_-c10.3.0.33_-w1m"				=> 11110,
+    "iperf3_-c10.3.0.33_-w1m_-t10"			=> 11111,
+    "iperf3_-c10.3.2.35_-w1m_-t10"			=> 21111,
+    "iperf3_-c10.3.0.33_-w1m_-t60"			=> 11112,
+    "iperf3_-c10.3.0.33_-w1m_-R"			=> 11120,
+    "iperf3_-c10.3.0.33_-w1m_-t10_-R"			=> 11121,
+    "iperf3_-c10.3.2.35_-w1m_-t10_-R"			=> 21121,
+    "iperf3_-c10.3.0.33_-w1m_-t60_-R"			=> 11122,
+    "tcpbench_-S1000000_-t10_10.3.0.33"			=> 11211,
+    "tcpbench_-S1000000_-t10_10.3.2.35"			=> 21211,
+    "tcpbench_-S1000000_-t60_10.3.0.33"			=> 11212,
+    "tcpbench_-S1000000_-t10_-n100_10.3.0.33"		=> 11221,
+    "tcpbench_-S1000000_-t10_-n100_10.3.2.35"		=> 21221,
+    "tcpbench_-S1000000_-t60_-n100_10.3.0.33"		=> 11222,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m"			=> 11310,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10"		=> 11311,
+    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10"		=> 21311,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> 11312,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-R"			=> 11320,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R"		=> 11321,
+    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R"		=> 21321,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> 11322,
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m"			=> 11410,
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10"		=> 11411,
+    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10"		=> 21411,
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60"		=> 11412,
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-R"		=> 11420,
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R"		=> 11421,
+    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R"		=> 21421,
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60_-R"		=> 11422,
+    "udpbench_-l36_-t10_-r_ot13_send_10.3.0.33"		=> 11511,
+    "udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32"		=> 11512,
+    "udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33"	=> 11521,
+    "udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32"	=> 11522,
+    "udpbench_-l36_-t10_-r_ot15_send_10.3.2.35"		=> 21511,
+    "udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34"		=> 21512,
+    "udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35"	=> 21521,
+    "udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34"	=> 21522,
+    "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> 40004,
+    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 40008,
+    "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> 50008,
 );
 my @tests = reverse sort { $testorder{$b} <=> $testorder{$a} } keys %t;
 my @dates = reverse sort keys %d;
