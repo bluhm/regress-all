@@ -641,7 +641,7 @@ HEADER
 		my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 		print $html "  <tr>\n    <th>$name0</th>\n";
 		my @numbers = map { $vt->{$_}[$i]{number} }
-		    grep { $td->{$_}{status} eq 'PASS' } @repeats;
+		    grep { $td->{$_} && $td->{$_}{status} eq 'PASS' } @repeats;
 		my ($sum, $mean, $maximum, $minimum, $deviation, $relative,
 		    $summary, $outlier);
 		if (@numbers) {
@@ -662,7 +662,7 @@ HEADER
 		    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
 		}
 		foreach my $repeat (@repeats) {
-		    my $status = $td->{$repeat}{status};
+		    my $status = $td->{$repeat}{status} || "";
 		    if ($status ne 'PASS') {
 			print $html "    <td></td>\n";
 			next;
@@ -923,7 +923,7 @@ HEADER
 	    print $html "  <tr>\n    <th>$name0</th>\n";
 	    my @numbers = map { $rp0 ?
 		$vt->{$_}{summary}[$i] : $vt->{$_}[$i]{number} }
-		grep { $td->{$_}{status} eq 'PASS' } @cvsdates;
+		grep { $td->{$_} && $td->{$_}{status} eq 'PASS' } @cvsdates;
 	    my ($sum, $mean, $maximum, $minimum, $deviation, $relative,
 		$summary, $outlier);
 	    if (@numbers) {
@@ -944,7 +944,7 @@ HEADER
 		$outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
 	    }
 	    foreach my $cvsdate (@cvsdates) {
-		my $status = $td->{$cvsdate}{status};
+		my $status = $td->{$cvsdate}{status} || "";
 		if ($status ne 'PASS' && !$rp0) {
 		    print $html "    <td></td>\n";
 		    next;
