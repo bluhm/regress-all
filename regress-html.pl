@@ -230,11 +230,15 @@ foreach my $date (@dates) {
 	next;
     }
     my $hostname = $d{$date}{host};
+    my $hostlink;
+    $hostlink = "regress-$hostname.html" if !$host || $opts{l};
+    my $hhref = $hostlink ? "<a href=\"$hostlink\">" : "";
+    my $henda = $hhref ? "</a>" : "";
     my $dmesg = $d{$date}{dmesg};
-    my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
-    my $href = $dmesg ? "<a href=\"$link\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <th>$hostname/$href$arch$enda</th>\n";
+    my $alink = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
+    my $ahref = $dmesg ? "<a href=\"$alink\">" : "";
+    my $aenda = $ahref ? "</a>" : "";
+    print $html "    <th>$hhref$hostname$henda/$ahref$arch$aenda</th>\n";
 }
 print $html "  </tr>\n";
 
