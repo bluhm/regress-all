@@ -97,7 +97,11 @@ if ($before) {
 	print $fh map { "$_\n" } @comments;
     }
     foreach my $cmd (quirk_commands($before, $cvsdate, \%sysctl)) {
-	logcmd('ssh', "$user\@$host", $cmd);
+	if ($cmd eq "reboot") {
+	    reboot();
+	} else {
+	    logcmd('ssh', "$user\@$host", $cmd);
+	}
     }
 }
 

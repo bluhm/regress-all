@@ -379,8 +379,9 @@ my %quirks = (
 	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
 	],
 	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	commands => [ "reboot" ],
     },
-    # XXX Someone should reboot the kernel between these two quirks.
+    # Reboot to kernel with dummy syscall msyscall(2) before ld.so quirk.
     '2019-11-29T06:34:46Z' => {
 	comment => "ls.so uses msyscall to permit syscalls",
 	updatedirs => [ "libexec/ld.so" ],
@@ -892,6 +893,9 @@ sub quirk_commands {
 	}
 	foreach my $cmd (@{$v->{buildcommands} || []}) {
 	    push @c, "cd /usr/src && $cmd";
+	}
+	foreach my $cmd (@{$v->{commands} || []}) {
+	    push @c, $cmd;
 	}
     }
 
