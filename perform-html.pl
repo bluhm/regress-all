@@ -403,7 +403,7 @@ foreach my $dd (values %d) {
 #   xxxx4 4 make processes
 #   xxxx8 8 make processes
 #   xxxx8 8 fs_mark threads
-my %testorder = (
+my @testorder = (
     "iperf3_-c10.3.0.33_-w1m"				=> 11110,
     "iperf3_-c10.3.0.33_-w1m_-t10"			=> 11111,
     "iperf3_-c10.3.2.35_-w1m_-t10"			=> 21111,
@@ -446,6 +446,13 @@ my %testorder = (
     "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 40008,
     "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> 50008,
 );
+my %testorder = @testorder;
+warn "testorder keys not unique" if 2 * keys %testorder != @testorder;
+my %testvalues = reverse @testorder;
+warn "testorder values not unique" if 2 * keys %testvalues != @testorder;
+foreach my $test (keys %t) {
+    warn "testorder missing test $test" unless $testorder{$test};
+}
 my @tests = reverse sort { $testorder{$b} <=> $testorder{$a} } keys %t;
 my @dates = reverse sort keys %d;
 
