@@ -373,42 +373,42 @@ foreach my $dd (values %d) {
 }
 
 # 1110, explain most significant to least significant digits
-# - 0xxxx
+# - 0xxxx type
 #   1xxxx network ot12/ot13
 #   2xxxx network ot14/ot15
 #   3xxxx network ot14/lt16
 #   4xxxx make kernel
 #   5xxxx file system
-# - x0xxx
+# - x0xxx family
 #   x1xxx network IPv6
 #   x2xxx network IPv6
-# - xx0xx
+# - xx0xx protocol
 #   xx1xx iperf tcp
 #   xx2xx tcpbench
 #   xx3xx iperf udp
 #   xx4xx iperf udp 10Gbit
 #   xx5xx udpbench
-# - xxx0x
+# - xxx0x aspects
 #   xxx1x iperf forward direction
 #   xxx2x iperf reverse direction
 #   xxx1x tcpbench single connction
 #   xxx2x tcpbench 100 connections
-#   xxx1x udpbench small packets
-#   xxx2x udpbench large packets
-# - xxxx0
+#   xxx1x udpbench send large packets
+#   xxx2x udpbench receive large packets
+#   xxx3x udpbench send small packets
+#   xxx4x udpbench receive small packets
+#   xxx4x 4 make processes
+#   xxx8x 8 make processes
+#   xxx8x 8 fs_mark threads
+# - xxxx0 tune
 #   xxxx1 10 secondes timeout
 #   xxxx2 60 secondes timeout
-#   xxxx1 udpbench send direction
-#   xxxx2 udpbench receive direction
-#   xxxx4 4 make processes
-#   xxxx8 8 make processes
-#   xxxx8 8 fs_mark threads
+#   xxxx3 iperf udp bandwidth 10G
+#   xxxx4 iperf tcp window 2m
 my @testorder = (
-    "iperf3_-c10.3.0.33_-w1m"				=> 11110,
     "iperf3_-c10.3.0.33_-w1m_-t10"			=> 11111,
     "iperf3_-c10.3.2.35_-w1m_-t10"			=> 21111,
     "iperf3_-c10.3.0.33_-w1m_-t60"			=> 11112,
-    "iperf3_-c10.3.0.33_-w1m_-R"			=> 11120,
     "iperf3_-c10.3.0.33_-w1m_-t10_-R"			=> 11121,
     "iperf3_-c10.3.2.35_-w1m_-t10_-R"			=> 21121,
     "iperf3_-c10.3.0.33_-w1m_-t60_-R"			=> 11122,
@@ -418,33 +418,27 @@ my @testorder = (
     "tcpbench_-S1000000_-t10_-n100_10.3.0.33"		=> 11221,
     "tcpbench_-S1000000_-t10_-n100_10.3.2.35"		=> 21221,
     "tcpbench_-S1000000_-t60_-n100_10.3.0.33"		=> 11222,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m"			=> 11310,
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10"		=> 11311,
     "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10"		=> 21311,
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> 11312,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-R"			=> 11320,
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R"		=> 11321,
     "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R"		=> 21321,
     "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> 11322,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m"			=> 11410,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10"		=> 11411,
-    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10"		=> 21411,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60"		=> 11412,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-R"		=> 11420,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R"		=> 11421,
-    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R"		=> 21421,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60_-R"		=> 11422,
-    "udpbench_-l36_-t10_-r_ot13_send_10.3.0.33"		=> 11511,
-    "udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32"		=> 11512,
-    "udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33"	=> 11521,
-    "udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32"	=> 11522,
-    "udpbench_-l36_-t10_-r_ot15_send_10.3.2.35"		=> 21511,
-    "udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34"		=> 21512,
-    "udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35"	=> 21521,
-    "udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34"	=> 21522,
-    "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> 40004,
-    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 40008,
-    "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> 50008,
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10"		=> 11413,
+    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10"		=> 21413,
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R"		=> 11423,
+    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R"		=> 21423,
+    "udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33"	=> 11511,
+    "udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32"	=> 11521,
+    "udpbench_-l36_-t10_-r_ot13_send_10.3.0.33"		=> 11531,
+    "udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32"		=> 11541,
+    "udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35"	=> 21511,
+    "udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34"	=> 21521,
+    "udpbench_-l36_-t10_-r_ot15_send_10.3.2.35"		=> 21531,
+    "udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34"		=> 21541,
+    "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> 40040,
+    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> 40080,
+    "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> 50080,
 );
 my %testorder = @testorder;
 warn "testorder keys not unique" if 2 * keys %testorder != @testorder;
