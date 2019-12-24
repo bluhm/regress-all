@@ -404,7 +404,10 @@ foreach my $dd (values %d) {
 #   xxxx1 10 secondes timeout
 #   xxxx2 60 secondes timeout
 #   xxxx3 iperf udp bandwidth 10G
+#   xxxx3 iperf tcp window 1m
 #   xxxx4 iperf tcp window 2m
+#   xxxx5 iperf tcp window 400k
+#   xxxx6 iperf tcp window 410k
 my @testorder = (
     "iperf3_-c10.3.0.33_-w1m_-t10"				=> 11111,
     "iperf3_-c10.3.2.35_-w1m_-t10"				=> 21111,
@@ -418,6 +421,30 @@ my @testorder = (
     "iperf3_-cfdd7:e83e:66bc:0300::33_-w1m_-t10_-R"		=> 12121,
     "iperf3_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R"		=> 22121,
     "iperf3_-cfdd7:e83e:66bc:0300::33_-w1m_-t60_-R"		=> 12122,
+    "iperf3_-c10.3.3.36_-t10"					=> 31111,
+    "iperf3_-c10.3.3.36_-t60"					=> 31112,
+    "iperf3_-c10.3.3.36_-w1m_-t10"				=> 31113,
+    "iperf3_-c10.3.3.36_-w2m_-t10"				=> 31114,
+    "iperf3_-c10.3.3.36_-w400k_-t10"				=> 31115,
+    "iperf3_-c10.3.3.36_-w410_-t10"				=> 31116,
+    "iperf3_-c10.3.3.36_-t10_-R"				=> 31121,
+    "iperf3_-c10.3.3.36_-t60_-R"				=> 31122,
+    "iperf3_-c10.3.3.36_-w1m_-t10_-R"				=> 31123,
+    "iperf3_-c10.3.3.36_-w2m_-t10_-R"				=> 31124,
+    "iperf3_-c10.3.3.36_-w400k_-t10_-R"				=> 31125,
+    "iperf3_-c10.3.3.36_-w410_-t10_-R"				=> 31126,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-t10"			=> 32111,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-t60"			=> 32112,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-w1m_-t10"		=> 32113,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-w2m_-t10"		=> 32114,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-w400k-t10"		=> 32115,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-w410k-t10"		=> 32116,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-t10_-R"			=> 32121,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-t60_-R"			=> 32122,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-w1m_-t10_-R"		=> 32123,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R"		=> 32124,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-w400k-t10_-R"		=> 32125,
+    "iperf3_-cfdd7:e83e:66bc:0303::36_-w410k-t10_-R"		=> 32126,
     "tcpbench_-S1000000_-t10_10.3.0.33"				=> 11211,
     "tcpbench_-S1000000_-t10_10.3.2.35"				=> 21211,
     "tcpbench_-S1000000_-t60_10.3.0.33"				=> 11212,
