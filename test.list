@@ -30,6 +30,7 @@ lib/libssl
 lib/libtls
 lib/libusbhid
 lib/libutil
+libexec/ftpd
 libexec/ld.so
 misc/X11
 misc/c++abi
@@ -243,6 +244,7 @@ usr.sbin/httpd
 usr.sbin/ifstated
 usr.sbin/ldapd
 usr.sbin/mtree
+usr.sbin/ospf6d
 usr.sbin/ospfd
 usr.sbin/pkg_add
 usr.sbin/rebound
