@@ -514,7 +514,9 @@ BEGIN {
     }
 }
 foreach my $test (keys %t) {
-    warn "testorder missing test $test\n" unless $testorder{$test};
+    next if $testorder{$test};
+    warn "testorder missing test $test\n";
+    $testorder{$test} = 0;
 }
 my @tests = reverse sort { $testorder{$b} <=> $testorder{$a} } keys %t;
 my @dates = reverse sort keys %d;
