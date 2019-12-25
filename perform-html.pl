@@ -618,7 +618,7 @@ HEADER
 		or next;
 	    print $html "  <tr>\n    <th>$test</th>\n";
 	    foreach my $repeat (@repeats) {
-		my $status = $td->{$repeat}{status} || "";
+		my $status = $td->{$repeat} ? $td->{$repeat}{status} : "";
 		my $class = " class=\"result $status\"";
 		my $message = encode_entities($td->{$repeat}{message});
 		my $title = $message ? " title=\"$message\"" : "";
@@ -662,7 +662,7 @@ HEADER
 		    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
 		}
 		foreach my $repeat (@repeats) {
-		    my $status = $td->{$repeat}{status} || "";
+		    my $status = $td->{$repeat} ? $td->{$repeat}{status} : "";
 		    if ($status ne 'PASS') {
 			print $html "    <td></td>\n";
 			next;
@@ -886,7 +886,7 @@ HEADER
 	my $td = $t{$test}{$date} or next;
 	print $html "  <tr>\n    <th>$test</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    my $status = $td->{$cvsdate}{status} || "";
+	    my $status = $td->{$cvsdate} ? $td->{$cvsdate}{status} : "";
 	    my $class = " class=\"result $status\"";
 	    my $message = encode_entities($td->{$cvsdate}{message});
 	    my $title = $message ? " title=\"$message\"" : "";
@@ -944,7 +944,7 @@ HEADER
 		$outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
 	    }
 	    foreach my $cvsdate (@cvsdates) {
-		my $status = $td->{$cvsdate}{status} || "";
+		my $status = $td->{$cvsdate} ? $td->{$cvsdate}{status} : "";
 		if ($status ne 'PASS' && !$rp0) {
 		    print $html "    <td></td>\n";
 		    next;
@@ -1124,7 +1124,7 @@ print $html "  </tr>\n";
 foreach my $test (@tests) {
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $date (@dates) {
-	my $status = $t{$test}{$date}{status} || "";
+	my $status = $t{$test}{$date} ? $t{$test}{$date}{status} : "";
 	my $class = " class=\"result $status\"";
 	my $message = encode_entities($t{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
