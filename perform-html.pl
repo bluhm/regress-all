@@ -152,7 +152,7 @@ foreach my $result (@results) {
 		status => $status,
 		message => $message,
 	    };
-	    if (($t{$test}{$date}{$cvsdate}{severity} || 0 ) < $severity) {
+	    if (($t{$test}{$date}{$cvsdate}{severity} || 0) < $severity) {
 		$t{$test}{$date}{$cvsdate}{status} = $status;
 		$t{$test}{$date}{$cvsdate}{severity} = $severity;
 	    }
@@ -167,7 +167,7 @@ foreach my $result (@results) {
 	    };
 	}
 	undef @values;
-	if ($t{$test}{$date} && $t{$test}{$date}{severity} < $severity) {
+	if (($t{$test}{$date}{severity} || 0) < $severity) {
 	    $t{$test}{$date}{status} = $status;
 	    $t{$test}{$date}{severity} = $severity;
 	}
