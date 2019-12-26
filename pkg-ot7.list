@@ -30,5 +30,6 @@ rsyslog
 scapy
 sudo--
 sysclean
+ucspi-tcp
 wycheproof-testvectors
 xz
