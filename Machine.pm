@@ -234,8 +234,8 @@ sub get_bsdnm {
     logmsg "Command '@sshcmd' started\n";
     open(my $nm, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
-    open(my $fh, '>', "bsd-$host.nm")
-	or die "Open 'bsd-$host.nm' for writing failed: $!";
+    open(my $fh, '>', "nm-bsd-$host.txt")
+	or die "Open 'nm-bsd-$host.txt' for writing failed: $!";
     print $fh sort <$nm>;
     close($nm) or die $! ?
 	"Close pipe from '@sshcmd' failed: $!" :
