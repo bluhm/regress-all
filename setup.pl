@@ -38,12 +38,12 @@ usage: $0 [-v] [-d date] -h host [-r release] mode ...
     -r release	use release for install and cvs checkout, X.Y or current
     -v		verbose
     build	build system from source /usr/src
+    commands	run commands needed for some tests
     cvs		clean cvs update /usr/src and make obj
     install	install from snapshot
     kernel	build kernel from source /usr/src/sys
     keep	only copy version and scripts
     tools	build and install tools needed for some tests
-    commands	run commands needed for some tests
     upgrade	upgrade with snapshot
 EOF
     exit(2);
@@ -52,7 +52,7 @@ $opts{h} or die "No -h specified";
 my $date = $opts{d};
 
 my %allmodes;
-@allmodes{qw(build cvs install kernel keep tools commands upgrade)} = ();
+@allmodes{qw(build commands cvs install kernel keep tools upgrade)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
