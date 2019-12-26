@@ -208,13 +208,13 @@ sub build_tools {
 # run addtitional commands
 
 sub run_commands {
-    return unless -f "$bindir/run-$host.list";
+    return unless -f "$bindir/cmd-$host.list";
 
-    open(my $fh, '<', "$bindir/run-$host.list")
-	or die "Open '$bindir/run-$host.list' for reading failed: $!";
+    open(my $fh, '<', "$bindir/cmd-$host.list")
+	or die "Open '$bindir/cmd-$host.list' for reading failed: $!";
     chomp(my @commands = <$fh>);
     close($fh)
-	or die "Close '$bindir/run-$host.list' after reading failed: $!";
+	or die "Close '$bindir/cmd-$host.list' after reading failed: $!";
 
     foreach my $run (@commands) {
 	logcmd('ssh', "$user\@$host", $run);
