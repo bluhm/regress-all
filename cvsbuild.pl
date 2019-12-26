@@ -124,21 +124,3 @@ get_version();
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' finished at $date\n");
-
-exit;
-
-# get name list of kernel, addresses influence performance
-
-sub get_bsdnm {
-    my @sshcmd = ('ssh', "$user\@$host", 'nm', '/bsd');
-    logmsg "Command '@sshcmd' started\n";
-    open(my $nm, '-|', @sshcmd)
-        or die "Open pipe from '@sshcmd' failed: $!";
-    open(my $fh, '>', "bsd-$host.nm")
-        or die "Open 'bsd-$host.nm' for writing failed: $!";
-    print $fh sort <$nm>;
-    close($nm) or die $! ?
-        "Close pipe from '@sshcmd' failed: $!" :
-        "Command '@sshcmd' failed: $?";
-    logmsg "Command '@sshcmd' finished\n";
-}

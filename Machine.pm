@@ -30,6 +30,7 @@ our @EXPORT= qw(createhost reboot
     checkout_cvs update_cvs diff_cvs
     make_kernel make_build
     align_kernel gap_kernel sort_kernel reorder_kernel
+    get_bsdnm
 );
 
 # XXX explicit IP address in source code
@@ -224,6 +225,22 @@ sub reorder_kernel {
     logcmd('ssh', "$user\@$host", "/usr/libexec/reorder_kernel");
     logcmd('ssh', "$user\@$host", "cat /var/db/kernel.SHA256");
     logcmd('ssh', "$user\@$host", "rm /var/db/kernel.SHA256");
+}
+
+# get name list of kernel, addresses influence performance
+
+sub get_bsdnm {
+    my @sshcmd = ('ssh', "$user\@$host", 'nm', '/bsd');
+    logmsg "Command '@sshcmd' started\n";
+    open(my $nm, '-|', @sshcmd)
+	or die "Open pipe from '@sshcmd' failed: $!";
+    open(my $fh, '>', "bsd-$host.nm")
+	or die "Open 'bsd-$host.nm' for writing failed: $!";
+    print $fh sort <$nm>;
+    close($nm) or die $! ?
+	"Close pipe from '@sshcmd' failed: $!" :
+	"Command '@sshcmd' failed: $?";
+    logmsg "Command '@sshcmd' finished\n";
 }
 
 1;
