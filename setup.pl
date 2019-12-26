@@ -43,6 +43,7 @@ usage: $0 [-v] [-d date] -h host [-r release] mode ...
     kernel	build kernel from source /usr/src/sys
     keep	only copy version and scripts
     tools	build and install tools needed for some tests
+    commands	run commands needed for some tests
     upgrade	upgrade with snapshot
 EOF
     exit(2);
@@ -51,7 +52,7 @@ $opts{h} or die "No -h specified";
 my $date = $opts{d};
 
 my %allmodes;
-@allmodes{qw(build cvs install kernel keep tools upgrade)} = ();
+@allmodes{qw(build cvs install kernel keep tools commands upgrade)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
@@ -99,6 +100,7 @@ reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
 install_packages($release) if $mode{install} || $mode{upgrade};
 build_tools() if $mode{install} || $mode{upgrade} || $mode{tools};
+run_commands() if $mode{install} || $mode{upgrade} || $mode{commands};
 
 # finish setup log
 
@@ -200,5 +202,21 @@ sub build_tools {
     foreach my $build (@tools) {
 	logcmd('ssh', "$user\@$host", 'make', '-C', "/root/$build", 'all');
 	logcmd('ssh', "$user\@$host", 'make', '-C', "/root/$build", 'install');
+    }
+}
+
+# run addtitional commands
+
+sub run_commands {
+    return unless -f "$bindir/run-$host.list";
+
+    open(my $fh, '<', "$bindir/run-$host.list")
+	or die "Open '$bindir/run-$host.list' for reading failed: $!";
+    chomp(my @commands = <$fh>);
+    close($fh)
+	or die "Close '$bindir/run-$host.list' after reading failed: $!";
+
+    foreach my $run (@commands) {
+	logcmd('ssh', "$user\@$host", $run);
     }
 }
