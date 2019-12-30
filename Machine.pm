@@ -68,8 +68,8 @@ sub get_version {
     logmsg "Command '@sshcmd' started\n";
     open(my $ctl, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
-    open(my $version, '>', "version-$host.txt")
-	or die "Open 'version-$host.txt' for writing failed: $!";
+    open(my $version, '>', "version-$host.txt.new")
+	or die "Open 'version-$host.txt.new' for writing failed: $!";
     %sysctl = ();
     my $prevkey;
     local $_;
@@ -86,6 +86,10 @@ sub get_version {
 	"Close pipe from '@sshcmd' failed: $!" :
 	"Command '@sshcmd' failed: $?";
     logmsg "Command '@sshcmd' finished\n";
+    close($version)
+	or die "Close 'version-$host.txt.new' after writing failed: $!";
+    rename("version-$host.txt.new", "version-$host.txt") or
+	die "Rename 'version-$host.txt.new' to 'version-$host.txt' failed: $!";
     return %sysctl;
 }
 
