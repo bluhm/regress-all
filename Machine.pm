@@ -123,8 +123,8 @@ sub diff_cvs {
     logmsg "Command '@sshcmd' started\n";
     open(my $cvs, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
-    open(my $diff, '>', "diff-$host.txt")
-	or die "Open 'diff-$host.txt' for writing failed: $!";
+    open(my $diff, '>', "diff-$host.txt.new")
+	or die "Open 'diff-$host.txt.new' for writing failed: $!";
     local $_;
     while (<$cvs>) {
 	print $diff $_;
@@ -135,6 +135,10 @@ sub diff_cvs {
 	die "Command '@sshcmd' failed: $?" if $? != 0 && $? != (1<<8);
     };
     logmsg "Command '@sshcmd' finished\n";
+    close($diff)
+	or die "Close 'diff-$host.txt.new' after writing failed: $!";
+    rename("diff-$host.txt.new", "diff-$host.txt")
+	or die "Rename 'diff-$host.txt.new' to 'diff-$host.txt' failed: $!";
 }
 
 # make /usr/src
