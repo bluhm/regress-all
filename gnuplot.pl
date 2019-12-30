@@ -144,7 +144,7 @@ print $html "<!DOCTYPE html>
 	}
 	label {
 	    display: inherit;
-	    width: calc(33vw - 28px);
+	    width: calc(33vw - 30px);
 	    align-items: center;
 	}
 	.key {
