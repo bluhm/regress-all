@@ -413,8 +413,8 @@ foreach my $date (@dates) {
     th { text-align: left; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0}
     td.PASS {background-color: #80ff80;}
-    td.FAIL {background-color: #ff8080;}
     td.SKIP {background-color: #8080ff;}
+    td.FAIL {background-color: #ff8080;}
     td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
     td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
     td.result, td.result a {color: black;}
@@ -610,8 +610,8 @@ foreach my $date (@dates) {
     th { text-align: left; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0}
     td.PASS {background-color: #80ff80;}
-    td.FAIL {background-color: #ff8080;}
     td.SKIP {background-color: #8080ff;}
+    td.FAIL {background-color: #ff8080;}
     td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
     td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
     td.result, td.result a {color: black;}
@@ -917,8 +917,8 @@ print $html <<"HEADER";
     th { text-align: left; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0}
     td.PASS {background-color: #80ff80;}
-    td.FAIL {background-color: #ff8080;}
     td.SKIP {background-color: #8080ff;}
+    td.FAIL {background-color: #ff8080;}
     td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
     td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
     td.result, td.result a {color: black;}
@@ -1087,6 +1087,7 @@ rename("$htmlfile.gz.new", "$htmlfile.gz")
 
 exit;
 
+# fill global hashes %t %d %v
 sub parse_result_files {
     foreach my $result (@_) {
 
@@ -1146,7 +1147,7 @@ sub parse_result_files {
 	    }
 	    my $severity =
 		$status eq 'PASS'   ? 1 :
-		$status eq 'SKIP'   ? 2 :
+		$status eq 'SKIP'   ? 3 :
 		$status eq 'FAIL'   ? 5 :
 		$status eq 'NOEXIT' ? 6 :
 		$status eq 'NOTERM' ? 7 :

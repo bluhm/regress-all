@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # convert all test results to a html table
 
-# Copyright (c) 2016-2017 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2019 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -250,6 +250,7 @@ rename("$htmlfile.gz.new", "$htmlfile.gz")
 
 exit;
 
+# fill global hashes %t %d
 sub parse_result_files {
     foreach my $result (@_) {
 
@@ -296,7 +297,7 @@ sub parse_result_files {
 	# parse version file
 	if ($host && ! -f "$date/version-$host.txt") {
 	    # if host is specified, only print result for this one
-	    delete $d{$date} if $host;
+	    delete $d{$date};
 	    next;
 	}
 	foreach my $version (sort glob("$date/version-*.txt")) {
@@ -322,6 +323,7 @@ sub parse_result_files {
 		    $d{$date}{location} = $1;
 		}
 		/^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
+		/^hw.ncpu=(\d+)$/ and $d{$date}{core} ||= $1;
 	    }
 	    $d{$date}{build} =
 		$d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
