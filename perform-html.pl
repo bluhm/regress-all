@@ -80,44 +80,7 @@ foreach my $plot (@plots) {
 	and die "Command '@cmd' failed: $?";
 }
 
-# create cvs log file with commits after previous cvsdates
-
-foreach my $dd (values %d) {
-    my %cvsdates;
-    @cvsdates{@{$dd->{cvsdates}}} = ();
-    @{$dd->{cvsdates}} = sort keys %cvsdates;
-    my $cvsprev;
-    foreach my $cvsdate (@{$dd->{cvsdates}}) {
-	if ($cvsprev) {
-	    my $cvslog = "cvslog/src/sys/$cvsprev--$cvsdate";
-	    unless (-f "$cvslog.txt") {
-		my @cmd = ("$performdir/bin/cvslog.pl",
-		    "-B", $cvsprev, "-E", $cvsdate, "-P", "src/sys");
-		system(@cmd)
-		    and die "Command '@cmd' failed: $?";
-	    }
-	    if (open (my $fh, '<', "$cvslog.txt")) {
-		$dd->{$cvsdate}{cvslog} = "$cvslog.txt";
-		$dd->{$cvsdate}{cvscommits} = 0;
-		while (<$fh>) {
-		    chomp;
-		    my ($k, @v) = split(/\s+/)
-			or next;
-		    $dd->{$cvsdate}{cvscommits}++ if $k eq 'DATE';
-		    push @{$dd->{$cvsdate}{cvsfiles}}, @v if $k eq 'FILES';
-		}
-	    } else {
-		$!{ENOENT}
-		    or die "Open '$cvslog.txt' for reading failed: $!";
-	    }
-	    if (-f "$cvslog.html") {
-		# If html is available, use its niceer display in link.
-		$dd->{$cvsdate}{cvslog} = "$cvslog.html";
-	    }
-	}
-	$cvsprev = $cvsdate;
-    }
-}
+create_cvslog_files();
 
 my %testorder;
 # explain most significant to least significant digits
@@ -1200,5 +1163,45 @@ sub write_data_files {
 	    or die "Close '$datafile.new' after writing failed: $!";
 	rename("$datafile.new", $datafile)
 	    or die "Rename '$datafile.new' to '$datafile' failed: $!";
+    }
+}
+
+# create cvs log file with commits after previous cvsdates
+sub create_cvslog_files {
+    foreach my $dd (values %d) {
+	my %cvsdates;
+	@cvsdates{@{$dd->{cvsdates}}} = ();
+	@{$dd->{cvsdates}} = sort keys %cvsdates;
+	my $cvsprev;
+	foreach my $cvsdate (@{$dd->{cvsdates}}) {
+	    if ($cvsprev) {
+		my $cvslog = "cvslog/src/sys/$cvsprev--$cvsdate";
+		unless (-f "$cvslog.txt") {
+		    my @cmd = ("$performdir/bin/cvslog.pl",
+			"-B", $cvsprev, "-E", $cvsdate, "-P", "src/sys");
+		    system(@cmd)
+			and die "Command '@cmd' failed: $?";
+		}
+		if (open (my $fh, '<', "$cvslog.txt")) {
+		    $dd->{$cvsdate}{cvslog} = "$cvslog.txt";
+		    $dd->{$cvsdate}{cvscommits} = 0;
+		    while (<$fh>) {
+			chomp;
+			my ($k, @v) = split(/\s+/)
+			    or next;
+			$dd->{$cvsdate}{cvscommits}++ if $k eq 'DATE';
+			push @{$dd->{$cvsdate}{cvsfiles}}, @v if $k eq 'FILES';
+		    }
+		} else {
+		    $!{ENOENT}
+			or die "Open '$cvslog.txt' for reading failed: $!";
+		}
+		if (-f "$cvslog.html") {
+		    # If html is available, use its nicer display in link.
+		    $dd->{$cvsdate}{cvslog} = "$cvslog.html";
+		}
+	    }
+	    $cvsprev = $cvsdate;
+	}
     }
 }
