@@ -61,27 +61,10 @@ my (%t, %d, %v);
 parse_result_files(@result_files);
 
 write_data_files() unless $opts{h};
-
-# create gnuplot graphs for all runs
-
-my @plots = list_plots();
-foreach my $plot (@plots) {
-    foreach my $date (keys %v) {
-	my $outfile = "$date-$plot.html";
-	if ($opts{g} || ! -f "gnuplot/$outfile") {
-	    my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
-		"-T", "$plot");
-	    system(@cmd)
-		and die "Command '@cmd' failed: $?";
-	}
-    }
-    my @cmd = ("$performdir/bin/gnuplot.pl", "-T", "$plot");
-    system(@cmd)
-	and die "Command '@cmd' failed: $?";
-}
-
+create_gnuplot_files();
 create_cvslog_files();
 
+my @plots = list_plots();
 my @tests = list_tests();
 my @dates = list_dates();
 
@@ -1191,6 +1174,24 @@ sub list_tests {
 
 sub list_dates {
     return reverse sort keys %d;
+}
+
+# create gnuplot graphs for all runs
+sub create_gnuplot_files {
+    foreach my $plot (list_plots()) {
+	foreach my $date (keys %v) {
+	    my $outfile = "$date-$plot.html";
+	    if ($opts{g} || ! -f "gnuplot/$outfile") {
+		my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
+		    "-T", "$plot");
+		system(@cmd)
+		    and die "Command '@cmd' failed: $?";
+	    }
+	}
+	my @cmd = ("$performdir/bin/gnuplot.pl", "-T", "$plot");
+	system(@cmd)
+	    and die "Command '@cmd' failed: $?";
+    }
 }
 
 # create cvs log file with commits after previous cvsdates
