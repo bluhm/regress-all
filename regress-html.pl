@@ -47,7 +47,7 @@ chdir($dir)
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
 
-my @results;
+my @result_files;
 if ($opts{l}) {
     my @latest;
     if ($host) {
@@ -57,89 +57,14 @@ if ($opts{l}) {
     } else {
 	@latest = glob("latest-*/test.result");
     }
-    @results = map { (readlink(dirname($_))
+    @result_files = map { (readlink(dirname($_))
 	or die "Readlink latest '$_' failed: $!") . "/test.result" } @latest;
 } else {
-    @results = sort glob("*/test.result");
+    @result_files = sort glob("*/test.result");
 }
 
 my (%t, %d);
-foreach my $result (@results) {
-
-    # parse result file
-    my ($date, $short) = $result =~ m,((.+)T.+)/test.result,
-	or next;
-    $d{$date} = {
-	short => $short,
-	result => $result,
-    };
-    $d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
-    $_->{severity} *= .5 foreach values %t;
-    my ($total, $pass) = (0, 0);
-    open(my $fh, '<', $result)
-	or die "Open '$result' for reading failed: $!";
-    while (<$fh>) {
-	chomp;
-	my ($status, $test, $message) = split(" ", $_, 3);
-	$t{$test}{$date}
-	    and warn "Duplicate test '$test' at date '$date'";
-	$t{$test}{$date} = {
-	    status => $status,
-	    message => $message,
-	};
-	my $severity =
-	    $status eq 'PASS'   ? 1 :
-	    $status eq 'XFAIL'  ? 2 :
-	    $status eq 'SKIP'   ? 3 :
-	    $status eq 'XPASS'  ? 4 :
-	    $status eq 'FAIL'   ? 5 :
-	    $status eq 'NOEXIT' ? 6 :
-	    $status eq 'NOTERM' ? 7 :
-	    $status eq 'NORUN'  ? 8 : 10;
-	$t{$test}{severity} += $severity;
-	$total++ unless $status eq 'SKIP' || $status eq 'XFAIL';
-	$pass++ if $status eq 'PASS';
-	my $logfile = dirname($result). "/logs/$test/make.log";
-	$t{$test}{$date}{logfile} = $logfile if -f $logfile;
-    }
-    close($fh)
-	or die "Close '$result' after reading failed: $!";
-    $d{$date}{pass} = $pass / $total if $total;
-
-    # parse version file
-    if ($host && ! -f "$date/version-$host.txt") {
-	# if host is specified, only print result for this one
-	delete $d{$date} if $host;
-	next;
-    }
-    foreach my $version (sort glob("$date/version-*.txt")) {
-	$version =~ m,/version-(.+)\.txt$,;
-	my $hostname = $1;
-
-	next if $d{$date}{version};
-	$d{$date}{version} = $version;
-	$d{$date}{host} ||= $hostname;
-	(my $dmesg = $version) =~ s,/version-,/dmesg-,;
-	$d{$date}{dmesg} ||= $dmesg if -f $dmesg;
-	(my $diff = $version) =~ s,/version-,/diff-,;
-	$d{$date}{diff} ||= $diff if -f $diff;
-
-	open($fh, '<', $version)
-	    or die "Open '$version' for reading failed: $!";
-	while (<$fh>) {
-	    if (/^kern.version=(.*: (\w+ \w+ +\d+ .*))$/) {
-		$d{$date}{kernel} = $1;
-		$d{$date}{time} = $2;
-		<$fh> =~ /(\S+)/;
-		$d{$date}{kernel} .= "\n    $1";
-		$d{$date}{location} = $1;
-	    }
-	    /^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
-	}
-	$d{$date}{build} = $d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
-	    "snapshot" : "custom";
-    }
-}
+parse_result_files(@result_files);
 
 my $htmlfile = $opts{l} ? "latest" : "regress";
 $htmlfile .= "-$host" if $host;
@@ -322,3 +247,85 @@ system("gzip -f -c $htmlfile >$htmlfile.gz.new")
     and die "gzip $htmlfile failed: $?";
 rename("$htmlfile.gz.new", "$htmlfile.gz")
     or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+
+exit;
+
+sub parse_result_files {
+    foreach my $result (@_) {
+
+	# parse result file
+	my ($date, $short) = $result =~ m,((.+)T.+)/test.result,
+	    or next;
+	$d{$date} = {
+	    short => $short,
+	    result => $result,
+	};
+	$d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
+	$_->{severity} *= .5 foreach values %t;
+	my ($total, $pass) = (0, 0);
+	open(my $fh, '<', $result)
+	    or die "Open '$result' for reading failed: $!";
+	while (<$fh>) {
+	    chomp;
+	    my ($status, $test, $message) = split(" ", $_, 3);
+	    $t{$test}{$date}
+		and warn "Duplicate test '$test' at date '$date'";
+	    $t{$test}{$date} = {
+		status => $status,
+		message => $message,
+	    };
+	    my $severity =
+		$status eq 'PASS'   ? 1 :
+		$status eq 'XFAIL'  ? 2 :
+		$status eq 'SKIP'   ? 3 :
+		$status eq 'XPASS'  ? 4 :
+		$status eq 'FAIL'   ? 5 :
+		$status eq 'NOEXIT' ? 6 :
+		$status eq 'NOTERM' ? 7 :
+		$status eq 'NORUN'  ? 8 : 10;
+	    $t{$test}{severity} += $severity;
+	    $total++ unless $status eq 'SKIP' || $status eq 'XFAIL';
+	    $pass++ if $status eq 'PASS';
+	    my $logfile = dirname($result). "/logs/$test/make.log";
+	    $t{$test}{$date}{logfile} = $logfile if -f $logfile;
+	}
+	close($fh)
+	    or die "Close '$result' after reading failed: $!";
+	$d{$date}{pass} = $pass / $total if $total;
+
+	# parse version file
+	if ($host && ! -f "$date/version-$host.txt") {
+	    # if host is specified, only print result for this one
+	    delete $d{$date} if $host;
+	    next;
+	}
+	foreach my $version (sort glob("$date/version-*.txt")) {
+	    $version =~ m,/version-(.+)\.txt$,;
+	    my $hostname = $1;
+
+	    next if $d{$date}{version};
+	    $d{$date}{version} = $version;
+	    $d{$date}{host} ||= $hostname;
+	    (my $dmesg = $version) =~ s,/version-,/dmesg-,;
+	    $d{$date}{dmesg} ||= $dmesg if -f $dmesg;
+	    (my $diff = $version) =~ s,/version-,/diff-,;
+	    $d{$date}{diff} ||= $diff if -f $diff;
+
+	    open($fh, '<', $version)
+		or die "Open '$version' for reading failed: $!";
+	    while (<$fh>) {
+		if (/^kern.version=(.*: (\w+ \w+ +\d+ .*))$/) {
+		    $d{$date}{kernel} = $1;
+		    $d{$date}{time} = $2;
+		    <$fh> =~ /(\S+)/;
+		    $d{$date}{kernel} .= "\n    $1";
+		    $d{$date}{location} = $1;
+		}
+		/^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
+	    }
+	    $d{$date}{build} =
+		$d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
+		"snapshot" : "custom";
+	}
+    }
+}

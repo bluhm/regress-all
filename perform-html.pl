@@ -55,7 +55,7 @@ chdir($dir)
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
 
-my @results;
+my @result_files;
 if ($opts{l}) {
     my @latest;
     if ($host) {
@@ -73,147 +73,14 @@ if ($opts{l}) {
 	    or die "Readlink latest '$ldir' failed: $!";
 	$_ = "$date/$res";
     }
-    @results = sort @latest;
+    @result_files = sort @latest;
 } else {
     # cvs checkout and repeated results
-    @results = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
+    @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 }
 
 my (%t, %d, %v);
-foreach my $result (@results) {
-
-    # parse result file
-    my ($date, $short, $cvsdate, $cvsshort, $repeat) =
-	$result =~ m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+)/)?test.result,
-	or next;
-    $d{$date}{short} ||= $short;
-    push @{$d{$date}{cvsdates} ||= []}, $cvsdate unless $d{$date}{$cvsdate};
-    $d{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
-    if (defined $repeat) {
-	push @{$d{$date}{$cvsdate}{repeats} ||= []}, $repeat;
-	$d{$date}{$cvsdate}{repeat}{$result} = $result;
-    } else {
-	$d{$date}{$cvsdate}{$result} = $result;
-    }
-    $d{$date}{log} ||= "step.log" if -f "$date/step.log";
-    unless ($d{$date}{stepconf}) {
-	my $stepfile = "$date/stepconf.txt";
-	if (open (my $fh, '<', $stepfile)) {
-	    while (<$fh>) {
-		chomp;
-		my ($k, $v) = split(/\s+/, $_, 2);
-		$d{$date}{stepconf}{lc($k)} = $v;
-	    }
-	} else {
-	    $!{ENOENT}
-		or die "Open '$stepfile' for reading failed: $!";
-	}
-    }
-    $d{$date}{setup} ||= "$date/setup.html" if -f "$date/setup.html";
-    $d{$date}{$cvsdate}{build} ||= "$date/$cvsdate/build.html"
-	if -f "$date/$cvsdate/build.html";
-    if (defined $repeat) {
-	$d{$date}{$cvsdate}{$repeat}{reboot} ||=
-	    "$date/$cvsdate/$repeat/reboot.html"
-	    if -f "$date/$cvsdate/$repeat/reboot.html";
-    }
-    $_->{severity} *= .5 foreach values %t;
-    open(my $fh, '<', $result)
-	or die "Open '$result' for reading failed: $!";
-    my @values;
-    while (<$fh>) {
-	chomp;
-	my ($status, $test, $message) = split(" ", $_, 3);
-	if ($status =~ /VALUE/) {
-	    next if $status =~ /SUBVALUE/;  # XXX not yet
-	    my (undef, $number, $unit, $name) = split(" ", $_, 4);
-	    $number =~ /^(\d+|\d*\.\d+)$/
-		or warn "Number '$number' for value '$name' is invalid";
-	    push @values, {
-		name => $name || "",
-		unit => $unit,
-		number => $number,
-	    };
-	    next;
-	}
-	my $severity =
-	    $status eq 'PASS'   ? 1 :
-	    $status eq 'SKIP'   ? 2 :
-	    $status eq 'FAIL'   ? 5 :
-	    $status eq 'NOEXIT' ? 6 :
-	    $status eq 'NOTERM' ? 7 :
-	    $status eq 'NORUN'  ? 8 : 10;
-	if (defined $repeat) {
-	    $v{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
-	    $t{$test}{$date}{$cvsdate}{$repeat}
-		and warn "Duplicate test '$test' date '$date' ".
-		    "cvsdate '$cvsdate' repeat '$repeat'";
-	    $t{$test}{$date}{$cvsdate}{$repeat} = {
-		status => $status,
-		message => $message,
-	    };
-	    if (($t{$test}{$date}{$cvsdate}{severity} || 0) < $severity) {
-		$t{$test}{$date}{$cvsdate}{status} = $status;
-		$t{$test}{$date}{$cvsdate}{severity} = $severity;
-	    }
-	} else {
-	    $v{$date}{$test}{$cvsdate} = [ @values ];
-	    $t{$test}{$date}{$cvsdate}
-		and warn "Duplicate test '$test' date '$date' ".
-		    "cvsdate '$cvsdate'";
-	    $t{$test}{$date}{$cvsdate} = {
-		status => $status,
-		message => $message,
-	    };
-	}
-	undef @values;
-	if (($t{$test}{$date}{severity} || 0) < $severity) {
-	    $t{$test}{$date}{status} = $status;
-	    $t{$test}{$date}{severity} = $severity;
-	}
-	$t{$test}{severity} += $severity;
-    }
-    close($fh)
-	or die "Close '$result' after reading failed: $!";
-
-    # parse version file
-    if ($host && ! -f "$date/$cvsdate/version-$host.txt") {
-	# if host is specified, only print result for this one
-	delete $d{$date};
-	next;
-    }
-    foreach my $version (sort glob("$date/$cvsdate/version-*.txt")) {
-	$version =~ m,/version-(.+)\.txt$,;
-	my $hostname = $1;
-
-	next if $d{$date}{$cvsdate}{$hostname};
-	push @{$d{$date}{$cvsdate}{hosts} ||= []}, $hostname;
-	$d{$date}{$cvsdate}{$hostname} = {};
-	$d{$date}{host} ||= $hostname;
-	(my $dmesg = $version) =~ s,/version-,/dmesg-,;
-	$d{$date}{$cvsdate}{$hostname}{dmesg} ||= $dmesg if -f $dmesg;
-
-	next if $d{$date}{$cvsdate}{version};
-	$d{$date}{$cvsdate}{version} = $version;
-	(my $quirks = $version) =~ s,/version-,/quirks-,;
-	$d{$date}{$cvsdate}{quirks} ||= $quirks if -f $quirks;
-
-	open($fh, '<', $version)
-	    or die "Open '$version' for reading failed: $!";
-	while (<$fh>) {
-	    if (/^kern.version=(.*(?:cvs : (\w+))?: (\w+ \w+ +\d+ .*))$/) {
-		$d{$date}{$cvsdate}{kernel} = $1;
-		$d{$date}{$cvsdate}{cvs} = $2;
-		$d{$date}{$cvsdate}{time} = $3;
-		<$fh> =~ /(\S+)/;
-		$d{$date}{$cvsdate}{kernel} .= "\n    $1";
-		$d{$date}{$cvsdate}{location} = $1;
-	    }
-	    /^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
-	    /^hw.ncpu=(\d+)$/ and $d{$date}{core} ||= $1;
-	}
-    }
-}
+parse_result_files(@result_files);
 
 # write test results into gnuplot data file
 
@@ -1217,3 +1084,142 @@ system("gzip -f -c $htmlfile >$htmlfile.gz.new")
     and die "gzip $htmlfile failed: $?";
 rename("$htmlfile.gz.new", "$htmlfile.gz")
     or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+
+exit;
+
+sub parse_result_files {
+    foreach my $result (@_) {
+
+	# parse result file
+	my ($date, $short, $cvsdate, $cvsshort, $repeat) =
+	    $result =~ m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+)/)?test.result,
+	    or next;
+	$d{$date}{short} ||= $short;
+	push @{$d{$date}{cvsdates} ||= []}, $cvsdate unless $d{$date}{$cvsdate};
+	$d{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
+	if (defined $repeat) {
+	    push @{$d{$date}{$cvsdate}{repeats} ||= []}, $repeat;
+	    $d{$date}{$cvsdate}{repeat}{$result} = $result;
+	} else {
+	    $d{$date}{$cvsdate}{$result} = $result;
+	}
+	$d{$date}{log} ||= "step.log" if -f "$date/step.log";
+	unless ($d{$date}{stepconf}) {
+	    my $stepfile = "$date/stepconf.txt";
+	    if (open (my $fh, '<', $stepfile)) {
+		while (<$fh>) {
+		    chomp;
+		    my ($k, $v) = split(/\s+/, $_, 2);
+		    $d{$date}{stepconf}{lc($k)} = $v;
+		}
+	    } else {
+		$!{ENOENT}
+		    or die "Open '$stepfile' for reading failed: $!";
+	    }
+	}
+	$d{$date}{setup} ||= "$date/setup.html" if -f "$date/setup.html";
+	$d{$date}{$cvsdate}{build} ||= "$date/$cvsdate/build.html"
+	    if -f "$date/$cvsdate/build.html";
+	if (defined $repeat) {
+	    $d{$date}{$cvsdate}{$repeat}{reboot} ||=
+		"$date/$cvsdate/$repeat/reboot.html"
+		if -f "$date/$cvsdate/$repeat/reboot.html";
+	}
+	$_->{severity} *= .5 foreach values %t;
+	open(my $fh, '<', $result)
+	    or die "Open '$result' for reading failed: $!";
+	my @values;
+	while (<$fh>) {
+	    chomp;
+	    my ($status, $test, $message) = split(" ", $_, 3);
+	    if ($status =~ /VALUE/) {
+		next if $status =~ /SUBVALUE/;  # XXX not yet
+		my (undef, $number, $unit, $name) = split(" ", $_, 4);
+		$number =~ /^(\d+|\d*\.\d+)$/
+		    or warn "Number '$number' for value '$name' is invalid";
+		push @values, {
+		    name => $name || "",
+		    unit => $unit,
+		    number => $number,
+		};
+		next;
+	    }
+	    my $severity =
+		$status eq 'PASS'   ? 1 :
+		$status eq 'SKIP'   ? 2 :
+		$status eq 'FAIL'   ? 5 :
+		$status eq 'NOEXIT' ? 6 :
+		$status eq 'NOTERM' ? 7 :
+		$status eq 'NORUN'  ? 8 : 10;
+	    if (defined $repeat) {
+		$v{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
+		$t{$test}{$date}{$cvsdate}{$repeat}
+		    and warn "Duplicate test '$test' date '$date' ".
+			"cvsdate '$cvsdate' repeat '$repeat'";
+		$t{$test}{$date}{$cvsdate}{$repeat} = {
+		    status => $status,
+		    message => $message,
+		};
+		if (($t{$test}{$date}{$cvsdate}{severity} || 0) < $severity) {
+		    $t{$test}{$date}{$cvsdate}{status} = $status;
+		    $t{$test}{$date}{$cvsdate}{severity} = $severity;
+		}
+	    } else {
+		$v{$date}{$test}{$cvsdate} = [ @values ];
+		$t{$test}{$date}{$cvsdate}
+		    and warn "Duplicate test '$test' date '$date' ".
+			"cvsdate '$cvsdate'";
+		$t{$test}{$date}{$cvsdate} = {
+		    status => $status,
+		    message => $message,
+		};
+	    }
+	    undef @values;
+	    if (($t{$test}{$date}{severity} || 0) < $severity) {
+		$t{$test}{$date}{status} = $status;
+		$t{$test}{$date}{severity} = $severity;
+	    }
+	    $t{$test}{severity} += $severity;
+	}
+	close($fh)
+	    or die "Close '$result' after reading failed: $!";
+
+	# parse version file
+	if ($host && ! -f "$date/$cvsdate/version-$host.txt") {
+	    # if host is specified, only print result for this one
+	    delete $d{$date};
+	    next;
+	}
+	foreach my $version (sort glob("$date/$cvsdate/version-*.txt")) {
+	    $version =~ m,/version-(.+)\.txt$,;
+	    my $hostname = $1;
+
+	    next if $d{$date}{$cvsdate}{$hostname};
+	    push @{$d{$date}{$cvsdate}{hosts} ||= []}, $hostname;
+	    $d{$date}{$cvsdate}{$hostname} = {};
+	    $d{$date}{host} ||= $hostname;
+	    (my $dmesg = $version) =~ s,/version-,/dmesg-,;
+	    $d{$date}{$cvsdate}{$hostname}{dmesg} ||= $dmesg if -f $dmesg;
+
+	    next if $d{$date}{$cvsdate}{version};
+	    $d{$date}{$cvsdate}{version} = $version;
+	    (my $quirks = $version) =~ s,/version-,/quirks-,;
+	    $d{$date}{$cvsdate}{quirks} ||= $quirks if -f $quirks;
+
+	    open($fh, '<', $version)
+		or die "Open '$version' for reading failed: $!";
+	    while (<$fh>) {
+		if (/^kern.version=(.*(?:cvs : (\w+))?: (\w+ \w+ +\d+ .*))$/) {
+		    $d{$date}{$cvsdate}{kernel} = $1;
+		    $d{$date}{$cvsdate}{cvs} = $2;
+		    $d{$date}{$cvsdate}{time} = $3;
+		    <$fh> =~ /(\S+)/;
+		    $d{$date}{$cvsdate}{kernel} .= "\n    $1";
+		    $d{$date}{$cvsdate}{location} = $1;
+		}
+		/^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
+		/^hw.ncpu=(\d+)$/ and $d{$date}{core} ||= $1;
+	    }
+	}
+    }
+}
