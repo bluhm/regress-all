@@ -82,154 +82,8 @@ foreach my $plot (@plots) {
 
 create_cvslog_files();
 
-my %testorder;
-# explain most significant to least significant digits
-# - 0xxxx type
-#   1xxxx network ot12/ot13
-#   2xxxx network ot14/ot15
-#   3xxxx network ot14/lt16
-#   4xxxx make kernel
-#   5xxxx file system
-# - x0xxx family
-#   x1xxx network IPv6
-#   x2xxx network IPv6
-# - xx0xx protocol
-#   xx1xx iperf tcp
-#   xx2xx tcpbench
-#   xx3xx iperf udp
-#   xx4xx iperf udp 10Gbit
-#   xx5xx udpbench
-# - xxx0x aspects
-#   xxx1x iperf forward direction
-#   xxx2x iperf reverse direction
-#   xxx1x tcpbench single connction
-#   xxx2x tcpbench 100 connections
-#   xxx1x udpbench send large packets
-#   xxx2x udpbench receive large packets
-#   xxx3x udpbench send small packets
-#   xxx4x udpbench receive small packets
-#   xxx4x 4 make processes
-#   xxx8x 8 make processes
-#   xxx8x 8 fs_mark threads
-# - xxxx0 tune
-#   xxxx1 10 secondes timeout
-#   xxxx2 60 secondes timeout
-#   xxxx3 iperf udp bandwidth 10G
-#   xxxx3 iperf tcp window 1m
-#   xxxx4 iperf tcp window 2m
-#   xxxx5 iperf tcp window 400k
-#   xxxx6 iperf tcp window 410k
-BEGIN {
-    # put testorder in begin block to check consistency during compile time
-    my @testorder = (
-    "iperf3_-c10.3.0.33_-w1m_-t10"				=> 11111,
-    "iperf3_-c10.3.2.35_-w1m_-t10"				=> 21111,
-    "iperf3_-c10.3.0.33_-w1m_-t60"				=> 11112,
-    "iperf3_-c10.3.0.33_-w1m_-t10_-R"				=> 11121,
-    "iperf3_-c10.3.2.35_-w1m_-t10_-R"				=> 21121,
-    "iperf3_-c10.3.0.33_-w1m_-t60_-R"				=> 11122,
-    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10"		=> 12111,
-    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10"		=> 22111,
-    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60"		=> 12112,
-    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10_-R"		=> 12121,
-    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R"		=> 22121,
-    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60_-R"		=> 12122,
-    "iperf3_-c10.3.3.36_-t10"					=> 31111,
-    "iperf3_-c10.3.3.36_-t60"					=> 31112,
-    "iperf3_-c10.3.3.36_-w1m_-t10"				=> 31113,
-    "iperf3_-c10.3.3.36_-w2m_-t10"				=> 31114,
-    "iperf3_-c10.3.3.36_-w400k_-t10"				=> 31115,
-    "iperf3_-c10.3.3.36_-w410k_-t10"				=> 31116,
-    "iperf3_-c10.3.3.36_-t10_-R"				=> 31121,
-    "iperf3_-c10.3.3.36_-t60_-R"				=> 31122,
-    "iperf3_-c10.3.3.36_-w1m_-t10_-R"				=> 31123,
-    "iperf3_-c10.3.3.36_-w2m_-t10_-R"				=> 31124,
-    "iperf3_-c10.3.3.36_-w400k_-t10_-R"				=> 31125,
-    "iperf3_-c10.3.3.36_-w410k_-t10_-R"				=> 31126,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10"			=> 32111,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60"			=> 32112,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10"		=> 32113,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10"		=> 32114,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10"		=> 32115,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10"		=> 32116,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10_-R"		=> 32121,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60_-R"		=> 32122,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10_-R"		=> 32123,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R"		=> 32124,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10_-R"		=> 32125,
-    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10_-R"		=> 32126,
-    "tcpbench_-S1000000_-t10_10.3.0.33"				=> 11211,
-    "tcpbench_-S1000000_-t10_10.3.2.35"				=> 21211,
-    "tcpbench_-S1000000_-t60_10.3.0.33"				=> 11212,
-    "tcpbench_-S1000000_-t10_-n100_10.3.0.33"			=> 11221,
-    "tcpbench_-S1000000_-t10_-n100_10.3.2.35"			=> 21221,
-    "tcpbench_-S1000000_-t60_-n100_10.3.0.33"			=> 11222,
-    "tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0300::33"		=> 12211,
-    "tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35"		=> 22211,
-    "tcpbench_-S1000000_-t60_fdd7:e83e:66bc:0300::33"		=> 12212,
-    "tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0300::33"	=> 12221,
-    "tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35"	=> 22221,
-    "tcpbench_-S1000000_-t60_-n100_fdd7:e83e:66bc:0300:33"	=> 12222,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10"			=> 11311,
-    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10"			=> 21311,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"			=> 11312,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R"			=> 11321,
-    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R"			=> 21321,
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"			=> 11322,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10"			=> 11413,
-    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10"			=> 21413,
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R"			=> 11423,
-    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R"			=> 21423,
-    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b0_-w1m_-t10"	=> 12311,
-    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b0_-w1m_-t10"	=> 22311,
-    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b0_-w1m_-t60"	=> 12312,
-    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b0_-w1m_-t10_-R"	=> 12321,
-    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b0_-w1m_-t10_-R"	=> 22321,
-    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b0_-w1m_-t60_-R"	=> 12322,
-    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10"	=> 12413,
-    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10"	=> 22413,
-    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10_-R"	=> 12423,
-    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R"	=> 22423,
-    "udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33"		=> 11511,
-    "udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32"		=> 11521,
-    "udpbench_-l36_-t10_-r_ot13_send_10.3.0.33"			=> 11531,
-    "udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32"			=> 11541,
-    "udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35"		=> 21511,
-    "udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34"		=> 21521,
-    "udpbench_-l36_-t10_-r_ot15_send_10.3.2.35"			=> 21531,
-    "udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34"			=> 21541,
-    "udpbench_-l1472_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33"	=> 12511,
-    "udpbench_-l1472_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32"	=> 12521,
-    "udpbench_-l36_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33"	=> 12531,
-    "udpbench_-l36_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32"	=> 12541,
-    "udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35"	=> 22511,
-    "udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34"	=> 22521,
-    "udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35"	=> 22531,
-    "udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34"	=> 22541,
-    "time_-lp_make_-CGENERIC.MP_-j4_-s"				=> 40040,
-    "time_-lp_make_-CGENERIC.MP_-j8_-s"				=> 40080,
-    "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"		=> 50080,
-    );
-    %testorder = @testorder;
-    if (2 * keys %testorder != @testorder) {
-	die "testorder keys not unique";
-    }
-    my %testvalues = reverse @testorder;
-    if (2 * keys %testvalues != @testorder) {
-	my %dup;
-	foreach (values %testorder) {
-	    warn "duplicate testorder value $_\n" if ++$dup{$_} > 1;
-	}
-	die "testorder values not unique";
-    }
-}
-foreach my $test (keys %t) {
-    next if $testorder{$test};
-    warn "testorder missing test $test\n";
-    $testorder{$test} = 0;
-}
-my @tests = reverse sort { $testorder{$b} <=> $testorder{$a} } keys %t;
-my @dates = reverse sort keys %d;
+my @tests = list_tests();
+my @dates = list_dates();
 
 # html per date per cvsdate with repetitions
 
@@ -1164,6 +1018,161 @@ sub write_data_files {
 	rename("$datafile.new", $datafile)
 	    or die "Rename '$datafile.new' to '$datafile' failed: $!";
     }
+}
+
+my %testorder;
+# explain most significant to least significant digits
+# - 0xxxx type
+#   1xxxx network ot12/ot13
+#   2xxxx network ot14/ot15
+#   3xxxx network ot14/lt16
+#   4xxxx make kernel
+#   5xxxx file system
+# - x0xxx family
+#   x1xxx network IPv6
+#   x2xxx network IPv6
+# - xx0xx protocol
+#   xx1xx iperf tcp
+#   xx2xx tcpbench
+#   xx3xx iperf udp
+#   xx4xx iperf udp 10Gbit
+#   xx5xx udpbench
+# - xxx0x aspects
+#   xxx1x iperf forward direction
+#   xxx2x iperf reverse direction
+#   xxx1x tcpbench single connction
+#   xxx2x tcpbench 100 connections
+#   xxx1x udpbench send large packets
+#   xxx2x udpbench receive large packets
+#   xxx3x udpbench send small packets
+#   xxx4x udpbench receive small packets
+#   xxx4x 4 make processes
+#   xxx8x 8 make processes
+#   xxx8x 8 fs_mark threads
+# - xxxx0 tune
+#   xxxx1 10 secondes timeout
+#   xxxx2 60 secondes timeout
+#   xxxx3 iperf udp bandwidth 10G
+#   xxxx3 iperf tcp window 1m
+#   xxxx4 iperf tcp window 2m
+#   xxxx5 iperf tcp window 400k
+#   xxxx6 iperf tcp window 410k
+BEGIN {
+    # put testorder in begin block to check consistency during compile time
+    my @testorder = (
+    "iperf3_-c10.3.0.33_-w1m_-t10"				=> 11111,
+    "iperf3_-c10.3.2.35_-w1m_-t10"				=> 21111,
+    "iperf3_-c10.3.0.33_-w1m_-t60"				=> 11112,
+    "iperf3_-c10.3.0.33_-w1m_-t10_-R"				=> 11121,
+    "iperf3_-c10.3.2.35_-w1m_-t10_-R"				=> 21121,
+    "iperf3_-c10.3.0.33_-w1m_-t60_-R"				=> 11122,
+    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10"		=> 12111,
+    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10"		=> 22111,
+    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60"		=> 12112,
+    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10_-R"		=> 12121,
+    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R"		=> 22121,
+    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60_-R"		=> 12122,
+    "iperf3_-c10.3.3.36_-t10"					=> 31111,
+    "iperf3_-c10.3.3.36_-t60"					=> 31112,
+    "iperf3_-c10.3.3.36_-w1m_-t10"				=> 31113,
+    "iperf3_-c10.3.3.36_-w2m_-t10"				=> 31114,
+    "iperf3_-c10.3.3.36_-w400k_-t10"				=> 31115,
+    "iperf3_-c10.3.3.36_-w410k_-t10"				=> 31116,
+    "iperf3_-c10.3.3.36_-t10_-R"				=> 31121,
+    "iperf3_-c10.3.3.36_-t60_-R"				=> 31122,
+    "iperf3_-c10.3.3.36_-w1m_-t10_-R"				=> 31123,
+    "iperf3_-c10.3.3.36_-w2m_-t10_-R"				=> 31124,
+    "iperf3_-c10.3.3.36_-w400k_-t10_-R"				=> 31125,
+    "iperf3_-c10.3.3.36_-w410k_-t10_-R"				=> 31126,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10"			=> 32111,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60"			=> 32112,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10"		=> 32113,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10"		=> 32114,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10"		=> 32115,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10"		=> 32116,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10_-R"		=> 32121,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60_-R"		=> 32122,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10_-R"		=> 32123,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R"		=> 32124,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10_-R"		=> 32125,
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10_-R"		=> 32126,
+    "tcpbench_-S1000000_-t10_10.3.0.33"				=> 11211,
+    "tcpbench_-S1000000_-t10_10.3.2.35"				=> 21211,
+    "tcpbench_-S1000000_-t60_10.3.0.33"				=> 11212,
+    "tcpbench_-S1000000_-t10_-n100_10.3.0.33"			=> 11221,
+    "tcpbench_-S1000000_-t10_-n100_10.3.2.35"			=> 21221,
+    "tcpbench_-S1000000_-t60_-n100_10.3.0.33"			=> 11222,
+    "tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0300::33"		=> 12211,
+    "tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35"		=> 22211,
+    "tcpbench_-S1000000_-t60_fdd7:e83e:66bc:0300::33"		=> 12212,
+    "tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0300::33"	=> 12221,
+    "tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35"	=> 22221,
+    "tcpbench_-S1000000_-t60_-n100_fdd7:e83e:66bc:0300:33"	=> 12222,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10"			=> 11311,
+    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10"			=> 21311,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"			=> 11312,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R"			=> 11321,
+    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R"			=> 21321,
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"			=> 11322,
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10"			=> 11413,
+    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10"			=> 21413,
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R"			=> 11423,
+    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R"			=> 21423,
+    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b0_-w1m_-t10"	=> 12311,
+    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b0_-w1m_-t10"	=> 22311,
+    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b0_-w1m_-t60"	=> 12312,
+    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b0_-w1m_-t10_-R"	=> 12321,
+    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b0_-w1m_-t10_-R"	=> 22321,
+    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b0_-w1m_-t60_-R"	=> 12322,
+    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10"	=> 12413,
+    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10"	=> 22413,
+    "iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10_-R"	=> 12423,
+    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R"	=> 22423,
+    "udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33"		=> 11511,
+    "udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32"		=> 11521,
+    "udpbench_-l36_-t10_-r_ot13_send_10.3.0.33"			=> 11531,
+    "udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32"			=> 11541,
+    "udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35"		=> 21511,
+    "udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34"		=> 21521,
+    "udpbench_-l36_-t10_-r_ot15_send_10.3.2.35"			=> 21531,
+    "udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34"			=> 21541,
+    "udpbench_-l1472_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33"	=> 12511,
+    "udpbench_-l1472_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32"	=> 12521,
+    "udpbench_-l36_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33"	=> 12531,
+    "udpbench_-l36_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32"	=> 12541,
+    "udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35"	=> 22511,
+    "udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34"	=> 22521,
+    "udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35"	=> 22531,
+    "udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34"	=> 22541,
+    "time_-lp_make_-CGENERIC.MP_-j4_-s"				=> 40040,
+    "time_-lp_make_-CGENERIC.MP_-j8_-s"				=> 40080,
+    "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"		=> 50080,
+    );
+    %testorder = @testorder;
+    if (2 * keys %testorder != @testorder) {
+	die "testorder keys not unique";
+    }
+    my %testvalues = reverse @testorder;
+    if (2 * keys %testvalues != @testorder) {
+	my %dup;
+	foreach (values %testorder) {
+	    warn "duplicate testorder value $_\n" if ++$dup{$_} > 1;
+	}
+	die "testorder values not unique";
+    }
+}
+
+sub list_tests {
+    foreach my $test (keys %t) {
+	next if $testorder{$test};
+	warn "testorder missing test $test\n";
+	$testorder{$test} = 0;
+    }
+    return reverse sort { $testorder{$b} <=> $testorder{$a} } keys %t;
+}
+
+sub list_dates {
+    return reverse sort keys %d;
 }
 
 # create cvs log file with commits after previous cvsdates
