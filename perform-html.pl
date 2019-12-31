@@ -34,12 +34,11 @@ use Buildquirks;
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('gh:l', \%opts) or do {
+getopts('gh:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-gl] [-h host]
+usage: $0 [-g] [-h host]
     -g		generate all gnuplot files, even if they already exist
     -h host	user and host for version information, user defaults to root
-    -l		create latest.html with one column of the latest results
 EOF
     exit(2);
 };
@@ -55,29 +54,8 @@ chdir($dir)
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
 
-my @result_files;
-if ($opts{l}) {
-    my @latest;
-    if ($host) {
-	@latest = (glob("latest-$host/*/test.result"),
-	    glob("latest-$host/*/*/test.result"));
-	-f $latest[0]
-	    or die "No latest test.result for $host";
-    } else {
-	@latest = (glob("latest-*/*/test.result"),
-	    glob("latest-*/*/*/test.result"));
-    }
-    foreach (@latest) {
-	my ($ldir, $res) = split("/", $_, 2);
-	my $date = readlink($ldir)
-	    or die "Readlink latest '$ldir' failed: $!";
-	$_ = "$date/$res";
-    }
-    @result_files = sort @latest;
-} else {
-    # cvs checkout and repeated results
-    @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
-}
+# cvs checkout and repeated results
+my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 
 my (%t, %d, %v);
 parse_result_files(@result_files);
@@ -129,7 +107,7 @@ my %testplot = (
     "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> "fs",
 );
 
-unless ($opts{l} || $opts{h}) {
+unless ($opts{h}) {
     -d "gnuplot" || mkdir "gnuplot"
 	or die "Create directory 'gnuplot' failed: $!";
     my $testdata = "gnuplot/test";
@@ -897,15 +875,14 @@ FOOTER
 
 # html with date
 
-my $htmlfile = $opts{l} ? "latest" : "perform";
+my $htmlfile = "perform";
 $htmlfile .= "-$host" if $host;
 $htmlfile .= ".html";
 unlink("$htmlfile.new");
 open(my $html, '>', "$htmlfile.new")
     or die "Open '$htmlfile.new' for writing failed: $!";
-my $htmltitle = $opts{l} ? "Latest" : "Test";
-my $bodytitle = $host ? ($opts{l} ? "latest $host" : $host) :
-    ($opts{l} ? "latest" : "all");
+my $htmltitle = "Test";
+my $bodytitle = $host ? $host : "all";
 
 print $html <<"HEADER";
 <!DOCTYPE html>
