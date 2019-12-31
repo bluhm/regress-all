@@ -60,106 +60,8 @@ my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 my (%t, %d, %v);
 parse_result_files(@result_files);
 
-# write test results into gnuplot data file
-
 my @plots = qw(tcp udp make fs);
-my %testplot = (
-    "iperf3_-c10.3.0.33_-w1m"				=> "tcp",
-    "iperf3_-c10.3.0.33_-w1m_-t10"			=> "tcp",
-    "iperf3_-c10.3.2.35_-w1m_-t10"			=> "tcp",
-    "iperf3_-c10.3.0.33_-w1m_-t60"			=> "tcp",
-    "iperf3_-c10.3.0.33_-w1m_-R"			=> "tcp",
-    "iperf3_-c10.3.0.33_-w1m_-t10_-R"			=> "tcp",
-    "iperf3_-c10.3.2.35_-w1m_-t10_-R"			=> "tcp",
-    "iperf3_-c10.3.0.33_-w1m_-t60_-R"			=> "tcp",
-    "tcpbench_-S1000000_-t10_10.3.0.33"			=> "tcp",
-    "tcpbench_-S1000000_-t10_10.3.2.35"			=> "tcp",
-    "tcpbench_-S1000000_-t60_10.3.0.33"			=> "tcp",
-    "tcpbench_-S1000000_-t10_-n100_10.3.0.33"		=> "tcp",
-    "tcpbench_-S1000000_-t10_-n100_10.3.2.35"		=> "tcp",
-    "tcpbench_-S1000000_-t60_-n100_10.3.0.33"		=> "tcp",
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m"			=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10"		=> "udp",
-    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10"		=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-R"			=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R"		=> "udp",
-    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R"		=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m"			=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10"		=> "udp",
-    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10"		=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60"		=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-R"		=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R"		=> "udp",
-    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R"		=> "udp",
-    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60_-R"		=> "udp",
-    "udpbench_-l36_-t10_-r_ot13_send_10.3.0.33"		=> "udp",
-    "udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32"		=> "udp",
-    "udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33"	=> "udp",
-    "udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32"	=> "udp",
-    "udpbench_-l36_-t10_-r_ot15_send_10.3.2.35"		=> "udp",
-    "udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34"		=> "udp",
-    "udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35"	=> "udp",
-    "udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34"	=> "udp",
-    "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> "make",
-    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> "make",
-    "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> "fs",
-);
-
-unless ($opts{h}) {
-    -d "gnuplot" || mkdir "gnuplot"
-	or die "Create directory 'gnuplot' failed: $!";
-    my $testdata = "gnuplot/test";
-    my %plotfh;
-    @plotfh{values %testplot} = ();
-    foreach my $plot (keys %plotfh) {
-	open($plotfh{$plot}, '>', "$testdata-$plot.data.new")
-	    or die "Open '$testdata-$plot.data.new' for writing failed: $!";
-	print {$plotfh{$plot}}
-	    "# test subtest run checkout repeat value unit host\n";
-    }
-    open(my $fh, '>', "$testdata.data.new")
-	or die "Open '$testdata.data.new' for writing failed: $!";
-    print $fh "# test subtest run checkout repeat value unit host\n";
-    foreach my $date (sort keys %v) {
-	my $vd = $v{$date};
-	my $run = str2time($date);
-	foreach my $test (sort keys %$vd) {
-	    my $vt = $vd->{$test};
-	    foreach my $cvsdate (sort keys %$vt) {
-		my $vc = $vt->{$cvsdate};
-		my $checkout = str2time($cvsdate);
-		$vc = { 0 => $vc } if ref $vc ne 'HASH';
-		foreach my $repeat (sort keys %$vc) {
-		    my $vr = $vc->{$repeat};
-		    foreach my $value (@{$vr || []}) {
-			my $number = $value->{number};
-			my $unit = $value->{unit};
-			my $subtest = $value->{name} || "unknown";
-			my $host = $d{$date}{host};
-			print $fh "$test $subtest ".
-			    "$run $checkout $repeat $number $unit $host\n";
-			print {$plotfh{$testplot{$test}}} "$test $subtest ".
-			    "$run $checkout $repeat $number $unit $host\n"
-			    if $testplot{$test};
-		    }
-		}
-	    }
-	}
-    }
-    close($fh)
-	or die "Close '$testdata.data.new' after writing failed: $!";
-    rename("$testdata.data.new", "$testdata.data")
-	or die "Rename '$testdata.data.new' to '$testdata.data' failed: $!";
-    foreach my $plot (keys %plotfh) {
-	my $datafile = "$testdata-$plot.data";
-	close($plotfh{$plot})
-	    or die "Close '$datafile.new' after writing failed: $!";
-	rename("$datafile.new", $datafile)
-	    or die "Rename '$datafile.new' to '$datafile' failed: $!";
-    }
-}
+write_data_files() unless $opts{h};
 
 # create gnuplot graphs for all runs
 
@@ -1199,5 +1101,104 @@ sub parse_result_files {
 		/^hw.ncpu=(\d+)$/ and $d{$date}{core} ||= $1;
 	    }
 	}
+    }
+}
+
+my %testplot = (
+    "iperf3_-c10.3.0.33_-w1m"				=> "tcp",
+    "iperf3_-c10.3.0.33_-w1m_-t10"			=> "tcp",
+    "iperf3_-c10.3.2.35_-w1m_-t10"			=> "tcp",
+    "iperf3_-c10.3.0.33_-w1m_-t60"			=> "tcp",
+    "iperf3_-c10.3.0.33_-w1m_-R"			=> "tcp",
+    "iperf3_-c10.3.0.33_-w1m_-t10_-R"			=> "tcp",
+    "iperf3_-c10.3.2.35_-w1m_-t10_-R"			=> "tcp",
+    "iperf3_-c10.3.0.33_-w1m_-t60_-R"			=> "tcp",
+    "tcpbench_-S1000000_-t10_10.3.0.33"			=> "tcp",
+    "tcpbench_-S1000000_-t10_10.3.2.35"			=> "tcp",
+    "tcpbench_-S1000000_-t60_10.3.0.33"			=> "tcp",
+    "tcpbench_-S1000000_-t10_-n100_10.3.0.33"		=> "tcp",
+    "tcpbench_-S1000000_-t10_-n100_10.3.2.35"		=> "tcp",
+    "tcpbench_-S1000000_-t60_-n100_10.3.0.33"		=> "tcp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m"			=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10"		=> "udp",
+    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10"		=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60"		=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-R"			=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R"		=> "udp",
+    "iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R"		=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b0_-w1m_-t60_-R"		=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m"			=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10"		=> "udp",
+    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10"		=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60"		=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-R"		=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R"		=> "udp",
+    "iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R"		=> "udp",
+    "iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t60_-R"		=> "udp",
+    "udpbench_-l36_-t10_-r_ot13_send_10.3.0.33"		=> "udp",
+    "udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32"		=> "udp",
+    "udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33"	=> "udp",
+    "udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32"	=> "udp",
+    "udpbench_-l36_-t10_-r_ot15_send_10.3.2.35"		=> "udp",
+    "udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34"		=> "udp",
+    "udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35"	=> "udp",
+    "udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34"	=> "udp",
+    "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> "make",
+    "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> "make",
+    "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> "fs",
+);
+
+# write test results into gnuplot data file
+sub write_data_files {
+    -d "gnuplot" || mkdir "gnuplot"
+	or die "Create directory 'gnuplot' failed: $!";
+    my $testdata = "gnuplot/test";
+    my %plotfh;
+    @plotfh{values %testplot} = ();
+    foreach my $plot (keys %plotfh) {
+	open($plotfh{$plot}, '>', "$testdata-$plot.data.new")
+	    or die "Open '$testdata-$plot.data.new' for writing failed: $!";
+	print {$plotfh{$plot}}
+	    "# test subtest run checkout repeat value unit host\n";
+    }
+    open(my $fh, '>', "$testdata.data.new")
+	or die "Open '$testdata.data.new' for writing failed: $!";
+    print $fh "# test subtest run checkout repeat value unit host\n";
+    foreach my $date (sort keys %v) {
+	my $vd = $v{$date};
+	my $run = str2time($date);
+	foreach my $test (sort keys %$vd) {
+	    my $vt = $vd->{$test};
+	    foreach my $cvsdate (sort keys %$vt) {
+		my $vc = $vt->{$cvsdate};
+		my $checkout = str2time($cvsdate);
+		$vc = { 0 => $vc } if ref $vc ne 'HASH';
+		foreach my $repeat (sort keys %$vc) {
+		    my $vr = $vc->{$repeat};
+		    foreach my $value (@{$vr || []}) {
+			my $number = $value->{number};
+			my $unit = $value->{unit};
+			my $subtest = $value->{name} || "unknown";
+			my $host = $d{$date}{host};
+			print $fh "$test $subtest ".
+			    "$run $checkout $repeat $number $unit $host\n";
+			print {$plotfh{$testplot{$test}}} "$test $subtest ".
+			    "$run $checkout $repeat $number $unit $host\n"
+			    if $testplot{$test};
+		    }
+		}
+	    }
+	}
+    }
+    close($fh)
+	or die "Close '$testdata.data.new' after writing failed: $!";
+    rename("$testdata.data.new", "$testdata.data")
+	or die "Rename '$testdata.data.new' to '$testdata.data' failed: $!";
+    foreach my $plot (keys %plotfh) {
+	my $datafile = "$testdata-$plot.data";
+	close($plotfh{$plot})
+	    or die "Close '$datafile.new' after writing failed: $!";
+	rename("$datafile.new", $datafile)
+	    or die "Rename '$datafile.new' to '$datafile' failed: $!";
     }
 }
