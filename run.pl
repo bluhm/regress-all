@@ -78,6 +78,13 @@ chdir($resultdir)
 createlog(file => "run.log", verbose => $opts{v});
 logmsg("script '$scriptname' started at $date\n");
 
+open(my $fh, '>', "runconf.txt")
+    or die "Open 'runconf.txt' for writing failed :$!";
+print $fh "ARGUMENTS @ARGV\n";
+print $fh "HOST $opts{h}\n";
+print $fh "MODE ", join(" ", sort keys %mode), "\n";
+close($fh);
+
 # setup remote machines
 
 usehosts(bindir => "$regressdir/bin", date => $date,

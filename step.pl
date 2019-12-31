@@ -130,6 +130,8 @@ logmsg("script '$scriptname' started at $date\n");
 
 open(my $fh, '>', "stepconf.txt")
     or die "Open 'stepconf.txt' for writing failed :$!";
+print $fh "ARGUMENTS @ARGV\n";
+print $fh "HOST $opts{h}\n";
 print $fh "RELEASE $opts{r}\n";
 print $fh strftime("BEGIN %FT%TZ\n", gmtime($begin));
 print $fh strftime("END %FT%TZ\n", gmtime($end));
