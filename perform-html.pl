@@ -60,11 +60,11 @@ my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 my (%t, %d, %v);
 parse_result_files(@result_files);
 
-my @plots = qw(tcp udp make fs);
 write_data_files() unless $opts{h};
 
 # create gnuplot graphs for all runs
 
+my @plots = list_plots();
 foreach my $plot (@plots) {
     foreach my $date (keys %v) {
 	my $outfile = "$date-$plot.html";
@@ -921,7 +921,11 @@ sub parse_result_files {
     }
 }
 
-my %testplot = (
+my @plotorder;
+my %testplot;
+BEGIN {
+    @plotorder = qw(tcp udp make fs);
+    my @testplot = (
     "iperf3_-c10.3.0.33_-w1m"				=> "tcp",
     "iperf3_-c10.3.0.33_-w1m_-t10"			=> "tcp",
     "iperf3_-c10.3.2.35_-w1m_-t10"			=> "tcp",
@@ -963,7 +967,21 @@ my %testplot = (
     "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> "make",
     "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> "make",
     "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> "fs",
-);
+    );
+    %testplot = @testplot;
+    if (2 * keys %testplot != @testplot) {
+	die "testplot keys not unique";
+    }
+    my %plots;
+    @plots{@plotorder} = ();
+    while (my ($k, $v) = each %testplot) {
+	die "invalid plot $v for test $k" unless exists $plots{$v};
+    }
+}
+
+sub list_plots {
+    return @plotorder;
+}
 
 # write test results into gnuplot data file
 sub write_data_files {
@@ -1152,8 +1170,8 @@ BEGIN {
     if (2 * keys %testorder != @testorder) {
 	die "testorder keys not unique";
     }
-    my %testvalues = reverse @testorder;
-    if (2 * keys %testvalues != @testorder) {
+    my %ordervalues = reverse @testorder;
+    if (2 * keys %ordervalues != @testorder) {
 	my %dup;
 	foreach (values %testorder) {
 	    warn "duplicate testorder value $_\n" if ++$dup{$_} > 1;
