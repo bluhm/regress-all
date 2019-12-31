@@ -34,11 +34,10 @@ use Buildquirks;
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('gh:', \%opts) or do {
+getopts('g', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-g] [-h host]
+usage: $0 [-g]
     -g		generate all gnuplot files, even if they already exist
-    -h host	user and host for version information, user defaults to root
 EOF
     exit(2);
 };
@@ -51,16 +50,13 @@ $dir = "results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
-my ($user, $host) = split('@', $opts{h} || "", 2);
-($user, $host) = ("root", $user) unless $host;
-
 # cvs checkout and repeated results
 my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 
 my (%t, %d, %v);
 parse_result_files(@result_files);
 
-write_data_files() unless $opts{h};
+write_data_files();
 create_gnuplot_files();
 create_cvslog_files();
 
@@ -577,14 +573,12 @@ FOOTER
 
 # html with date
 
-my $htmlfile = "perform";
-$htmlfile .= "-$host" if $host;
-$htmlfile .= ".html";
+my $htmlfile = "perform.html";
 unlink("$htmlfile.new");
 open(my $html, '>', "$htmlfile.new")
     or die "Open '$htmlfile.new' for writing failed: $!";
 my $htmltitle = "Test";
-my $bodytitle = $host ? $host : "all";
+my $bodytitle = "all";
 
 print $html <<"HEADER";
 <!DOCTYPE html>
@@ -865,11 +859,6 @@ sub parse_result_files {
 	    or die "Close '$result' after reading failed: $!";
 
 	# parse version file
-	if ($host && ! -f "$date/$cvsdate/version-$host.txt") {
-	    # if host is specified, only print result for this one
-	    delete $d{$date};
-	    next;
-	}
 	foreach my $version (sort glob("$date/$cvsdate/version-*.txt")) {
 	    $version =~ m,/version-(.+)\.txt$,;
 	    my $hostname = $1;
@@ -997,11 +986,11 @@ sub write_data_files {
 			my $number = $value->{number};
 			my $unit = $value->{unit};
 			my $subtest = $value->{name} || "unknown";
-			my $host = $d{$date}{host};
+			my $hostname = $d{$date}{host};
 			print $fh "$test $subtest ".
-			    "$run $checkout $repeat $number $unit $host\n";
+			    "$run $checkout $repeat $number $unit $hostname\n";
 			print {$plotfh{$testplot{$test}}} "$test $subtest ".
-			    "$run $checkout $repeat $number $unit $host\n"
+			    "$run $checkout $repeat $number $unit $hostname\n"
 			    if $testplot{$test};
 		    }
 		}
