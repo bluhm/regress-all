@@ -250,7 +250,7 @@ sub get_bsdnm {
 	"Command '@sshcmd' failed: $?";
     logmsg "Command '@sshcmd' finished\n";
     close($fh)
-	or die "Close 'nm-bsd-$host.txt.new' for writing failed: $!";
+	or die "Close 'nm-bsd-$host.txt.new' after writing failed: $!";
     rename("nm-bsd-$host.txt.new", "nm-bsd-$host.txt") or
 	die "Rename 'nm-bsd-$host.txt.new' to 'nm-bsd-$host.txt' failed: $!";
 }
