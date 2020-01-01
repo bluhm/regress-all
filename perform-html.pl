@@ -422,9 +422,10 @@ HEADER
 	    print $html "    <th></th>\n";
 	    next;
 	}
-	my $link = "nm-bsd-diff.txt";
+	my $difffile = $d{$date}{$cvsdate}{nmdiff};
+	my $link = uri_escape($difffile, "^A-Za-z0-9\-\._~/");
 	my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
-	print $html "    <th><a href=\"$link\">$diffstat</a></th>\n";
+	print $html "    <th><a href=\"../$link\">$diffstat</a></th>\n";
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
