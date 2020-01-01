@@ -1,6 +1,6 @@
 # functions to manipulate remote test machine
 
-# Copyright (c) 2018 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
