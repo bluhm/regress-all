@@ -1261,7 +1261,7 @@ sub create_nmbsd_files {
 sub diff_stat_file {
     my ($prev, $cur, $out, $stat) = @_;
 
-    my @cmd = ('diff', '-up', $prev, $cur, $out);
+    my @cmd = ('diff', '-up', $prev, $cur);
     open(my $diff, '-|', @cmd)
 	or die "Open pipe from '@cmd' failed: $!";
     open(my $fh, '>', "$out.new")
