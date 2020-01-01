@@ -95,7 +95,6 @@ if ($kernelmode{align}) {
 }
 reorder_kernel() if $kernelmode{align} || $kernelmode{gap} ||
     $kernelmode{sort} || $kernelmode{reorder};
-get_bsdnm();
 reboot();
 get_version();
 

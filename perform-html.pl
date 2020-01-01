@@ -143,20 +143,6 @@ HEADER
 	print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
-	print $html "  <tr>\n    <th>kernel name list</th>\n";
-	foreach my $repeat (@repeats) {
-	    my $nmstat = $d{$date}{$cvsdate}{$repeat}{nmstat};
-	    unless ($nmstat) {
-		print $html "    <th></th>\n";
-		next;
-	    }
-	    my $link = "nm-bsd-diff.txt";
-	    my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
-	    print $html "    <th><a href=\"$link\">$diffstat</a></th>\n";
-	}
-	print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	    "<th></th>\n";  # dummy for unit and stats below
-	print $html "  </tr>\n";
 	print $html "  <tr>\n    <th>machine</th>\n";
 	foreach my $repeat (@repeats) {
 	    unless ($kernelmode) {
@@ -1269,19 +1255,6 @@ sub create_nmbsd_files {
 		$cv->{nmstat} = \%stat;
 	    }
 	    $prevnmfile = $nmfile;
-	    foreach my $repeat (sort @{$cv->{repeats} || []}) {
-		my $rv = $cv->{$repeat};
-		my $nmfile = "$date/$cvsdate/$repeat/nm-bsd-$hostname.txt";
-		next unless -r $nmfile;
-		if ($prevnmfile) {
-		    my $difffile = "$date/$cvsdate/$repeat/nm-bsd-diff.txt";
-		    my %stat;
-		    diff_stat_file($prevnmfile, $nmfile, $difffile, \%stat);
-		    $rv->{nmdiff} = $difffile;
-		    $rv->{nmstat} = \%stat;
-		}
-		$prevnmfile = $nmfile;
-	    }
 	}
     }
 }
