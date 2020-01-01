@@ -59,6 +59,7 @@ parse_result_files(@result_files);
 write_data_files();
 create_gnuplot_files();
 create_cvslog_files();
+create_nmbsd_files();
 
 my @plots = list_plots();
 my @tests = list_tests();
@@ -1221,4 +1222,67 @@ sub create_cvslog_files {
 	    $cvsprev = $cvsdate;
 	}
     }
+}
+
+sub create_nmbsd_files {
+    foreach my $date (sort keys %d) {
+	my $dv = $d{$date};
+	my $hostname = $dv->{host};
+	my $prevnmfile;
+	foreach my $cvsdate (sort @{$dv->{cvsdates}}) {
+	    my $cv = $dv->{$cvsdate};
+	    my $nmfile = "$date/$cvsdate/nm-bsd-$hostname.txt";
+	    next unless -r $nmfile;
+	    if ($prevnmfile) {
+		my $difffile = "$date/$cvsdate/nm-bsd-diff.txt";
+		my %stat;
+		diff_stat_file($prevnmfile, $nmfile, $difffile, \%stat);
+		$cv->{nmdiff} = $difffile;
+		$cv->{nmstat} = \%stat;
+	    }
+	    $prevnmfile = $nmfile;
+	    foreach my $repeat (sort @{$cv->{repeats} || []}) {
+		my $rv = $cv->{$repeat};
+		my $nmfile = "$date/$cvsdate/$repeat/nm-bsd-$hostname.txt";
+		next unless -r $nmfile;
+		if ($prevnmfile) {
+		    my $difffile = "$date/$cvsdate/$repeat/nm-bsd-diff.txt";
+		    my %stat;
+		    diff_stat_file($prevnmfile, $nmfile, $difffile, \%stat);
+		    $rv->{nmdiff} = $difffile;
+		    $rv->{nmstat} = \%stat;
+		}
+		$prevnmfile = $nmfile;
+	    }
+	}
+    }
+}
+
+sub diff_stat_file {
+    my ($prev, $cur, $out, $stat) = @_;
+
+    my @cmd = ('diff', '-up', $prev, $cur, $out);
+    open(my $diff, '-|', @cmd)
+	or die "Open pipe from '@cmd' failed: $!";
+    open(my $fh, '>', "$out.new")
+	or die "Open '$out.new' for writing failed: $!";
+
+    # diff header
+    print $fh scalar(<$diff>), scalar(<$diff>);
+    my ($plus, $minus) = (0, 0);
+    while (<$diff>) {
+	$plus++ if /^\+/;
+	$minus++ if /^-/;
+	print $fh $_;
+    }
+    $stat->{plus} = $plus;
+    $stat->{minus} = $minus;
+
+    close($diff) or die $! ?
+	"Close pipe from '@cmd' failed: $!" :
+	"Command '@cmd' failed: $?";
+    close($fh)
+	or die "Close '$out.new' after writing failed: $!";
+    rename("$out.new", $out)
+	or die "Rename '$out.new' to '$out' failed: $!";
 }
