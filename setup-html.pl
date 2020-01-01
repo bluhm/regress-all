@@ -91,6 +91,7 @@ foreach my $date (@dates) {
 		(my $dmesgboot = $version) =~ s,version,dmesg-boot,;
 		(my $diff = $version) =~ s,version,diff,;
 		(my $quirks = $version) =~ s,version,quirks,;
+		(my $nmbsd = $version) =~ s,version,nm-bsd,;
 		my $subdir = "";
 		$subdir .= "$cvsdate/" if $cvsdate;
 		$subdir .= "$repeat/" if $repeat;
@@ -103,6 +104,7 @@ foreach my $date (@dates) {
 		    dmesgboot => -f $dmesgboot ? $subdir.$dmesgboot : undef,
 		    diff      => -f $diff ? $subdir.$diff : undef,
 		    quirks    => -f $quirks ? $subdir.$quirks : undef,
+		    nmbsd     => -f $nmbsd ? $subdir.$nmbsd : undef,
 		};
 		$m{$host}++;
 	    }
@@ -190,6 +192,7 @@ foreach my $date (@dates) {
     print $html "    <th colspan=\"2\">dmesg</th>\n";
     print $html "    <th>diff</th>\n";
     print $html "    <th>quirks</th>\n";
+    print $html "    <th>nmbsd</th>\n";
     print $html "  </tr>\n";
     foreach my $cvsdate ("", @cvsdates) {
 	$h = $d{$date}{$cvsdate}{host} if $cvsdate;
@@ -219,6 +222,7 @@ foreach my $date (@dates) {
 		my $dmesgboot = $h->{$host}{dmesgboot};
 		my $diff = $h->{$host}{diff};
 		my $quirks = $h->{$host}{quirks};
+		my $nmbsd = $h->{$host}{nmbsd};
 		if ($version) {
 		    $version = uri_escape($version, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td title=\"$time\">".
@@ -255,6 +259,12 @@ foreach my $date (@dates) {
 		if ($quirks) {
 		    $quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($nmbsd) {
+		    $nmbsd = uri_escape($nmbsd, "^A-Za-z0-9\-\._~/");
+		    print $html "    <td><a href=\"$nmbsd\">nmbsd</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
@@ -313,6 +323,7 @@ foreach my $date (@dates) {
 	print $html "    <th colspan=\"2\">dmesg</th>\n";
 	print $html "    <th>diff</th>\n";
 	print $html "    <th>quirks</th>\n";
+	print $html "    <th>nmbsd</th>\n";
 	print $html "  </tr>\n";
 	foreach my $repeat ("", @repeats) {
 	    $h = $d{$date}{$cvsdate}{$repeat}{host} if $repeat;
@@ -334,6 +345,7 @@ foreach my $date (@dates) {
 		my $dmesgboot = $h->{$host}{dmesgboot};
 		my $diff = $h->{$host}{diff};
 		my $quirks = $h->{$host}{quirks};
+		my $nmbsd = $h->{$host}{nmbsd};
 		if ($version) {
 		    $version =~ s,[^/]+/,,;
 		    $version = uri_escape($version, "^A-Za-z0-9\-\._~/");
@@ -376,6 +388,13 @@ foreach my $date (@dates) {
 		    $quirks =~ s,[^/]+/,,;
 		    $quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($nmbsd) {
+		    $nmbsd =~ s,[^/]+/,,;
+		    $nmbsd = uri_escape($nmbsd, "^A-Za-z0-9\-\._~/");
+		    print $html "    <td><a href=\"$nmbsd\">nmbsd</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
@@ -435,6 +454,7 @@ foreach my $date (@dates) {
 	    print $html "    <th colspan=\"2\">dmesg</th>\n";
 	    print $html "    <th>diff</th>\n";
 	    print $html "    <th>quirks</th>\n";
+	    print $html "    <th>nmbsd</th>\n";
 	    print $html "  </tr>\n";
 	    foreach my $host (sort keys %$h) {
 		print $html "  <tr>\n    <th>$host</th>\n";
@@ -450,6 +470,7 @@ foreach my $date (@dates) {
 		my $dmesgboot = $h->{$host}{dmesgboot};
 		my $diff = $h->{$host}{diff};
 		my $quirks = $h->{$host}{quirks};
+		my $nmbsd = $h->{$host}{nmbsd};
 		if ($version) {
 		    $version =~ s,[^/]+/[^/]+/,,;
 		    $version = uri_escape($version, "^A-Za-z0-9\-\._~/");
@@ -493,6 +514,13 @@ foreach my $date (@dates) {
 		    $quirks =~ s,[^/]+/[^/]+/,,;
 		    $quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($nmbsd) {
+		    $nmbsd =~ s,[^/]+/[^/]+/,,;
+		    $nmbsd = uri_escape($nmbsd, "^A-Za-z0-9\-\._~/");
+		    print $html "    <td><a href=\"$nmbsd\">nmbsd</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
