@@ -1268,7 +1268,8 @@ sub diff_stat_file {
 	or die "Open '$out.new' for writing failed: $!";
 
     # diff header
-    print $fh scalar(<$diff>), scalar(<$diff>);
+    print $fh $_ if defined($_ = <$diff>);
+    print $fh $_ if defined($_ = <$diff>);
     my ($plus, $minus) = (0, 0);
     while (<$diff>) {
 	$plus++ if /^\+/;
@@ -1278,9 +1279,10 @@ sub diff_stat_file {
     $stat->{plus} = $plus;
     $stat->{minus} = $minus;
 
-    close($diff) or die $! ?
-	"Close pipe from '@cmd' failed: $!" :
-	"Command '@cmd' failed: $?";
+    unless (close($diff)) {
+	die "Close pipe from '@cmd' failed: $!" if $!;
+	die "Command '@cmd' failed: $?" if $? != 0 && $? != 512;
+    }
     close($fh)
 	or die "Close '$out.new' after writing failed: $!";
     rename("$out.new", $out)
