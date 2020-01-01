@@ -143,18 +143,32 @@ HEADER
 	print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
+	print $html "  <tr>\n    <th>kernel name list</th>\n";
+	foreach my $repeat (@repeats) {
+	    my $nmstat = $d{$date}{$cvsdate}{$repeat}{nmstat};
+	    unless ($nmstat) {
+		print $html "    <th></th>\n";
+		next;
+	    }
+	    my $link = "nm-bsd-diff.txt";
+	    my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
+	    print $html "    <th><a href=\"$link\">$diffstat</a></th>\n";
+	}
+	print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	    "<th></th>\n";  # dummy for unit and stats below
+	print $html "  </tr>\n";
 	print $html "  <tr>\n    <th>machine</th>\n";
 	foreach my $repeat (@repeats) {
-	    if ($kernelmode) {
-		my $reboot = $d{$date}{$cvsdate}{$repeat}{reboot};
-		$reboot =~ s,[^/]+/[^/]+/,, if $reboot;
-		my $link = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
-		my $href = $reboot ? "<a href=\"$link\">" : "";
-		my $enda = $href ? " info</a>" : "";
-		print $html "    <th>$href$kernelmode$enda</th>\n";
-	    } else {
+	    unless ($kernelmode) {
 		print $html "    <th></th>\n";
+		next;
 	    }
+	    my $reboot = $d{$date}{$cvsdate}{$repeat}{reboot};
+	    $reboot =~ s,[^/]+/[^/]+/,, if $reboot;
+	    my $link = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
+	    my $href = $reboot ? "<a href=\"$link\">" : "";
+	    my $enda = $href ? " info</a>" : "";
+	    print $html "    <th>$href$kernelmode$enda</th>\n";
 	}
 	print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	    "<th></th>\n";  # dummy for unit and stats below
@@ -398,6 +412,19 @@ HEADER
 	my $cvscommits = $d{$date}{$cvsdate}{cvscommits};
 	my $num = defined($cvscommits) ? "/$cvscommits" : "";
 	print $html "    <th$title><a href=\"../$link\">cvslog</a>$num</th>\n";
+    }
+    print $html "    <th></th>\n";  # dummy for unit below
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>kernel name list</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $nmstat = $d{$date}{$cvsdate}{nmstat};
+	unless ($nmstat) {
+	    print $html "    <th></th>\n";
+	    next;
+	}
+	my $link = "nm-bsd-diff.txt";
+	my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
+	print $html "    <th><a href=\"$link\">$diffstat</a></th>\n";
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
