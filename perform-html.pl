@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # convert all performance results to a html table
 
-# Copyright (c) 2018-2019 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2018-2019 Moritz Buhl <mbuhl@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
