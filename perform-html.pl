@@ -1308,7 +1308,7 @@ sub diff_stat_file {
 
     unless (close($diff)) {
 	die "Close pipe from '@cmd' failed: $!" if $!;
-	die "Command '@cmd' failed: $?" if $? != 0 && $? != 512;
+	die "Command '@cmd' failed: $?" if $? != 0 && $? != 256;
     }
     close($fh)
 	or die "Close '$out.new' after writing failed: $!";
