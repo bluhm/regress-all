@@ -401,20 +401,22 @@ HEADER
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>kernel name list</th>\n";
-    foreach my $cvsdate (@cvsdates) {
-	my $nmstat = $d{$date}{$cvsdate}{nmstat};
-	unless ($nmstat) {
-	    print $html "    <th></th>\n";
-	    next;
+    if (($d{$date}{stepconf}{kernelmodes} || "") eq "align") {
+	print $html "  <tr>\n    <th>kernel name list</th>\n";
+	foreach my $cvsdate (@cvsdates) {
+	    my $nmstat = $d{$date}{$cvsdate}{nmstat};
+	    unless ($nmstat) {
+		print $html "    <th></th>\n";
+		next;
+	    }
+	    my $difffile = $d{$date}{$cvsdate}{nmdiff};
+	    my $link = uri_escape($difffile, "^A-Za-z0-9\-\._~/");
+	    my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
+	    print $html "    <th><a href=\"../$link\">$diffstat</a></th>\n";
 	}
-	my $difffile = $d{$date}{$cvsdate}{nmdiff};
-	my $link = uri_escape($difffile, "^A-Za-z0-9\-\._~/");
-	my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
-	print $html "    <th><a href=\"../$link\">$diffstat</a></th>\n";
+	print $html "    <th></th>\n";  # dummy for unit below
+	print $html "  </tr>\n";
     }
-    print $html "    <th></th>\n";  # dummy for unit below
-    print $html "  </tr>\n";
     print $html "  <tr>\n    <th>build quirks</th>\n";
     my $prevd;
     my $qi = 65 + keys %{{quirks(undef, $cvsdates[0])}};
@@ -1241,6 +1243,7 @@ sub create_cvslog_files {
 sub create_nmbsd_files {
     foreach my $date (sort keys %d) {
 	my $dv = $d{$date};
+	next if ($dv->{stepconf}{kernelmodes} || "") ne "align";
 	my $hostname = $dv->{host};
 	my $prevnmfile;
 	foreach my $cvsdate (sort @{$dv->{cvsdates}}) {
