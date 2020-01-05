@@ -120,11 +120,14 @@ foreach my $date (@dates) {
   </tr>
 HEADER
 
-	print $html "  <tr>\n    <th>repetitions</th>\n";
+	print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
 	my $kernelmode = $d{$date}{stepconf}{kernelmodes} ||
 	    $d{$date}{stepconf}{repmodes};
-	my $kerneltext = @repeats && $kernelmode && @repeats > 1 ?
-	    @repeats. " / $kernelmode" : @repeats;
+	my $kerneltext = @repeats;
+	if ($kernelmode) {
+	    $kerneltext = @repeats && @repeats > 1 ?
+		@repeats. " / $kernelmode" : $kernelmode;
+	}
 	$kerneltext =~ s/\s//g;
 	my $build = $d{$date}{$cvsdate}{build};
 	$build =~ s,[^/]+/[^/]+/,, if $build;
@@ -439,13 +442,16 @@ HEADER
     }
     print $html "    <th></th>\n";  # dummy for unit below
     print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>repetitions</th>\n";
+    print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $repeats = @{$d{$date}{$cvsdate}{repeats} || []} || "";
 	my $kernelmode = $d{$date}{stepconf}{kernelmodes} ||
 	    $d{$date}{stepconf}{repmodes};
-	my $kerneltext = $repeats && $kernelmode && $repeats > 1 ?
-	    "$repeats / $kernelmode" : $repeats;
+	my $kerneltext = $repeats;
+	if ($kernelmode) {
+	    $kerneltext = $repeats && $repeats > 1 ?
+		"$repeats / $kernelmode" : $kernelmode;
+	}
 	$kerneltext =~ s/\s//g;
 	print $html "    <th>$kerneltext</th>\n";
     }
@@ -683,14 +689,17 @@ foreach my $date (@dates) {
     print $html "    <th>$steptext</th>\n";
 }
 print $html "  </tr>\n";
-print $html "  <tr>\n    <th>repetitions</th>\n";
+print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
 foreach my $date (@dates) {
     my $cvsdate0 = $d{$date}{cvsdates}[0];
     my $repeats = @{$d{$date}{$cvsdate0}{repeats} || []} || "";
     my $kernelmode = $d{$date}{stepconf}{kernelmodes} ||
 	$d{$date}{stepconf}{repmodes};
-    my $kerneltext = $repeats && $kernelmode && $repeats > 1 ?
-	"$repeats / $kernelmode" : $repeats;
+    my $kerneltext = $repeats;
+    if ($kernelmode) {
+	$kerneltext = $repeats && $repeats > 1 ?
+	    "$repeats / $kernelmode" : $kernelmode;
+    }
     $kerneltext =~ s/\s//g;
     print $html "    <th>$kerneltext</th>\n";
 }
