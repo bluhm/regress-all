@@ -219,6 +219,7 @@ usr.bin/m4
 usr.bin/mail
 usr.bin/make
 usr.bin/mandoc
+usr.bin/nc
 usr.bin/netstat
 usr.bin/openssl
 usr.bin/patch
