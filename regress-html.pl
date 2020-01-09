@@ -189,57 +189,6 @@ print $html "</table>\n";
 
 html_table_status();
 
-sub html_table_status {
-    print $html <<"TABLE";
-<table>
-  <tr>
-    <th>PASS</th>
-    <td>make regress passed</td>
-  </tr>
-  <tr>
-    <th>FAIL</th>
-    <td>make regress failed, string FAILED in test output</td>
-  </tr>
-  <tr>
-    <th>XFAIL</th>
-    <td>make regress passed, string EXPECTED_FAIL in test output</td>
-  </tr>
-  <tr>
-    <th>XPASS</th>
-    <td>make regress failed, string UNEXPECTED_PASS in test output</td>
-  </tr>
-  <tr>
-    <th>SKIP</th>
-    <td>make regress skipped itself, string SKIPPED in test output</td>
-  </tr>
-  <tr>
-    <th>NOEXIT</th>
-    <td>make regress did not exit with code 0, make failed</td>
-  </tr>
-  <tr>
-    <th>NOTERM</th>
-    <td>make regress did not terminate, aborted after timeout</td>
-  </tr>
-  <tr>
-    <th>NORUN</th>
-    <td>make regress did not run, execute make failed</td>
-  </tr>
-  <tr>
-    <th>NOLOG</th>
-    <td>create log file for make output failed</td>
-  </tr>
-  <tr>
-    <th>NOCLEAN</th>
-    <td>make clean before running test failed</td>
-  </tr>
-  <tr>
-    <th>NOEXIST</th>
-    <td>test directory not found</td>
-  </tr>
-</table>
-TABLE
-}
-
 print $html <<"FOOTER";
 </body>
 </html>
