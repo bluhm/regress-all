@@ -79,28 +79,10 @@ my $htmltitle = $opts{l} ? "Latest" : "Test";
 my $bodytitle = $host ? ($opts{l} ? "latest $host" : $host) :
     ($opts{l} ? "latest" : "all");
 
+html_header($html, "OpenBSD Regress $htmltitle Results",
+    "OpenBSD regress $bodytitle test results");
+
 print $html <<"HEADER";
-<!DOCTYPE html>
-<html>
-
-<head>
-  <title>OpenBSD Regress $htmltitle Results</title>
-  <style>
-    th { text-align: left; white-space: nowrap; }
-    tr:hover {background-color: #e0e0e0}
-    td.PASS {background-color: #80ff80;}
-    td.XFAIL {background-color: #80ffc0;}
-    td.SKIP {background-color: #8080ff;}
-    td.XPASS {background-color: #ff80c0;}
-    td.FAIL {background-color: #ff8080;}
-    td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
-    td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
-    td.result, td.result a {color: black;}
-  </style>
-</head>
-
-<body>
-<h1>OpenBSD regress $bodytitle test results</h1>
 <table>
   <tr>
     <th>created at</th>
