@@ -158,16 +158,12 @@ foreach my $date (@dates) {
 }
 print $html "  <tr>\n    <th>host architecture</th>\n";
 foreach my $date (@dates) {
-    my $arch = $D{$date}{arch};
-    unless ($arch) {
-	print $html "    <th></th>\n";
-	next;
-    }
     my $hostname = $D{$date}{host};
     my $hostlink;
     $hostlink = "regress-$hostname.html" if !$host || $opts{l};
     my $hhref = $hostlink ? "<a href=\"$hostlink\">" : "";
     my $henda = $hhref ? "</a>" : "";
+    my $arch = $D{$date}{arch};
     my $dmesg = $D{$date}{dmesg};
     my $alink = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
     my $ahref = $dmesg ? "<a href=\"$alink\">" : "";
