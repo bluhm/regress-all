@@ -156,7 +156,7 @@ HEADER
 		    next;
 		}
 		my $status = $td->{$repeat}{status};
-		my $class = " class=\"result $status\"";
+		my $class = " class=\"status $status\"";
 		my $message = encode_entities($td->{$repeat}{message});
 		my $title = $message ? " title=\"$message\"" : "";
 		my $logfile = "$repeat/logs/$test.log";
@@ -431,7 +431,7 @@ HEADER
 		next;
 	    }
 	    my $status = $td->{$cvsdate}{status};
-	    my $class = " class=\"result $status\"";
+	    my $class = " class=\"status $status\"";
 	    my $message = encode_entities($td->{$cvsdate}{message});
 	    my $title = $message ? " title=\"$message\"" : "";
 	    my $logfile = "$cvsdate/logs/$test.log";
@@ -647,7 +647,7 @@ foreach my $test (@tests) {
 	    next;
 	}
 	my $status = $td->{status};
-	my $class = " class=\"result $status\"";
+	my $class = " class=\"status $status\"";
 	my $message = encode_entities($t{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
 	my $datehtml = "$date/perform.html";

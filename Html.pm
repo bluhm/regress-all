@@ -45,7 +45,7 @@ sub html_header {
     td.FAIL {background-color: #ff8080;}
     td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
     td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
-    td.result, td.result a {color: black;}
+    td.status, td.status a {color: black;}
     td.outlier {color: red;}
     iframe {width: 100%; border: none; min-height: 1200px;}
   </style>
@@ -93,59 +93,59 @@ sub html_table_status {
     print $html <<"TABLE";
 <table>
   <tr>
-    <td class="result PASS">PASS</td>
+    <td class="status PASS">PASS</td>
     <td>$topic passed</td>
   </tr>
 TABLE
     print $html <<"TABLE" if $type eq "regress";
   <tr>
-    <td class="result FAIL">FAIL</td>
+    <td class="status FAIL">FAIL</td>
     <td>$topic failed, string FAILED in test output</td>
   </tr>
   <tr>
-    <td class="result XFAIL">XFAIL</td>
+    <td class="status XFAIL">XFAIL</td>
     <td>$topic passed, string EXPECTED_FAIL in test output</td>
   </tr>
   <tr>
-    <td class="result XPASS">XPASS</td>
+    <td class="status XPASS">XPASS</td>
     <td>$topic failed, string UNEXPECTED_PASS in test output</td>
   </tr>
   <tr>
-    <td class="result SKIP">SKIP</td>
+    <td class="status SKIP">SKIP</td>
     <td>$topic skipped itself, string SKIPPED in test output</td>
   </tr>
 TABLE
     print $html <<"TABLE" if $type eq "perform";
   <tr>
-    <td class="result FAIL">FAIL</td>
+    <td class="status FAIL">FAIL</td>
     <td>$topic failed to produce value</td>
   </tr>
 TABLE
     print $html <<"TABLE";
   <tr>
-    <td class="result NOEXIT">NOEXIT</td>
+    <td class="status NOEXIT">NOEXIT</td>
     <td>$topic did not exit with code 0, $tool failed</td>
   </tr>
   <tr>
-    <td class="result NOTERM">NOTERM</td>
+    <td class="status NOTERM">NOTERM</td>
     <td>$topic did not terminate, aborted after timeout</td>
   </tr>
   <tr>
-    <td class="result NORUN">NORUN</td>
+    <td class="status NORUN">NORUN</td>
     <td>$topic did not run, execute $tool failed</td>
   </tr>
   <tr>
-    <td class="result NOLOG">NOLOG</td>
+    <td class="status NOLOG">NOLOG</td>
     <td>create log file for $tool output failed</td>
   </tr>
 TABLE
     print $html <<"TABLE" if $type eq "regress";
   <tr>
-    <td class="result NOCLEAN">NOCLEAN</td>
+    <td class="status NOCLEAN">NOCLEAN</td>
     <td>make clean before running test failed</td>
   </tr>
   <tr>
-    <td class="result NOEXIST">NOEXIST</td>
+    <td class="status NOEXIST">NOEXIST</td>
     <td>test directory not found</td>
   </tr>
 TABLE

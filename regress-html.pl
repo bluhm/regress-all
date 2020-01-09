@@ -179,7 +179,7 @@ foreach my $test (@tests) {
     print $html "  <tr>\n    <th><a href=\"$cvsweb$test/\">$test</a></th>\n";
     foreach my $date (@dates) {
 	my $status = $T{$test}{$date}{status} || "";
-	my $class = " class=\"result $status\"";
+	my $class = " class=\"status $status\"";
 	my $message = encode_entities($T{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
 	my $logfile = $T{$test}{$date}{logfile};
