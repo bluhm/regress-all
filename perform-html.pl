@@ -30,6 +30,7 @@ use URI::Escape;
 
 use lib dirname($0);
 use Buildquirks;
+use Html;
 
 my $now = strftime("%FT%TZ", gmtime);
 
@@ -724,20 +725,6 @@ foreach my $plot (@plots) {
 }
 
 html_table_quirks($html);
-
-sub html_table_quirks {
-    my ($html) = @_;
-    my %q = quirks();
-    my @sorted_quirks = sort keys %q;
-    print $html "<table>";
-    for my $qi (0 .. $#sorted_quirks) {
-	my $letter = chr(($qi > 25? $qi + 6 : $qi) + 65);
-	print $html "<tr>";
-	print $html "<th>$letter</th><td>$q{$sorted_quirks[$qi]}{comment}</td>";
-	print $html "</tr>";
-    }
-    print $html "</table>";
-}
 
 print $html <<"FOOTER";
 <table>
