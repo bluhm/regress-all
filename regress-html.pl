@@ -126,7 +126,7 @@ print $html "  <tr>\n    <th>machine build</th>\n";
 foreach my $date (@dates) {
     my $version = $d{$date}{version};
     unless ($version) {
-	print $html "    <th/>\n";
+	print $html "    <th></th>\n";
 	next;
     }
     my $kernel = encode_entities($d{$date}{kernel});
@@ -144,7 +144,7 @@ print $html "  <tr>\n    <th>host architecture</th>\n";
 foreach my $date (@dates) {
     my $arch = $d{$date}{arch};
     unless ($arch) {
-	print $html "    <th/>\n";
+	print $html "    <th></th>\n";
 	next;
     }
     my $hostname = $d{$date}{host};
