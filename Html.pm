@@ -23,46 +23,62 @@ our @EXPORT= qw(
     html_table_quirks
 );
 
-# print html table explaining the status of test results
+# print html table explaining the status of regress or perform results
 sub html_table_status {
+    my ($html, $type) = @_;
+    my ($topic, $tool);
+    ($topic, $tool) = ("make regress", "make") if $type eq "regress";
+    ($topic, $tool) = ("performance test", "test") if $type eq "perform";
     print $html <<"TABLE";
 <table>
   <tr>
     <th>PASS</th>
-    <td>make regress passed</td>
+    <td>$topic passed</td>
   </tr>
+TABLE
+    print $html <<"TABLE" if $type eq "regress";
   <tr>
     <th>FAIL</th>
-    <td>make regress failed, string FAILED in test output</td>
+    <td>$topic failed, string FAILED in test output</td>
   </tr>
   <tr>
     <th>XFAIL</th>
-    <td>make regress passed, string EXPECTED_FAIL in test output</td>
+    <td>$topic passed, string EXPECTED_FAIL in test output</td>
   </tr>
   <tr>
     <th>XPASS</th>
-    <td>make regress failed, string UNEXPECTED_PASS in test output</td>
+    <td>$topic failed, string UNEXPECTED_PASS in test output</td>
   </tr>
   <tr>
     <th>SKIP</th>
-    <td>make regress skipped itself, string SKIPPED in test output</td>
+    <td>$topic skipped itself, string SKIPPED in test output</td>
   </tr>
+TABLE
+    print $html <<"TABLE" if $type eq "perform";
+  <tr>
+    <th>FAIL</th>
+    <td>$topic failed to produce value</td>
+  </tr>
+TABLE
+    print $html <<"TABLE";
   <tr>
     <th>NOEXIT</th>
-    <td>make regress did not exit with code 0, make failed</td>
+    <td>$topic did not exit with code 0, $tool failed</td>
   </tr>
   <tr>
     <th>NOTERM</th>
-    <td>make regress did not terminate, aborted after timeout</td>
+    <td>$topic did not terminate, aborted after timeout</td>
   </tr>
   <tr>
     <th>NORUN</th>
-    <td>make regress did not run, execute make failed</td>
+    <td>$topic did not run, execute $tool failed</td>
   </tr>
   <tr>
     <th>NOLOG</th>
-    <td>create log file for make output failed</td>
+    <td>create log file for $tool output failed</td>
   </tr>
+TABLE
+    print $html <<"TABLE" if $type eq "regress";
   <tr>
     <th>NOCLEAN</th>
     <td>make clean before running test failed</td>
@@ -71,6 +87,8 @@ sub html_table_status {
     <th>NOEXIST</th>
     <td>test directory not found</td>
   </tr>
+TABLE
+    print $html <<"TABLE";
 </table>
 TABLE
 }

@@ -725,34 +725,9 @@ foreach my $plot (@plots) {
 }
 
 html_table_quirks($html);
+html_table_status($html, "perform");
 
 print $html <<"FOOTER";
-<table>
-  <tr>
-    <th>PASS</th>
-    <td>performance test passed</td>
-  </tr>
-  <tr>
-    <th>FAIL</th>
-    <td>performance test failed to produce value</td>
-  </tr>
-  <tr>
-    <th>NOEXIT</th>
-    <td>performance test did not exit with code 0</td>
-  </tr>
-  <tr>
-    <th>NOTERM</th>
-    <td>performance test did not terminate, aborted after timeout</td>
-  </tr>
-  <tr>
-    <th>NORUN</th>
-    <td>performance test did not run, execute test failed</td>
-  </tr>
-  <tr>
-    <th>NOLOG</th>
-    <td>create log file for test output failed</td>
-  </tr>
-</table>
 </body>
 </html>
 FOOTER

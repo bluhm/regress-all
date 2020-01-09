@@ -187,7 +187,7 @@ foreach my $test (@tests) {
 }
 print $html "</table>\n";
 
-html_table_status();
+html_table_status($html, "regress");
 
 print $html <<"FOOTER";
 </body>
