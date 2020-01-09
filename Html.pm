@@ -23,6 +23,7 @@ our @EXPORT= qw(
     html_footer
     html_table_status
     html_table_quirks
+    status2severity
 );
 
 # open html page, print head, open body
@@ -62,6 +63,25 @@ sub html_footer {
 </body>
 </html>
 FOOTER
+}
+
+%badstatus;
+sub status2severity {
+    my $status = shift;
+    my $severity =
+	$status eq 'PASS'   ? 1 :
+	$status eq 'XFAIL'  ? 2 :
+	$status eq 'SKIP'   ? 3 :
+	$status eq 'XPASS'  ? 4 :
+	$status eq 'FAIL'   ? 5 :
+	$status eq 'NOEXIT' ? 6 :
+	$status eq 'NOTERM' ? 7 :
+	$status eq 'NORUN'  ? 8 : 10;
+    if ($severity == 10 && ! $badstatus{$status}) {
+	$badstatus{$status} = 1;
+	warn "unknown status '$status'\n";
+    }
+    return $severity;
 }
 
 # print html table explaining the status of regress or perform results

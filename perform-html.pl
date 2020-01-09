@@ -739,13 +739,7 @@ sub parse_result_files {
 		};
 		next;
 	    }
-	    my $severity =
-		$status eq 'PASS'   ? 1 :
-		$status eq 'SKIP'   ? 3 :
-		$status eq 'FAIL'   ? 5 :
-		$status eq 'NOEXIT' ? 6 :
-		$status eq 'NOTERM' ? 7 :
-		$status eq 'NORUN'  ? 8 : 10;
+	    my $severity = status2severity($status);
 	    if (defined $repeat) {
 		$v{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
 		$t{$test}{$date}{$cvsdate}{$repeat}
