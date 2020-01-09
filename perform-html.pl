@@ -590,12 +590,17 @@ open(my $html, '>', "$htmlfile.new")
 my $htmltitle = "Test";
 my $bodytitle = "all";
 
-print $html <<"HEADER";
+html_header($html, "OpenBSD Perform $htmltitle Results",
+    "OpenBSD perform $bodytitle test results");
+
+sub html_header {
+    my ($html, $title, $headline) = @_;
+    print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
 
 <head>
-  <title>OpenBSD Perform $htmltitle Results</title>
+  <title>$title</title>
   <style>
     th { text-align: left; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0}
@@ -610,7 +615,11 @@ print $html <<"HEADER";
 </head>
 
 <body>
-<h1>OpenBSD perform $bodytitle test results</h1>
+<h1>$headline</h1>
+HEADER
+}
+
+print $html <<"HEADER";
 <table>
   <tr>
     <th>created at</th>
