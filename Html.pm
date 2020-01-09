@@ -19,9 +19,19 @@ use Buildquirks;
 
 use parent 'Exporter';
 our @EXPORT= qw(
+    html_footer
     html_table_status
     html_table_quirks
 );
+
+# close html body and page
+sub html_footer {
+    my ($html) = @_;
+    print $html <<"FOOTER";
+</body>
+</html>
+FOOTER
+}
 
 # print html table explaining the status of regress or perform results
 sub html_table_status {

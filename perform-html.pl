@@ -254,11 +254,7 @@ HEADER
 	print $html "</table>\n";
 
 	html_table_status($html, "perform");
-
-	print $html <<"FOOTER";
-</body>
-</html>
-FOOTER
+	html_footer($html);
 
 	close($html)
 	    or die "Close '$htmlfile.new' after writing failed: $!";
@@ -572,11 +568,7 @@ HEADER
 
     html_table_quirks($html);
     html_table_status($html, "perform");
-
-    print $html <<"FOOTER";
-</body>
-</html>
-FOOTER
+    html_footer($html);
 
     close($html)
 	or die "Close '$htmlfile.new' after writing failed: $!";
@@ -729,11 +721,7 @@ foreach my $plot (@plots) {
 
 html_table_quirks($html);
 html_table_status($html, "perform");
-
-print $html <<"FOOTER";
-</body>
-</html>
-FOOTER
+html_footer($html);
 
 close($html)
     or die "Close '$htmlfile.new' after writing failed: $!";

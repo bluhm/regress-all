@@ -188,11 +188,7 @@ foreach my $test (@tests) {
 print $html "</table>\n";
 
 html_table_status($html, "regress");
-
-print $html <<"FOOTER";
-</body>
-</html>
-FOOTER
+html_footer($html);
 
 close($html)
     or die "Close '$htmlfile.new' after writing failed: $!";
