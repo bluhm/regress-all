@@ -19,10 +19,41 @@ use Buildquirks;
 
 use parent 'Exporter';
 our @EXPORT= qw(
+    html_header
     html_footer
     html_table_status
     html_table_quirks
 );
+
+# open html page, print head, open body
+sub html_header {
+    my ($html, $title, $headline) = @_;
+    print $html <<"HEADER";
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>$title</title>
+  <style>
+    th { text-align: left; white-space: nowrap; }
+    tr:hover {background-color: #e0e0e0}
+    td.PASS {background-color: #80ff80;}
+    td.XFAIL {background-color: #80ffc0;}
+    td.SKIP {background-color: #8080ff;}
+    td.XPASS {background-color: #ff80c0;}
+    td.FAIL {background-color: #ff8080;}
+    td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
+    td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
+    td.result, td.result a {color: black;}
+    td.outlier {color: red;}
+    iframe {width: 100%; border: none; min-height: 1200px;}
+  </style>
+</head>
+
+<body>
+<h1>$headline</h1>
+HEADER
+}
 
 # close html body and page
 sub html_footer {

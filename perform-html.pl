@@ -81,27 +81,10 @@ foreach my $date (@dates) {
 	open(my $html, '>', "$htmlfile.new")
 	    or die "Open '$htmlfile.new' for writing failed: $!";
 
+	html_header($html, "OpenBSD Perform CVS Date Results",
+	    "OpenBSD perform $short cvs $cvsshort test results");
+
 	print $html <<"HEADER";
-<!DOCTYPE html>
-<html>
-
-<head>
-  <title>OpenBSD Perform CVS Date Results</title>
-  <style>
-    th { text-align: left; white-space: nowrap; }
-    tr:hover {background-color: #e0e0e0}
-    td.PASS {background-color: #80ff80;}
-    td.SKIP {background-color: #8080ff;}
-    td.FAIL {background-color: #ff8080;}
-    td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
-    td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
-    td.result, td.result a {color: black;}
-    td.outlier {color: red;}
-  </style>
-</head>
-
-<body>
-<h1>OpenBSD perform $short cvs $cvsshort test results</h1>
 <table>
   <tr>
     <th>created at</th>
@@ -279,28 +262,10 @@ foreach my $date (@dates) {
     open(my $html, '>', "$htmlfile.new")
 	or die "Open '$htmlfile.new' for writing failed: $!";
 
+    html_header($html, "OpenBSD Perform Date Results",
+	"OpenBSD perform $short test results");
+
     print $html <<"HEADER";
-<!DOCTYPE html>
-<html>
-
-<head>
-  <title>OpenBSD Perform Date Results</title>
-  <style>
-    th { text-align: left; white-space: nowrap; }
-    tr:hover {background-color: #e0e0e0}
-    td.PASS {background-color: #80ff80;}
-    td.SKIP {background-color: #8080ff;}
-    td.FAIL {background-color: #ff8080;}
-    td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
-    td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
-    td.result, td.result a {color: black;}
-    td.outlier {color: red;}
-    iframe {width: 100%; border: none; min-height: 1200px}
-  </style>
-</head>
-
-<body>
-<h1>OpenBSD perform $short test results</h1>
 <table>
   <tr>
     <th>created at</th>
@@ -587,37 +552,9 @@ my $htmlfile = "perform.html";
 unlink("$htmlfile.new");
 open(my $html, '>', "$htmlfile.new")
     or die "Open '$htmlfile.new' for writing failed: $!";
-my $htmltitle = "Test";
-my $bodytitle = "all";
 
-html_header($html, "OpenBSD Perform $htmltitle Results",
-    "OpenBSD perform $bodytitle test results");
-
-sub html_header {
-    my ($html, $title, $headline) = @_;
-    print $html <<"HEADER";
-<!DOCTYPE html>
-<html>
-
-<head>
-  <title>$title</title>
-  <style>
-    th { text-align: left; white-space: nowrap; }
-    tr:hover {background-color: #e0e0e0}
-    td.PASS {background-color: #80ff80;}
-    td.SKIP {background-color: #8080ff;}
-    td.FAIL {background-color: #ff8080;}
-    td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
-    td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
-    td.result, td.result a {color: black;}
-    iframe {width: 100%; border: none; min-height: 1024px;}
-  </style>
-</head>
-
-<body>
-<h1>$headline</h1>
-HEADER
-}
+html_header($html, "OpenBSD Perform Test Results",
+    "OpenBSD perform all test results");
 
 print $html <<"HEADER";
 <table>
