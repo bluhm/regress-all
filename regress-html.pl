@@ -66,7 +66,15 @@ if ($opts{l}) {
     @result_files = sort glob("*/test.result");
 }
 
-my (%t, %d);
+# %T
+# $test				test directory relative to /usr/src/regress/
+# $T{$test}{severity}		weighted severity of all failures of this test
+# $date				date when test was executed as ISO string
+# $T{$test}{$date}{status}	result of this test at that day
+# $T{$test}{$date}{message}	test printed a pass duration or failure summary
+# $T{$test}{$date}{logfile}	relative path to make.log to create link
+
+my (%T, %d);
 parse_result_files(@result_files);
 
 my $htmlfile = $opts{l} ? "latest" : "regress";
@@ -153,16 +161,16 @@ foreach my $date (@dates) {
 print $html "  </tr>\n";
 
 my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/";
-my @tests = sort { $t{$b}{severity} <=> $t{$a}{severity} || $a cmp $b }
-    keys %t;
+my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
+    keys %T;
 foreach my $test (@tests) {
     print $html "  <tr>\n    <th><a href=\"$cvsweb$test/\">$test</a></th>\n";
     foreach my $date (@dates) {
-	my $status = $t{$test}{$date}{status} || "";
+	my $status = $T{$test}{$date}{status} || "";
 	my $class = " class=\"result $status\"";
-	my $message = encode_entities($t{$test}{$date}{message});
+	my $message = encode_entities($T{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
-	my $logfile = $t{$test}{$date}{logfile};
+	my $logfile = $T{$test}{$date}{logfile};
 	my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 	my $href = $logfile ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
@@ -187,7 +195,7 @@ rename("$htmlfile.gz.new", "$htmlfile.gz")
 
 exit;
 
-# fill global hashes %t %d
+# fill global hashes %T %d
 sub parse_result_files {
     foreach my $result (@_) {
 
@@ -199,16 +207,16 @@ sub parse_result_files {
 	    result => $result,
 	};
 	$d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
-	$_->{severity} *= .5 foreach values %t;
+	$_->{severity} *= .5 foreach values %T;
 	my ($total, $pass) = (0, 0);
 	open(my $fh, '<', $result)
 	    or die "Open '$result' for reading failed: $!";
 	while (<$fh>) {
 	    chomp;
 	    my ($status, $test, $message) = split(" ", $_, 3);
-	    $t{$test}{$date}
+	    $T{$test}{$date}
 		and warn "Duplicate test '$test' at date '$date'";
-	    $t{$test}{$date} = {
+	    $T{$test}{$date} = {
 		status => $status,
 		message => $message,
 	    };
@@ -221,11 +229,11 @@ sub parse_result_files {
 		$status eq 'NOEXIT' ? 6 :
 		$status eq 'NOTERM' ? 7 :
 		$status eq 'NORUN'  ? 8 : 10;
-	    $t{$test}{severity} += $severity;
+	    $T{$test}{severity} += $severity;
 	    $total++ unless $status eq 'SKIP' || $status eq 'XFAIL';
 	    $pass++ if $status eq 'PASS';
 	    my $logfile = dirname($result). "/logs/$test/make.log";
-	    $t{$test}{$date}{logfile} = $logfile if -f $logfile;
+	    $T{$test}{$date}{logfile} = $logfile if -f $logfile;
 	}
 	close($fh)
 	    or die "Close '$result' after reading failed: $!";
