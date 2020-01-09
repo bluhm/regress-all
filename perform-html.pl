@@ -253,6 +253,8 @@ HEADER
 	}
 	print $html "</table>\n";
 
+	html_table_status($html, "perform");
+
 	print $html <<"FOOTER";
 </body>
 </html>
@@ -569,6 +571,7 @@ HEADER
     }
 
     html_table_quirks($html);
+    html_table_status($html, "perform");
 
     print $html <<"FOOTER";
 </body>
