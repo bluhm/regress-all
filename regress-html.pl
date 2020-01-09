@@ -24,6 +24,9 @@ use Getopt::Std;
 use POSIX;
 use URI::Escape;
 
+use lib dirname($0);
+use Html;
+
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
