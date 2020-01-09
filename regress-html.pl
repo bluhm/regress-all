@@ -187,7 +187,10 @@ foreach my $test (@tests) {
 }
 print $html "</table>\n";
 
-print $html <<"FOOTER";
+html_table_status();
+
+sub html_table_status {
+    print $html <<"TABLE";
 <table>
   <tr>
     <th>PASS</th>
@@ -234,6 +237,10 @@ print $html <<"FOOTER";
     <td>test directory not found</td>
   </tr>
 </table>
+TABLE
+}
+
+print $html <<"FOOTER";
 </body>
 </html>
 FOOTER
