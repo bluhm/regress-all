@@ -69,12 +69,28 @@ if ($opts{l}) {
 # %T
 # $test				test directory relative to /usr/src/regress/
 # $T{$test}{severity}		weighted severity of all failures of this test
-# $date				date when test was executed as ISO string
+# $date				date and time when test was executed as string
 # $T{$test}{$date}{status}	result of this test at that day
 # $T{$test}{$date}{message}	test printed a pass duration or failure summary
-# $T{$test}{$date}{logfile}	relative path to make.log to create link
+# $T{$test}{$date}{logfile}	relative path to make.log for hyper link
+# %D
+# $date				date and time when test was executed as string
+# $D{$date}{pass}		percentage of not skipped tests that passed
+# $D{$date}{short}		date without time
+# $D{$date}{result}		path to test.result file
+# $D{$date}{setup}		relative path to setup.html for hyper link
+# $D{$date}{version}		relative path to version.txt for hyper link
+# $D{$date}{host}		hostname of the machine running the regress
+# $D{$date}{dmesg}		path to dmesg.txt of machine running regress
+# $D{$date}{diff}		path to diff.txt custom build kernel cvs diff
+# $D{$date}{kernel}		sysctl kernel version string
+# $D{$date}{time}		build time in kernel version string
+# $D{$date}{location}		user at location of kernel build
+# $D{$date}{build}		snapshot or custom build
+# $D{$date}{arch}		sysctl hardware machine architecture
+# $D{$date}{core}		sysctl hardware ncpu cores
 
-my (%T, %d);
+my (%T, %D);
 parse_result_files(@result_files);
 
 my $htmlfile = $opts{l} ? "latest" : "regress";
@@ -103,19 +119,19 @@ print $html <<"HEADER";
 </table>
 HEADER
 
-my @dates = reverse sort keys %d;
+my @dates = reverse sort keys %D;
 print $html "<table>\n";
 print $html "  <tr>\n    <th>pass rate</th>\n";
 foreach my $date (@dates) {
-    my $pass = $d{$date}{pass};
+    my $pass = $D{$date}{pass};
     my $percent = "";
     $percent = sprintf("%d%%", 100 * $pass) if defined $pass;
     print $html "    <th>$percent</th>\n";
 }
 print $html "  <tr>\n    <th>run at date</th>\n";
 foreach my $date (@dates) {
-    my $short = $d{$date}{short};
-    my $setup = $d{$date}{setup};
+    my $short = $D{$date}{short};
+    my $setup = $D{$date}{setup};
     my $time = encode_entities($date);
     my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
     my $href = $setup ? "<a href=\"$link\">" : "";
@@ -124,14 +140,14 @@ foreach my $date (@dates) {
 }
 print $html "  <tr>\n    <th>machine build</th>\n";
 foreach my $date (@dates) {
-    my $version = $d{$date}{version};
+    my $version = $D{$date}{version};
     unless ($version) {
 	print $html "    <th></th>\n";
 	next;
     }
-    my $kernel = encode_entities($d{$date}{kernel});
-    my $build = $d{$date}{build};
-    my $diff = $d{$date}{diff};
+    my $kernel = encode_entities($D{$date}{kernel});
+    my $build = $D{$date}{build};
+    my $diff = $D{$date}{diff};
     my $link;
     $link = uri_escape($version, "^A-Za-z0-9\-\._~/") if $build eq "snapshot";
     $link = uri_escape($diff, "^A-Za-z0-9\-\._~/")
@@ -142,17 +158,17 @@ foreach my $date (@dates) {
 }
 print $html "  <tr>\n    <th>host architecture</th>\n";
 foreach my $date (@dates) {
-    my $arch = $d{$date}{arch};
+    my $arch = $D{$date}{arch};
     unless ($arch) {
 	print $html "    <th></th>\n";
 	next;
     }
-    my $hostname = $d{$date}{host};
+    my $hostname = $D{$date}{host};
     my $hostlink;
     $hostlink = "regress-$hostname.html" if !$host || $opts{l};
     my $hhref = $hostlink ? "<a href=\"$hostlink\">" : "";
     my $henda = $hhref ? "</a>" : "";
-    my $dmesg = $d{$date}{dmesg};
+    my $dmesg = $D{$date}{dmesg};
     my $alink = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
     my $ahref = $dmesg ? "<a href=\"$alink\">" : "";
     my $aenda = $ahref ? "</a>" : "";
@@ -195,18 +211,18 @@ rename("$htmlfile.gz.new", "$htmlfile.gz")
 
 exit;
 
-# fill global hashes %T %d
+# fill global hashes %T %D
 sub parse_result_files {
     foreach my $result (@_) {
 
 	# parse result file
 	my ($date, $short) = $result =~ m,((.+)T.+)/test.result,
 	    or next;
-	$d{$date} = {
+	$D{$date} = {
 	    short => $short,
 	    result => $result,
 	};
-	$d{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
+	$D{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
 	$_->{severity} *= .5 foreach values %T;
 	my ($total, $pass) = (0, 0);
 	open(my $fh, '<', $result)
@@ -237,41 +253,41 @@ sub parse_result_files {
 	}
 	close($fh)
 	    or die "Close '$result' after reading failed: $!";
-	$d{$date}{pass} = $pass / $total if $total;
+	$D{$date}{pass} = $pass / $total if $total;
 
 	# parse version file
 	if ($host && ! -f "$date/version-$host.txt") {
 	    # if host is specified, only print result for this one
-	    delete $d{$date};
+	    delete $D{$date};
 	    next;
 	}
 	foreach my $version (sort glob("$date/version-*.txt")) {
 	    $version =~ m,/version-(.+)\.txt$,;
 	    my $hostname = $1;
 
-	    next if $d{$date}{version};
-	    $d{$date}{version} = $version;
-	    $d{$date}{host} ||= $hostname;
+	    next if $D{$date}{version};
+	    $D{$date}{version} = $version;
+	    $D{$date}{host} ||= $hostname;
 	    (my $dmesg = $version) =~ s,/version-,/dmesg-,;
-	    $d{$date}{dmesg} ||= $dmesg if -f $dmesg;
+	    $D{$date}{dmesg} ||= $dmesg if -f $dmesg;
 	    (my $diff = $version) =~ s,/version-,/diff-,;
-	    $d{$date}{diff} ||= $diff if -f $diff;
+	    $D{$date}{diff} ||= $diff if -f $diff;
 
 	    open($fh, '<', $version)
 		or die "Open '$version' for reading failed: $!";
 	    while (<$fh>) {
 		if (/^kern.version=(.*: (\w+ \w+ +\d+ .*))$/) {
-		    $d{$date}{kernel} = $1;
-		    $d{$date}{time} = $2;
+		    $D{$date}{kernel} = $1;
+		    $D{$date}{time} = $2;
 		    <$fh> =~ /(\S+)/;
-		    $d{$date}{kernel} .= "\n    $1";
-		    $d{$date}{location} = $1;
+		    $D{$date}{kernel} .= "\n    $1";
+		    $D{$date}{location} = $1;
 		}
-		/^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
-		/^hw.ncpu=(\d+)$/ and $d{$date}{core} ||= $1;
+		/^hw.machine=(\w+)$/ and $D{$date}{arch} ||= $1;
+		/^hw.ncpu=(\d+)$/ and $D{$date}{core} ||= $1;
 	    }
-	    $d{$date}{build} =
-		$d{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
+	    $D{$date}{build} =
+		$D{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
 		"snapshot" : "custom";
 	}
     }
