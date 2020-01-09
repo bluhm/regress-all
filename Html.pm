@@ -93,59 +93,59 @@ sub html_table_status {
     print $html <<"TABLE";
 <table>
   <tr>
-    <th>PASS</th>
+    <td class="result PASS">PASS</td>
     <td>$topic passed</td>
   </tr>
 TABLE
     print $html <<"TABLE" if $type eq "regress";
   <tr>
-    <th>FAIL</th>
+    <td class="result FAIL">FAIL</td>
     <td>$topic failed, string FAILED in test output</td>
   </tr>
   <tr>
-    <th>XFAIL</th>
+    <td class="result XFAIL">XFAIL</td>
     <td>$topic passed, string EXPECTED_FAIL in test output</td>
   </tr>
   <tr>
-    <th>XPASS</th>
+    <td class="result XPASS">XPASS</td>
     <td>$topic failed, string UNEXPECTED_PASS in test output</td>
   </tr>
   <tr>
-    <th>SKIP</th>
+    <td class="result SKIP">SKIP</td>
     <td>$topic skipped itself, string SKIPPED in test output</td>
   </tr>
 TABLE
     print $html <<"TABLE" if $type eq "perform";
   <tr>
-    <th>FAIL</th>
+    <td class="result FAIL">FAIL</td>
     <td>$topic failed to produce value</td>
   </tr>
 TABLE
     print $html <<"TABLE";
   <tr>
-    <th>NOEXIT</th>
+    <td class="result NOEXIT">NOEXIT</td>
     <td>$topic did not exit with code 0, $tool failed</td>
   </tr>
   <tr>
-    <th>NOTERM</th>
+    <td class="result NOTERM">NOTERM</td>
     <td>$topic did not terminate, aborted after timeout</td>
   </tr>
   <tr>
-    <th>NORUN</th>
+    <td class="result NORUN">NORUN</td>
     <td>$topic did not run, execute $tool failed</td>
   </tr>
   <tr>
-    <th>NOLOG</th>
+    <td class="result NOLOG">NOLOG</td>
     <td>create log file for $tool output failed</td>
   </tr>
 TABLE
     print $html <<"TABLE" if $type eq "regress";
   <tr>
-    <th>NOCLEAN</th>
+    <td class="result NOCLEAN">NOCLEAN</td>
     <td>make clean before running test failed</td>
   </tr>
   <tr>
-    <th>NOEXIST</th>
+    <td class="result NOEXIST">NOEXIST</td>
     <td>test directory not found</td>
   </tr>
 TABLE
