@@ -93,12 +93,9 @@ if ($opts{l}) {
 my (%T, %D);
 parse_result_files(@result_files);
 
-my $htmlfile = $opts{l} ? "latest" : "regress";
-$htmlfile .= "-$host" if $host;
-$htmlfile .= ".html";
-unlink("$htmlfile.new");
-open(my $html, '>', "$htmlfile.new")
-    or die "Open '$htmlfile.new' for writing failed: $!";
+my $file = $opts{l} ? "latest" : "regress";
+$file .= "-$host" if $host;
+my ($html, $htmlfile) = html_open($file);
 my $htmltitle = $opts{l} ? "Latest" : "Test";
 my $bodytitle = $host ? ($opts{l} ? "latest $host" : $host) :
     ($opts{l} ? "latest" : "all");
@@ -194,16 +191,7 @@ print $html "</table>\n";
 
 html_table_status($html, "regress");
 html_footer($html);
-
-close($html)
-    or die "Close '$htmlfile.new' after writing failed: $!";
-rename("$htmlfile.new", "$htmlfile")
-    or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
-
-system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-    and die "gzip $htmlfile failed: $?";
-rename("$htmlfile.gz.new", "$htmlfile.gz")
-    or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+html_close($html, $htmlfile);
 
 exit;
 

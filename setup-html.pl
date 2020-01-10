@@ -25,6 +25,9 @@ use Date::Parse;
 use POSIX;
 use URI::Escape;
 
+use lib dirname($0);
+use Html;
+
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
@@ -137,9 +140,7 @@ foreach my $date (@dates) {
     my $h = $d{$date}{host};
     next unless keys %$h;
 
-    unlink("setup.html.new");
-    open(my $html, '>', "setup.html.new")
-	or die "Open 'setup.html.new' for writing failed: $!";
+    my ($html, $htmlfile) = html_open("setup");
     print $html "<!DOCTYPE html>\n";
     print $html "<html>\n";
     print $html "<head>\n";
@@ -274,12 +275,8 @@ foreach my $date (@dates) {
     }
     print $html "</table>\n";
     print $html "</body>\n";
-
     print $html "</html>\n";
-    close($html)
-	or die "Close 'setup.html.new' after writing failed: $!";
-    rename("setup.html.new", "setup.html")
-	or die "Rename 'setup.html.new' to 'setup.html' failed: $!";
+    html_close($html, $htmlfile);
 
     foreach my $cvsdate (@cvsdates) {
 	my $subdir = "$dir/$cvsdate";
@@ -290,9 +287,7 @@ foreach my $date (@dates) {
 	next unless keys %$h;
 	my @repeats = @{$d{$date}{$cvsdate}{repeats}};
 
-	unlink("build.html.new");
-	open(my $html, '>', "build.html.new")
-	    or die "Open 'build.html.new' for writing failed: $!";
+	my ($html, $htmlfile) = html_open("build");
 	print $html "<!DOCTYPE html>\n";
 	print $html "<html>\n";
 	print $html "<head>\n";
@@ -403,12 +398,8 @@ foreach my $date (@dates) {
 	}
 	print $html "</table>\n";
 	print $html "</body>\n";
-
 	print $html "</html>\n";
-	close($html)
-	    or die "Close 'build.html.new' after writing failed: $!";
-	rename("build.html.new", "build.html")
-	    or die "Rename 'build.html.new' to 'build.html' failed: $!";
+	html_close($html, $htmlfile);
 
 	foreach my $repeat (@repeats) {
 	    my $subdir = "$dir/$cvsdate/$repeat";
@@ -418,9 +409,7 @@ foreach my $date (@dates) {
 	    $h = $d{$date}{$cvsdate}{$repeat}{host};
 	    next unless keys %$h;
 
-	    unlink("reboot.html.new");
-	    open(my $html, '>', "reboot.html.new")
-		or die "Open 'reboot.html.new' for writing failed: $!";
+	    my ($html, $htmlfile) = html_open("reboot");
 	    print $html "<!DOCTYPE html>\n";
 	    print $html "<html>\n";
 	    print $html "<head>\n";
@@ -528,12 +517,8 @@ foreach my $date (@dates) {
 	    }
 	    print $html "</table>\n";
 	    print $html "</body>\n";
-
 	    print $html "</html>\n";
-	    close($html)
-		or die "Close 'reboot.html.new' after writing failed: $!";
-	    rename("reboot.html.new", "reboot.html")
-		or die "Rename 'reboot.html.new' to 'reboot.html' failed: $!";
+	    html_close($html, $htmlfile);
 	}
     }
 }
@@ -544,10 +529,7 @@ $dir = "$regressdir/results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
-unlink("run.html.new");
-open(my $html, '>', "run.html.new")
-    or die "Open 'run.html.new' for writing failed: $!";
-
+my ($html, $htmlfile) = html_open("run");
 print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
@@ -617,11 +599,6 @@ foreach my $date (reverse sort keys %d) {
     }
 }
 print $html "</table>\n";
-print $html <<"FOOTER";
-</body>
-</html>
-FOOTER
-close($html)
-    or die "Close 'run.html.new' after writing failed: $!";
-rename("run.html.new", "run.html")
-    or die "Rename 'run.html.new' to 'run.html' failed: $!";
+print $html "</body>\n";
+print $html "</html>\n";
+html_close($html, $htmlfile);
