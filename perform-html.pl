@@ -71,8 +71,47 @@ my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 # $T{$test}{$date}{$cvsdate}{$repeat}
 # $T{$test}{$date}{$cvsdate}{$repeat}{status}	result of this test
 # $T{$test}{$date}{$cvsdate}{$repeat}{message}	test printed a summary
+# %D
+# $date					date when test was executed as string
+# $D{$date}{short}			date without time
+# $D{$date}{setup}			path to setup.html
+# $D{$date}{host}			hostname of the machine running perform
+# $D{$date}{arch}			sysctl hardware machine architecture
+# $D{$date}{core}			sysctl hardware ncpu cores
+# $D{$date}{log}			path to setp.log
+# $D{$date}{stepconf}			config options of step.pl
+# $D{$date}{stepconf}{release}		release version for setup
+# $D{$date}{stepconf}{setupmodes}	mode for machine setup
+# $D{$date}{stepconf}{modes}		deprecated
+# $D{$date}{stepconf}{kernelmodes}	mode for building kernel
+# $D{$date}{stepconf}{repmodes}		deprecated
+# $D{$date}{stepconf}{step}		step interval and unit
+# $cvsdate				date of the cvs checkout as string
+# $D{$date}{cvsdates}			list of cvsdates
+# $D{$date}{$cvsdate}{cvsshort}		cvsdate without time
+# $D{$date}{$cvsdate}{result}		path to test.result file
+# $D{$date}{$cvsdate}{version}		version.txt of machine running perform
+# $D{$date}{$cvsdate}{quirks}		quirks.txt of machine running perform
+# $D{$date}{$cvsdate}{build}		path to build.html
+# $D{$date}{$cvsdate}{kernel}		sysctl kernel version string
+# $D{$date}{$cvsdate}{cvs}		cvs checkout date in kernel version
+# $D{$date}{$cvsdate}{time}		build time in kernel version string
+# $D{$date}{$cvsdate}{location}		user at location of kernel build
+# $D{$date}{$cvsdate}{nmdiff}		path to nm-bsd-diff.txt if align
+# $D{$date}{$cvsdate}{nmstat}		diffstat of nm-bsd-diff if align
+# $hostname				hostname of the machine
+# $D{$date}{$cvsdate}{hosts}		list of hosts
+# $D{$date}{$cvsdate}{$hostname}{version}	path to version.txt
+# $D{$date}{$cvsdate}{$hostname}{dmesg}		path to version.txt
+# $repeat				number of the repetition as string
+# $D{$date}{$cvsdate}{repeats}		list of repetition numbers as string
+# $D{$date}{$cvsdate}{$repeat}{result}	path to test.result file
+# $D{$date}{$cvsdate}{$repeat}{reboot}	path to reboot.html
+# $D{$date}{$cvsdate}{cvslog}		path to cvslog.html or cvslog.txt
+# $D{$date}{$cvsdate}{cvscommits}	number of cvs commits
+# $D{$date}{$cvsdate}{cvsfiles}		list of files changes in cvs commit
 
-my (%T, %d, %v);
+my (%T, %D, %v);
 parse_result_files(@result_files);
 
 write_data_files();
@@ -87,11 +126,11 @@ my @dates = list_dates();
 # html per date per cvsdate with repetitions
 
 foreach my $date (@dates) {
-    my $short = $d{$date}{short};
-    my $hostcore = "$d{$date}{host}/$d{$date}{core}";
-    foreach my $cvsdate (@{$d{$date}{cvsdates}}) {
-	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
-	my @repeats = sort @{$d{$date}{$cvsdate}{repeats} || []}
+    my $short = $D{$date}{short};
+    my $hostcore = "$D{$date}{host}/$D{$date}{core}";
+    foreach my $cvsdate (@{$D{$date}{cvsdates}}) {
+	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
+	my @repeats = sort @{$D{$date}{$cvsdate}{repeats} || []}
 	    or next;
 
 	my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
@@ -119,15 +158,15 @@ foreach my $date (@dates) {
 HEADER
 
 	print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
-	my $kernelmode = $d{$date}{stepconf}{kernelmodes} ||
-	    $d{$date}{stepconf}{repmodes};
+	my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
+	    $D{$date}{stepconf}{repmodes};
 	my $kerneltext = @repeats;
 	if ($kernelmode) {
 	    $kerneltext = @repeats && @repeats > 1 ?
 		@repeats. " / $kernelmode" : $kernelmode;
 	}
 	$kerneltext =~ s/\s//g;
-	my $build = $d{$date}{$cvsdate}{build};
+	my $build = $D{$date}{$cvsdate}{build};
 	$build =~ s,[^/]+/[^/]+/,, if $build;
 	my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
 	my $href = $build ? "<a href=\"$link\">" : "";
@@ -150,7 +189,7 @@ HEADER
 		print $html "    <th></th>\n";
 		next;
 	    }
-	    my $reboot = $d{$date}{$cvsdate}{$repeat}{reboot};
+	    my $reboot = $D{$date}{$cvsdate}{$repeat}{reboot};
 	    $reboot =~ s,[^/]+/[^/]+/,, if $reboot;
 	    my $link = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
 	    my $href = $reboot ? "<a href=\"$link\">" : "";
@@ -259,8 +298,8 @@ HEADER
 # html per date with cvsdate
 
 foreach my $date (@dates) {
-    my $short = $d{$date}{short};
-    my @cvsdates = @{$d{$date}{cvsdates}};
+    my $short = $D{$date}{short};
+    my @cvsdates = @{$D{$date}{cvsdates}};
 
     my ($html, $htmlfile) = html_open("$date/perform");
     html_header($html, "OpenBSD Perform Date Results",
@@ -279,29 +318,29 @@ foreach my $date (@dates) {
 HEADER
 
     print $html "  <tr>\n    <th>run</th>\n";
-    my $log = $d{$date}{log};
+    my $log = $D{$date}{log};
     my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
     my $href = $log ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <td>${href}log$enda</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
-    my $hostname = $d{$date}{host};
-    my $core = $d{$date}{core};
+    my $hostname = $D{$date}{host};
+    my $core = $D{$date}{core};
     print $html "    <td>$hostname/$core</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>machine release setup</th>\n";
-    my $setup = $d{$date}{setup};
-    my $release = $d{$date}{stepconf}{release};
-    my $setupmodes = $d{$date}{stepconf}{setupmodes} ||
-	$d{$date}{stepconf}{modes};
+    my $setup = $D{$date}{setup};
+    my $release = $D{$date}{stepconf}{release};
+    my $setupmodes = $D{$date}{stepconf}{setupmodes} ||
+	$D{$date}{stepconf}{modes};
     $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
     $href = $setup ? "<a href=\"../$link\">" : "";
     $enda = $href ? " info</a>" : "";
     print $html "    <td>$href$release/$setupmodes$enda</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";
-    my $interval = $d{$date}{stepconf}{step};
+    my $interval = $D{$date}{stepconf}{step};
     my $steptext = @cvsdates && $interval && @cvsdates > 1 ?
 	@cvsdates. " / $interval" : @cvsdates || $interval;
     $steptext =~ s/\s//g;
@@ -312,7 +351,7 @@ HEADER
     print $html "<table>\n";
     print $html "  <tr>\n    <th>cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
-	my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
+	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
 	my $time = encode_entities($cvsdate);
 	my $cvsdatehtml = "$cvsdate/perform.html";
 	my $link = uri_escape($cvsdatehtml, "^A-Za-z0-9\-\._~/");
@@ -325,7 +364,7 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
     foreach my $cvsdate (@cvsdates) {
-	my $build = $d{$date}{$cvsdate}{build};
+	my $build = $D{$date}{$cvsdate}{build};
 	$build =~ s,[^/]+/,, if $build;
 	my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
 	my $href = $build ? "<a href=\"$link\">" : "";
@@ -337,12 +376,12 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>kernel build</th>\n";
     foreach my $cvsdate (@cvsdates) {
-	my $version = $d{$date}{$cvsdate}{version};
+	my $version = $D{$date}{$cvsdate}{version};
 	unless ($version) {
 	    print $html "    <th></th>\n";
 	    next;
 	}
-	my $kernel = encode_entities($d{$date}{$cvsdate}{kernel});
+	my $kernel = encode_entities($D{$date}{$cvsdate}{kernel});
 	$version =~ s,[^/]+/,,;
 	my $link = uri_escape($version, "^A-Za-z0-9\-\._~/");
 	print $html "    <th title=\"$kernel\">".
@@ -353,35 +392,35 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>kernel commits</th>\n";
     foreach my $cvsdate (@cvsdates) {
-	my $cvslog = $d{$date}{$cvsdate}{cvslog};
+	my $cvslog = $D{$date}{$cvsdate}{cvslog};
 	unless ($cvslog) {
 	    print $html "    <th></th>\n";
 	    next;
 	}
 	my $title = "";
-	if ($d{$date}{$cvsdate}{cvsfiles}) {
+	if ($D{$date}{$cvsdate}{cvsfiles}) {
 	    my %files;
-	    @files{@{$d{$date}{$cvsdate}{cvsfiles}}} = ();
+	    @files{@{$D{$date}{$cvsdate}{cvsfiles}}} = ();
 	    my $files = encode_entities(join(" ", sort keys %files));
 	    $title = " title=\"$files\"";
 	}
 	my $link = uri_escape($cvslog, "^A-Za-z0-9\-\._~/");
-	my $cvscommits = $d{$date}{$cvsdate}{cvscommits};
+	my $cvscommits = $D{$date}{$cvsdate}{cvscommits};
 	my $num = defined($cvscommits) ? "/$cvscommits" : "";
 	print $html "    <th$title><a href=\"../$link\">cvslog</a>$num</th>\n";
     }
     print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
-    if (($d{$date}{stepconf}{kernelmodes} || "") eq "align") {
+    if (($D{$date}{stepconf}{kernelmodes} || "") eq "align") {
 	print $html "  <tr>\n    <th>kernel name list</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    my $nmstat = $d{$date}{$cvsdate}{nmstat};
+	    my $nmstat = $D{$date}{$cvsdate}{nmstat};
 	    unless ($nmstat) {
 		print $html "    <th></th>\n";
 		next;
 	    }
-	    my $difffile = $d{$date}{$cvsdate}{nmdiff};
+	    my $difffile = $D{$date}{$cvsdate}{nmdiff};
 	    my $link = uri_escape($difffile, "^A-Za-z0-9\-\._~/");
 	    my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
 	    print $html "    <th><a href=\"../$link\">$diffstat</a></th>\n";
@@ -394,7 +433,7 @@ HEADER
     my $prevd;
     my $qi = 65 + keys %{{quirks(undef, $cvsdates[0])}};
     foreach my $cvsdate (@cvsdates) {
-	my $quirks = $d{$date}{$cvsdate}{quirks};
+	my $quirks = $D{$date}{$cvsdate}{quirks};
 	print $html "    <th>";
 	if ($quirks) {
 	    $quirks =~ s,[^/]+/,,;
@@ -415,9 +454,9 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
     foreach my $cvsdate (@cvsdates) {
-	my $repeats = @{$d{$date}{$cvsdate}{repeats} || []} || "";
-	my $kernelmode = $d{$date}{stepconf}{kernelmodes} ||
-	    $d{$date}{stepconf}{repmodes};
+	my $repeats = @{$D{$date}{$cvsdate}{repeats} || []} || "";
+	my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
+	    $D{$date}{stepconf}{repmodes};
 	my $kerneltext = $repeats;
 	if ($kernelmode) {
 	    $kerneltext = $repeats && $repeats > 1 ?
@@ -457,16 +496,16 @@ HEADER
 	my $vt = $v{$date}{$test};
 	my @vals;
 	foreach my $cvsdate (@cvsdates) {
-	    if ($d{$date}{$cvsdate}{repeats}) {
+	    if ($D{$date}{$cvsdate}{repeats}) {
 		push @vals, map { $vt->{$cvsdate}{$_} }
-		    @{$d{$date}{$cvsdate}{repeats}}
+		    @{$D{$date}{$cvsdate}{repeats}}
 	    } else {
 		push @vals, $vt->{$cvsdate};
 	    }
 	}
 	my $maxval = max map { scalar @{$_ || []} } @vals;
 	for (my $i = 0; $i < $maxval; $i++) {
-	    my $rp0 = $d{$date}{$cvsdates[0]}{repeats};
+	    my $rp0 = $D{$date}{$cvsdates[0]}{repeats};
 	    my $value0 = $rp0 ?
 		first { $_ } map { $vt->{$cvsdates[0]}{$_}[$i] } @$rp0 :
 		first { $_ } map { $vt->{$_}[$i] } @cvsdates;
@@ -566,7 +605,7 @@ HEADER
 print $html "<table>\n";
 print $html "  <tr>\n    <th>run</th>\n";
 foreach my $date (@dates) {
-    my $short = $d{$date}{short};
+    my $short = $D{$date}{short};
     my $time = encode_entities($date);
     my $datehtml = "$date/perform.html";
     my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
@@ -577,39 +616,39 @@ foreach my $date (@dates) {
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>host cores</th>\n";
 foreach my $date (@dates) {
-    my $hostname = $d{$date}{host};
-    my $core = $d{$date}{core};
+    my $hostname = $D{$date}{host};
+    my $core = $D{$date}{core};
     print $html "    <th>$hostname/$core</th>\n";
 }
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>release setup</th>\n";
 foreach my $date (@dates) {
-    my $release = $d{$date}{stepconf}{release};
-    my $setupmodes = $d{$date}{stepconf}{setupmodes} ||
-	$d{$date}{stepconf}{modes};
+    my $release = $D{$date}{stepconf}{release};
+    my $setupmodes = $D{$date}{stepconf}{setupmodes} ||
+	$D{$date}{stepconf}{modes};
     print $html "    <th>$release/$setupmodes</th>\n";
 }
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>first cvs checkout</th>\n";
 foreach my $date (@dates) {
-    my $cvsdate = $d{$date}{cvsdates}[0];
-    my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
+    my $cvsdate = $D{$date}{cvsdates}[0];
+    my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
     my $time = encode_entities($cvsdate);
     print $html "    <th title=\"$time\">$cvsshort</th>\n";
 }
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>last cvs checkout</th>\n";
 foreach my $date (@dates) {
-    my $cvsdate = $d{$date}{cvsdates}[-1];
-    my $cvsshort = $d{$date}{$cvsdate}{cvsshort};
+    my $cvsdate = $D{$date}{cvsdates}[-1];
+    my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
     my $time = encode_entities($cvsdate);
     print $html "    <th title=\"$time\">$cvsshort</th>\n";
 }
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>steps</th>\n";
 foreach my $date (@dates) {
-    my $steps = @{$d{$date}{cvsdates}};
-    my $interval = $d{$date}{stepconf}{step};
+    my $steps = @{$D{$date}{cvsdates}};
+    my $interval = $D{$date}{stepconf}{step};
     my $steptext = $steps && $interval && $steps > 1 ?
 	"$steps / $interval" : $steps || $interval;
     $steptext =~ s/\s//g;
@@ -618,10 +657,10 @@ foreach my $date (@dates) {
 print $html "  </tr>\n";
 print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
 foreach my $date (@dates) {
-    my $cvsdate0 = $d{$date}{cvsdates}[0];
-    my $repeats = @{$d{$date}{$cvsdate0}{repeats} || []} || "";
-    my $kernelmode = $d{$date}{stepconf}{kernelmodes} ||
-	$d{$date}{stepconf}{repmodes};
+    my $cvsdate0 = $D{$date}{cvsdates}[0];
+    my $repeats = @{$D{$date}{$cvsdate0}{repeats} || []} || "";
+    my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
+	$D{$date}{stepconf}{repmodes};
     my $kerneltext = $repeats;
     if ($kernelmode) {
 	$kerneltext = $repeats && $repeats > 1 ?
@@ -666,7 +705,7 @@ html_close($html, $htmlfile);
 
 exit;
 
-# fill global hashes %T %d %v
+# fill global hashes %T %D %v
 sub parse_result_files {
     foreach my $result (@_) {
 
@@ -674,34 +713,34 @@ sub parse_result_files {
 	my ($date, $short, $cvsdate, $cvsshort, $repeat) =
 	    $result =~ m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+)/)?test.result,
 	    or next;
-	$d{$date}{short} ||= $short;
-	push @{$d{$date}{cvsdates} ||= []}, $cvsdate unless $d{$date}{$cvsdate};
-	$d{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
+	$D{$date}{short} ||= $short;
+	push @{$D{$date}{cvsdates} ||= []}, $cvsdate unless $D{$date}{$cvsdate};
+	$D{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
 	if (defined $repeat) {
-	    push @{$d{$date}{$cvsdate}{repeats} ||= []}, $repeat;
-	    $d{$date}{$cvsdate}{repeat}{$result} = $result;
+	    push @{$D{$date}{$cvsdate}{repeats} ||= []}, $repeat;
+	    $D{$date}{$cvsdate}{$repeat}{result} = $result;
 	} else {
-	    $d{$date}{$cvsdate}{$result} = $result;
+	    $D{$date}{$cvsdate}{result} = $result;
 	}
-	$d{$date}{log} ||= "step.log" if -f "$date/step.log";
-	unless ($d{$date}{stepconf}) {
+	$D{$date}{log} ||= "step.log" if -f "$date/step.log";
+	unless ($D{$date}{stepconf}) {
 	    my $stepfile = "$date/stepconf.txt";
 	    if (open (my $fh, '<', $stepfile)) {
 		while (<$fh>) {
 		    chomp;
 		    my ($k, $v) = split(/\s+/, $_, 2);
-		    $d{$date}{stepconf}{lc($k)} = $v;
+		    $D{$date}{stepconf}{lc($k)} = $v;
 		}
 	    } else {
 		$!{ENOENT}
 		    or die "Open '$stepfile' for reading failed: $!";
 	    }
 	}
-	$d{$date}{setup} ||= "$date/setup.html" if -f "$date/setup.html";
-	$d{$date}{$cvsdate}{build} ||= "$date/$cvsdate/build.html"
+	$D{$date}{setup} ||= "$date/setup.html" if -f "$date/setup.html";
+	$D{$date}{$cvsdate}{build} ||= "$date/$cvsdate/build.html"
 	    if -f "$date/$cvsdate/build.html";
 	if (defined $repeat) {
-	    $d{$date}{$cvsdate}{$repeat}{reboot} ||=
+	    $D{$date}{$cvsdate}{$repeat}{reboot} ||=
 		"$date/$cvsdate/$repeat/reboot.html"
 		if -f "$date/$cvsdate/$repeat/reboot.html";
 	}
@@ -763,31 +802,33 @@ sub parse_result_files {
 	    $version =~ m,/version-(.+)\.txt$,;
 	    my $hostname = $1;
 
-	    next if $d{$date}{$cvsdate}{$hostname};
-	    push @{$d{$date}{$cvsdate}{hosts} ||= []}, $hostname;
-	    $d{$date}{$cvsdate}{$hostname} = {};
-	    $d{$date}{host} ||= $hostname;
+	    next if $D{$date}{$cvsdate}{$hostname};
+	    push @{$D{$date}{$cvsdate}{hosts} ||= []}, $hostname;
+	    $D{$date}{$cvsdate}{$hostname} = {
+		version => $version,
+	    };
+	    $D{$date}{host} ||= $hostname;
 	    (my $dmesg = $version) =~ s,/version-,/dmesg-,;
-	    $d{$date}{$cvsdate}{$hostname}{dmesg} ||= $dmesg if -f $dmesg;
+	    $D{$date}{$cvsdate}{$hostname}{dmesg} ||= $dmesg if -f $dmesg;
 
-	    next if $d{$date}{$cvsdate}{version};
-	    $d{$date}{$cvsdate}{version} = $version;
+	    next if $D{$date}{$cvsdate}{version};
+	    $D{$date}{$cvsdate}{version} = $version;
 	    (my $quirks = $version) =~ s,/version-,/quirks-,;
-	    $d{$date}{$cvsdate}{quirks} ||= $quirks if -f $quirks;
+	    $D{$date}{$cvsdate}{quirks} ||= $quirks if -f $quirks;
 
 	    open($fh, '<', $version)
 		or die "Open '$version' for reading failed: $!";
 	    while (<$fh>) {
 		if (/^kern.version=(.*(?:cvs : (\w+))?: (\w+ \w+ +\d+ .*))$/) {
-		    $d{$date}{$cvsdate}{kernel} = $1;
-		    $d{$date}{$cvsdate}{cvs} = $2;
-		    $d{$date}{$cvsdate}{time} = $3;
+		    $D{$date}{$cvsdate}{kernel} = $1;
+		    $D{$date}{$cvsdate}{cvs} = $2;
+		    $D{$date}{$cvsdate}{time} = $3;
 		    <$fh> =~ /(\S+)/;
-		    $d{$date}{$cvsdate}{kernel} .= "\n    $1";
-		    $d{$date}{$cvsdate}{location} = $1;
+		    $D{$date}{$cvsdate}{kernel} .= "\n    $1";
+		    $D{$date}{$cvsdate}{location} = $1;
 		}
-		/^hw.machine=(\w+)$/ and $d{$date}{arch} ||= $1;
-		/^hw.ncpu=(\d+)$/ and $d{$date}{core} ||= $1;
+		/^hw.machine=(\w+)$/ and $D{$date}{arch} ||= $1;
+		/^hw.ncpu=(\d+)$/ and $D{$date}{core} ||= $1;
 	    }
 	}
     }
@@ -886,7 +927,7 @@ sub write_data_files {
 			my $number = $value->{number};
 			my $unit = $value->{unit};
 			my $subtest = $value->{name} || "unknown";
-			my $hostname = $d{$date}{host};
+			my $hostname = $D{$date}{host};
 			print $fh "$test $subtest ".
 			    "$run $checkout $repeat $number $unit $hostname\n";
 			print {$plotfh{$testplot{$test}}} "$test $subtest ".
@@ -1062,7 +1103,7 @@ sub list_tests {
 }
 
 sub list_dates {
-    return reverse sort keys %d;
+    return reverse sort keys %D;
 }
 
 # create gnuplot graphs for all runs
@@ -1085,7 +1126,7 @@ sub create_gnuplot_files {
 
 # create cvs log file with commits after previous cvsdates
 sub create_cvslog_files {
-    foreach my $dd (values %d) {
+    foreach my $dd (values %D) {
 	my %cvsdates;
 	@cvsdates{@{$dd->{cvsdates}}} = ();
 	@{$dd->{cvsdates}} = sort keys %cvsdates;
@@ -1124,8 +1165,8 @@ sub create_cvslog_files {
 }
 
 sub create_nmbsd_files {
-    foreach my $date (sort keys %d) {
-	my $dv = $d{$date};
+    foreach my $date (sort keys %D) {
+	my $dv = $D{$date};
 	next if ($dv->{stepconf}{kernelmodes} || "") ne "align";
 	my $hostname = $dv->{host};
 	my $prevnmfile;
