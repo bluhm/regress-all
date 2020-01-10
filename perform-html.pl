@@ -516,8 +516,8 @@ HEADER
     print $html "</table>\n";
 
     foreach my $plot (@plots) {
-	print $html "<iframe src=\"../gnuplot/$date-$plot.html\" alt=\"".
-	    uc $plot. " Performance\"></iframe>\n<br>";
+	print $html "<iframe src=\"../gnuplot/$date-$plot.html\"></iframe>\n";
+	print $html "<br>\n";
     }
 
     html_table_quirks($html);
@@ -637,8 +637,8 @@ foreach my $test (@tests) {
 print $html "</table>\n";
 
 foreach my $plot (@plots) {
-    print $html "<iframe src=\"gnuplot/$plot.html\" alt=\"".
-	uc $plot. " Performance\"></iframe>\n<br>";
+    print $html "<iframe src=\"gnuplot/$plot.html\"></iframe>\n";
+    print $html "<br>\n";
 }
 
 html_table_quirks($html);

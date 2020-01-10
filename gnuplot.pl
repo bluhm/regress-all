@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # collect cvs logs between certain dates for sub branches
 
-# Copyright (c) 2018 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2018-2019 Moritz Buhl <mbuhl@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -176,19 +176,19 @@ foreach my $cmd (sort keys %tests) {
 
 print $html "<img id=\"frame\" src=\"";
 print $html "$date-" if ($date);
-print $html "$test\_0.png\" alt=\"".  uc $test. " Performance\">";
+print $html "$test\_0.png\" alt=\"". uc($test). " Grid\">";
 
 $i = 1;
 foreach my $cmd (sort keys %tests) {
     print $html "<img src=\"";
     print $html "$date-" if ($date);
-    print $html "$test\_$i.png\" alt=\"$cmd\"><span></span>";
+    print $html "$test\_$i.png\" alt=\"". uc($test). " $cmd\"><span></span>";
     $i++;
 }
 
 print $html "<img id=\"combined\" src=\"";
 print $html "$date-" if ($date);
-print $html "$test.png\">";
+print $html "$test.png\" alt=\"". uc($test). " Performance\">";
 
 print $html "</body>
 </html>";
