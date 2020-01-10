@@ -54,7 +54,25 @@ chdir($dir)
 # cvs checkout and repeated results
 my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 
-my (%t, %d, %v);
+# %T
+# $test					performance test tool command line
+# $T{$test}{severity}			weighted severity of all failures
+# $date					date when test was executed as string
+# $T{$test}{$date}
+# $T{$test}{$date}{status}		worst status of this test run
+# $T{$test}{$date}{message}		never set
+# $T{$test}{$date}{severity}		worst severity of this test run
+# $cvsdate				date of the cvs checkout as string
+# $T{$test}{$date}{$cvsdate}
+# $T{$test}{$date}{$cvsdate}{status}	result of this test or worst status
+# $T{$test}{$date}{$cvsdate}{message}	test printed a summary unless repeat
+# $T{$test}{$date}{$cvsdate}{severity}	worst severity of repeats
+# $repeat				number of the repetition as string
+# $T{$test}{$date}{$cvsdate}{$repeat}
+# $T{$test}{$date}{$cvsdate}{$repeat}{status}	result of this test
+# $T{$test}{$date}{$cvsdate}{$repeat}{message}	test printed a summary
+
+my (%T, %d, %v);
 parse_result_files(@result_files);
 
 write_data_files();
@@ -143,7 +161,7 @@ HEADER
 	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
 	foreach my $test (@tests) {
-	    my $td = $t{$test}{$date} && $t{$test}{$date}{$cvsdate}
+	    my $td = $T{$test}{$date} && $T{$test}{$date}{$cvsdate}
 		or next;
 	    print $html "  <tr>\n    <th>$test</th>\n";
 	    foreach my $repeat (@repeats) {
@@ -412,7 +430,7 @@ HEADER
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     foreach my $test (@tests) {
-	my $td = $t{$test}{$date} or next;
+	my $td = $T{$test}{$date} or next;
 	print $html "  <tr>\n    <th>$test</th>\n";
 	foreach my $cvsdate (@cvsdates) {
 	    unless ($td->{$cvsdate}) {
@@ -617,14 +635,14 @@ print $html "  </tr>\n";
 foreach my $test (@tests) {
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $date (@dates) {
-	my $td = $t{$test}{$date};
+	my $td = $T{$test}{$date};
 	unless ($td) {
 	    print $html "    <td></td>\n";
 	    next;
 	}
 	my $status = $td->{status};
 	my $class = " class=\"status $status\"";
-	my $message = encode_entities($t{$test}{$date}{message});
+	my $message = encode_entities($T{$test}{$date}{message});
 	my $title = $message ? " title=\"$message\"" : "";
 	my $datehtml = "$date/perform.html";
 	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
@@ -648,7 +666,7 @@ html_close($html, $htmlfile);
 
 exit;
 
-# fill global hashes %t %d %v
+# fill global hashes %T %d %v
 sub parse_result_files {
     foreach my $result (@_) {
 
@@ -687,7 +705,7 @@ sub parse_result_files {
 		"$date/$cvsdate/$repeat/reboot.html"
 		if -f "$date/$cvsdate/$repeat/reboot.html";
 	}
-	$_->{severity} *= .5 foreach values %t;
+	$_->{severity} *= .5 foreach values %T;
 	open(my $fh, '<', $result)
 	    or die "Open '$result' for reading failed: $!";
 	my @values;
@@ -709,33 +727,33 @@ sub parse_result_files {
 	    my $severity = status2severity($status);
 	    if (defined $repeat) {
 		$v{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
-		$t{$test}{$date}{$cvsdate}{$repeat}
+		$T{$test}{$date}{$cvsdate}{$repeat}
 		    and warn "Duplicate test '$test' date '$date' ".
 			"cvsdate '$cvsdate' repeat '$repeat'";
-		$t{$test}{$date}{$cvsdate}{$repeat} = {
+		$T{$test}{$date}{$cvsdate}{$repeat} = {
 		    status => $status,
 		    message => $message,
 		};
-		if (($t{$test}{$date}{$cvsdate}{severity} || 0) < $severity) {
-		    $t{$test}{$date}{$cvsdate}{status} = $status;
-		    $t{$test}{$date}{$cvsdate}{severity} = $severity;
+		if (($T{$test}{$date}{$cvsdate}{severity} || 0) < $severity) {
+		    $T{$test}{$date}{$cvsdate}{status} = $status;
+		    $T{$test}{$date}{$cvsdate}{severity} = $severity;
 		}
 	    } else {
 		$v{$date}{$test}{$cvsdate} = [ @values ];
-		$t{$test}{$date}{$cvsdate}
+		$T{$test}{$date}{$cvsdate}
 		    and warn "Duplicate test '$test' date '$date' ".
 			"cvsdate '$cvsdate'";
-		$t{$test}{$date}{$cvsdate} = {
+		$T{$test}{$date}{$cvsdate} = {
 		    status => $status,
 		    message => $message,
 		};
 	    }
 	    undef @values;
-	    if (($t{$test}{$date}{severity} || 0) < $severity) {
-		$t{$test}{$date}{status} = $status;
-		$t{$test}{$date}{severity} = $severity;
+	    if (($T{$test}{$date}{severity} || 0) < $severity) {
+		$T{$test}{$date}{status} = $status;
+		$T{$test}{$date}{severity} = $severity;
 	    }
-	    $t{$test}{severity} += $severity;
+	    $T{$test}{severity} += $severity;
 	}
 	close($fh)
 	    or die "Close '$result' after reading failed: $!";
@@ -1035,12 +1053,12 @@ BEGIN {
 }
 
 sub list_tests {
-    foreach my $test (keys %t) {
+    foreach my $test (keys %T) {
 	next if $testorder{$test};
 	warn "testorder missing test $test\n";
 	$testorder{$test} = 0;
     }
-    return reverse sort { $testorder{$b} <=> $testorder{$a} } keys %t;
+    return reverse sort { $testorder{$b} <=> $testorder{$a} } keys %T;
 }
 
 sub list_dates {
