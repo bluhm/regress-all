@@ -302,7 +302,8 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
     }
-    print $html "    <th></th>\n";  # dummy for unit below
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -313,7 +314,8 @@ HEADER
 	my $enda = $href ? " info</a>" : "";
 	print $html "    <th>${href}build$enda</th>\n";
     }
-    print $html "    <th></th>\n";  # dummy for unit below
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>kernel build</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -328,7 +330,8 @@ HEADER
 	print $html "    <th title=\"$kernel\">".
 	    "<a href=\"$link\">version</a></th>\n";
     }
-    print $html "    <th></th>\n";  # dummy for unit below
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>kernel commits</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -349,7 +352,8 @@ HEADER
 	my $num = defined($cvscommits) ? "/$cvscommits" : "";
 	print $html "    <th$title><a href=\"../$link\">cvslog</a>$num</th>\n";
     }
-    print $html "    <th></th>\n";  # dummy for unit below
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     if (($d{$date}{stepconf}{kernelmodes} || "") eq "align") {
 	print $html "  <tr>\n    <th>kernel name list</th>\n";
@@ -364,7 +368,8 @@ HEADER
 	    my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
 	    print $html "    <th><a href=\"../$link\">$diffstat</a></th>\n";
 	}
-	print $html "    <th></th>\n";  # dummy for unit below
+	print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
     }
     print $html "  <tr>\n    <th>build quirks</th>\n";
@@ -387,7 +392,8 @@ HEADER
 	print $html "</th>\n";
 	$prevd = $cvsdate;
     }
-    print $html "    <th></th>\n";  # dummy for unit below
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
     foreach my $cvsdate (@cvsdates) {
