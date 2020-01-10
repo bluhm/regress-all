@@ -110,8 +110,19 @@ my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 # $D{$date}{$cvsdate}{cvslog}		path to cvslog.html or cvslog.txt
 # $D{$date}{$cvsdate}{cvscommits}	number of cvs commits
 # $D{$date}{$cvsdate}{cvsfiles}		list of files changes in cvs commit
+# %V
+# $date					date when test was executed as string
+# $test					performance test tool command line
+# $cvsdate				date of the cvs checkout as string
+# $V{$date}{$test}{$cvsdate}		list of values
+# $repeat				number of the repetition as string
+# $V{$date}{$test}{$cvsdate}{$repeat}	list of values
+# $value				index of value
+# [$value]{name}			name of subtest
+# [$value]{unit}			unit of number
+# [$value]{number}			numeric value
 
-my (%T, %D, %v);
+my (%T, %D, %V);
 parse_result_files(@result_files);
 
 write_data_files();
@@ -224,7 +235,7 @@ HEADER
 		print $html "    <th>$stat</th>\n";
 	    }
 	    print $html "  </tr>\n";
-	    my $vt = $v{$date}{$test}{$cvsdate};
+	    my $vt = $V{$date}{$test}{$cvsdate};
 	    my $maxval = max map { scalar @{$vt->{$_} || []} } @repeats;
 	    for (my $i = 0; $i < $maxval; $i++) {
 		my $value0 = first { $_ } map { $vt->{$_}[$i] } @repeats;
@@ -493,7 +504,7 @@ HEADER
 	    print $html "    <th>$stat</th>\n";
 	}
 	print $html "  </tr>\n";
-	my $vt = $v{$date}{$test};
+	my $vt = $V{$date}{$test};
 	my @vals;
 	foreach my $cvsdate (@cvsdates) {
 	    if ($D{$date}{$cvsdate}{repeats}) {
@@ -705,7 +716,7 @@ html_close($html, $htmlfile);
 
 exit;
 
-# fill global hashes %T %D %v
+# fill global hashes %T %D %V
 sub parse_result_files {
     foreach my $result (@_) {
 
@@ -765,7 +776,7 @@ sub parse_result_files {
 	    }
 	    my $severity = status2severity($status);
 	    if (defined $repeat) {
-		$v{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
+		$V{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
 		$T{$test}{$date}{$cvsdate}{$repeat}
 		    and warn "Duplicate test '$test' date '$date' ".
 			"cvsdate '$cvsdate' repeat '$repeat'";
@@ -778,7 +789,7 @@ sub parse_result_files {
 		    $T{$test}{$date}{$cvsdate}{severity} = $severity;
 		}
 	    } else {
-		$v{$date}{$test}{$cvsdate} = [ @values ];
+		$V{$date}{$test}{$cvsdate} = [ @values ];
 		$T{$test}{$date}{$cvsdate}
 		    and warn "Duplicate test '$test' date '$date' ".
 			"cvsdate '$cvsdate'";
@@ -912,8 +923,8 @@ sub write_data_files {
     open(my $fh, '>', "$testdata.data.new")
 	or die "Open '$testdata.data.new' for writing failed: $!";
     print $fh "# test subtest run checkout repeat value unit host\n";
-    foreach my $date (sort keys %v) {
-	my $vd = $v{$date};
+    foreach my $date (sort keys %V) {
+	my $vd = $V{$date};
 	my $run = str2time($date);
 	foreach my $test (sort keys %$vd) {
 	    my $vt = $vd->{$test};
@@ -1109,7 +1120,7 @@ sub list_dates {
 # create gnuplot graphs for all runs
 sub create_gnuplot_files {
     foreach my $plot (list_plots()) {
-	foreach my $date (keys %v) {
+	foreach my $date (keys %V) {
 	    my $outfile = "$date-$plot.html";
 	    if ($opts{g} || ! -f "gnuplot/$outfile") {
 		my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
