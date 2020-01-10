@@ -76,11 +76,7 @@ foreach my $date (@dates) {
 	my @repeats = sort @{$d{$date}{$cvsdate}{repeats} || []}
 	    or next;
 
-	my $htmlfile = "$date/$cvsdate/perform.html";
-	unlink("$htmlfile.new");
-	open(my $html, '>', "$htmlfile.new")
-	    or die "Open '$htmlfile.new' for writing failed: $!";
-
+	my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
 	html_header($html, "OpenBSD Perform CVS Date Results",
 	    "OpenBSD perform $short cvs $cvsshort test results");
 
@@ -238,16 +234,7 @@ HEADER
 
 	html_table_status($html, "perform");
 	html_footer($html);
-
-	close($html)
-	    or die "Close '$htmlfile.new' after writing failed: $!";
-	rename("$htmlfile.new", "$htmlfile")
-	    or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
-
-	system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-	    and die "gzip $htmlfile failed: $?";
-	rename("$htmlfile.gz.new", "$htmlfile.gz")
-	    or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+	html_close($html, $htmlfile);
     }
 }
 
@@ -257,11 +244,7 @@ foreach my $date (@dates) {
     my $short = $d{$date}{short};
     my @cvsdates = @{$d{$date}{cvsdates}};
 
-    my $htmlfile = "$date/perform.html";
-    unlink("$htmlfile.new");
-    open(my $html, '>', "$htmlfile.new")
-	or die "Open '$htmlfile.new' for writing failed: $!";
-
+    my ($html, $htmlfile) = html_open("$date/perform");
     html_header($html, "OpenBSD Perform Date Results",
 	"OpenBSD perform $short test results");
 
@@ -534,25 +517,12 @@ HEADER
     html_table_quirks($html);
     html_table_status($html, "perform");
     html_footer($html);
-
-    close($html)
-	or die "Close '$htmlfile.new' after writing failed: $!";
-    rename("$htmlfile.new", "$htmlfile")
-	or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
-
-    system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-	and die "gzip $htmlfile failed: $?";
-    rename("$htmlfile.gz.new", "$htmlfile.gz")
-	or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+    html_close($html, $htmlfile);
 }
 
 # html with date
 
-my $htmlfile = "perform.html";
-unlink("$htmlfile.new");
-open(my $html, '>', "$htmlfile.new")
-    or die "Open '$htmlfile.new' for writing failed: $!";
-
+my ($html, $htmlfile) = html_open("perform");
 html_header($html, "OpenBSD Perform Test Results",
     "OpenBSD perform all test results");
 
@@ -668,16 +638,7 @@ foreach my $plot (@plots) {
 html_table_quirks($html);
 html_table_status($html, "perform");
 html_footer($html);
-
-close($html)
-    or die "Close '$htmlfile.new' after writing failed: $!";
-rename("$htmlfile.new", "$htmlfile")
-    or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
-
-system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-    and die "gzip $htmlfile failed: $?";
-rename("$htmlfile.gz.new", "$htmlfile.gz")
-    or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+html_close($html, $htmlfile);
 
 exit;
 

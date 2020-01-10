@@ -19,6 +19,8 @@ use Buildquirks;
 
 use parent 'Exporter';
 our @EXPORT= qw(
+    html_open
+    html_close
     html_header
     html_footer
     html_table_status
@@ -26,6 +28,28 @@ our @EXPORT= qw(
     status2severity
 );
 
+# create new html file, return handle and file name
+sub html_open {
+    my ($path) = @_;
+    my $htmlfile = "$path.html";
+    unlink("$htmlfile.new");
+    open(my $html, '>', "$htmlfile.new")
+	or die "Open '$htmlfile.new' for writing failed: $!";
+    return wantarray ? ($html, $htmlfile) : $html;
+}
+
+# close new html file, rename atomically, create gzipped copy
+sub html_close {
+    my ($html, $htmlfile) = @_;
+    close($html)
+	or die "Close '$htmlfile.new' after writing failed: $!";
+    rename("$htmlfile.new", "$htmlfile")
+	or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
+    system("gzip -f -c $htmlfile >$htmlfile.gz.new")
+	and die "gzip $htmlfile failed: $?";
+    rename("$htmlfile.gz.new", "$htmlfile.gz")
+	or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+}
 # open html page, print head, open body
 sub html_header {
     my ($html, $title, $headline) = @_;
