@@ -1254,6 +1254,7 @@ sub html_cvsdate_zoom {
 	@dates{keys %{$Z[$i]}} = ();
     }
     print $html "<table>\n";
+    print $html "      <tr>\n";
     foreach my $date (reverse sort keys %dates) {
 	my $short = $D{$date}{short};
 	my $time = encode_entities($date);
@@ -1261,7 +1262,8 @@ sub html_cvsdate_zoom {
 	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
 	my $href = -f $datehtml ? "<a href=\"../$link\">" : "";
 	my $enda = $href ? "</a>" : "";
-	print $html "      <td title=\"$time\">$href$short$enda</td>\n";
+	print $html "        <td title=\"$time\">$href$short$enda</td>\n";
     }
+    print $html "      </tr>\n";
     print $html "    </table>";
 }
