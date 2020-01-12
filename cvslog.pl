@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # collect cvs logs between certain dates for sub branches
 
-# Copyright (c) 2018 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -264,7 +264,7 @@ foreach my $date (sort keys %l) {
 	}
 	print $fh "FILES @files\n";
 	my @message = @{$commit->{message}};
-	my $message = join("<br>\n\t", @message);
+	my $message = join("<br>\n\t", map { encode_entities($_) } @message);
 	print $fh "MESSAGE @message\n";
 
 	print $html <<"TABLE";
