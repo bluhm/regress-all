@@ -484,7 +484,9 @@ HEADER
     print $html "  <tr>\n    <th>zoom</th>\n";
     $prevcvsdate = undef;
     foreach my $cvsdate (@cvsdates) {
-	html_cvsdate_zoom($html, $prevcvsdate, $cvsdate);
+	print $html "    <th>";
+	html_cvsdate_zoom($html, $prevcvsdate, $cvsdate) if $prevcvsdate;
+	print $html "</th>\n";
 	$prevcvsdate = $cvsdate;
     }
     print $html "    <th></th><th></th><th></th><th></th><th></th>".
@@ -1251,7 +1253,7 @@ sub html_cvsdate_zoom {
     for (my $i = $start + 1; $i < $stop; $i++) {
 	@dates{keys %{$Z[$i]}} = ();
     }
-    print $html "    <th><table>\n";
+    print $html "<table>\n";
     foreach my $date (reverse sort keys %dates) {
 	my $short = $D{$date}{short};
 	my $time = encode_entities($date);
@@ -1261,5 +1263,5 @@ sub html_cvsdate_zoom {
 	my $enda = $href ? "</a>" : "";
 	print $html "      <td title=\"$time\">$href$short$enda</td>\n";
     }
-    print $html "    </table></td>\n";
+    print $html "    </table>";
 }
