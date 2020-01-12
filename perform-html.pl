@@ -444,7 +444,7 @@ HEADER
 	print $html "  </tr>\n";
     }
     print $html "  <tr>\n    <th>build quirks</th>\n";
-    my $prevd;
+    my $prevcvsdate;
     my $qi = 65 + keys %{{quirks(undef, $cvsdates[0])}};
     foreach my $cvsdate (@cvsdates) {
 	my $quirks = $D{$date}{$cvsdate}{quirks};
@@ -454,14 +454,14 @@ HEADER
 	    my $link = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
 	    print $html "<a href=\"$link\">quirks</a>";
 	}
-	if ($prevd) {
-	    my @quirks = keys %{{quirks($prevd, $cvsdate)}};
+	if ($prevcvsdate) {
+	    my @quirks = keys %{{quirks($prevcvsdate, $cvsdate)}};
 	    print $html "/", join(",", map {
 		    chr(($qi > 90? 6 + $qi++ : $qi++))
 		} @quirks) if @quirks;
 	}
 	print $html "</th>\n";
-	$prevd = $cvsdate;
+	$prevcvsdate = $cvsdate;
     }
     print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	"<th></th>\n";  # dummy for unit and stats below
@@ -478,6 +478,14 @@ HEADER
 	}
 	$kerneltext =~ s/\s//g;
 	print $html "    <th>$kerneltext</th>\n";
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  <tr>\n    <th>zoom</th>\n";
+    $prevcvsdate = undef;
+    foreach my $cvsdate (@cvsdates) {
+	html_cvsdate_zoom($html, $prevcvsdate, $cvsdate);
+	$prevcvsdate = $cvsdate;
     }
     print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	"<th></th>\n";  # dummy for unit and stats below
@@ -1234,4 +1242,24 @@ sub diff_stat_file {
 	or die "Close '$out.new' after writing failed: $!";
     rename("$out.new", $out)
 	or die "Rename '$out.new' to '$out' failed: $!";
+}
+
+sub html_cvsdate_zoom {
+    my ($html, $before, $after) = @_;
+    my ($start, $stop) = @Z{$before, $after};
+    my %dates;
+    for (my $i = $start + 1; $i < $stop; $i++) {
+	@dates{keys %{$Z[$i]}} = ();
+    }
+    print $html "    <th><table>\n";
+    foreach my $date (reverse sort keys %dates) {
+	my $short = $D{$date}{short};
+	my $time = encode_entities($date);
+	my $datehtml = "$date/perform.html";
+	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
+	my $href = -f $datehtml ? "<a href=\"$link\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "      <td title=\"$time\">$href$short$enda</td>\n";
+    }
+    print $html "    </table></td>\n";
 }
