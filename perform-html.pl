@@ -87,7 +87,7 @@ my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 # $D{$date}{stepconf}{repmodes}		deprecated
 # $D{$date}{stepconf}{step}		step interval and unit
 # $cvsdate				date of the cvs checkout as string
-# $D{$date}{cvsdates}			list of cvsdates
+# $D{$date}{cvsdates}			array of cvsdates
 # $D{$date}{$cvsdate}{cvsshort}		cvsdate without time
 # $D{$date}{$cvsdate}{result}		path to test.result file
 # $D{$date}{$cvsdate}{version}		version.txt of machine running perform
@@ -100,29 +100,32 @@ my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 # $D{$date}{$cvsdate}{nmdiff}		path to nm-bsd-diff.txt if align
 # $D{$date}{$cvsdate}{nmstat}		diffstat of nm-bsd-diff if align
 # $hostname				hostname of the machine
-# $D{$date}{$cvsdate}{hosts}		list of hosts
+# $D{$date}{$cvsdate}{hosts}		array of hosts
 # $D{$date}{$cvsdate}{$hostname}{version}	path to version.txt
 # $D{$date}{$cvsdate}{$hostname}{dmesg}		path to version.txt
 # $repeat				number of the repetition as string
-# $D{$date}{$cvsdate}{repeats}		list of repetition numbers as string
+# $D{$date}{$cvsdate}{repeats}		array of repetition numbers as string
 # $D{$date}{$cvsdate}{$repeat}{result}	path to test.result file
 # $D{$date}{$cvsdate}{$repeat}{reboot}	path to reboot.html
 # $D{$date}{$cvsdate}{cvslog}		path to cvslog.html or cvslog.txt
 # $D{$date}{$cvsdate}{cvscommits}	number of cvs commits
-# $D{$date}{$cvsdate}{cvsfiles}		list of files changes in cvs commit
+# $D{$date}{$cvsdate}{cvsfiles}		array of files changes in cvs commit
 # %V
 # $date					date when test was executed as string
 # $test					performance test tool command line
 # $cvsdate				date of the cvs checkout as string
-# $V{$date}{$test}{$cvsdate}		list of values
+# $V{$date}{$test}{$cvsdate}		array of values
 # $repeat				number of the repetition as string
-# $V{$date}{$test}{$cvsdate}{$repeat}	list of values
+# $V{$date}{$test}{$cvsdate}{$repeat}	array of values
 # $value				index of value
 # [$value]{name}			name of subtest
 # [$value]{unit}			unit of number
 # [$value]{number}			numeric value
+# %Z @Z
+# $Z{$cvsdate}				index in @Z
+# $Z[$index]				hash of dates containing cvs checkout
 
-my (%T, %D, %V);
+my (%T, %D, %V, %Z, @Z);
 parse_result_files(@result_files);
 
 write_data_files();
@@ -716,7 +719,7 @@ html_close($html, $htmlfile);
 
 exit;
 
-# fill global hashes %T %D %V
+# fill global hashes %T %D %V %Z @Z
 sub parse_result_files {
     foreach my $result (@_) {
 
@@ -798,6 +801,7 @@ sub parse_result_files {
 		    message => $message,
 		};
 	    }
+	    $Z{$cvsdate}{$date} = 1 if @values;
 	    undef @values;
 	    if (($T{$test}{$date}{severity} || 0) < $severity) {
 		$T{$test}{$date}{status} = $status;
@@ -842,6 +846,10 @@ sub parse_result_files {
 		/^hw.ncpu=(\d+)$/ and $D{$date}{core} ||= $1;
 	    }
 	}
+    }
+    foreach my $cvsdate (sort keys %Z) {
+	push @Z, $Z{$cvsdate};
+	$Z{$cvsdate} = $#Z;
     }
 }
 
