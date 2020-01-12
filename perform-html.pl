@@ -1257,7 +1257,7 @@ sub html_cvsdate_zoom {
 	my $time = encode_entities($date);
 	my $datehtml = "$date/perform.html";
 	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
-	my $href = -f $datehtml ? "<a href=\"$link\">" : "";
+	my $href = -f $datehtml ? "<a href=\"../$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "      <td title=\"$time\">$href$short$enda</td>\n";
     }
