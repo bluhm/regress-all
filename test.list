@@ -187,7 +187,11 @@ sys/kern/sigpending
 sys/kern/sigprof
 sys/kern/sigpthread
 sys/kern/sigsuspend
-sys/kern/sosplice
+sys/kern/sosplice/error
+sys/kern/sosplice/perf
+sys/kern/sosplice/scapy
+sys/kern/sosplice/tcp
+sys/kern/sosplice/udp
 sys/kern/stackjmp
 sys/kern/stackpivot
 sys/kern/syscall
