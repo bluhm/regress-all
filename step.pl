@@ -65,17 +65,21 @@ $begin = str2time($opts{B})
 $end = str2time($opts{E} || $opts{B})
     or die "Invalid -E date '$opts{E}'";
 if ($opts{S}) {
-    ($step, $unit) = $opts{S} =~ /^(\d+)(\w+)$/
-	or die "Invalid -S step '$opts{S}'";
-    # unit syntax check
-    add_step(0 , $step, $unit);
+    if ($opts{S} eq "commit") {
+	$unit = "commit";
+    } else {
+	($step, $unit) = $opts{S} =~ /^(\d+)(\w+)$/
+	    or die "Invalid -S step '$opts{S}'";
+	# unit syntax check
+	add_step(0 , $step, $unit);
+    }
 } else {
     $step = $end - $begin;
     $unit = "sec";
 }
 $end >= $begin
     or die "Begin date '$opts{B}' before end date '$opts{E}'";
-$end == $begin || $step > 0
+$end == $begin || $unit eq "commit" || $step > 0
     or die "Step '$opts{S}' cannot reach end date";
 
 $repeat = $opts{N} || 1;
@@ -135,7 +139,7 @@ print $fh "HOST $opts{h}\n";
 print $fh "RELEASE $opts{r}\n";
 print $fh strftime("BEGIN %FT%TZ\n", gmtime($begin));
 print $fh strftime("END %FT%TZ\n", gmtime($end));
-print $fh "STEP $step $unit\n";
+print $fh "STEP ", $unit eq "commit" ? $unit : "$step $unit", "\n";
 print $fh "REPEAT $repeat\n";
 print $fh "KERNELMODES ", join(" ", sort keys %kernelmode), "\n";
 print $fh "SETUPMODES ", join(" ", sort keys %setupmode), "\n";
@@ -155,13 +159,19 @@ setup_html();
 # update in single steps
 
 my @steps;
-for (my $current = $begin; $current < $end;
-    $current = add_step($current, $step, $unit)) {
+if ($unit eq "commit") {
+    @steps = get_commits($begin, $end);
+    unshift @steps, $begin unless @steps && $steps[0] == $begin;
+    push @steps, $end unless $steps[-1] == $end;
+} else {
+    for (my $current = $begin; $current < $end;
+	$current = add_step($current, $step, $unit)) {
 
-    push @steps, $current;
+	push @steps, $current;
+    }
+    # if next step does not hit the end exactly, do an additional test
+    push @steps, $end;
 }
-# if next step does not hit the end exactly, do an additional test
-push @steps, $end;
 
 foreach my $current (@steps) {
 
@@ -236,6 +246,36 @@ $date = strftime("%FT%TZ", gmtime);
 logmsg("script '$scriptname' finished at $date\n");
 
 exit;
+
+sub get_commits {
+    my ($cvsbegin, $cvsend) = map { strftime("%FT%TZ", gmtime($_)) } @_;
+
+    my $cvstxt = "cvslog/src/sys/$cvsbegin--$cvsend.txt";
+    unless (-f $cvstxt) {
+	my @cmd = ("$performdir/bin/cvslog.pl",
+	    "-B", $cvsbegin, "-E", $cvsend, "-P", "src/sys");
+	system(@cmd)
+	    and die "Command '@cmd' failed: $?";
+    }
+    open (my $fh, '<', $cvstxt)
+	or die "Open '$cvstxt' for reading failed: $!";
+
+    my @steps;
+    while (<$fh>) {
+	chomp;
+	my ($k, $v) = split(/\s+/, 2)
+	    or next;
+	$k eq 'DATE'
+	    or next;
+	my $time = str2time($v)
+	    or die "Invalid date '$v' in $cvstxt";
+	# cvs commit is not atomic, ignore commits a few seconds ago
+	# also ignore regen commits or quick fixes within a minute
+	pop @steps if @steps && $steps[-1] + 60 > $time;
+	push @steps, $time;
+    }
+    return @steps;
+}
 
 sub add_step {
     my ($before, $step, $unit) = @_;
