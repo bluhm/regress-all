@@ -185,11 +185,13 @@ sub html_table_quirks {
     my @sorted_quirks = sort keys %q;
     print $html "<table>\n";
     for my $index (0 .. $#sorted_quirks) {
+	my $quirkdate = $sorted_quirks[$index];
 	my $letter = chr(($index > 25? $index + 6 : $index) + 65);
 	print $html <<"ROW";
   <tr>
     <th>$letter</th>
-    <td>$q{$sorted_quirks[$index]}{comment}</td>
+    <td>$quirkdate</td>
+    <td>$q{$quirkdate}{comment}</td>
   </tr>
 ROW
     }
