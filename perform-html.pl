@@ -1260,6 +1260,7 @@ sub html_cvsdate_zoom {
 	my $interval = $D{$date}{stepconf}{step};
 	my $zoomtext = $short && $interval ?
 	    "$short / $interval" : $short || $interval;
+	$zoomtext =~ s/\s//g;
 	my $time = encode_entities($date);
 	my $datehtml = "$date/perform.html";
 	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
