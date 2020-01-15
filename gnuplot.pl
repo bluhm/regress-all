@@ -40,10 +40,12 @@ EOF
     exit(2);
 };
 my $verbose = $opts{v};
-my $run = str2time($opts{D})
-    or die "Invalid -D date '$opts{D}'"
-    if ($opts{D});
-my $date = $opts{D} if ($opts{D});
+my ($run, $date);
+if ($opts{D}) {
+    $run = str2time($opts{D})
+	or die "Invalid -D date '$opts{D}'";
+    $date = $opts{D};
+}
 my $test = $opts{T}
     or die "Option -T tcp|make|udp|fs missing";
 

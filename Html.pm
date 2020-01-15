@@ -15,6 +15,9 @@
 
 package Html;
 
+use strict;
+use warnings;
+
 use Buildquirks;
 
 use parent 'Exporter';
@@ -89,7 +92,7 @@ sub html_footer {
 FOOTER
 }
 
-%badstatus;
+my %badstatus;
 sub status2severity {
     my $status = shift;
     my $severity =
