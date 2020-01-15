@@ -250,7 +250,7 @@ exit;
 sub get_commits {
     my ($cvsbegin, $cvsend) = map { strftime("%FT%TZ", gmtime($_)) } @_;
 
-    my $cvstxt = "cvslog/src/sys/$cvsbegin--$cvsend.txt";
+    my $cvstxt = "$performdir/results/cvslog/src/sys/$cvsbegin--$cvsend.txt";
     unless (-f $cvstxt) {
 	my @cmd = ("$performdir/bin/cvslog.pl",
 	    "-B", $cvsbegin, "-E", $cvsend, "-P", "src/sys");
