@@ -263,7 +263,7 @@ sub get_commits {
     my @steps;
     while (<$fh>) {
 	chomp;
-	my ($k, $v) = split(/\s+/, 2)
+	my ($k, $v) = split(/\s+/, $_, 2)
 	    or next;
 	$k eq 'DATE'
 	    or next;
