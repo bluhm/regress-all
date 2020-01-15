@@ -154,7 +154,16 @@ setup_html();
 
 # update in single steps
 
-for (my $current = $begin; $current <= $end;) {
+my @steps;
+for (my $current = $begin; $current < $end;
+    $current = add_step($current, $step, $unit)) {
+
+    push @steps, $current;
+}
+# if next step does not hit the end exactly, do an additional test
+push @steps, $end;
+
+foreach my $current (@steps) {
 
     chdir($performdir)
 	or die "Chdir to '$performdir' failed: $!";
@@ -208,12 +217,6 @@ for (my $current = $begin; $current <= $end;) {
 	}
     }
     collect_dmesg();
-
-    # if next step does not hit the end exactly, do an additional test
-
-    last if $current == $end;
-    $current = add_step($current, $step, $unit);
-    $current = $end if $current > $end;
 }
 
 # create html output
