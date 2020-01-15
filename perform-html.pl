@@ -1257,13 +1257,16 @@ sub html_cvsdate_zoom {
     print $html "<table>\n";
     foreach my $date (reverse sort keys %dates) {
 	my $short = $D{$date}{short};
+	my $interval = $D{$date}{stepconf}{step};
+	my $zoomtext = $short && $interval ?
+	    "$short / $interval" : $short || $interval;
 	my $time = encode_entities($date);
 	my $datehtml = "$date/perform.html";
 	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
 	my $href = -f $datehtml ? "<a href=\"../$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html
-	    "      <tr><td title=\"$time\">$href$short$enda</td></tr>\n";
+	    "      <tr><td title=\"$time\">$href$zoomtext$enda</td></tr>\n";
     }
     print $html "    </table>";
 }
