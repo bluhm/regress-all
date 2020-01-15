@@ -847,7 +847,7 @@ sub quirks {
 
 sub quirk_comments {
     my %q = quirks(@_);
-    return map { $q{$_}{comment} } sort keys %q;
+    return map { "$_ $q{$_}{comment}" } sort keys %q;
 }
 
 sub quirk_patches {
