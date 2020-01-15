@@ -383,7 +383,7 @@ my %quirks = (
     },
     # Reboot to kernel with dummy syscall msyscall(2) before ld.so quirk.
     '2019-11-29T06:34:46Z' => {
-	comment => "ls.so uses msyscall to permit syscalls",
+	comment => "ld.so uses msyscall to permit syscalls",
 	updatedirs => [ "libexec/ld.so" ],
 	builddirs => [ "libexec/ld.so" ],
     },
