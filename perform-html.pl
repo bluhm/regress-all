@@ -1163,7 +1163,7 @@ sub create_cvslog_files {
 	foreach my $cvsdate (@{$dd->{cvsdates}}) {
 	    if ($cvsprev) {
 		my $cvslog = "cvslog/src/sys/$cvsprev--$cvsdate";
-		unless (-f "$cvslog.txt") {
+		unless (-f "$cvslog.txt" && -f "$cvslog.html") {
 		    my @cmd = ("$performdir/bin/cvslog.pl",
 			"-B", $cvsprev, "-E", $cvsdate, "-P", "src/sys");
 		    system(@cmd)
