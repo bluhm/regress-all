@@ -840,7 +840,7 @@ sub quirks {
 	    or die "Invalid commit date '$k'";
 	next if $before && $commit <= $before;
 	next if $after && $commit > $after;
-	$v->{date} = strftime("%FT%TZ", gmtime($k));
+	$v->{date} = strftime("%FT%TZ", gmtime($commit));
 	$q{$commit} = $v;
     }
     return %q;
