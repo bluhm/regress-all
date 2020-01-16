@@ -97,7 +97,10 @@ misc/posixtestsuite
 misc/sse2
 sbin/disklabel
 sbin/ifconfig
-sbin/iked
+sbin/iked/dh
+sbin/iked/live
+sbin/iked/parser
+sbin/iked/test_helper
 sbin/ipsecctl
 sbin/isakmpd
 sbin/newfs
