@@ -193,7 +193,7 @@ sub html_table_quirks {
 	print $html <<"ROW";
   <tr>
     <th>$letter</th>
-    <td>$quirkdate</td>
+    <td>$q{$quirkdate}{date}</td>
     <td>$q{$quirkdate}{comment}</td>
   </tr>
 ROW

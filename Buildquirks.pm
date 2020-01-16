@@ -840,6 +840,7 @@ sub quirks {
 	    or die "Invalid commit date '$k'";
 	next if $before && $commit <= $before;
 	next if $after && $commit > $after;
+	$v->{date} = strftime("%FT%TZ", gmtime($k));
 	$q{$commit} = $v;
     }
     return %q;
@@ -847,7 +848,7 @@ sub quirks {
 
 sub quirk_comments {
     my %q = quirks(@_);
-    return map { "$_ $q{$_}{comment}" } sort keys %q;
+    return map { "$q{$_}{date} $q{$_}{comment}" } sort keys %q;
 }
 
 sub quirk_patches {
