@@ -192,8 +192,8 @@ sub html_table_quirks {
 	my $letter = chr(($index > 25? $index + 6 : $index) + 65);
 	print $html <<"ROW";
   <tr>
-    <th>$letter</th>
     <td>$q{$quirkdate}{date}</td>
+    <th>$letter</th>
     <td>$q{$quirkdate}{comment}</td>
   </tr>
 ROW
