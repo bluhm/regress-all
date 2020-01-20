@@ -204,6 +204,7 @@ html_header($html, "OpenBSD Perform Test Results",
     "OpenBSD perform all test results");
 html_date_top();
 
+print $html "<table>\n";
 html_date_test_head(@dates);
 foreach my $test (@tests) {
     my $td = $T{$test};
@@ -1222,7 +1223,6 @@ HEADER
 
 sub html_date_test_head {
     my ($html, @dates) = @_;
-    print $html "<table>\n";
     print $html "  <tr>\n    <th>run</th>\n";
     foreach my $date (@dates) {
 	my $short = $D{$date}{short};
