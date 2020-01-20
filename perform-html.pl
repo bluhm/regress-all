@@ -202,19 +202,8 @@ foreach my $date (@dates) {
 my ($html, $htmlfile) = html_open("perform");
 html_header($html, "OpenBSD Perform Test Results",
     "OpenBSD perform all test results");
+html_date_top();
 
-print $html <<"HEADER";
-<table>
-  <tr>
-    <th>created at</th>
-    <td>$now</td>
-  </tr>
-  <tr>
-    <th>test</th>
-    <td><a href=\"run.html\">run info</a></td>
-  </tr>
-</table>
-HEADER
 html_date_test_head(@dates);
 foreach my $test (@tests) {
     my $td = $T{$test};
@@ -1213,6 +1202,21 @@ sub html_cvsdate_test_row {
 	}
 	print $html "  </tr>\n";
     }
+}
+
+sub html_date_top {
+    print $html <<"HEADER";
+<table>
+  <tr>
+    <th>created at</th>
+    <td>$now</td>
+  </tr>
+  <tr>
+    <th>test</th>
+    <td><a href=\"run.html\">run info</a></td>
+  </tr>
+</table>
+HEADER
 }
 
 sub html_date_test_head {
