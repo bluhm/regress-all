@@ -141,7 +141,6 @@ my @dates = list_dates();
 
 foreach my $date (@dates) {
     my $short = $D{$date}{short};
-    my $hostcore = "$D{$date}{host}/$D{$date}{core}";
     foreach my $cvsdate (@{$D{$date}{cvsdates}}) {
 	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
 	my @repeats = sort @{$D{$date}{$cvsdate}{repeats} || []}
@@ -150,53 +149,13 @@ foreach my $date (@dates) {
 	my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
 	html_header($html, "OpenBSD Perform CVS Date Results",
 	    "OpenBSD perform $short cvs $cvsshort test results");
-
-	print $html <<"HEADER";
-<table>
-  <tr>
-    <th>created at</th>
-    <td>$now</td>
-  </tr>
-  <tr>
-    <th>run at</th>
-    <td>$date</td>
-  </tr>
-  <tr>
-    <th>test host with cpu cores</th>
-    <td>$hostcore</td>
-  </tr>
-  <tr>
-    <th>cvs checkout at</th>
-    <td>$cvsdate</td>
-  </tr>
-HEADER
-
-	print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
-	my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
-	    $D{$date}{stepconf}{repmodes};
-	my $kerneltext = @repeats;
-	if ($kernelmode) {
-	    $kerneltext = @repeats && @repeats > 1 ?
-		@repeats. " / $kernelmode" : $kernelmode;
-	}
-	$kerneltext =~ s/\s//g;
-	my $build = $D{$date}{$cvsdate}{build};
-	$build =~ s,[^/]+/[^/]+/,, if $build;
-	my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
-	my $href = $build ? "<a href=\"$link\">" : "";
-	my $enda = $href ? " info</a>" : "";
-	print $html "    <td>$href$kerneltext$enda</td>\n";
-	print $html "  </tr>\n";
-	print $html "</table>\n";
+	html_repeat_top($date, $cvsdate, @repeats);
 
 	print $html "<table>\n";
-
-	html_repeat_test_head($date, $cvsdate, $kernelmode, @repeats);
-
+	html_repeat_test_head($date, $cvsdate, @repeats);
 	foreach my $test (@tests) {
 	    html_repeat_test_row($date, $cvsdate, $test, @repeats);
 	}
-
 	print $html "</table>\n";
 
 	html_table_status($html, "perform");
@@ -1168,8 +1127,50 @@ sub html_cvsdate_zoom {
     print $html "    </table>";
 }
 
+sub html_repeat_top {
+    my ($date, $cvsdate, @repeats) = @_;
+    my $hostcore = "$D{$date}{host}/$D{$date}{core}";
+    print $html <<"HEADER";
+<table>
+  <tr>
+    <th>created at</th>
+    <td>$now</td>
+  </tr>
+  <tr>
+    <th>run at</th>
+    <td>$date</td>
+  </tr>
+  <tr>
+    <th>test host with cpu cores</th>
+    <td>$hostcore</td>
+  </tr>
+  <tr>
+    <th>cvs checkout at</th>
+    <td>$cvsdate</td>
+  </tr>
+HEADER
+
+    print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
+    my $kerneltext = @repeats;
+    my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
+	$D{$date}{stepconf}{repmodes};
+    if ($kernelmode) {
+	$kerneltext = @repeats && @repeats > 1 ?
+	    @repeats. " / $kernelmode" : $kernelmode;
+    }
+    $kerneltext =~ s/\s//g;
+    my $build = $D{$date}{$cvsdate}{build};
+    $build =~ s,[^/]+/[^/]+/,, if $build;
+    my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
+    my $href = $build ? "<a href=\"$link\">" : "";
+    my $enda = $href ? " info</a>" : "";
+    print $html "    <td>$href$kerneltext$enda</td>\n";
+    print $html "  </tr>\n";
+    print $html "</table>\n";
+}
+
 sub html_repeat_test_head {
-    my ($date, $cvsdate, $kernelmode, @repeats) = @_;
+    my ($date, $cvsdate, @repeats) = @_;
     print $html "  <tr>\n    <th>repeat</th>\n";
     foreach my $repeat (@repeats) {
 	print $html "    <th>$repeat</th>\n";
@@ -1178,6 +1179,8 @@ sub html_repeat_test_head {
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
+    my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
+	$D{$date}{stepconf}{repmodes};
     foreach my $repeat (@repeats) {
 	unless ($kernelmode) {
 	    print $html "    <th></th>\n";
@@ -1194,6 +1197,7 @@ sub html_repeat_test_head {
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
 }
+
 sub html_repeat_test_row {
     my ($date, $cvsdate, $test, @repeats) = @_;
     my $td = $T{$test}{$date} && $T{$test}{$date}{$cvsdate}
