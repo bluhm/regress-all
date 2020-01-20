@@ -190,29 +190,9 @@ HEADER
 	print $html "</table>\n";
 
 	print $html "<table>\n";
-	print $html "  <tr>\n    <th>repeat</th>\n";
-	foreach my $repeat (@repeats) {
-	    print $html "    <th>$repeat</th>\n";
-	}
-	print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	    "<th></th>\n";  # dummy for unit and stats below
-	print $html "  </tr>\n";
-	print $html "  <tr>\n    <th>machine</th>\n";
-	foreach my $repeat (@repeats) {
-	    unless ($kernelmode) {
-		print $html "    <th></th>\n";
-		next;
-	    }
-	    my $reboot = $D{$date}{$cvsdate}{$repeat}{reboot};
-	    $reboot =~ s,[^/]+/[^/]+/,, if $reboot;
-	    my $link = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
-	    my $href = $reboot ? "<a href=\"$link\">" : "";
-	    my $enda = $href ? " info</a>" : "";
-	    print $html "    <th>$href$kernelmode$enda</th>\n";
-	}
-	print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	    "<th></th>\n";  # dummy for unit and stats below
-	print $html "  </tr>\n";
+
+	html_repeat_test_head($date, $cvsdate, $kernelmode, @repeats);
+
 	foreach my $test (@tests) {
 	    html_repeat_test_row($date, $cvsdate, $test, @repeats);
 	}
@@ -1188,6 +1168,32 @@ sub html_cvsdate_zoom {
     print $html "    </table>";
 }
 
+sub html_repeat_test_head {
+    my ($date, $cvsdate, $kernelmode, @repeats) = @_;
+    print $html "  <tr>\n    <th>repeat</th>\n";
+    foreach my $repeat (@repeats) {
+	print $html "    <th>$repeat</th>\n";
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>machine</th>\n";
+    foreach my $repeat (@repeats) {
+	unless ($kernelmode) {
+	    print $html "    <th></th>\n";
+	    next;
+	}
+	my $reboot = $D{$date}{$cvsdate}{$repeat}{reboot};
+	$reboot =~ s,[^/]+/[^/]+/,, if $reboot;
+	my $link = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
+	my $href = $reboot ? "<a href=\"$link\">" : "";
+	my $enda = $href ? " info</a>" : "";
+	print $html "    <th>$href$kernelmode$enda</th>\n";
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  </tr>\n";
+}
 sub html_repeat_test_row {
     my ($date, $cvsdate, $test, @repeats) = @_;
     my $td = $T{$test}{$date} && $T{$test}{$date}{$cvsdate}
