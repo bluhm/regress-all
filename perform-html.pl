@@ -767,7 +767,7 @@ sub html_cvsdate_zoom {
 }
 
 sub html_repeat_top {
-    my ($date, $cvsdate, @repeats) = @_;
+    my ($html, $date, $cvsdate, @repeats) = @_;
     my $hostcore = "$D{$date}{host}/$D{$date}{core}";
     print $html <<"HEADER";
 <table>
@@ -808,7 +808,7 @@ HEADER
 }
 
 sub html_repeat_test_head {
-    my ($date, $cvsdate, @repeats) = @_;
+    my ($html, $date, $cvsdate, @repeats) = @_;
     print $html "  <tr>\n    <th>repeat</th>\n";
     foreach my $repeat (@repeats) {
 	print $html "    <th>$repeat</th>\n";
@@ -837,7 +837,7 @@ sub html_repeat_test_head {
 }
 
 sub html_repeat_test_row {
-    my ($date, $cvsdate, $test, $td, @repeats) = @_;
+    my ($html, $date, $cvsdate, $test, $td, @repeats) = @_;
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $repeat (@repeats) {
 	unless ($td->{$repeat}) {
@@ -924,7 +924,7 @@ sub html_repeat_test_row {
 }
 
 sub html_cvsdate_top {
-    my ($date, @cvsdates) = @_;
+    my ($html, $date, @cvsdates) = @_;
     print $html <<"HEADER";
 <table>
   <tr>
@@ -969,7 +969,7 @@ HEADER
 }
 
 sub html_cvsdate_test_head {
-    my ($date, @cvsdates) = @_;
+    my ($html, $date, @cvsdates) = @_;
     print $html "  <tr>\n    <th>cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
@@ -1102,7 +1102,7 @@ sub html_cvsdate_test_head {
 }
 
 sub html_cvsdate_test_row {
-    my ($date, $test, $td, @cvsdates) = @_;
+    my ($html, $date, $test, $td, @cvsdates) = @_;
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	unless ($td->{$cvsdate}) {
@@ -1205,6 +1205,7 @@ sub html_cvsdate_test_row {
 }
 
 sub html_date_top {
+    my ($html) = @_;
     print $html <<"HEADER";
 <table>
   <tr>
@@ -1220,7 +1221,7 @@ HEADER
 }
 
 sub html_date_test_head {
-    my (@dates) = @_;
+    my ($html, @dates) = @_;
     print $html "<table>\n";
     print $html "  <tr>\n    <th>run</th>\n";
     foreach my $date (@dates) {
@@ -1292,7 +1293,7 @@ sub html_date_test_head {
 }
 
 sub html_date_test_row {
-    my ($test, $td, @dates) = @_;
+    my ($html, $test, $td, @dates) = @_;
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $date (@dates) {
 	unless ($td->{$date}) {
