@@ -285,24 +285,8 @@ foreach my $date (@dates) {
 print $html "  </tr>\n";
 
 foreach my $test (@tests) {
-    print $html "  <tr>\n    <th>$test</th>\n";
-    foreach my $date (@dates) {
-	my $td = $T{$test}{$date};
-	unless ($td) {
-	    print $html "    <td></td>\n";
-	    next;
-	}
-	my $status = $td->{status};
-	my $class = " class=\"status $status\"";
-	my $message = encode_entities($T{$test}{$date}{message});
-	my $title = $message ? " title=\"$message\"" : "";
-	my $datehtml = "$date/perform.html";
-	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
-	my $href = -f $datehtml ? "<a href=\"$link\">" : "";
-	my $enda = $href ? "</a>" : "";
-	print $html "    <td$class$title>$href$status$enda</td>\n";
-    }
-    print $html "  </tr>\n";
+    my $td = $T{$test};
+    html_date_test_row($test, $td, @dates);
 }
 print $html "</table>\n";
 
@@ -1297,4 +1281,25 @@ sub html_cvsdate_test_row {
 	}
 	print $html "  </tr>\n";
     }
+}
+
+sub html_date_test_row {
+    my ($test, $td, @dates) = @_;
+    print $html "  <tr>\n    <th>$test</th>\n";
+    foreach my $date (@dates) {
+	unless ($td->{$date}) {
+	    print $html "    <td></td>\n";
+	    next;
+	}
+	my $status = $td->{$date}{status};
+	my $class = " class=\"status $status\"";
+	my $message = encode_entities($td->{$date}{message});
+	my $title = $message ? " title=\"$message\"" : "";
+	my $datehtml = "$date/perform.html";
+	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
+	my $href = -f $datehtml ? "<a href=\"$link\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <td$class$title>$href$status$enda</td>\n";
+    }
+    print $html "  </tr>\n";
 }
