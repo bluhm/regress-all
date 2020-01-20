@@ -220,135 +220,7 @@ HEADER
     print $html "</table>\n";
 
     print $html "<table>\n";
-    print $html "  <tr>\n    <th>cvs checkout</th>\n";
-    foreach my $cvsdate (@cvsdates) {
-	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
-	my $time = encode_entities($cvsdate);
-	my $cvsdatehtml = "$cvsdate/perform.html";
-	my $link = uri_escape($cvsdatehtml, "^A-Za-z0-9\-\._~/");
-	my $href = -f "$date/$cvsdatehtml" ? "<a href=\"$link\">" : "";
-	my $enda = $href ? "</a>" : "";
-	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
-    }
-    print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	"<th></th>\n";  # dummy for unit and stats below
-    print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>machine</th>\n";
-    foreach my $cvsdate (@cvsdates) {
-	my $build = $D{$date}{$cvsdate}{build};
-	$build =~ s,[^/]+/,, if $build;
-	my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
-	my $href = $build ? "<a href=\"$link\">" : "";
-	my $enda = $href ? " info</a>" : "";
-	print $html "    <th>${href}build$enda</th>\n";
-    }
-    print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	"<th></th>\n";  # dummy for unit and stats below
-    print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>kernel build</th>\n";
-    foreach my $cvsdate (@cvsdates) {
-	my $version = $D{$date}{$cvsdate}{version};
-	unless ($version) {
-	    print $html "    <th></th>\n";
-	    next;
-	}
-	my $kernel = encode_entities($D{$date}{$cvsdate}{kernel});
-	$version =~ s,[^/]+/,,;
-	my $link = uri_escape($version, "^A-Za-z0-9\-\._~/");
-	print $html "    <th title=\"$kernel\">".
-	    "<a href=\"$link\">version</a></th>\n";
-    }
-    print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	"<th></th>\n";  # dummy for unit and stats below
-    print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>kernel commits</th>\n";
-    foreach my $cvsdate (@cvsdates) {
-	my $cvslog = $D{$date}{$cvsdate}{cvslog};
-	unless ($cvslog) {
-	    print $html "    <th></th>\n";
-	    next;
-	}
-	my $title = "";
-	if ($D{$date}{$cvsdate}{cvsfiles}) {
-	    my %files;
-	    @files{@{$D{$date}{$cvsdate}{cvsfiles}}} = ();
-	    my $files = encode_entities(join(" ", sort keys %files));
-	    $title = " title=\"$files\"";
-	}
-	my $link = uri_escape($cvslog, "^A-Za-z0-9\-\._~/");
-	my $cvscommits = $D{$date}{$cvsdate}{cvscommits};
-	my $num = defined($cvscommits) ? "/$cvscommits" : "";
-	print $html "    <th$title><a href=\"../$link\">cvslog</a>$num</th>\n";
-    }
-    print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	"<th></th>\n";  # dummy for unit and stats below
-    print $html "  </tr>\n";
-    if (($D{$date}{stepconf}{kernelmodes} || "") eq "align") {
-	print $html "  <tr>\n    <th>kernel name list</th>\n";
-	foreach my $cvsdate (@cvsdates) {
-	    my $nmstat = $D{$date}{$cvsdate}{nmstat};
-	    unless ($nmstat) {
-		print $html "    <th></th>\n";
-		next;
-	    }
-	    my $difffile = $D{$date}{$cvsdate}{nmdiff};
-	    my $link = uri_escape($difffile, "^A-Za-z0-9\-\._~/");
-	    my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
-	    print $html "    <th><a href=\"../$link\">$diffstat</a></th>\n";
-	}
-	print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	    "<th></th>\n";  # dummy for unit and stats below
-	print $html "  </tr>\n";
-    }
-    print $html "  <tr>\n    <th>build quirks</th>\n";
-    my $prevcvsdate;
-    my $qi = 65 + keys %{{quirks(undef, $cvsdates[0])}};
-    foreach my $cvsdate (@cvsdates) {
-	my $quirks = $D{$date}{$cvsdate}{quirks};
-	print $html "    <th>";
-	if ($quirks) {
-	    $quirks =~ s,[^/]+/,,;
-	    my $link = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
-	    print $html "<a href=\"$link\">quirks</a>";
-	}
-	if ($prevcvsdate) {
-	    my @quirks = keys %{{quirks($prevcvsdate, $cvsdate)}};
-	    print $html "/", join(",", map {
-		    chr(($qi > 90? 6 + $qi++ : $qi++))
-		} @quirks) if @quirks;
-	}
-	print $html "</th>\n";
-	$prevcvsdate = $cvsdate;
-    }
-    print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	"<th></th>\n";  # dummy for unit and stats below
-    print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
-    foreach my $cvsdate (@cvsdates) {
-	my $repeats = @{$D{$date}{$cvsdate}{repeats} || []} || "";
-	my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
-	    $D{$date}{stepconf}{repmodes};
-	my $kerneltext = $repeats;
-	if ($kernelmode) {
-	    $kerneltext = $repeats && $repeats > 1 ?
-		"$repeats / $kernelmode" : $kernelmode;
-	}
-	$kerneltext =~ s/\s//g;
-	print $html "    <th>$kerneltext</th>\n";
-    }
-    print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	"<th></th>\n";  # dummy for unit and stats below
-    print $html "  <tr>\n    <th>zoom</th>\n";
-    $prevcvsdate = undef;
-    foreach my $cvsdate (@cvsdates) {
-	print $html "    <th>";
-	html_cvsdate_zoom($html, $prevcvsdate, $cvsdate) if $prevcvsdate;
-	print $html "</th>\n";
-	$prevcvsdate = $cvsdate;
-    }
-    print $html "    <th></th><th></th><th></th><th></th><th></th>".
-	"<th></th>\n";  # dummy for unit and stats below
-    print $html "  </tr>\n";
+    html_cvsdate_test_head($date, @cvsdates);
     foreach my $test (@tests) {
 	my $td = $T{$test}{$date}
 	    or next;
@@ -1188,6 +1060,139 @@ sub html_repeat_test_row {
 	}
 	print $html "  </tr>\n";
     }
+}
+
+sub html_cvsdate_test_head {
+    my ($date, @cvsdates) = @_;
+    print $html "  <tr>\n    <th>cvs checkout</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
+	my $time = encode_entities($cvsdate);
+	my $cvsdatehtml = "$cvsdate/perform.html";
+	my $link = uri_escape($cvsdatehtml, "^A-Za-z0-9\-\._~/");
+	my $href = -f "$date/$cvsdatehtml" ? "<a href=\"$link\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>machine</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $build = $D{$date}{$cvsdate}{build};
+	$build =~ s,[^/]+/,, if $build;
+	my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
+	my $href = $build ? "<a href=\"$link\">" : "";
+	my $enda = $href ? " info</a>" : "";
+	print $html "    <th>${href}build$enda</th>\n";
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>kernel build</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $version = $D{$date}{$cvsdate}{version};
+	unless ($version) {
+	    print $html "    <th></th>\n";
+	    next;
+	}
+	my $kernel = encode_entities($D{$date}{$cvsdate}{kernel});
+	$version =~ s,[^/]+/,,;
+	my $link = uri_escape($version, "^A-Za-z0-9\-\._~/");
+	print $html "    <th title=\"$kernel\">".
+	    "<a href=\"$link\">version</a></th>\n";
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>kernel commits</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $cvslog = $D{$date}{$cvsdate}{cvslog};
+	unless ($cvslog) {
+	    print $html "    <th></th>\n";
+	    next;
+	}
+	my $title = "";
+	if ($D{$date}{$cvsdate}{cvsfiles}) {
+	    my %files;
+	    @files{@{$D{$date}{$cvsdate}{cvsfiles}}} = ();
+	    my $files = encode_entities(join(" ", sort keys %files));
+	    $title = " title=\"$files\"";
+	}
+	my $link = uri_escape($cvslog, "^A-Za-z0-9\-\._~/");
+	my $cvscommits = $D{$date}{$cvsdate}{cvscommits};
+	my $num = defined($cvscommits) ? "/$cvscommits" : "";
+	print $html "    <th$title><a href=\"../$link\">cvslog</a>$num</th>\n";
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  </tr>\n";
+    if (($D{$date}{stepconf}{kernelmodes} || "") eq "align") {
+	print $html "  <tr>\n    <th>kernel name list</th>\n";
+	foreach my $cvsdate (@cvsdates) {
+	    my $nmstat = $D{$date}{$cvsdate}{nmstat};
+	    unless ($nmstat) {
+		print $html "    <th></th>\n";
+		next;
+	    }
+	    my $difffile = $D{$date}{$cvsdate}{nmdiff};
+	    my $link = uri_escape($difffile, "^A-Za-z0-9\-\._~/");
+	    my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
+	    print $html "    <th><a href=\"../$link\">$diffstat</a></th>\n";
+	}
+	print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	    "<th></th>\n";  # dummy for unit and stats below
+	print $html "  </tr>\n";
+    }
+    print $html "  <tr>\n    <th>build quirks</th>\n";
+    my $prevcvsdate;
+    my $qi = 65 + keys %{{quirks(undef, $cvsdates[0])}};
+    foreach my $cvsdate (@cvsdates) {
+	my $quirks = $D{$date}{$cvsdate}{quirks};
+	print $html "    <th>";
+	if ($quirks) {
+	    $quirks =~ s,[^/]+/,,;
+	    my $link = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
+	    print $html "<a href=\"$link\">quirks</a>";
+	}
+	if ($prevcvsdate) {
+	    my @quirks = keys %{{quirks($prevcvsdate, $cvsdate)}};
+	    print $html "/", join(",", map {
+		    chr(($qi > 90? 6 + $qi++ : $qi++))
+		} @quirks) if @quirks;
+	}
+	print $html "</th>\n";
+	$prevcvsdate = $cvsdate;
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $repeats = @{$D{$date}{$cvsdate}{repeats} || []} || "";
+	my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
+	    $D{$date}{stepconf}{repmodes};
+	my $kerneltext = $repeats;
+	if ($kernelmode) {
+	    $kerneltext = $repeats && $repeats > 1 ?
+		"$repeats / $kernelmode" : $kernelmode;
+	}
+	$kerneltext =~ s/\s//g;
+	print $html "    <th>$kerneltext</th>\n";
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  <tr>\n    <th>zoom</th>\n";
+    $prevcvsdate = undef;
+    foreach my $cvsdate (@cvsdates) {
+	print $html "    <th>";
+	html_cvsdate_zoom($html, $prevcvsdate, $cvsdate) if $prevcvsdate;
+	print $html "</th>\n";
+	$prevcvsdate = $cvsdate;
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  </tr>\n";
 }
 
 sub html_cvsdate_test_row {
