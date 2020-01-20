@@ -175,49 +175,7 @@ foreach my $date (@dates) {
     my ($html, $htmlfile) = html_open("$date/perform");
     html_header($html, "OpenBSD Perform Date Results",
 	"OpenBSD perform $short test results");
-
-    print $html <<"HEADER";
-<table>
-  <tr>
-    <th>created at</th>
-    <td>$now</td>
-  </tr>
-  <tr>
-    <th>run at</th>
-    <td>$date</td>
-  </tr>
-HEADER
-
-    print $html "  <tr>\n    <th>run</th>\n";
-    my $log = $D{$date}{log};
-    my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
-    my $href = $log ? "<a href=\"$link\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <td>${href}log$enda</td>\n";
-    print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
-    my $hostname = $D{$date}{host};
-    my $core = $D{$date}{core};
-    print $html "    <td>$hostname/$core</td>\n";
-    print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>machine release setup</th>\n";
-    my $setup = $D{$date}{setup};
-    my $release = $D{$date}{stepconf}{release};
-    my $setupmodes = $D{$date}{stepconf}{setupmodes} ||
-	$D{$date}{stepconf}{modes};
-    $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
-    $href = $setup ? "<a href=\"../$link\">" : "";
-    $enda = $href ? " info</a>" : "";
-    print $html "    <td>$href$release/$setupmodes$enda</td>\n";
-    print $html "  </tr>\n";
-    print $html "  <tr>\n    <th>steps</th>\n";
-    my $interval = $D{$date}{stepconf}{step};
-    my $steptext = @cvsdates && $interval && @cvsdates > 1 ?
-	@cvsdates. " / $interval" : @cvsdates || $interval;
-    $steptext =~ s/\s//g;
-    print $html "    <td>$steptext</td>\n";
-    print $html "  </tr>\n";
-    print $html "</table>\n";
+    html_cvsdate_top($date, @cvsdates);
 
     print $html "<table>\n";
     html_cvsdate_test_head($date, @cvsdates);
@@ -257,7 +215,6 @@ print $html <<"HEADER";
   </tr>
 </table>
 HEADER
-
 print $html "<table>\n";
 print $html "  <tr>\n    <th>run</th>\n";
 foreach my $date (@dates) {
@@ -926,7 +883,6 @@ sub html_repeat_top {
     <td>$cvsdate</td>
   </tr>
 HEADER
-
     print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
     my $kerneltext = @repeats;
     my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
@@ -1060,6 +1016,51 @@ sub html_repeat_test_row {
 	}
 	print $html "  </tr>\n";
     }
+}
+
+sub html_cvsdate_top {
+    my ($date, @cvsdates) = @_;
+    print $html <<"HEADER";
+<table>
+  <tr>
+    <th>created at</th>
+    <td>$now</td>
+  </tr>
+  <tr>
+    <th>run at</th>
+    <td>$date</td>
+  </tr>
+HEADER
+    print $html "  <tr>\n    <th>run</th>\n";
+    my $log = $D{$date}{log};
+    my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
+    my $href = $log ? "<a href=\"$link\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "    <td>${href}log$enda</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
+    my $hostname = $D{$date}{host};
+    my $core = $D{$date}{core};
+    print $html "    <td>$hostname/$core</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>machine release setup</th>\n";
+    my $setup = $D{$date}{setup};
+    my $release = $D{$date}{stepconf}{release};
+    my $setupmodes = $D{$date}{stepconf}{setupmodes} ||
+	$D{$date}{stepconf}{modes};
+    $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
+    $href = $setup ? "<a href=\"../$link\">" : "";
+    $enda = $href ? " info</a>" : "";
+    print $html "    <td>$href$release/$setupmodes$enda</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>steps</th>\n";
+    my $interval = $D{$date}{stepconf}{step};
+    my $steptext = @cvsdates && $interval && @cvsdates > 1 ?
+	@cvsdates. " / $interval" : @cvsdates || $interval;
+    $steptext =~ s/\s//g;
+    print $html "    <td>$steptext</td>\n";
+    print $html "  </tr>\n";
+    print $html "</table>\n";
 }
 
 sub html_cvsdate_test_head {
