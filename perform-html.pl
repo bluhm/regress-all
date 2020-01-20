@@ -350,106 +350,9 @@ HEADER
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     foreach my $test (@tests) {
-	my $td = $T{$test}{$date} or next;
-	print $html "  <tr>\n    <th>$test</th>\n";
-	foreach my $cvsdate (@cvsdates) {
-	    unless ($td->{$cvsdate}) {
-		print $html "    <td></td>\n";
-		next;
-	    }
-	    my $status = $td->{$cvsdate}{status};
-	    my $class = " class=\"status $status\"";
-	    my $message = encode_entities($td->{$cvsdate}{message});
-	    my $title = $message ? " title=\"$message\"" : "";
-	    my $logfile = "$cvsdate/logs/$test.log";
-	    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-	    my $href = -f "$date/$logfile" ? "<a href=\"$link\">" : "";
-	    my $cvsdatehtml = "$cvsdate/perform.html";
-	    $link = uri_escape($cvsdatehtml, "^A-Za-z0-9\-\._~/");
-	    $href = "<a href=\"$link\">" if -f "$date/$cvsdatehtml";
-	    my $enda = $href ? "</a>" : "";
-	    print $html "    <td$class$title>$href$status$enda</td>\n";
-	}
-	foreach my $stat (qw(unit mean minimum maximum deviation relative)) {
-	    print $html "    <th>$stat</th>\n";
-	}
-	print $html "  </tr>\n";
-	my $vt = $V{$date}{$test};
-	my @vals;
-	foreach my $cvsdate (@cvsdates) {
-	    if ($D{$date}{$cvsdate}{repeats}) {
-		push @vals, map { $vt->{$cvsdate}{$_} }
-		    @{$D{$date}{$cvsdate}{repeats}}
-	    } else {
-		push @vals, $vt->{$cvsdate};
-	    }
-	}
-	my $maxval = max map { scalar @{$_ || []} } @vals;
-	for (my $i = 0; $i < $maxval; $i++) {
-	    my $rp0 = $D{$date}{$cvsdates[0]}{repeats};
-	    my $value0 = $rp0 ?
-		first { $_ } map { $vt->{$cvsdates[0]}{$_}[$i] } @$rp0 :
-		first { $_ } map { $vt->{$_}[$i] } @cvsdates;
-	    my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
-	    print $html "  <tr>\n    <th>$name0</th>\n";
-	    my @numbers = map { $rp0 ?
-		$vt->{$_}{summary}[$i] : $vt->{$_}[$i]{number} }
-		grep { $td->{$_} && $td->{$_}{status} eq 'PASS' } @cvsdates;
-	    my ($sum, $mean, $maximum, $minimum, $deviation, $relative,
-		$summary, $outlier);
-	    if (@numbers) {
-		$sum = sum(@numbers);
-		$mean = $sum / @numbers;
-		$minimum = min @numbers;
-		$maximum = max @numbers;
-		my $variance = 0;
-		foreach my $number (@numbers) {
-		    my $diff = $number - $mean;
-		    $variance += $diff * $diff;
-		}
-		$variance /= @numbers;
-		$deviation = sqrt $variance;
-		$relative = $deviation / $mean;
-		$summary = $vt->{summary}[$i] =
-		    $unit0 eq 'bits/sec' ?  $maximum : $mean;
-		$outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
-	    }
-	    foreach my $cvsdate (@cvsdates) {
-		unless ($td->{$cvsdate}) {
-		    print $html "    <td></td>\n";
-		    next;
-		}
-		my $status = $td->{$cvsdate}{status};
-		if ($status ne 'PASS' && !$rp0) {
-		    print $html "    <td></td>\n";
-		    next;
-		}
-		my $number = $rp0 ?
-		    $vt->{$cvsdate}{summary}[$i] : $vt->{$cvsdate}[$i]{number};
-		$number //= "";
-		my $outlier = $rp0 && $vt->{$cvsdate}{outlier}[$i];
-		my $class = $outlier ? ' class="outlier"' : "";
-		print $html "    <td$class>$number</td>\n";
-	    }
-	    if (@numbers) {
-		print $html "    <td>$unit0</td>\n";
-		if ($unit0 eq 'bits/sec') {
-		    print $html "    <td>$mean</td>\n";
-		} else {
-		    print $html "    <td><em>$mean</em></td>\n";
-		}
-		print $html "    <td>$minimum</td>\n";
-		if ($unit0 eq 'bits/sec') {
-		    print $html "    <td><em>$maximum</em></td>\n";
-		} else {
-		    print $html "    <td>$maximum</td>\n";
-		}
-		print $html "    <td>$deviation</td>\n";
-		my $class = $outlier ? ' class="outlier"' : "";
-		print $html "    <td$class>$relative</td>\n";
-	    }
-	    print $html "  </tr>\n";
-	}
+	my $td = $T{$test}{$date}
+	    or next;
+	html_cvsdate_test_row($date, $test, $td, @cvsdates);
     }
     print $html "</table>\n";
 
@@ -1265,6 +1168,109 @@ sub html_repeat_test_row {
 	    my $title = " title=\"$reldev\"";
 	    my $class = abs($reldev) >= 0.1 ? ' class="outlier"' : "";
 	    print $html "    <td$title$class>$number</td>\n";
+	}
+	if (@numbers) {
+	    print $html "    <td>$unit0</td>\n";
+	    if ($unit0 eq 'bits/sec') {
+		print $html "    <td>$mean</td>\n";
+	    } else {
+		print $html "    <td><em>$mean</em></td>\n";
+	    }
+	    print $html "    <td>$minimum</td>\n";
+	    if ($unit0 eq 'bits/sec') {
+		print $html "    <td><em>$maximum</em></td>\n";
+	    } else {
+		print $html "    <td>$maximum</td>\n";
+	    }
+	    print $html "    <td>$deviation</td>\n";
+	    my $class = $outlier ? ' class="outlier"' : "";
+	    print $html "    <td$class>$relative</td>\n";
+	}
+	print $html "  </tr>\n";
+    }
+}
+
+sub html_cvsdate_test_row {
+    my ($date, $test, $td, @cvsdates) = @_;
+    print $html "  <tr>\n    <th>$test</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	unless ($td->{$cvsdate}) {
+	    print $html "    <td></td>\n";
+	    next;
+	}
+	my $status = $td->{$cvsdate}{status};
+	my $class = " class=\"status $status\"";
+	my $message = encode_entities($td->{$cvsdate}{message});
+	my $title = $message ? " title=\"$message\"" : "";
+	my $logfile = "$cvsdate/logs/$test.log";
+	my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+	my $href = -f "$date/$logfile" ? "<a href=\"$link\">" : "";
+	my $cvsdatehtml = "$cvsdate/perform.html";
+	$link = uri_escape($cvsdatehtml, "^A-Za-z0-9\-\._~/");
+	$href = "<a href=\"$link\">" if -f "$date/$cvsdatehtml";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <td$class$title>$href$status$enda</td>\n";
+    }
+    foreach my $stat (qw(unit mean minimum maximum deviation relative)) {
+	print $html "    <th>$stat</th>\n";
+    }
+    print $html "  </tr>\n";
+    my $vt = $V{$date}{$test};
+    my @vals;
+    foreach my $cvsdate (@cvsdates) {
+	if ($D{$date}{$cvsdate}{repeats}) {
+	    push @vals, map { $vt->{$cvsdate}{$_} }
+		@{$D{$date}{$cvsdate}{repeats}}
+	} else {
+	    push @vals, $vt->{$cvsdate};
+	}
+    }
+    my $maxval = max map { scalar @{$_ || []} } @vals;
+    for (my $i = 0; $i < $maxval; $i++) {
+	my $rp0 = $D{$date}{$cvsdates[0]}{repeats};
+	my $value0 = $rp0 ?
+	    first { $_ } map { $vt->{$cvsdates[0]}{$_}[$i] } @$rp0 :
+	    first { $_ } map { $vt->{$_}[$i] } @cvsdates;
+	my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
+	print $html "  <tr>\n    <th>$name0</th>\n";
+	my @numbers = map { $rp0 ?
+	    $vt->{$_}{summary}[$i] : $vt->{$_}[$i]{number} }
+	    grep { $td->{$_} && $td->{$_}{status} eq 'PASS' } @cvsdates;
+	my ($sum, $mean, $maximum, $minimum, $deviation, $relative,
+	    $summary, $outlier);
+	if (@numbers) {
+	    $sum = sum(@numbers);
+	    $mean = $sum / @numbers;
+	    $minimum = min @numbers;
+	    $maximum = max @numbers;
+	    my $variance = 0;
+	    foreach my $number (@numbers) {
+		my $diff = $number - $mean;
+		$variance += $diff * $diff;
+	    }
+	    $variance /= @numbers;
+	    $deviation = sqrt $variance;
+	    $relative = $deviation / $mean;
+	    $summary = $vt->{summary}[$i] =
+		$unit0 eq 'bits/sec' ?  $maximum : $mean;
+	    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
+	}
+	foreach my $cvsdate (@cvsdates) {
+	    unless ($td->{$cvsdate}) {
+		print $html "    <td></td>\n";
+		next;
+	    }
+	    my $status = $td->{$cvsdate}{status};
+	    if ($status ne 'PASS' && !$rp0) {
+		print $html "    <td></td>\n";
+		next;
+	    }
+	    my $number = $rp0 ?
+		$vt->{$cvsdate}{summary}[$i] : $vt->{$cvsdate}[$i]{number};
+	    $number //= "";
+	    my $outlier = $rp0 && $vt->{$cvsdate}{outlier}[$i];
+	    my $class = $outlier ? ' class="outlier"' : "";
+	    print $html "    <td$class>$number</td>\n";
 	}
 	if (@numbers) {
 	    print $html "    <td>$unit0</td>\n";
