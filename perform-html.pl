@@ -154,7 +154,9 @@ foreach my $date (@dates) {
 	print $html "<table>\n";
 	html_repeat_test_head($date, $cvsdate, @repeats);
 	foreach my $test (@tests) {
-	    html_repeat_test_row($date, $cvsdate, $test, @repeats);
+	    my $td = $T{$test}{$date} && $T{$test}{$date}{$cvsdate}
+		or next;
+	    html_repeat_test_row($date, $cvsdate, $test, $td, @repeats);
 	}
 	print $html "</table>\n";
 
@@ -1199,9 +1201,7 @@ sub html_repeat_test_head {
 }
 
 sub html_repeat_test_row {
-    my ($date, $cvsdate, $test, @repeats) = @_;
-    my $td = $T{$test}{$date} && $T{$test}{$date}{$cvsdate}
-	or next;
+    my ($date, $cvsdate, $test, $td, @repeats) = @_;
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $repeat (@repeats) {
 	unless ($td->{$repeat}) {
