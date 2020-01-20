@@ -149,14 +149,14 @@ foreach my $date (@dates) {
 	my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
 	html_header($html, "OpenBSD Perform CVS Date Results",
 	    "OpenBSD perform $short cvs $cvsshort test results");
-	html_repeat_top($date, $cvsdate, @repeats);
+	html_repeat_top($html, $date, $cvsdate, @repeats);
 
 	print $html "<table>\n";
-	html_repeat_test_head($date, $cvsdate, @repeats);
+	html_repeat_test_head($html, $date, $cvsdate, @repeats);
 	foreach my $test (@tests) {
 	    my $td = $T{$test}{$date} && $T{$test}{$date}{$cvsdate}
 		or next;
-	    html_repeat_test_row($date, $cvsdate, $test, $td, @repeats);
+	    html_repeat_test_row($html, $date, $cvsdate, $test, $td, @repeats);
 	}
 	print $html "</table>\n";
 
@@ -175,14 +175,14 @@ foreach my $date (@dates) {
     my ($html, $htmlfile) = html_open("$date/perform");
     html_header($html, "OpenBSD Perform Date Results",
 	"OpenBSD perform $short test results");
-    html_cvsdate_top($date, @cvsdates);
+    html_cvsdate_top($html, $date, @cvsdates);
 
     print $html "<table>\n";
-    html_cvsdate_test_head($date, @cvsdates);
+    html_cvsdate_test_head($html, $date, @cvsdates);
     foreach my $test (@tests) {
 	my $td = $T{$test}{$date}
 	    or next;
-	html_cvsdate_test_row($date, $test, $td, @cvsdates);
+	html_cvsdate_test_row($html, $date, $test, $td, @cvsdates);
     }
     print $html "</table>\n";
 
@@ -191,7 +191,7 @@ foreach my $date (@dates) {
 	print $html "<br>\n";
     }
 
-    html_table_quirks($html);
+    html_table_quirks($html, $html);
     html_table_status($html, "perform");
     html_footer($html);
     html_close($html, $htmlfile);
@@ -202,13 +202,13 @@ foreach my $date (@dates) {
 my ($html, $htmlfile) = html_open("perform");
 html_header($html, "OpenBSD Perform Test Results",
     "OpenBSD perform all test results");
-html_date_top();
+html_date_top($html);
 
 print $html "<table>\n";
-html_date_test_head(@dates);
+html_date_test_head($html, @dates);
 foreach my $test (@tests) {
     my $td = $T{$test};
-    html_date_test_row($test, $td, @dates);
+    html_date_test_row($html, $test, $td, @dates);
 }
 print $html "</table>\n";
 
