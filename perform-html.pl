@@ -215,75 +215,7 @@ print $html <<"HEADER";
   </tr>
 </table>
 HEADER
-print $html "<table>\n";
-print $html "  <tr>\n    <th>run</th>\n";
-foreach my $date (@dates) {
-    my $short = $D{$date}{short};
-    my $time = encode_entities($date);
-    my $datehtml = "$date/perform.html";
-    my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
-    my $href = -f $datehtml ? "<a href=\"$link\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <th title=\"$time\">$href$short$enda</th>\n";
-}
-print $html "  </tr>\n";
-print $html "  <tr>\n    <th>host cores</th>\n";
-foreach my $date (@dates) {
-    my $hostname = $D{$date}{host};
-    my $core = $D{$date}{core};
-    print $html "    <th>$hostname/$core</th>\n";
-}
-print $html "  </tr>\n";
-print $html "  <tr>\n    <th>release setup</th>\n";
-foreach my $date (@dates) {
-    my $release = $D{$date}{stepconf}{release};
-    my $setupmodes = $D{$date}{stepconf}{setupmodes} ||
-	$D{$date}{stepconf}{modes};
-    print $html "    <th>$release/$setupmodes</th>\n";
-}
-print $html "  </tr>\n";
-print $html "  <tr>\n    <th>first cvs checkout</th>\n";
-foreach my $date (@dates) {
-    my $cvsdate = $D{$date}{cvsdates}[0];
-    my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
-    my $time = encode_entities($cvsdate);
-    print $html "    <th title=\"$time\">$cvsshort</th>\n";
-}
-print $html "  </tr>\n";
-print $html "  <tr>\n    <th>last cvs checkout</th>\n";
-foreach my $date (@dates) {
-    my $cvsdate = $D{$date}{cvsdates}[-1];
-    my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
-    my $time = encode_entities($cvsdate);
-    print $html "    <th title=\"$time\">$cvsshort</th>\n";
-}
-print $html "  </tr>\n";
-print $html "  <tr>\n    <th>steps</th>\n";
-foreach my $date (@dates) {
-    my $steps = @{$D{$date}{cvsdates}};
-    my $interval = $D{$date}{stepconf}{step};
-    my $steptext = $steps && $interval && $steps > 1 ?
-	"$steps / $interval" : $steps || $interval;
-    $steptext =~ s/\s//g;
-    print $html "    <th>$steptext</th>\n";
-}
-print $html "  </tr>\n";
-print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
-foreach my $date (@dates) {
-    my $cvsdate0 = $D{$date}{cvsdates}[0];
-    my $repeats = @{$D{$date}{$cvsdate0}{repeats} || []} || "";
-    my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
-	$D{$date}{stepconf}{repmodes};
-    my $kerneltext = $repeats;
-    if ($kernelmode) {
-	$kerneltext = $repeats && $repeats > 1 ?
-	    "$repeats / $kernelmode" : $kernelmode;
-    }
-    $kerneltext =~ s/\s//g;
-    print $html "    <th>$kerneltext</th>\n";
-}
-print $html "  </tr>\n";
-
+html_date_test_head(@dates);
 foreach my $test (@tests) {
     my $td = $T{$test};
     html_date_test_row($test, $td, @dates);
@@ -1281,6 +1213,78 @@ sub html_cvsdate_test_row {
 	}
 	print $html "  </tr>\n";
     }
+}
+
+sub html_date_test_head {
+    my (@dates) = @_;
+    print $html "<table>\n";
+    print $html "  <tr>\n    <th>run</th>\n";
+    foreach my $date (@dates) {
+	my $short = $D{$date}{short};
+	my $time = encode_entities($date);
+	my $datehtml = "$date/perform.html";
+	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
+	my $href = -f $datehtml ? "<a href=\"$link\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <th title=\"$time\">$href$short$enda</th>\n";
+    }
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>host cores</th>\n";
+    foreach my $date (@dates) {
+	my $hostname = $D{$date}{host};
+	my $core = $D{$date}{core};
+	print $html "    <th>$hostname/$core</th>\n";
+    }
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>release setup</th>\n";
+    foreach my $date (@dates) {
+	my $release = $D{$date}{stepconf}{release};
+	my $setupmodes = $D{$date}{stepconf}{setupmodes} ||
+	    $D{$date}{stepconf}{modes};
+	print $html "    <th>$release/$setupmodes</th>\n";
+    }
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>first cvs checkout</th>\n";
+    foreach my $date (@dates) {
+	my $cvsdate = $D{$date}{cvsdates}[0];
+	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
+	my $time = encode_entities($cvsdate);
+	print $html "    <th title=\"$time\">$cvsshort</th>\n";
+    }
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>last cvs checkout</th>\n";
+    foreach my $date (@dates) {
+	my $cvsdate = $D{$date}{cvsdates}[-1];
+	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
+	my $time = encode_entities($cvsdate);
+	print $html "    <th title=\"$time\">$cvsshort</th>\n";
+    }
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>steps</th>\n";
+    foreach my $date (@dates) {
+	my $steps = @{$D{$date}{cvsdates}};
+	my $interval = $D{$date}{stepconf}{step};
+	my $steptext = $steps && $interval && $steps > 1 ?
+	    "$steps / $interval" : $steps || $interval;
+	$steptext =~ s/\s//g;
+	print $html "    <th>$steptext</th>\n";
+    }
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
+    foreach my $date (@dates) {
+	my $cvsdate0 = $D{$date}{cvsdates}[0];
+	my $repeats = @{$D{$date}{$cvsdate0}{repeats} || []} || "";
+	my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
+	    $D{$date}{stepconf}{repmodes};
+	my $kerneltext = $repeats;
+	if ($kernelmode) {
+	    $kerneltext = $repeats && $repeats > 1 ?
+		"$repeats / $kernelmode" : $kernelmode;
+	}
+	$kerneltext =~ s/\s//g;
+	print $html "    <th>$kerneltext</th>\n";
+    }
+    print $html "  </tr>\n";
 }
 
 sub html_date_test_row {
