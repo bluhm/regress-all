@@ -6,6 +6,7 @@ git
 gmake
 go
 gsed
+iperf3
 net-snmp
 openldap-client--
 openssl%1.0.2
