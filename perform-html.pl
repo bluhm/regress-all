@@ -1153,7 +1153,7 @@ sub html_cvsdate_test_row {
 	    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
 	}
 	foreach my $cvsdate (@cvsdates) {
-	    html_value_data($html, $i, $td->{$cvsdate});
+	    html_value_data($html, $i, $td->{$cvsdate}, $vt->{$cvsdate});
 	}
 	if (@numbers) {
 	    print $html "    <td>$unit0</td>\n";
