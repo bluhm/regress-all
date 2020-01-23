@@ -187,10 +187,14 @@ foreach my $date (@dates) {
     print $html "</table>\n";
 
     foreach my $plot (@plots) {
-	print $html "<a href=\"../gnuplot/$date-$plot.html\">\n";
-	print $html "  <img src=\"../gnuplot/$date-$plot.png\">";
-	print $html uc($plot)." Performance</img>\n";
-	print $html "</a><br>\n";
+	my $href = "../gnuplot/$date-$plot.html";
+	my $src = "../gnuplot/$date-$plot.png";
+	my $alt = uc($plot)." Performance";
+	print $html <<IMAGE;
+<a href="$href">
+  <img src="$src" alt="$alt">
+</a><br>
+IMAGE
     }
 
     html_table_quirks($html, $html);
@@ -215,10 +219,14 @@ foreach my $test (@tests) {
 print $html "</table>\n";
 
 foreach my $plot (@plots) {
-    print $html "<a href=\"gnuplot/$plot.html\">\n";
-    print $html "  <img src=\"gnuplot/$plot.png\">";
-    print $html uc($plot)." Performance</img>\n";
-    print $html "</a><br>\n";
+    my $href = "gnuplot/$plot.html";
+    my $src = "gnuplot/$plot.png";
+    my $alt = uc($plot)." Performance";
+    print $html <<IMAGE;
+<a href="$href">
+  <img src="$src" alt="$alt">
+</a><br>
+IMAGE
 }
 
 html_table_quirks($html);
