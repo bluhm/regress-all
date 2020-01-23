@@ -1110,22 +1110,7 @@ sub html_cvsdate_test_row {
     my ($html, $date, $test, $td, @cvsdates) = @_;
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $cvsdate (@cvsdates) {
-	unless ($td->{$cvsdate}) {
-	    print $html "    <td></td>\n";
-	    next;
-	}
-	my $status = $td->{$cvsdate}{status};
-	my $class = " class=\"status $status\"";
-	my $message = encode_entities($td->{$cvsdate}{message});
-	my $title = $message ? " title=\"$message\"" : "";
-	my $logfile = "$cvsdate/logs/$test.log";
-	my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-	my $href = -f "$date/$logfile" ? "<a href=\"$link\">" : "";
-	my $cvsdatehtml = "$cvsdate/perform.html";
-	$link = uri_escape($cvsdatehtml, "^A-Za-z0-9\-\._~/");
-	$href = "<a href=\"$link\">" if -f "$date/$cvsdatehtml";
-	my $enda = $href ? "</a>" : "";
-	print $html "    <td$class$title>$href$status$enda</td>\n";
+	html_status_data($html, $date, $cvsdate, $test, $td->{$cvsdate});
     }
     foreach my $stat (qw(unit mean minimum maximum deviation relative)) {
 	print $html "    <th>$stat</th>\n";
@@ -1315,4 +1300,29 @@ sub html_date_test_row {
 	print $html "    <td$class$title>$href$status$enda</td>\n";
     }
     print $html "  </tr>\n";
+}
+
+sub html_status_data {
+    my ($html, $dir, $subdir, $test, $tv) = @_;
+    unless ($tv) {
+	print $html "    <td></td>\n";
+	return;
+    }
+    my $status = $tv->{status};
+    my $class = " class=\"status $status\"";
+    my $message = encode_entities($tv->{message});
+    my $title = $message ? " title=\"$message\"" : "";
+    my $href = "";
+    my $logfile = "$subdir/logs/$test.log";
+    if (-f "$dir/$logfile") {
+	my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+	$href = "<a href=\"$link\">";
+    }
+    my $subhtml = "$subdir/perform.html";
+    if (-f "$dir/$subhtml") {
+	my $link = uri_escape($subhtml, "^A-Za-z0-9\-\._~/");
+	$href = "<a href=\"$link\">";
+    }
+    my $enda = $href ? "</a>" : "";
+    print $html "    <td$class$title>$href$status$enda</td>\n";
 }
