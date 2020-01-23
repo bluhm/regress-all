@@ -1145,21 +1145,7 @@ sub html_cvsdate_test_row {
 	    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
 	}
 	foreach my $cvsdate (@cvsdates) {
-	    unless ($td->{$cvsdate}) {
-		print $html "    <td></td>\n";
-		next;
-	    }
-	    my $status = $td->{$cvsdate}{status};
-	    if ($status ne 'PASS' && !$rp0) {
-		print $html "    <td></td>\n";
-		next;
-	    }
-	    my $number = $rp0 ?
-		$vt->{$cvsdate}{summary}[$i] : $vt->{$cvsdate}[$i]{number};
-	    $number //= "";
-	    my $outlier = $rp0 && $vt->{$cvsdate}{outlier}[$i];
-	    my $class = $outlier ? ' class="outlier"' : "";
-	    print $html "    <td$class>$number</td>\n";
+	    html_value_data($html, $i, $td->{$cvsdate});
 	}
 	if (@numbers) {
 	    print $html "    <td>$unit0</td>\n";
@@ -1180,6 +1166,23 @@ sub html_cvsdate_test_row {
 	}
 	print $html "  </tr>\n";
     }
+}
+
+sub html_value_data {
+    my ($html, $i, $tv, $vv) = @_;
+    unless ($tv && ($tv->{status} eq 'PASS' || ref($vv) eq 'HASH')) {
+	print $html "    <td></td>\n";
+	return;
+    }
+    my $number = "";
+    my $class = "";
+    if (ref($vv) eq 'HASH') {
+	$number = $vv->{summary}[$i] if defined($vv->{summary}[$i]);
+	$class = ' class="outlier"' if $vv->{outlier}[$i];
+    } else {
+	$number = $vv->[$i]{number};
+    }
+    print $html "    <td$class>$number</td>\n";
 }
 
 sub html_date_top {
