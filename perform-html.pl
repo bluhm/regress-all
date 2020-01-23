@@ -1273,19 +1273,7 @@ sub html_date_test_row {
     my ($html, $test, $td, @dates) = @_;
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $date (@dates) {
-	unless ($td->{$date}) {
-	    print $html "    <td></td>\n";
-	    next;
-	}
-	my $status = $td->{$date}{status};
-	my $class = " class=\"status $status\"";
-	my $message = encode_entities($td->{$date}{message});
-	my $title = $message ? " title=\"$message\"" : "";
-	my $datehtml = "$date/perform.html";
-	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
-	my $href = -f $datehtml ? "<a href=\"$link\">" : "";
-	my $enda = $href ? "</a>" : "";
-	print $html "    <td$class$title>$href$status$enda</td>\n";
+	html_status_data($html, ".", $date, $test, $td->{$date});
     }
     print $html "  </tr>\n";
 }
