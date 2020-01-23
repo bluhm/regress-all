@@ -187,8 +187,10 @@ foreach my $date (@dates) {
     print $html "</table>\n";
 
     foreach my $plot (@plots) {
-	print $html "<iframe src=\"../gnuplot/$date-$plot.html\"></iframe>\n";
-	print $html "<br>\n";
+	print $html "<a href=\"../gnuplot/$date-$plot.html\">\n";
+	print $html "  <img src=\"../gnuplot/$date-$plot.png\">";
+	print $html uc($plot)." Performance</img>\n";
+	print $html "</a><br>\n";
     }
 
     html_table_quirks($html, $html);
@@ -213,8 +215,10 @@ foreach my $test (@tests) {
 print $html "</table>\n";
 
 foreach my $plot (@plots) {
-    print $html "<iframe src=\"gnuplot/$plot.html\"></iframe>\n";
-    print $html "<br>\n";
+    print $html "<a href=\"gnuplot/$plot.html\">\n";
+    print $html "  <img src=\"gnuplot/$plot.png\">";
+    print $html uc($plot)." Performance</img>\n";
+    print $html "</a><br>\n";
 }
 
 html_table_quirks($html);
