@@ -888,20 +888,8 @@ sub html_repeat_test_row {
 	    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
 	}
 	foreach my $repeat (@repeats) {
-	    unless ($td->{$repeat}) {
-		print $html "    <td></td>\n";
-		next;
-	    }
-	    my $status = $td->{$repeat}{status};
-	    if ($status ne 'PASS') {
-		print $html "    <td></td>\n";
-		next;
-	    }
-	    my $number = $vt->{$repeat}[$i]{number};
-	    my $reldev = ($number - $summary) / $summary;
-	    my $title = " title=\"$reldev\"";
-	    my $class = abs($reldev) >= 0.1 ? ' class="outlier"' : "";
-	    print $html "    <td$title$class>$number</td>\n";
+	    html_value_data($html, $i, $summary, $td->{$repeat},
+		$vt->{$repeat});
 	}
 	if (@numbers) {
 	    print $html "    <td>$unit0</td>\n";
@@ -1153,7 +1141,8 @@ sub html_cvsdate_test_row {
 	    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
 	}
 	foreach my $cvsdate (@cvsdates) {
-	    html_value_data($html, $i, $td->{$cvsdate}, $vt->{$cvsdate});
+	    html_value_data($html, $i, $summary, $td->{$cvsdate},
+		$vt->{$cvsdate});
 	}
 	if (@numbers) {
 	    print $html "    <td>$unit0</td>\n";
@@ -1177,20 +1166,28 @@ sub html_cvsdate_test_row {
 }
 
 sub html_value_data {
-    my ($html, $i, $tv, $vv) = @_;
+    my ($html, $i, $summary, $tv, $vv) = @_;
     unless ($tv && ($tv->{status} eq 'PASS' || ref($vv) eq 'HASH')) {
 	print $html "    <td></td>\n";
 	return;
     }
-    my $number = "";
+    my $number;
+    my $title = "";
     my $class = "";
     if (ref($vv) eq 'HASH') {
-	$number = $vv->{summary}[$i] if defined($vv->{summary}[$i]);
+	$number = $vv->{summary}[$i] // "";
+	if ($number && $summary) {
+	    my $reldev = ($number - $summary) / $summary;
+	    $title = " title=\"$reldev\"";
+	}
 	$class = ' class="outlier"' if $vv->{outlier}[$i];
     } else {
 	$number = $vv->[$i]{number};
+	my $reldev = ($number - $summary) / $summary;
+	$title = " title=\"$reldev\"";
+	$class = ' class="outlier"' if abs($reldev) >= 0.1;
     }
-    print $html "    <td$class>$number</td>\n";
+    print $html "    <td$title$class>$number</td>\n";
 }
 
 sub html_date_top {
