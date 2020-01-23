@@ -845,20 +845,8 @@ sub html_repeat_test_row {
     my ($html, $date, $cvsdate, $test, $td, @repeats) = @_;
     print $html "  <tr>\n    <th>$test</th>\n";
     foreach my $repeat (@repeats) {
-	unless ($td->{$repeat}) {
-	    print $html "    <td></td>\n";
-	    next;
-	}
-	my $status = $td->{$repeat}{status};
-	my $class = " class=\"status $status\"";
-	my $message = encode_entities($td->{$repeat}{message});
-	my $title = $message ? " title=\"$message\"" : "";
-	my $logfile = "$repeat/logs/$test.log";
-	my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-	my $href = -f "$date/$cvsdate/$logfile" ?
-	    "<a href=\"$link\">" : "";
-	my $enda = $href ? "</a>" : "";
-	print $html "    <td$class$title>$href$status$enda</td>\n";
+	html_status_data($html, "$date/$cvsdate", $repeat, $test,
+	    $td->{$repeat});
     }
     foreach my $stat (qw(unit mean minimum maximum deviation relative)) {
 	print $html "    <th>$stat</th>\n";
