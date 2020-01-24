@@ -32,10 +32,10 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('vC:D:T:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-D date] -T tcp|make|udp|fs
+usage: $0 [-v] [-D date] -T test
     -v		verbose
     -D date	run date
-    -T test	test name (tcp, make, upd, fs)
+    -T test	tcp|tcp6|linux|linux6|make|udp|udp6|fs
 EOF
     exit(2);
 };
@@ -47,7 +47,7 @@ if ($opts{D}) {
     $date = $opts{D};
 }
 my $test = $opts{T}
-    or die "Option -T tcp|make|udp|fs missing";
+    or die "Option -T test missing";
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';

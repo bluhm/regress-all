@@ -373,7 +373,7 @@ sub parse_result_files {
 my @plotorder;
 my %testplot;
 BEGIN {
-    @plotorder = qw(tcp udp make fs);
+    @plotorder = qw(tcp tcp6 udp udp6 linux linux6 make fs);
     my @testplot = (
     "iperf3_-c10.3.0.33_-w1m"				=> "tcp",
     "iperf3_-c10.3.0.33_-w1m_-t10"			=> "tcp",
@@ -413,6 +413,20 @@ BEGIN {
     "udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34"		=> "udp",
     "udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35"	=> "udp",
     "udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34"	=> "udp",
+    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10"		=> "tcp6",
+    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R"		=> "tcp6",
+    "tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35"		=> "tcp6",
+    "tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35"	=> "tcp6",
+    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10"	=> "tcp6",
+    "iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R"	=> "tcp6",
+    "udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35"	=> "udp6",
+    "udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34"	=> "udp6",
+    "udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35"	=> "udp6",
+    "udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34"	=> "udp6",
+    "iperf3_-c10.3.3.36_-w2m_-t10"			=> "linux",
+    "iperf3_-c10.3.3.36_-w2m_-t10_-R"			=> "linux",
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10"	=> "linux6",
+    "iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R"	=> "linux6",
     "time_-lp_make_-CGENERIC.MP_-j4_-s"			=> "make",
     "time_-lp_make_-CGENERIC.MP_-j8_-s"			=> "make",
     "time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8"	=> "fs",
