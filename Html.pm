@@ -96,15 +96,18 @@ my %badstatus;
 sub status2severity {
     my $status = shift;
     my $severity =
-	$status eq 'PASS'   ? 1 :
-	$status eq 'XFAIL'  ? 2 :
-	$status eq 'SKIP'   ? 3 :
-	$status eq 'XPASS'  ? 4 :
-	$status eq 'FAIL'   ? 5 :
-	$status eq 'NOEXIT' ? 6 :
-	$status eq 'NOTERM' ? 7 :
-	$status eq 'NORUN'  ? 8 : 10;
-    if ($severity == 10 && ! $badstatus{$status}) {
+	$status eq 'PASS'    ?  1 :
+	$status eq 'XFAIL'   ?  2 :
+	$status eq 'SKIP'    ?  3 :
+	$status eq 'XPASS'   ?  4 :
+	$status eq 'FAIL'    ?  5 :
+	$status eq 'NOEXIT'  ?  6 :
+	$status eq 'NOTERM'  ?  7 :
+	$status eq 'NORUN'   ?  8 :
+	$status eq 'NOLOG'   ?  9 :
+	$status eq 'NOCLEAN' ? 10 :
+	$status eq 'NOEXIST' ? 11 : 12;
+    if ($severity == 12 && ! $badstatus{$status}) {
 	$badstatus{$status} = 1;
 	warn "unknown status '$status'\n";
     }
