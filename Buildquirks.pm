@@ -29,7 +29,10 @@ our @EXPORT= qw(quirks quirk_comments quirk_patches quirk_commands);
 
 my %quirks = (
 # OpenBSD 6.2, 2017-10-04Z
-    '2017-10-04T03:27:49Z' => { comment => "OpenBSD/amd64 6.2 release" },
+    '2017-10-04T03:27:49Z' => {
+	comment => "OpenBSD/amd64 6.2 release",
+	release => 6.2,
+    },
     # cvs has a bug and cannot check out vendor branches between commits
     '2017-10-04T21:45:15Z' => {
 	comment => "fix cvs vendor branch checkout",
@@ -90,7 +93,10 @@ my %quirks = (
 	builddirs => [ "sbin/pfctl" ],
     },
 # OpenBSD 6.3, 2018-03-24Z
-    '2018-03-24T20:27:40Z' => { comment => "OpenBSD/amd64 6.3 release" },
+    '2018-03-24T20:27:40Z' => {
+	comment => "OpenBSD/amd64 6.3 release",
+	release => 6.3,
+    },
     '2018-04-05T03:32:39Z' => {
 	comment => "pfctl remove PF_TRANS_ALTQ",
 	updatedirs => [ "sys" ],
@@ -197,7 +203,10 @@ my %quirks = (
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
 # OpenBSD 6.4, 2018-10-11Z
-    '2018-10-11T19:37:31Z' => { comment => "OpenBSD/amd64 6.4 release" },
+    '2018-10-11T19:37:31Z' => {
+	comment => "OpenBSD/amd64 6.4 release",
+	release => 6.4,
+    },
     '2018-10-16T18:20:58Z' => {
 	comment => "prepare kernel for lld linker",
 	updatedirs => [ "sys" ],
@@ -299,7 +308,10 @@ my %quirks = (
 	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
     },
 # OpenBSD 6.5, 2019-04-13Z
-    '2019-04-13T20:56:59Z' => { comment => "OpenBSD/amd64 6.5 release" },
+    '2019-04-13T20:56:59Z' => {
+	comment => "OpenBSD/amd64 6.5 release",
+	release => 6.5,
+    },
     '2019-05-08T23:53:40Z' => {
 	comment => "add ucrcom to files",
 	updatedirs => [ "sys" ],
@@ -364,7 +376,10 @@ my %quirks = (
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
 # OpenBSD 6.6, 2019-10-12Z
-    '2019-10-12T17:05:22Z' => { comment => "OpenBSD/amd64 6.6 release" },
+    '2019-10-12T17:05:22Z' => {
+	comment => "OpenBSD/amd64 6.6 release",
+	release => 6.6,
+    },
     '2019-11-03T20:16:01Z' => {
 	comment => "sys_shmctl fix copyin",
 	updatedirs => [ "sys" ],
