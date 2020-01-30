@@ -30,16 +30,18 @@ use Buildquirks;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('vC:D:T:', \%opts) or do {
+getopts('vnC:D:T:', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-D date] -T test
     -v		verbose
+    -n		dry run
     -D date	run date
-    -T test	tcp|tcp6|linux|linux6|make|udp|udp6|fs
+    -T test	test name (tcp|tcp6|linux|linux6|make|udp|udp6|fs)
 EOF
     exit(2);
 };
 my $verbose = $opts{v};
+my $dry = $opts{n};
 my ($run, $date);
 if ($opts{D}) {
     $run = str2time($opts{D})
@@ -61,9 +63,9 @@ chdir($gnuplotdir)
     or die "Chdir to '$gnuplotdir' failed: $!";
 $gnuplotdir = getcwd();
 
-my $testfile = "$performdir/bin/plot.gp";
--f $testfile
-    or die "No gnuplot file '$testfile'";
+my $plotfile = "$performdir/bin/plot.gp";
+-f $plotfile
+    or die "No gnuplot file '$plotfile'";
 my $testdata = "test-$test.data";
 -f $testdata
     or die "No test data file '$testdata' in $gnuplotdir";
@@ -74,35 +76,44 @@ open (my $fh, '<', $testdata)
     or die "Open '$testdata' for reading failed: $!";
 
 <$fh>; # skip file head
-my ($tst, $sub, undef, undef, undef, undef, $unit)  = split(/\s+/, <$fh>);
+my ($tst, $sub, undef, undef, undef, undef, $unit)  = split(" ", <$fh>);
 $tests{"$tst $sub"} = 1;
-
-while (my $row = <$fh>) {
-    my ($tst, $sub) = split(/\s+/, $row);
+while (<$fh>) {
+    ($tst, $sub) = split;
     $tests{"$tst $sub"} = 1;
 }
 
-my $testnames = join(" ", sort keys %tests);
+my @tests = sort keys %tests;
 my %q = quirks();
-my $quirks = join(" ", sort keys %q);
+my @quirks = sort keys %q;
 
 my $outprefix = "";
 $outprefix .= "$date-" if $run;
 $outprefix .= "$test";
 
-my @plotcmd = ("gnuplot", "-d",
-    "-e", "DATA_FILE='$testdata'",
-    "-e", "OUT_PREFIX='$outprefix'",
-    "-e", "QUIRKS='$quirks'",
-    "-e", "TESTS='$testnames'",
-    "-e", "TITLE='$title'",
-    "-e", "UNIT='$unit'");
-push @plotcmd, "-e", "RUN_DATE='$run'" if $run;
-push @plotcmd, $testfile;
-print "Command '@plotcmd' started\n" if $verbose;
-system(@plotcmd)
-    and die "system @plotcmd failed: $?";
-print "Command '@plotcmd' finished\n" if $verbose;
+my @plotvars = (
+    "DATA_FILE='$testdata'",
+    "OUT_PREFIX='$outprefix'",
+    "QUIRKS='@quirks'",
+    "TESTS='@tests'",
+    "TITLE='$title'",
+    "UNIT='$unit'"
+);
+push @plotvars, "RUN_DATE='$run'" if $run;
+my @plotcmd = ("gnuplot", "-d");
+if ($dry) {
+    push @plotcmd, (map { ("-e", "\"$_\"") } @plotvars);
+    push @plotcmd, $plotfile;
+    print "@plotcmd\n";
+    exit 0;
+} else {
+    push @plotcmd, (map { ("-e", $_) } @plotvars);
+    push @plotcmd, $plotfile;
+    print "Command '@plotcmd' started\n" if $verbose;
+    system(@plotcmd)
+	and die "system @plotcmd failed: $?";
+    print "Command '@plotcmd' finished\n" if $verbose;
+}
 
 my $htmlfile = "";
 $htmlfile .= "$date-" if $date;
