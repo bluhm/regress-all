@@ -187,14 +187,7 @@ foreach my $date (@dates) {
     print $html "</table>\n";
 
     foreach my $plot (@plots) {
-	my $href = "../gnuplot/$date-$plot.html";
-	my $src = "../gnuplot/$date-$plot.png";
-	my $alt = uc($plot)." Performance";
-	print $html <<IMAGE;
-<a href="$href">
-  <img src="$src" alt="$alt">
-</a><br>
-IMAGE
+	html_plot($plot, $date, "..");
     }
 
     html_table_quirks($html, $html);
@@ -219,14 +212,7 @@ foreach my $test (@tests) {
 print $html "</table>\n";
 
 foreach my $plot (@plots) {
-    my $href = "gnuplot/$plot.html";
-    my $src = "gnuplot/$plot.png";
-    my $alt = uc($plot)." Performance";
-    print $html <<IMAGE;
-<a href="$href">
-  <img src="$src" alt="$alt">
-</a><br>
-IMAGE
+    html_plot($plot);
 }
 
 html_table_quirks($html);
@@ -1305,4 +1291,21 @@ sub html_status_data {
     }
     my $enda = $href ? "</a>" : "";
     print $html "    <td$class$title>$href$status$enda</td>\n";
+}
+
+sub html_plot {
+    my ($plot, $prefix, $dir) = @_;
+    my $file = "";
+    $file .= "$dir/" if $dir;
+    $file .= "gnuplot/";
+    $file .= "$prefix-" if $prefix;
+    $file .= $plot;
+    my $href = "$file.html";
+    my $src = "$file.png";
+    my $alt = uc($plot)." Performance";
+    print $html <<IMAGE;
+<a href="$href">
+  <img src="$src" alt="$alt">
+</a><br>
+IMAGE
 }
