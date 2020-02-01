@@ -30,12 +30,14 @@ use Buildquirks;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('vnC:D:T:', \%opts) or do {
+getopts('vnB:D:E:T:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-D date] -T test
+usage: $0 [-v] [-B date] [-D date] [-E date] -T test
     -v		verbose
     -n		dry run
+    -B date     begin date of x range, inclusive
     -D date	run date
+    -E date     end date of x range, inclusive
     -T test	test name (tcp|tcp6|linux|linux6|make|udp|udp6|fs)
 EOF
     exit(2);
@@ -47,6 +49,15 @@ if ($opts{D}) {
     $run = str2time($opts{D})
 	or die "Invalid -D date '$opts{D}'";
     $date = $opts{D};
+}
+my ($begin, $end);
+if ($opts{B}) {
+    $begin = str2time($opts{B})
+	or die "Invalid -B date '$opts{B}'";
+}
+if ($opts{E}) {
+    $end = str2time($opts{E})
+	or die "Invalid -E date '$opts{E}'";
 }
 my $test = $opts{T}
     or die "Option -T test missing";
@@ -100,6 +111,8 @@ my @plotvars = (
     "UNIT='$unit'"
 );
 push @plotvars, "RUN_DATE='$run'" if $run;
+push @plotvars, "XRANGE_MIN='$begin'" if $begin;
+push @plotvars, "XRANGE_MAX='$end'" if $end;
 my @plotcmd = ("gnuplot", "-d");
 if ($dry) {
     push @plotcmd, (map { ("-e", "\"$_\"") } @plotvars);
