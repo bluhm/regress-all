@@ -133,7 +133,6 @@ create_gnuplot_files();
 create_cvslog_files();
 create_nmbsd_files();
 
-my @releases;
 my @plots = list_plots();
 my @tests = list_tests();
 my @dates = list_dates();
@@ -220,6 +219,7 @@ print $html "<table>\n";
 print $html "  <tr>\n";
 print $html "    <th></th>\n";
 print $html "    <th>all</th>\n";
+my @releases = keys %{{quirk_releases()}};
 for (my $i = 0; $i < $#releases; $i++) {
     my $prev = $releases[$i];
     my $next = $releases[$i+1] || "";
@@ -648,6 +648,7 @@ sub list_dates {
 
 # create gnuplot graphs for all runs
 sub create_gnuplot_files {
+    my %releases = quirk_releases();
     foreach my $plot (list_plots()) {
 	foreach my $date (keys %V) {
 	    my $outfile = "$date-$plot.html";
@@ -661,6 +662,13 @@ sub create_gnuplot_files {
 	my @cmd = ("$performdir/bin/gnuplot.pl", "-T", "$plot");
 	system(@cmd)
 	    and die "Command '@cmd' failed: $?";
+	while (my($k, $v) = each %releases) {
+	    @cmd = ("$performdir/bin/gnuplot.pl", "-r", $k, "-B", $v->{begin});
+	    push @cmd, "-E", $v->{end} if $v->{end};
+	    push @cmd, "-T", "$plot";
+	    system(@cmd)
+		and die "Command '@cmd' failed: $?";
+	}
     }
 }
 

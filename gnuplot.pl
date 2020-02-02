@@ -35,8 +35,9 @@ getopts('vnB:D:E:T:', \%opts) or do {
 usage: $0 [-v] [-B date] [-D date] [-E date] -T test
     -v		verbose
     -n		dry run
+    -r release	OpenBSD version number
+    -D date	when performace test was run
     -B date     begin date of x range, inclusive
-    -D date	run date
     -E date     end date of x range, inclusive
     -T test	test name (tcp|tcp6|linux|linux6|make|udp|udp6|fs)
 EOF
@@ -44,6 +45,11 @@ EOF
 };
 my $verbose = $opts{v};
 my $dry = $opts{n};
+my $release;
+if ($opts{r} && $opts{r} ne "current") {
+    ($release = $opts{r}) =~ /^\d+\.\d+$/
+	or die "Release '$release' must be major.minor format";
+}
 my ($run, $date);
 if ($opts{D}) {
     $run = str2time($opts{D})
@@ -99,6 +105,7 @@ my %q = quirks();
 my @quirks = sort keys %q;
 
 my $outprefix = "";
+$outprefix .= "$release-" if $release;
 $outprefix .= "$date-" if $run;
 $outprefix .= "$test";
 

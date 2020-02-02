@@ -918,4 +918,24 @@ sub quirk_commands {
     return @c;
 }
 
+sub quirk_releases {
+    my %q = quirks();
+    my %r;
+    my $prev;
+    foreach my $commit (sort keys %q) {
+	my $release = $q{$commit}
+	    or next;
+	my $date = strftime("%FT%TZ", gmtime($commit));
+	(my $before = $date) =~ s/T.*Z/T00:00:00Z/;
+	my $after = strftime("%FT%TZ", gmtime($commit + 24*60*60 - 1));
+	$after =~ s/T.*Z/T00:00:00Z/;
+	$prev->{end} = $after if $prev;
+	$prev = $r{$release} = {
+	    date => $date,
+	    begin => $before,
+	}
+    }
+    return %r;
+}
+
 1;
