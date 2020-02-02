@@ -30,16 +30,16 @@ use Buildquirks;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('vnr:B:D:E:T:', \%opts) or do {
+getopts('vnB:D:E:r:T:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-B date] [-D date] [-E date] -T test
+usage: $0 [-vn] [-B date] [-D date] [-E date] [-r release] -T test
     -v		verbose
     -n		dry run
-    -r release	OpenBSD version number
-    -D date	when performace test was run
     -B date	begin date of x range, inclusive
+    -D date	when performace test was run
     -E date	end date of x range, inclusive
-    -T test	test name (tcp|tcp6|linux|linux6|make|udp|udp6|fs)
+    -r release	OpenBSD version number
+    -T test	test plot (tcp|tcp6|linux|linux6|make|udp|udp6|fs)
 EOF
     exit(2);
 };
@@ -65,7 +65,7 @@ if ($opts{E}) {
     $end = str2time($opts{E})
 	or die "Invalid -E date '$opts{E}'";
 }
-my $testclass = $opts{T}
+my $testplot = $opts{T}
     or die "Option -T test missing";
 
 # better get an errno than random kill by SIGPIPE
@@ -83,11 +83,11 @@ $gnuplotdir = getcwd();
 my $plotfile = "$performdir/bin/plot.gp";
 -f $plotfile
     or die "No gnuplot file '$plotfile'";
-my $testdata = "test-$testclass.data";
+my $testdata = "test-$testplot.data";
 -f $testdata
     or die "No test data file '$testdata' in $gnuplotdir";
 
-my $title = uc($testclass). " Performance";
+my $title = uc($testplot). " Performance";
 my %tests;
 open (my $fh, '<', $testdata)
     or die "Open '$testdata' for reading failed: $!";
@@ -107,7 +107,7 @@ my @quirks = sort keys %{{quirks()}};
 my $prefix = "";
 $prefix .= "$release-" if $release;
 $prefix .= "$date-" if $date;
-$prefix .= "$testclass";
+$prefix .= "$testplot";
 
 my @plotvars = (
     "DATA_FILE='$testdata'",
@@ -206,18 +206,18 @@ foreach my $cmd (sort keys %tests) {
 }
 
 print $html "<img id=\"frame\" src=\"";
-print $html "$prefix\_0.png\" alt=\"". uc($testclass). " Grid\">";
+print $html "$prefix\_0.png\" alt=\"". uc($testplot). " Grid\">";
 
 $i = 1;
 foreach my $cmd (sort keys %tests) {
     print $html "<img src=\"";
-    print $html "$prefix\_$i.png\" alt=\"". uc($testclass). " $cmd\">";
+    print $html "$prefix\_$i.png\" alt=\"". uc($testplot). " $cmd\">";
     print $html "<span></span>";
     $i++;
 }
 
 print $html "<img id=\"combined\" src=\"";
-print $html "$prefix.png\" alt=\"". uc($testclass). " Performance\">";
+print $html "$prefix.png\" alt=\"". uc($testplot). " Performance\">";
 
 print $html "</body>
 </html>";
