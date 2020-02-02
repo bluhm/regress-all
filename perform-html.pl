@@ -189,7 +189,7 @@ foreach my $date (@dates) {
     print $html "<table>\n";
     foreach my $plot (@plots) {
 	print $html "  <tr>\n";
-	html_plot_data($plot, $date, "..");
+	html_plot_data($html, $plot, $date, "..");
 	print $html "  </tr>\n";
     }
     print $html "</table>\n";
@@ -229,9 +229,9 @@ print $html "  </tr>\n";
 foreach my $plot (@plots) {
     print $html "  <tr>\n";
     print $html "    <th>". uc($plot). "</th>\n";
-    html_plot_data($plot);
+    html_plot_data($html, $plot);
     foreach my $release (@releases) {
-	html_plot_data($plot, $release);
+	html_plot_data($html, $plot, $release);
     }
     print $html "  </tr>\n";
 }
@@ -1324,7 +1324,7 @@ sub html_status_data {
 }
 
 sub html_plot_data {
-    my ($plot, $prefix, $dir) = @_;
+    my ($html, $plot, $prefix, $dir) = @_;
     my $file = "";
     $file .= "$dir/" if $dir;
     $file .= "gnuplot/";
