@@ -37,8 +37,8 @@ usage: $0 [-v] [-B date] [-D date] [-E date] -T test
     -n		dry run
     -r release	OpenBSD version number
     -D date	when performace test was run
-    -B date     begin date of x range, inclusive
-    -E date     end date of x range, inclusive
+    -B date	begin date of x range, inclusive
+    -E date	end date of x range, inclusive
     -T test	test name (tcp|tcp6|linux|linux6|make|udp|udp6|fs)
 EOF
     exit(2);
