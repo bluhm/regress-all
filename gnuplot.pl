@@ -101,8 +101,7 @@ while (<$fh>) {
 }
 
 my @tests = sort keys %tests;
-my %q = quirks();
-my @quirks = sort keys %q;
+my @quirks = sort keys %{{quirks()}};
 
 my $outprefix = "";
 $outprefix .= "$release-" if $release;
