@@ -80,7 +80,7 @@ unset key
 set style textbox opaque noborder fillcolor rgb "white"
 lbl_index = 1
 do for [i = 1:words(QUIRKS)] {
-    XPOS = (int(word(QUIRKS, i))-STATS_min_x)/(STATS_max_x-STATS_min_x+1)
+    XPOS = (int(word(QUIRKS, i))-XRANGE_MIN)/(XRANGE_MAX-XRANGE_MIN)
     if (XPOS > 0 && XPOS < 1) {
 	DESCR = sprintf("%c", 64 + lbl_index)
 	set arrow from graph XPOS,0 to graph XPOS,1 nohead lw 1 lc rgb 'black'
