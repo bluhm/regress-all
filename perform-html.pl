@@ -219,11 +219,11 @@ print $html "<table>\n";
 print $html "  <tr>\n";
 print $html "    <th></th>\n";
 print $html "    <th>all</th>\n";
-my @releases = keys %{{quirk_releases()}};
-for (my $i = 0; $i < $#releases; $i++) {
+my @releases = sort keys %{{quirk_releases()}};
+for (my $i = 0; $i <= $#releases; $i++) {
     my $prev = $releases[$i];
     my $next = $releases[$i+1] || "";
-    print $html "    <th>$prev -> $next</th>\n";
+    print $html "    <th>release $prev -> $next</th>\n";
 }
 print $html "  </tr>\n";
 foreach my $plot (@plots) {

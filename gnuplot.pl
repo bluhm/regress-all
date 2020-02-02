@@ -136,6 +136,7 @@ if ($dry) {
 }
 
 my $htmlfile = "";
+$htmlfile .= "$release-" if $release;
 $htmlfile .= "$date-" if $date;
 $htmlfile .= "$test.html";
 unlink("$htmlfile.new");
