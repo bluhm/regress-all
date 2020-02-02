@@ -189,7 +189,7 @@ foreach my $test (@tests) {
 }
 print $html "</table>\n";
 
-html_table_status($html, "regress");
+html_status_table($html, "regress");
 html_footer($html);
 html_close($html, $htmlfile);
 

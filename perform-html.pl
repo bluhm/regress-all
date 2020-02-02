@@ -160,7 +160,7 @@ foreach my $date (@dates) {
 	}
 	print $html "</table>\n";
 
-	html_table_status($html, "perform");
+	html_status_table($html, "perform");
 	html_footer($html);
 	html_close($html, $htmlfile);
     }
@@ -194,8 +194,8 @@ foreach my $date (@dates) {
     }
     print $html "</table>\n";
 
-    html_table_quirks($html, $html);
-    html_table_status($html, "perform");
+    html_quirks_table($html, $html);
+    html_status_table($html, "perform");
     html_footer($html);
     html_close($html, $htmlfile);
 }
@@ -223,8 +223,8 @@ foreach my $plot (@plots) {
 }
 print $html "</table>\n";
 
-html_table_quirks($html);
-html_table_status($html, "perform");
+html_quirks_table($html);
+html_status_table($html, "perform");
 html_footer($html);
 html_close($html, $htmlfile);
 
@@ -1314,7 +1314,7 @@ sub html_plot_data {
     print $html <<IMAGE;
     <td>
       <a href="$href">
-        <img src="$src" alt="$alt">
+	<img src="$src" alt="$alt">
       </a>
     </td>
 IMAGE

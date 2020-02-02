@@ -26,8 +26,8 @@ our @EXPORT= qw(
     html_close
     html_header
     html_footer
-    html_table_status
-    html_table_quirks
+    html_status_table
+    html_quirks_table
     status2severity
 );
 
@@ -115,7 +115,7 @@ sub status2severity {
 }
 
 # print html table explaining the status of regress or perform results
-sub html_table_status {
+sub html_status_table {
     my ($html, $type) = @_;
     my ($topic, $tool);
     ($topic, $tool) = ("make regress", "make") if $type eq "regress";
@@ -185,7 +185,7 @@ TABLE
 }
 
 # print html table explaining the letters of the build quirks
-sub html_table_quirks {
+sub html_quirks_table {
     my ($html) = @_;
     my %q = quirks();
     my @sorted_quirks = sort keys %q;
