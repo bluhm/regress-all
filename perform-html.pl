@@ -186,9 +186,13 @@ foreach my $date (@dates) {
     }
     print $html "</table>\n";
 
+    print $html "<table>\n";
     foreach my $plot (@plots) {
-	html_plot($plot, $date, "..");
+	print $html "  <tr>\n";
+	html_plot_data($plot, $date, "..");
+	print $html "  </tr>\n";
     }
+    print $html "</table>\n";
 
     html_table_quirks($html, $html);
     html_table_status($html, "perform");
@@ -211,9 +215,13 @@ foreach my $test (@tests) {
 }
 print $html "</table>\n";
 
+print $html "<table>\n";
 foreach my $plot (@plots) {
-    html_plot($plot);
+    print $html "  <tr>\n";
+    html_plot_data($plot);
+    print $html "  </tr>\n";
 }
+print $html "</table>\n";
 
 html_table_quirks($html);
 html_table_status($html, "perform");
@@ -1293,7 +1301,7 @@ sub html_status_data {
     print $html "    <td$class$title>$href$status$enda</td>\n";
 }
 
-sub html_plot {
+sub html_plot_data {
     my ($plot, $prefix, $dir) = @_;
     my $file = "";
     $file .= "$dir/" if $dir;
@@ -1304,8 +1312,10 @@ sub html_plot {
     my $src = "$file.png";
     my $alt = uc($plot)." Performance";
     print $html <<IMAGE;
-<a href="$href">
-  <img src="$src" alt="$alt">
-</a><br>
+    <td>
+      <a href="$href">
+        <img src="$src" alt="$alt">
+      </a>
+    </td>
 IMAGE
 }
