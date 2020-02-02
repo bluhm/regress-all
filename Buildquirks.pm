@@ -23,7 +23,8 @@ use Date::Parse;
 use POSIX;
 
 use parent 'Exporter';
-our @EXPORT= qw(quirks quirk_comments quirk_patches quirk_commands);
+our @EXPORT= qw(quirks quirk_comments quirk_patches quirk_commands
+    quirk_releases);
 
 #### Quirks ####
 
@@ -923,7 +924,7 @@ sub quirk_releases {
     my %r;
     my $prev;
     foreach my $commit (sort keys %q) {
-	my $release = $q{$commit}
+	my $release = $q{$commit}{release}
 	    or next;
 	my $date = strftime("%FT%TZ", gmtime($commit));
 	(my $before = $date) =~ s/T.*Z/T00:00:00Z/;

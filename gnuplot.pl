@@ -30,7 +30,7 @@ use Buildquirks;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('vnB:D:E:T:', \%opts) or do {
+getopts('vnr:B:D:E:T:', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-B date] [-D date] [-E date] -T test
     -v		verbose
