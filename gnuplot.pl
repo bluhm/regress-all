@@ -65,7 +65,7 @@ if ($opts{E}) {
     $end = str2time($opts{E})
 	or die "Invalid -E date '$opts{E}'";
 }
-my $test = $opts{T}
+my $testclass = $opts{T}
     or die "Option -T test missing";
 
 # better get an errno than random kill by SIGPIPE
@@ -83,11 +83,11 @@ $gnuplotdir = getcwd();
 my $plotfile = "$performdir/bin/plot.gp";
 -f $plotfile
     or die "No gnuplot file '$plotfile'";
-my $testdata = "test-$test.data";
+my $testdata = "test-$testclass.data";
 -f $testdata
     or die "No test data file '$testdata' in $gnuplotdir";
 
-my $title = uc($test). " Performance";
+my $title = uc($testclass). " Performance";
 my %tests;
 open (my $fh, '<', $testdata)
     or die "Open '$testdata' for reading failed: $!";
@@ -104,14 +104,14 @@ while (<$fh>) {
 my @tests = sort keys %tests;
 my @quirks = sort keys %{{quirks()}};
 
-my $outprefix = "";
-$outprefix .= "$release-" if $release;
-$outprefix .= "$date-" if $run;
-$outprefix .= "$test";
+my $prefix = "";
+$prefix .= "$release-" if $release;
+$prefix .= "$date-" if $date;
+$prefix .= "$testclass";
 
 my @plotvars = (
     "DATA_FILE='$testdata'",
-    "OUT_PREFIX='$outprefix'",
+    "PREFIX='$prefix'",
     "QUIRKS='@quirks'",
     "TESTS='@tests'",
     "TITLE='$title'",
@@ -135,10 +135,7 @@ if ($dry) {
     print "Command '@plotcmd' finished\n" if $verbose;
 }
 
-my $htmlfile = "";
-$htmlfile .= "$release-" if $release;
-$htmlfile .= "$date-" if $date;
-$htmlfile .= "$test.html";
+my $htmlfile = "$prefix.html";
 unlink("$htmlfile.new");
 open(my $html, '>', "$htmlfile.new")
     or die "Open '$htmlfile.new' for writing failed: $!";
@@ -209,20 +206,18 @@ foreach my $cmd (sort keys %tests) {
 }
 
 print $html "<img id=\"frame\" src=\"";
-print $html "$date-" if ($date);
-print $html "$test\_0.png\" alt=\"". uc($test). " Grid\">";
+print $html "$prefix\_0.png\" alt=\"". uc($testclass). " Grid\">";
 
 $i = 1;
 foreach my $cmd (sort keys %tests) {
     print $html "<img src=\"";
-    print $html "$date-" if ($date);
-    print $html "$test\_$i.png\" alt=\"". uc($test). " $cmd\"><span></span>";
+    print $html "$prefix\_$i.png\" alt=\"". uc($testclass). " $cmd\">";
+    print $html "<span></span>";
     $i++;
 }
 
 print $html "<img id=\"combined\" src=\"";
-print $html "$date-" if ($date);
-print $html "$test.png\" alt=\"". uc($test). " Performance\">";
+print $html "$prefix.png\" alt=\"". uc($testclass). " Performance\">";
 
 print $html "</body>
 </html>";

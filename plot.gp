@@ -17,7 +17,7 @@
 # plot test results, the following variables are required:
 # DATA_FILE	Path,	plot data file, space separated,
 #			format: "test subtest run checkout repeat value unit"
-# OUT_PREFIX	Path,	png output file
+# PREFIX	Path,	png output file
 # TESTS		String,	testnames to filter and plot, space separated,
 #			format: "test1 subtest1 test2 sub2 ... testN subN"
 #
@@ -27,8 +27,8 @@
 # TITLE		String,	plot title
 # UNIT		String, unit for the y-axis
 
-if (!exists("DATA_FILE") || !exists("OUT_PREFIX") || !exists("TESTS")) {
-    exit error "Please define DATA_FILE, OUT_PREFIX and TESTS."
+if (!exists("DATA_FILE") || !exists("PREFIX") || !exists("TESTS")) {
+    exit error "Please define DATA_FILE, PREFIX and TESTS."
     exit status 1
 }
 
@@ -72,7 +72,7 @@ set xdata time
 set xlabel "Checkout (date)"
 set tics out
 set border 3
-set output OUT_PREFIX."_0.png"
+set output PREFIX."_0.png"
 set terminal png transparent size 1360, 768
 unset key
 
@@ -97,7 +97,7 @@ do for [i = 1:words(QUIRKS)] {
 plot 0 notitle lc bgnd
 
 # draw complete plot
-set output OUT_PREFIX.".png"
+set output PREFIX.".png"
 if (exists("RUN_DATE")) {
     plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
         strcol(3) eq RUN_DATE? ( \
@@ -127,7 +127,7 @@ unset label
 
 do for [test = 1:words(TESTS):2] {
     i = test/2+1
-    set output OUT_PREFIX."_".i.".png"
+    set output PREFIX."_".i.".png"
     if (exists("RUN_DATE")) {
         plot DATA_FILE using 4:( \
             strcol(3) eq RUN_DATE? ( \
