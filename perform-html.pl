@@ -216,17 +216,17 @@ foreach my $test (@tests) {
 print $html "</table>\n";
 
 print $html "<table>\n";
-print $html "  <tr>\n";
-print $html "    <th></th>\n";
-print $html "    <th>all</th>\n";
-my @releases = sort keys %{{quirk_releases()}};
-for (my $i = 0; $i <= $#releases; $i++) {
-    my $prev = $releases[$i];
-    my $next = $releases[$i+1] || "";
-    print $html "    <th>release $prev -> $next</th>\n";
-}
-print $html "  </tr>\n";
 foreach my $plot (@plots) {
+    print $html "  <tr>\n";
+    print $html "    <th></th>\n";
+    print $html "    <th>all</th>\n";
+    my @releases = sort keys %{{quirk_releases()}};
+    for (my $i = 0; $i <= $#releases; $i++) {
+	my $prev = $releases[$i];
+	my $next = $releases[$i+1] || "";
+	print $html "    <th>release $prev -> $next</th>\n";
+    }
+    print $html "  </tr>\n";
     print $html "  <tr class=\"IMG\">\n";
     print $html "    <th>". uc($plot). "</th>\n";
     html_plot_data($html, $plot);
