@@ -64,7 +64,8 @@ sub html_header {
   <title>$title</title>
   <style>
     th { text-align: left; white-space: nowrap; }
-    tr:hover {background-color: #e0e0e0}
+    tr:hover {background-color: #e0e0e0;}
+    tr:IMG {background-color: #ffffff;}
     td.PASS {background-color: #80ff80;}
     td.XFAIL {background-color: #80ffc0;}
     td.SKIP {background-color: #8080ff;}

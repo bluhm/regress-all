@@ -188,7 +188,7 @@ foreach my $date (@dates) {
 
     print $html "<table>\n";
     foreach my $plot (@plots) {
-	print $html "  <tr>\n";
+	print $html "  <tr class=\"IMG\">\n";
 	html_plot_data($html, $plot, $date, "..");
 	print $html "  </tr>\n";
     }
@@ -227,7 +227,7 @@ for (my $i = 0; $i <= $#releases; $i++) {
 }
 print $html "  </tr>\n";
 foreach my $plot (@plots) {
-    print $html "  <tr>\n";
+    print $html "  <tr class=\"IMG\">\n";
     print $html "    <th>". uc($plot). "</th>\n";
     html_plot_data($html, $plot);
     foreach my $release (@releases) {
