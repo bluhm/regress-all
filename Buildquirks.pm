@@ -852,7 +852,7 @@ sub quirks {
 
     my %q;
     while (my($k, $v) = each %quirks) {
-	my $commit = str2time($k)
+	my $commit = $v->{commit} ||= str2time($k)
 	    or die "Invalid commit date '$k'";
 	next if $before && $commit <= $before;
 	next if $after && $commit > $after;
