@@ -94,6 +94,7 @@ open (my $fh, '<', $testdata)
 
 <$fh>; # skip file head
 my ($tst, $sub, undef, undef, undef, undef, $unit)  = split(" ", <$fh>);
+exit 0 unless $unit;
 $tests{"$tst $sub"} = 1;
 while (<$fh>) {
     ($tst, $sub) = split;
