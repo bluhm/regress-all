@@ -133,6 +133,7 @@ create_gnuplot_files();
 create_cvslog_files();
 create_nmbsd_files();
 
+my @releases;
 my @plots = list_plots();
 my @tests = list_tests();
 my @dates = list_dates();
@@ -216,9 +217,22 @@ foreach my $test (@tests) {
 print $html "</table>\n";
 
 print $html "<table>\n";
+print $html "  <tr>\n";
+print $html "    <th></th>\n";
+print $html "    <th>all</th>\n";
+for (my $i = 0; $i < $#releases; $i++) {
+    my $prev = $releases[$i];
+    my $next = $releases[$i+1] || "";
+    print $html "    <th>$prev -> $next</th>\n";
+}
+print $html "  </tr>\n";
 foreach my $plot (@plots) {
     print $html "  <tr>\n";
+    print $html "    <th>". uc($plot). "</th>\n";
     html_plot_data($plot);
+    foreach my $release (@releases) {
+	html_plot_data($plot, $release);
+    }
     print $html "  </tr>\n";
 }
 print $html "</table>\n";
