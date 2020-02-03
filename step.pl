@@ -32,8 +32,8 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('B:E:h:k:N:r:S:s:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -h host -r release [-s setup] -B date [-E date] [-S interval]
-    [-N repeat] [-k kernel] test ...
+usage: $0 [-v] -B date [-E date] -h host [-k kernel] [-N repeat] -r release
+    [-S interval] [-s setup] test ...
     -B date	begin date, inclusive
     -E date	end date, inclusive
     -h host	user and host for performance test, user defaults to root

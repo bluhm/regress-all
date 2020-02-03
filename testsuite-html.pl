@@ -27,7 +27,7 @@ my %opts;
 getopts('p:', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 -p publish
-    -t publish	directory where the test suite results are created
+    -p publish	directory where the test suite results are created
 EOF
     exit(2);
 };
