@@ -6,6 +6,7 @@ git
 gmake
 go
 gsed
+iperf3
 net-snmp
 openldap-client--
 openssl%1.0.2
@@ -25,6 +26,7 @@ p5-NetPacket
 p5-YAML
 p5-ldap
 posixtestsuite
+py3-tlsfuzzer
 rsync--
 rsyslog
 scapy
