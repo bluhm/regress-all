@@ -1,6 +1,6 @@
 # get build over incompatible source changes with minimal effort
 
-# Copyright (c) 2018-2019 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -402,6 +402,11 @@ my %quirks = (
 	comment => "ld.so uses msyscall to permit syscalls",
 	updatedirs => [ "libexec/ld.so" ],
 	builddirs => [ "libexec/ld.so" ],
+    },
+# OpenBSD 6.7, 2020-05-07Z
+    '2020-05-07T17:20:22Z' => {
+	comment => "OpenBSD/amd64 6.7 release",
+	release => 6.7,
     },
 );
 
