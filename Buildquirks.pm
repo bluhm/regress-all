@@ -408,6 +408,10 @@ my %quirks = (
 	comment => "OpenBSD/amd64 6.7 release",
 	release => 6.7,
     },
+    '2020-06-08T04:48:12Z' => {
+	comment => "update drm moves kernel source files",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 );
 
 #### Patches ####
