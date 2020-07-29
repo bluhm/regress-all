@@ -828,6 +828,7 @@ sub diff_stat_file {
 sub html_cvsdate_zoom {
     my ($html, $before, $after) = @_;
     my ($start, $stop) = @Z{$before, $after};
+    return unless defined($start) && defined($stop);
     my %dates;
     for (my $i = $start + 1; $i < $stop; $i++) {
 	@dates{keys %{$Z[$i]}} = ();
