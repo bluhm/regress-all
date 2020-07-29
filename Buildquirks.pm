@@ -412,6 +412,11 @@ my %quirks = (
 	comment => "update drm moves kernel source files",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2020-07-17T06:33:07Z' => {
+	comment => "include toeplitz.h in ix(4)",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-ix-toeplitz' => patch_sys_ix_toeplitz() },
+    },
 );
 
 #### Patches ####
@@ -845,6 +850,28 @@ diff -u -p -r1.73 -r1.74
  		if (error)
  			return (error);
  	}
+PATCH
+}
+
+# Fix previous commit: in ix(4) use the system stoeplitz key
+sub patch_sys_ix_toeplitz {
+	return <<'PATCH';
+Index: sys/dev/pci/ixgbe.h
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/ixgbe.h,v
+retrieving revision 1.30
+retrieving revision 1.31
+diff -u -p -u -p -r1.30 -r1.31
+--- sys/dev/pci/ixgbe.h	17 Jul 2020 06:27:36 -0000	1.30
++++ sys/dev/pci/ixgbe.h	17 Jul 2020 07:49:49 -0000	1.31
+@@ -58,6 +58,7 @@
+ 
+ #include <net/if.h>
+ #include <net/if_media.h>
++#include <net/toeplitz.h>
+ 
+ #include <netinet/in.h>
+ #include <netinet/if_ether.h>
 PATCH
 }
 
