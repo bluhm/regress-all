@@ -413,7 +413,7 @@ my %quirks = (
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
     '2020-07-17T06:33:07Z' => {
-	comment => "include toeplitz.h in ix(4)",
+	comment => "include toeplitz.h in ix",
 	updatedirs => [ "sys" ],
 	patches => { 'sys-ix-toeplitz' => patch_sys_ix_toeplitz() },
     },
