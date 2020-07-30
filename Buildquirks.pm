@@ -413,9 +413,14 @@ my %quirks = (
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
     '2020-07-17T06:33:07Z' => {
-	comment => "include toeplitz.h in ix",
+	comment => "include toeplitz.h in ixgbe.h",
 	updatedirs => [ "sys" ],
 	patches => { 'sys-ix-toeplitz' => patch_sys_ix_toeplitz() },
+    },
+    '2020-07-17T07:40:35Z' => {
+	comment => "backout bad include of toeplitz.h in if_ix.c",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-ix-toeplitz-bad' => patch_sys_ix_toeplitz_bad() },
     },
 );
 
@@ -872,6 +877,29 @@ diff -u -p -u -p -r1.30 -r1.31
  
  #include <netinet/in.h>
  #include <netinet/if_ether.h>
+PATCH
+}
+
+# Backout previous try to fix: in ix(4) use the system stoeplitz key
+sub patch_sys_ix_toeplitz_bad {
+	return <<'PATCH';
+Index: sys/dev/pci/if_ix.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/if_ix.c,v
+retrieving revision 1.170
+retrieving revision 1.169
+diff -u -p -u -p -r1.170 -r1.169
+--- sys/dev/pci/if_ix.c	17 Jul 2020 07:40:35 -0000	1.170
++++ sys/dev/pci/if_ix.c	17 Jul 2020 06:33:07 -0000	1.169
+@@ -33,8 +33,6 @@
+ 
+ ******************************************************************************/
+ /* FreeBSD: src/sys/dev/ixgbe/ixgbe.c 251964 Jun 18 21:28:19 2013 UTC */
+-
+-#include <net/toeplitz.h>
+ 
+ #include <dev/pci/if_ix.h>
+ #include <dev/pci/ixgbe_type.h>
 PATCH
 }
 
