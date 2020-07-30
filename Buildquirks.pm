@@ -418,6 +418,14 @@ my %quirks = (
 	patches => { 'sys-ix-toeplitz' => patch_sys_ix_toeplitz() },
     },
     '2020-07-17T07:40:35Z' => {
+	comment => "include toeplitz.h in ixgbe.h and backout in if_ix.c",
+	updatedirs => [ "sys" ],
+	patches => {
+	    'sys-ix-toeplitz' => patch_sys_ix_toeplitz(),
+	    'sys-ix-toeplitz-bad' => patch_sys_ix_toeplitz_bad(),
+	},
+    },
+    '2020-07-17T07:49:49Z' => {
 	comment => "backout bad include of toeplitz.h in if_ix.c",
 	updatedirs => [ "sys" ],
 	patches => { 'sys-ix-toeplitz-bad' => patch_sys_ix_toeplitz_bad() },
