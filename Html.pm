@@ -193,8 +193,13 @@ sub html_quirks_table {
     print $html "<table>\n";
     for my $index (0 .. $#sorted_quirks) {
 	my $quirkdate = $sorted_quirks[$index];
-	my $letter = chr((($index % 58 > 25? $index + 6 : $index) % 58) + 65) .
-	    "'" x ($index / 58);
+	my $letter;
+	if ($index % 52 < 26) {
+	    $letter = char($index % 52 + ord('A'));
+	} else {
+	    $letter = char(($index + 6) % 58 + ord('A'));
+	}
+	$letter .= "'" x ($index / 52);
 	print $html <<"ROW";
   <tr>
     <td>$q{$quirkdate}{date}</td>
