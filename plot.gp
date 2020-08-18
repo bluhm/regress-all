@@ -79,19 +79,25 @@ unset key
 
 # draw quirks
 set style textbox opaque noborder fillcolor rgb "white"
-lbl_index = 1
+lbl_index = 65
+descr_suffix = ""
 do for [i = 1:words(QUIRKS)] {
     XPOS = (0.0+int(word(QUIRKS, i))-XRANGE_MIN)/(XRANGE_MAX-XRANGE_MIN)
     if (XPOS > 0 && XPOS < 1) {
-	DESCR = sprintf("%c", 64 + lbl_index)
+	DESCR = sprintf("%c%s", lbl_index, descr_suffix)
 	set arrow from graph XPOS,0 to graph XPOS,1 nohead lw 1 lc rgb 'black'
 	set label DESCR at graph XPOS, graph 1 noenhanced \
 	    offset character -.5, character 0.7 front boxed
     }
-    if (lbl_index == 26) { # jump from Z to a
+    if (lbl_index == 90) { # jump from Z to a
 	lbl_index = lbl_index + 6
     }
     lbl_index = lbl_index + 1
+
+    if (lbl_index == 123) { # jump from z to A'
+	lbl_index = 65
+	descr_suffix = descr_suffix . "'"
+    }
 }
 
 # draw frame
