@@ -94,7 +94,7 @@ do for [i = 1:words(QUIRKS)] {
     }
     lbl_index = lbl_index + 1
 
-    if (lbl_index == 127) { # jump from z to A'
+    if (lbl_index == 123) { # jump from z to A'
 	lbl_index = 65
 	descr_suffix = descr_suffix . "'"
     }
