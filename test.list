@@ -25,6 +25,7 @@ lib/libc/db
 lib/libc/dirname
 lib/libc/env
 lib/libc/explicit_bzero
+lib/libc/ffs
 lib/libc/fmemopen
 lib/libc/fnmatch
 lib/libc/fpclassify
@@ -32,6 +33,7 @@ lib/libc/fread
 lib/libc/gcvt
 lib/libc/getaddrinfo
 lib/libc/getcap
+lib/libc/getopt
 lib/libc/getopt_long
 lib/libc/glob
 lib/libc/hsearch
@@ -69,6 +71,7 @@ lib/libc/strtonum
 lib/libc/sys
 lib/libc/telldir
 lib/libc/time
+lib/libc/timekeep
 lib/libc/timingsafe
 lib/libc/vis
 lib/libc/wprintf
@@ -126,6 +129,7 @@ sys/ddb
 sys/dev/fdesc
 sys/dev/kcov
 sys/dev/video
+sys/dev/vnd
 sys/dev/wscons
 sys/ffs
 sys/fifofs
@@ -172,6 +176,7 @@ sys/kern/pread
 sys/kern/preadv
 sys/kern/ptmget
 sys/kern/ptrace
+sys/kern/ptrace2
 sys/kern/pty
 sys/kern/pwrite
 sys/kern/pwritev
@@ -198,6 +203,7 @@ sys/kern/sosplice/udp
 sys/kern/stackjmp
 sys/kern/stackpivot
 sys/kern/syscall
+sys/kern/syscall_segment
 sys/kern/sysvmsg
 sys/kern/sysvsem
 sys/kern/sysvshm
@@ -240,6 +246,7 @@ sys/netinet6/pktinfo_addr
 sys/netinet6/recvmsg
 sys/netinet6/rh0
 sys/netinet6/rip6cksum
+sys/netinet6/srcaddr
 sys/nfs
 sys/ptrace
 sys/sys/tree
@@ -305,6 +312,7 @@ usr.sbin/arp
 usr.sbin/bgpd/config
 usr.sbin/bgpd/integrationtests
 usr.sbin/bgpd/unittests
+usr.sbin/btrace
 usr.sbin/httpd
 usr.sbin/ifstated
 usr.sbin/ldapd
