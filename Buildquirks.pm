@@ -430,6 +430,24 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-ix-toeplitz-bad' => patch_sys_ix_toeplitz_bad() },
     },
+    '2020-08-03T15:29:25Z' => {
+	comment => "clang update LLVM to 10.0.0",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+    '2020-08-09T15:56:55Z' => {
+	comment => "clang update LLVM to 10.0.1",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [ "gnu/usr.bin/clang" ],
+    },
 # OpenBSD 6.8, 2020-09-27Z
     '2020-10-05T00:22:38Z' => {
 	comment => "OpenBSD/amd64 6.8 release",
