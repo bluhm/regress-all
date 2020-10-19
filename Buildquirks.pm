@@ -430,6 +430,11 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-ix-toeplitz-bad' => patch_sys_ix_toeplitz_bad() },
     },
+# OpenBSD 6.8, 2020-09-27Z
+    '2020-10-05T00:22:38Z' => {
+	comment => "OpenBSD/amd64 6.8 release",
+	release => 6.8,
+    },
 );
 
 #### Patches ####
