@@ -448,6 +448,10 @@ my %quirks = (
 	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
+    '2020-09-12T07:47:27Z' => {
+	comment => "move asmc.c kernel source file",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 # OpenBSD 6.8, 2020-09-27Z
     '2020-10-05T00:22:38Z' => {
 	comment => "OpenBSD/amd64 6.8 release",
