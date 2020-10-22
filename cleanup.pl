@@ -36,7 +36,7 @@ my @datedirs = glob('20[0-9][0-9]-[01][0-9]-[0-3][0-9]T*Z');
 foreach my $date (reverse sort @datedirs) {
     my ($y, $m, $d) = $date =~ /^(\d+)-(\d+)-(\d+)T/
 	or die "Bad date directory name: $date";
-    if (($year*12+$month) - ($y*12+$m) <= ($opts{m} || 1)) {
+    if (($year*12+$month) - ($y*12+$m) <= ($opts{m} // 1)) {
 	print "skip $date\n" if $opts{v};
 	next;
     }
