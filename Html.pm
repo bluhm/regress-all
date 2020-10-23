@@ -1,3 +1,5 @@
+# put common html printing functions in a module
+
 # Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2018-2019 Moritz Buhl <mbuhl@genua.de>
 #
