@@ -430,6 +430,15 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-ix-toeplitz-bad' => patch_sys_ix_toeplitz_bad() },
     },
+    '2020-07-23T14:53:48Z' => {
+	comment => "binutils bfd fixes strip after clang 10",
+	updatedirs => [ "gnu/usr.bin/binutils-2.17" ],
+	buildcommands => [
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper install",
+	],
+    },
     '2020-08-03T15:29:25Z' => {
 	comment => "clang update LLVM to 10.0.0",
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
