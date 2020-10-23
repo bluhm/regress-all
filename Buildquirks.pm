@@ -24,7 +24,7 @@ use POSIX;
 
 use parent 'Exporter';
 our @EXPORT= qw(quirks quirk_comments quirk_patches quirk_commands
-    quirk_releases);
+    quirk_releases quirk_index2letters);
 
 #### Quirks ####
 
@@ -1045,6 +1045,13 @@ sub quirk_releases {
 	}
     }
     return %r;
+}
+
+sub quirk_index2letters {
+    my ($index) = @_;
+    my $ord = $index % 52;  # A-Z, a-z is 2 * 26 chars
+    $ord += $ord < 26 ? ord('A') : ord('a') - 26;
+    return chr($ord) . ("'" x ($index / 52));
 }
 
 1;

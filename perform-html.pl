@@ -1114,7 +1114,7 @@ sub html_cvsdate_test_head {
     }
     print $html "  <tr>\n    <th>build quirks</th>\n";
     my $prevcvsdate;
-    my $qi = 65 + keys %{{quirks(undef, $cvsdates[0])}};
+    my $index = keys %{{quirks(undef, $cvsdates[0])}};
     foreach my $cvsdate (@cvsdates) {
 	my $quirks = $D{$date}{$cvsdate}{quirks};
 	print $html "    <th>";
@@ -1126,7 +1126,7 @@ sub html_cvsdate_test_head {
 	if ($prevcvsdate) {
 	    my @quirks = keys %{{quirks($prevcvsdate, $cvsdate)}};
 	    print $html "/", join(",", map {
-		    chr(($qi > 90? 6 + $qi++ : $qi++))
+		    quirk_index2letters($index++)
 		} @quirks) if @quirks;
 	}
 	print $html "</th>\n";
