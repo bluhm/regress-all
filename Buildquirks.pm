@@ -412,6 +412,22 @@ my %quirks = (
 	comment => "update drm moves kernel source files",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2020-07-06T13:33:09Z' => {
+	comment => "kernel provides timecounting in userland",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	commands => [ "reboot" ],
+    },
+    '2020-07-08T09:17:48Z' => {
+	comment => "libc uses timecounting in userland",
+	updatedirs => [ "sys", "lib/libc" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
     '2020-07-17T06:33:07Z' => {
 	comment => "include toeplitz.h in ixgbe.h",
 	updatedirs => [ "sys" ],
