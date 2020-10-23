@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2019 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -34,7 +34,8 @@ usage: $0 [-v] [-e environment] [-t timeout] [test ...]
 		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
 		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
 		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6,
-		linuxnet, linuxiperftcp4, linuxiperftcp6
+		linuxnet, linuxiperftcp4, linuxiperftcp6,
+		forward, forward4, forward6
 EOF
     exit(2);
 };
@@ -45,16 +46,18 @@ my %allmodes;
 @allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
     net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
-    linuxnet linuxiperftcp4 linuxiperftcp6)} = ();
+    linuxnet linuxiperftcp4 linuxiperftcp6
+    forward forward4 forward6
+)} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
 $testmode{all} = 1 unless @ARGV;
 @testmode{qw(net make fs)} = 1..3 if $testmode{all};
-@testmode{qw(net4 net6)} = 1..2 if $testmode{net};
-@testmode{qw(tcp4 udp4)} = 1..2 if $testmode{net4};
-@testmode{qw(tcp6 udp6)} = 1..2 if $testmode{net6};
+@testmode{qw(net4 net6 forward)} = 1..3 if $testmode{net};
+@testmode{qw(tcp4 udp4 forward4)} = 1..3 if $testmode{net4};
+@testmode{qw(tcp6 udp6 forward6)} = 1..3 if $testmode{net6};
 @testmode{qw(linuxiperftcp4 linuxiperftcp6)} = 1..2 if $testmode{linuxnet};
 @testmode{qw(iperf4 iperf6)} = 1..2 if $testmode{iperf};
 @testmode{qw(iperftcp4 iperfudp4 linuxiperftcp4)} = 1..3 if $testmode{iperf4};
@@ -69,6 +72,7 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(udpbench4 udpbench6)} = 1..2 if $testmode{udpbench};
 @testmode{qw(iperftcp4 iperftcp6)} = 1..2 if $testmode{iperftcp};
 @testmode{qw(iperfudp4 iperfudp6)} = 1..2 if $testmode{iperfudp};
+@testmode{qw(forward4 forward6)} = 1..2 if $testmode{forward};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -121,6 +125,9 @@ my $remote_addr6 = $ENV{REMOTE_ADDR6}
     or die "Environemnt REMOTE_ADDR6 not set";
 my $linux_addr = $ENV{LINUX_ADDR};
 my $linux_addr6 = $ENV{LINUX_ADDR6};
+my $linux_forward_addr = $ENV{LINUX_FORWARD_ADDR};
+my $linux_forward_addr6 = $ENV{LINUX_FORWARD_ADDR6};
+my $linux_ssh = $ENV{LINUX_SSH};
 
 # iperf3 and tcpbench tests
 
@@ -448,6 +455,20 @@ push @tests, (
 	parser => \&udpbench_parser,
     }
 ) if $testmode{udpbench6};
+push @tests, (
+    {
+	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_forward_addr",
+	    '-t10'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{forward4} && $linux_forward_addr && $linux_ssh;
+push @tests, (
+    {
+	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_forward_addr6",
+	    '-t10'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{forward6} && $linux_forward_addr6 && $linux_ssh;
 push @tests, (
     {
 	initialize => \&wallclock_initialize,
