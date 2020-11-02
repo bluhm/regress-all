@@ -113,6 +113,8 @@ sub good {
     $tr->sync();
 }
 
+my $local_if = $ENV{LOCAL_IF};
+my $remote_if = $ENV{REMOTE_IF};
 my $remote_ssh = $ENV{REMOTE_SSH}
     or die "Environemnt REMOTE_SSH not set";
 my $local_addr = $ENV{LOCAL_ADDR}
@@ -128,6 +130,20 @@ my $linux_addr6 = $ENV{LINUX_ADDR6};
 my $linux_forward_addr = $ENV{LINUX_FORWARD_ADDR};
 my $linux_forward_addr6 = $ENV{LINUX_FORWARD_ADDR6};
 my $linux_ssh = $ENV{LINUX_SSH};
+
+# tcpdump as workaround for missing workaround in ix(4) for 82598
+# tcpdump during reboot may not be sufficent as other side changes link later
+
+if ($local_if && $local_if =~ /^ix\d/) {
+    my $cmd = ('tcpdump -ni "$local_if" & sleep 1; kill $!');
+    system($cmd);
+}
+
+if ($remote_if && $remote_if =~ /^ix\d/) {
+    my @sshcmd = ('ssh', $remote_ssh,
+	'tcpdump -ni "$remote_if" & sleep 1; kill $!');
+    system(@sshcmd);
+}
 
 # iperf3 and tcpbench tests
 
