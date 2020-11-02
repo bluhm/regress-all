@@ -135,13 +135,13 @@ my $linux_ssh = $ENV{LINUX_SSH};
 # tcpdump during reboot may not be sufficent as other side changes link later
 
 if ($local_if && $local_if =~ /^ix\d/) {
-    my $cmd = ('tcpdump -ni "$local_if" & sleep 1; kill $!');
+    my $cmd = ("tcpdump -ni '$local_if' & sleep 1; kill \$!");
     system($cmd);
 }
 
 if ($remote_if && $remote_if =~ /^ix\d/) {
     my @sshcmd = ('ssh', $remote_ssh,
-	'tcpdump -ni "$remote_if" & sleep 1; kill $!');
+	"tcpdump -ni '$remote_if' & sleep 1; kill \$!");
     system(@sshcmd);
 }
 
