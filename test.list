@@ -232,6 +232,7 @@ sys/net/pflow
 sys/net/rdomains
 sys/net/rtable
 sys/net/vxlan
+sys/net/wg
 sys/netinet/arp
 sys/netinet/autoport
 sys/netinet/broadcast_bind
@@ -323,6 +324,7 @@ usr.sbin/httpd
 usr.sbin/ifstated
 usr.sbin/ldapd
 usr.sbin/mtree
+usr.sbin/ocspcheck
 usr.sbin/ospf6d
 usr.sbin/ospfd
 usr.sbin/pkg_add
