@@ -62,8 +62,9 @@ foreach my $date (reverse sort @datedirs) {
 		unless $opts{n};
 	}
     }
-    if (($year*12+$month) - ($y*12+$m) <= ($opts{m} // 1)) {
-	print "skip $date\n" if $opts{v};
+    if (($year*$dy+$month*$dm+$day) - ($y*$dy+$m*$dm+$d) <=
+	($opts{m} // 1)*31) {
+	    print "skip $date\n" if $opts{v};
     } else {
 	if ($d =~ /5$/) {
 	    my $cleanfile = "$date/test.obj.tgz";
