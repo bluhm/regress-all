@@ -26,12 +26,13 @@ use POSIX;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('m:nv', \%opts) or do {
+getopts('m:nvw:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-nv] [-m months]
+usage: $0 [-nv] [-m months] [-w weeks]
     -m months	keep directories from past months, default 1
     -n		do not clean, just display obsolete directories
     -v		verbose
+    -w weeks	keep obj from past weeks, default 1
 EOF
     exit(2);
 };
@@ -51,22 +52,31 @@ my @datedirs = glob('20[0-9][0-9]-[01][0-9]-[0-3][0-9]T*Z');
 foreach my $date (reverse sort @datedirs) {
     my ($y, $m, $d) = $date =~ /^(\d+)-(\d+)-(\d+)T/
 	or die "Bad date directory name: $date";
-    if (($year*12+$month) - ($y*12+$m) <= ($opts{m} // 1)) {
-	print "skip $date\n" if $opts{v};
-	next;
-    }
-    if ($d =~ /5$/) {
+    my $dy = 365.25;
+    my $dm = $dy/12;
+    if (($year*$dy+$month*$dm+$day) - ($y*$dy+$m*$dm+$d) > ($opts{w} // 1)*7) {
 	my $cleanfile = "$date/test.obj.tgz";
 	if (-f $cleanfile) {
 	    print "clean $date\n" if $opts{v};
-	    unlink($cleanfile)
-		or die "Unlink '$cleanfile' failed: $!"
+	    unlink($cleanfile) or die "Unlink '$cleanfile' failed: $!"
 		unless $opts{n};
-	} else {
-	    print "skip $date\n" if $opts{v};
 	}
-	next;
     }
-    print "remove $date\n" if $opts{v};
-    remove_tree($date, { safe => 1 }) unless $opts{n};
+    if (($year*12+$month) - ($y*12+$m) <= ($opts{m} // 1)) {
+	print "skip $date\n" if $opts{v};
+    } else {
+	if ($d =~ /5$/) {
+	    my $cleanfile = "$date/test.obj.tgz";
+	    if (-f $cleanfile) {
+		print "clean $date\n" if $opts{v};
+		unlink($cleanfile) or die "Unlink '$cleanfile' failed: $!"
+		    unless $opts{n};
+	    } else {
+		print "skip $date\n" if $opts{v};
+	    }
+	} else {
+	    print "remove $date\n" if $opts{v};
+	    remove_tree($date, { safe => 1 }) unless $opts{n};
+	}
+    }
 }
