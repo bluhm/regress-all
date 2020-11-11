@@ -35,7 +35,7 @@ usage: $0 [-v] [-e environment] [-t timeout] [test ...]
 		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
 		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6,
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
-		forward, forward4, forward6
+		forward, forward4, forward6 relay, relay4, relay6
 EOF
     exit(2);
 };
@@ -47,7 +47,7 @@ my %allmodes;
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
     net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
     linuxnet linuxiperftcp4 linuxiperftcp6
-    forward forward4 forward6
+    forward forward4 forward6 relay relay4 relay6
 )} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
@@ -55,9 +55,9 @@ my %testmode = map {
 } @ARGV;
 $testmode{all} = 1 unless @ARGV;
 @testmode{qw(net make fs)} = 1..3 if $testmode{all};
-@testmode{qw(net4 net6 forward)} = 1..3 if $testmode{net};
-@testmode{qw(tcp4 udp4 forward4)} = 1..3 if $testmode{net4};
-@testmode{qw(tcp6 udp6 forward6)} = 1..3 if $testmode{net6};
+@testmode{qw(net4 net6 forward relay)} = 1..4 if $testmode{net};
+@testmode{qw(tcp4 udp4 forward4 relay4)} = 1..4 if $testmode{net4};
+@testmode{qw(tcp6 udp6 forward6 relay6)} = 1..4 if $testmode{net6};
 @testmode{qw(linuxiperftcp4 linuxiperftcp6)} = 1..2 if $testmode{linuxnet};
 @testmode{qw(iperf4 iperf6)} = 1..2 if $testmode{iperf};
 @testmode{qw(iperftcp4 iperfudp4 linuxiperftcp4)} = 1..3 if $testmode{iperf4};
@@ -73,6 +73,7 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(iperftcp4 iperftcp6)} = 1..2 if $testmode{iperftcp};
 @testmode{qw(iperfudp4 iperfudp6)} = 1..2 if $testmode{iperfudp};
 @testmode{qw(forward4 forward6)} = 1..2 if $testmode{forward};
+@testmode{qw(relay4 relay6)} = 1..2 if $testmode{relay};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -125,11 +126,20 @@ my $local_addr6 = $ENV{LOCAL_ADDR6}
     or die "Environemnt LOCAL_ADDR6 not set";
 my $remote_addr6 = $ENV{REMOTE_ADDR6}
     or die "Environemnt REMOTE_ADDR6 not set";
+
 my $linux_addr = $ENV{LINUX_ADDR};
 my $linux_addr6 = $ENV{LINUX_ADDR6};
 my $linux_forward_addr = $ENV{LINUX_FORWARD_ADDR};
 my $linux_forward_addr6 = $ENV{LINUX_FORWARD_ADDR6};
+my $linux_relay_addr = $ENV{LINUX_RELAY_ADDR};
+my $linux_relay_addr6 = $ENV{LINUX_RELAY_ADDR6};
 my $linux_ssh = $ENV{LINUX_SSH};
+
+my $linux_relay_local_addr = $ENV{LINUX_RELAY_LOCAL_ADDR};
+my $linux_relay_local_addr6 = $ENV{LINUX_RELAY_LOCAL_ADDR6};
+my $linux_relay_remote_addr = $ENV{LINUX_RELAY_REMOTE_ADDR};
+my $linux_relay_remote_addr6 = $ENV{LINUX_RELAY_REMOTE_ADDR6};
+my $linux_other_ssh = $ENV{LINUX_OTHER_SSH};
 
 # tcpdump as workaround for missing workaround in ix(4) for 82598
 # tcpdump during reboot may not be sufficent as other side changes link later
@@ -197,8 +207,19 @@ if ($testmode{make}) {
 system('sync');
 sleep 1;
 
+my %iperf3_ids;
+sub iperf3_initialize {
+    undef %iperf3_ids;
+    return 1;
+}
+
 sub iperf3_parser {
     my ($line, $log) = @_;
+    my $id;
+    if ($line =~ m{^\[ *(\w+)\] }) {
+	$id = $1;
+	$iperf3_ids{$id}++ if $id =~ /^\d+$/;
+    }
     if ($line =~ m{ ([\d.]+) +([kmgt]?)bits/sec(?:.* (sender|receiver))?}i) {
 	my $value = $1;
 	my $unit = lc($2);
@@ -217,9 +238,10 @@ sub iperf3_parser {
 	    return;
 	}
 	if ($3) {
-	    print $tr "VALUE $value bits/sec $3\n";
-	} else {
-	    print $tr "SUBVALUE $value bits/sec\n";
+	    # with -P parallel connections parse only summary
+	    print $tr "VALUE $value bits/sec $3\n"
+		if keys %iperf3_ids <= 1 || $id eq "SUM";
+	    undef %iperf3_ids;
 	}
     }
     return 1;
@@ -473,18 +495,68 @@ push @tests, (
 ) if $testmode{udpbench6};
 push @tests, (
     {
+	initialize => \&iperf3_initialize,
 	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_forward_addr",
-	    '-t10'],
+	    '-P10', '-t10'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{forward4} && $linux_forward_addr && $linux_ssh;
 push @tests, (
     {
+	initialize => \&iperf3_initialize,
 	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_forward_addr6",
-	    '-t10'],
+	    '-P10', '-t10'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{forward6} && $linux_forward_addr6 && $linux_ssh;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_relay_addr",
+	    '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{relay4} && $linux_relay_addr && $linux_ssh;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_relay_addr6",
+	    '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{relay6} && $linux_relay_addr6 && $linux_ssh;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_other_ssh, 'iperf3',
+	    "-c$linux_relay_local_addr", '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{relay4} && $linux_relay_local_addr && $linux_other_ssh;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
+	    "-c$linux_relay_local_addr6", '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{relay6} && $linux_relay_local_addr6 && $linux_other_ssh;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_other_ssh, 'iperf3',
+	    "-c$linux_relay_remote_addr", '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{relay4} && $linux_relay_remote_addr && $linux_other_ssh;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
+	    "-c$linux_relay_remote_addr6", '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
 push @tests, (
     {
 	initialize => \&wallclock_initialize,
