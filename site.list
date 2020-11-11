@@ -13,6 +13,8 @@
 /etc/rc.conf.local
 /etc/rc.d/nonxt_reflect
 /etc/rc.firsttime
+/etc/rc.local
+/etc/relayd.conf
 /etc/resolv.conf
 /etc/ssh/ssh_host_dsa_key
 /etc/ssh/ssh_host_dsa_key.pub
