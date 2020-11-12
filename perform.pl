@@ -500,6 +500,11 @@ push @tests, (
 	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_relay_addr",
 	    '-P10', '-t10'],
 	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_relay_addr",
+	    '-P10', '-t10', '-R'],
+	parser => \&iperf3_parser,
     }
 ) if $testmode{relay4} && $linux_relay_addr && $linux_ssh;
 push @tests, (
@@ -507,6 +512,11 @@ push @tests, (
 	initialize => \&iperf3_initialize,
 	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_relay_addr6",
 	    '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_relay_addr6",
+	    '-P10', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{relay6} && $linux_relay_addr6 && $linux_ssh;
@@ -516,6 +526,11 @@ push @tests, (
 	testcmd => ['ssh', $linux_other_ssh, 'iperf3',
 	    "-c$linux_relay_local_addr", '-P10', '-t10'],
 	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_other_ssh, 'iperf3',
+	    "-c$linux_relay_local_addr", '-P10', '-t10', '-R'],
+	parser => \&iperf3_parser,
     }
 ) if $testmode{relay4} && $linux_relay_local_addr && $linux_other_ssh;
 push @tests, (
@@ -523,6 +538,11 @@ push @tests, (
 	initialize => \&iperf3_initialize,
 	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
 	    "-c$linux_relay_local_addr6", '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
+	    "-c$linux_relay_local_addr6", '-P10', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{relay6} && $linux_relay_local_addr6 && $linux_other_ssh;
@@ -532,6 +552,11 @@ push @tests, (
 	testcmd => ['ssh', $linux_other_ssh, 'iperf3',
 	    "-c$linux_relay_remote_addr", '-P10', '-t10'],
 	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_other_ssh, 'iperf3',
+	    "-c$linux_relay_remote_addr", '-P10', '-t10', '-R'],
+	parser => \&iperf3_parser,
     }
 ) if $testmode{relay4} && $linux_relay_remote_addr && $linux_other_ssh;
 push @tests, (
@@ -539,6 +564,11 @@ push @tests, (
 	initialize => \&iperf3_initialize,
 	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
 	    "-c$linux_relay_remote_addr6", '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
+	    "-c$linux_relay_remote_addr6", '-P10', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
