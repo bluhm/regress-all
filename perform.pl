@@ -239,9 +239,10 @@ sub iperf3_parser {
 	}
 	if ($3) {
 	    # with -P parallel connections parse only summary
-	    print $tr "VALUE $value bits/sec $3\n"
-		if keys %iperf3_ids <= 1 || $id eq "SUM";
-	    undef %iperf3_ids;
+	    if (keys %iperf3_ids <= 1 || $id eq "SUM") {
+		print $tr "VALUE $value bits/sec $3\n";
+		undef %iperf3_ids;
+	    }
 	}
     }
     return 1;
