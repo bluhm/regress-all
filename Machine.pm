@@ -45,7 +45,7 @@ sub createhost {
 # reboot machine
 
 sub reboot {
-    logcmd('ssh', "$host\@$testmaster", "shutdown -r now");
+    logcmd('ssh', "$host\@$testmaster", "reboot");
 }
 
 # pxe install machine
