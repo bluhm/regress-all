@@ -426,7 +426,7 @@ my %quirks = (
 	comment => "libc uses timecounting in userland",
 	updatedirs => [ "sys", "lib/libc" ],
 	prebuildcommands => [ "make includes" ],
-	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "lib/libc" ],
     },
     '2020-07-17T06:33:07Z' => {
 	comment => "include toeplitz.h in ixgbe.h",
