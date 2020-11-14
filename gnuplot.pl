@@ -92,12 +92,14 @@ my %tests;
 open (my $fh, '<', $testdata)
     or die "Open '$testdata' for reading failed: $!";
 
+# test subtest run checkout repeat value unit host
 <$fh>; # skip file head
-my ($tst, $sub, undef, undef, undef, undef, $unit)  = split(" ", <$fh>);
-exit 0 unless $unit;
-$tests{"$tst $sub"} = 1;
+my ($tst, $sub, $checkout, $unit);
 while (<$fh>) {
-    ($tst, $sub) = split;
+    ($tst, $sub, undef, $checkout, undef, undef, $unit, undef) = split;
+    exit 0 unless $unit || keys %tests;
+    next if $begin && $checkout < $begin;
+    next if $end && $end < $checkout;
     $tests{"$tst $sub"} = 1;
 }
 
