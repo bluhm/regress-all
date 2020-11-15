@@ -135,10 +135,26 @@ foreach my $date (@dates) {
     }
     chdir($dir)
 	or die "Chdir to '$dir' failed: $!";
-    $typename = "regress" if -f "run.log";
-    $typename = "perform" if -f "step.log";
 
+    if (-f "run.log") {
+	$D{$date}{log} = "run.log";
+	$typename = "regress";
+    } elsif (-f "step.log") {
+	$D{$date}{log} = "step.log";
+	$typename = "perform";
+    }
+    if (-f "test.log.tgz") {
+	$D{$date}{logtgz} = "test.log.tgz";
+    }
+    if (-f "test.obj.tgz") {
+	$D{$date}{objtgz} = "test.obj.tgz";
+    }
+}
+
+foreach my $date (@dates) {
     next unless keys %{$D{$date}{host}};
+
+    my @cvsdates = @{$D{$date}{cvsdates}};
     create_html_setup($date, @cvsdates);
 
     foreach my $cvsdate (@cvsdates) {
@@ -193,27 +209,19 @@ sub create_html_setup {
     print $html "  <tr>\n    <th>run at</th>\n";
     print $html "    <td>$date</td>\n";
     print $html "  </tr>\n";
-    if (-f "run.log") {
-	$D{$date}{log} = "run.log";
+    if (my $log = $D{$date}{log}) {
 	print $html "  <tr>\n    <th>run</th>\n";
-	print $html "    <td><a href=\"run.log\">log</a></td>\n";
-	print $html "  </tr>\n";
-    } elsif (-f "step.log") {
-	$D{$date}{log} = "step.log";
-	print $html "  <tr>\n    <th>run</th>\n";
-	print $html "    <td><a href=\"step.log\">log</a></td>\n";
+	print $html "    <td><a href=\"$log\">log</a></td>\n";
 	print $html "  </tr>\n";
     }
-    if (-f "test.log.tgz") {
-	$D{$date}{logtgz} = "test.log.tgz";
+    if (my $logtgz = $D{$date}{logtgz}) {
 	print $html "  <tr>\n    <th>make log</th>\n";
-	print $html "    <td><a href=\"test.log.tgz\">tgz</a></td>\n";
+	print $html "    <td><a href=\"$logtgz\">tgz</a></td>\n";
 	print $html "  </tr>\n";
     }
-    if (-f "test.obj.tgz") {
-	$D{$date}{objtgz} = "test.obj.tgz";
+    if (my $objtgz = $D{$date}{objtgz}) {
 	print $html "  <tr>\n    <th>make obj</th>\n";
-	print $html "    <td><a href=\"test.obj.tgz\">tgz</a></td>\n";
+	print $html "    <td><a href=\"$objtgz\">tgz</a></td>\n";
 	print $html "  </tr>\n";
     }
     print $html "</table>\n";
