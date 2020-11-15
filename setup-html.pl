@@ -59,21 +59,21 @@ if ($opts{d}) {
 	map { dirname($_) }
 	(glob("*T*/run.log"), glob("*T*/step.log"));
 }
-my (%d, %m);
+my (%D, %M);
 foreach my $date (@dates) {
     $dir = "$regressdir/results/$date";
     chdir($dir)
 	or die "Chdir to '$dir' failed: $!";
 
     my @cvsdates = grep { -d $_ } glob("*T*");
-    $d{$date}{cvsdates} = \@cvsdates;
+    $D{$date}{cvsdates} = \@cvsdates;
 
     foreach my $cvsdate ("", @cvsdates) {
 	chdir("$dir/$cvsdate")
 	    or die "Chdir to '$dir/$cvsdate' failed: $!";
 
 	my @repeats = grep { -d $_ } glob("[0-9][0-9][0-9]");
-	$d{$date}{$cvsdate}{repeats} = \@repeats if $cvsdate;
+	$D{$date}{$cvsdate}{repeats} = \@repeats if $cvsdate;
 
 	foreach my $repeat ("", @repeats) {
 	    chdir("$dir/$cvsdate/$repeat")
@@ -110,7 +110,7 @@ foreach my $date (@dates) {
 		    quirks    => -f $quirks ? $subdir.$quirks : undef,
 		    nmbsd     => -f $nmbsd ? $subdir.$nmbsd : undef,
 		};
-		$m{$host}++;
+		$M{$host}++;
 	    }
 	    foreach my $setup (glob("setup-*.log")) {
 		my ($host) = $setup =~ m,setup-(.*)\.log,;
@@ -125,11 +125,11 @@ foreach my $date (@dates) {
 		$h{$host}{reboot} = "$cvsdate/$repeat/$reboot",
 	    }
 	    if ($repeat) {
-		$d{$date}{$cvsdate}{$repeat}{host} = \%h;
+		$D{$date}{$cvsdate}{$repeat}{host} = \%h;
 	    } elsif ($cvsdate) {
-		$d{$date}{$cvsdate}{host} = \%h;
+		$D{$date}{$cvsdate}{host} = \%h;
 	    } else {
-		$d{$date}{host} = \%h;
+		$D{$date}{host} = \%h;
 	    }
 	}
     }
@@ -138,7 +138,7 @@ foreach my $date (@dates) {
     $typename = "regress" if -f "run.log";
     $typename = "perform" if -f "step.log";
 
-    my $h = $d{$date}{host};
+    my $h = $D{$date}{host};
     next unless keys %$h;
 
     my ($html, $htmlfile) = html_open("setup");
@@ -159,24 +159,24 @@ foreach my $date (@dates) {
     print $html "    <td>$date</td>\n";
     print $html "  </tr>\n";
     if (-f "run.log") {
-	$d{$date}{log} = "run.log";
+	$D{$date}{log} = "run.log";
 	print $html "  <tr>\n    <th>run</th>\n";
 	print $html "    <td><a href=\"run.log\">log</a></td>\n";
 	print $html "  </tr>\n";
     } elsif (-f "step.log") {
-	$d{$date}{log} = "step.log";
+	$D{$date}{log} = "step.log";
 	print $html "  <tr>\n    <th>run</th>\n";
 	print $html "    <td><a href=\"step.log\">log</a></td>\n";
 	print $html "  </tr>\n";
     }
     if (-f "test.log.tgz") {
-	$d{$date}{logtgz} = "test.log.tgz";
+	$D{$date}{logtgz} = "test.log.tgz";
 	print $html "  <tr>\n    <th>make log</th>\n";
 	print $html "    <td><a href=\"test.log.tgz\">tgz</a></td>\n";
 	print $html "  </tr>\n";
     }
     if (-f "test.obj.tgz") {
-	$d{$date}{objtgz} = "test.obj.tgz";
+	$D{$date}{objtgz} = "test.obj.tgz";
 	print $html "  <tr>\n    <th>make obj</th>\n";
 	print $html "    <td><a href=\"test.obj.tgz\">tgz</a></td>\n";
 	print $html "  </tr>\n";
@@ -185,7 +185,7 @@ foreach my $date (@dates) {
     print $html "<table>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
     print $html "    <th>repeat</th>\n"
-	if @cvsdates && @{$d{$date}{$cvsdates[0]}{repeats}};
+	if @cvsdates && @{$D{$date}{$cvsdates[0]}{repeats}};
     print $html "    <th>checkout</th>\n"
 	if @cvsdates;
     print $html "    <th>kernel</th>\n";
@@ -197,15 +197,15 @@ foreach my $date (@dates) {
     print $html "    <th>nmbsd</th>\n";
     print $html "  </tr>\n";
     foreach my $cvsdate ("", @cvsdates) {
-	$h = $d{$date}{$cvsdate}{host} if $cvsdate;
-	my @repeats = $cvsdate ? @{$d{$date}{$cvsdate}{repeats}} : ();
+	$h = $D{$date}{$cvsdate}{host} if $cvsdate;
+	my @repeats = $cvsdate ? @{$D{$date}{$cvsdate}{repeats}} : ();
 	foreach my $repeat ("", @repeats) {
-	    $h = $d{$date}{$cvsdate}{$repeat}{host} if $repeat;
+	    $h = $D{$date}{$cvsdate}{$repeat}{host} if $repeat;
 	    foreach my $host (sort keys %$h) {
 		print $html "  <tr>\n    <th>$host</th>\n";
 		if ($repeat) {
 		    print $html "    <td>$repeat</td>\n";
-		} elsif (@cvsdates && @{$d{$date}{$cvsdates[0]}{repeats}}) {
+		} elsif (@cvsdates && @{$D{$date}{$cvsdates[0]}{repeats}}) {
 		    print $html "    <td></td>\n";
 		}
 		if ($cvsdate) {
@@ -284,9 +284,9 @@ foreach my $date (@dates) {
 	chdir($subdir)
 	    or die "Chdir to '$subdir' failed: $!";
 
-	my $h = $d{$date}{$cvsdate}{host};
+	my $h = $D{$date}{$cvsdate}{host};
 	next unless keys %$h;
-	my @repeats = @{$d{$date}{$cvsdate}{repeats}};
+	my @repeats = @{$D{$date}{$cvsdate}{repeats}};
 
 	my ($html, $htmlfile) = html_open("build");
 	print $html "<!DOCTYPE html>\n";
@@ -322,7 +322,7 @@ foreach my $date (@dates) {
 	print $html "    <th>nmbsd</th>\n";
 	print $html "  </tr>\n";
 	foreach my $repeat ("", @repeats) {
-	    $h = $d{$date}{$cvsdate}{$repeat}{host} if $repeat;
+	    $h = $D{$date}{$cvsdate}{$repeat}{host} if $repeat;
 	    foreach my $host (sort keys %$h) {
 		print $html "  <tr>\n    <th>$host</th>\n";
 		if ($repeat) {
@@ -407,7 +407,7 @@ foreach my $date (@dates) {
 	    chdir($subdir)
 		or die "Chdir to '$subdir' failed: $!";
 
-	    $h = $d{$date}{$cvsdate}{$repeat}{host};
+	    $h = $D{$date}{$cvsdate}{$repeat}{host};
 	    next unless keys %$h;
 
 	    my ($html, $htmlfile) = html_open("reboot");
@@ -543,25 +543,25 @@ HEADER
 
 print $html "<table>\n";
 print $html "  <tr>\n    <th>run log</th>\n";
-foreach my $host (sort keys %m) {
+foreach my $host (sort keys %M) {
     print $html "    <th>$host setup log</th>\n";
 }
 print $html "  </tr>\n";
 
-foreach my $date (reverse sort keys %d) {
-    my @cvsdates = @{$d{$date}{cvsdates} || []};
+foreach my $date (reverse sort keys %D) {
+    my @cvsdates = @{$D{$date}{cvsdates} || []};
     foreach my $cvsdate (reverse "", @cvsdates) {
-	my @repeats = $cvsdate ? @{$d{$date}{$cvsdate}{repeats} || []} : ();
+	my @repeats = $cvsdate ? @{$D{$date}{$cvsdate}{repeats} || []} : ();
 	foreach my $repeat (reverse "", @repeats) {
 	    my $h;
 	    if ($repeat) {
 		print $html "  <tr>\n    <td></td>\n";
-		$h = $d{$date}{$cvsdate}{$repeat}{host};
+		$h = $D{$date}{$cvsdate}{$repeat}{host};
 	    } elsif ($cvsdate) {
 		print $html "  <tr>\n    <td></td>\n";
-		$h = $d{$date}{$cvsdate}{host};
+		$h = $D{$date}{$cvsdate}{host};
 	    } else {
-		my $log = $d{$date}{log} || "";
+		my $log = $D{$date}{log} || "";
 		my $logfile = "$date/$log";
 		my $status = $log ? log_status($logfile) : "";
 		my $class = $status ? " class=\"status $status\"" : "";
@@ -570,12 +570,12 @@ foreach my $date (reverse sort keys %d) {
 		my $enda = $href ? "</a>" : "";
 		print $html "  <tr>\n";
 		print $html "    <td$class>$href$date$enda</td>\n";
-		$h = $d{$date}{host};
+		$h = $D{$date}{host};
 	    }
-	    foreach my $host (sort keys %m) {
-		unless ($d{$date}{host}{$host} ||
-		    $d{$date}{$cvsdate}{host}{$host} ||
-		    $d{$date}{$cvsdate}{$repeat}{host}{$host}) {
+	    foreach my $host (sort keys %M) {
+		unless ($D{$date}{host}{$host} ||
+		    $D{$date}{$cvsdate}{host}{$host} ||
+		    $D{$date}{$cvsdate}{$repeat}{host}{$host}) {
 		    print $html "    <td></td>\n";
 		    next;
 		}
