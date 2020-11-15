@@ -76,7 +76,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 
 createlog(file => "cvsbuild-$host.log", verbose => $opts{v});
 $date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' started at $date\n");
+logmsg("Script '$scriptname' started at $date.\n");
 
 createhost($user, $host);
 
@@ -123,4 +123,4 @@ get_version();
 # finish build log
 
 $date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $date\n");
+logmsg("Script '$scriptname' finished at $date.\n");

@@ -77,7 +77,7 @@ my $cvsend = strftime("%FZ%T", gmtime($end));
 my $cvsdate = "-d$cvsbegin<=$cvsend";
 
 my @cvscmd = (qw(cvs -qR rlog -b -N), $cvsdate, "$module/$path");
-print "Pipe from command '@cvscmd' started\n" if $verbose;
+print "Pipe from command '@cvscmd' started.\n" if $verbose;
 open(my $cvs, '-|', @cvscmd)
     or die "Open pipe from '@cvscmd' failed: $!";
 
@@ -175,7 +175,7 @@ if ($state eq "header") {
 close($cvs) or die $! ?
     "Close pipe from '@cvscmd' failed: $!" :
     "Command '@cvscmd' failed: $?";
-print "Pipe from command '@cvscmd' finished\n" if $verbose;
+print "Pipe from command '@cvscmd' finished.\n" if $verbose;
 
 # write result log file
 

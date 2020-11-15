@@ -135,7 +135,7 @@ foreach my $test (@tests) {
 	_exit(126);
     }
     eval {
-	local $SIG{ALRM} = sub { die "Test running too long, aborted\n" };
+	local $SIG{ALRM} = sub { die "Test running too long, aborted.\n" };
 	alarm($timeout);
 	my $prev = "";
 	while (<$out>) {

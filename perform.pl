@@ -643,7 +643,7 @@ foreach my $t (@tests) {
 	_exit(126);
     }
     eval {
-	local $SIG{ALRM} = sub { die "Test running too long, aborted\n" };
+	local $SIG{ALRM} = sub { die "Test running too long, aborted.\n" };
 	alarm($timeout);
 	$t->{initialize}($log)
 	    or bad $test, 'FAIL', "Could not initialize test", $log

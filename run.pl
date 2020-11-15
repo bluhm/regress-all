@@ -76,7 +76,7 @@ chdir($resultdir)
     or die "Chdir to '$resultdir' failed: $!";
 
 createlog(file => "run.log", verbose => $opts{v});
-logmsg("Script '$scriptname' started at $date\n");
+logmsg("Script '$scriptname' started at $date.\n");
 
 open(my $fh, '>', "runconf.txt")
     or die "Open 'runconf.txt' for writing failed: $!";
@@ -155,6 +155,6 @@ symlink($date, "results/latest")
 runcmd("bin/regress-html.pl", "-l");
 
 $date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $date\n");
+logmsg("Script '$scriptname' finished at $date.\n");
 
 exit;

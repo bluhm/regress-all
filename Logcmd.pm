@@ -48,15 +48,15 @@ sub logmsg {
 
 sub runcmd {
     my @cmd = @_;
-    logmsg "Command '@cmd' started\n";
+    logmsg "Command '@cmd' started.\n";
     system(@cmd)
 	and croak "Command '@cmd' failed: $?";
-    logmsg "Command '@cmd' finished\n";
+    logmsg "Command '@cmd' finished.\n";
 }
 
 sub forkcmd {
     my @cmd = @_;
-    logmsg "Command '@cmd' started\n";
+    logmsg "Command '@cmd' started.\n";
     defined(my $pid = fork())
 	or croak "Fork '@cmd' failed: $!";
     if ($pid == 0) {
@@ -86,10 +86,10 @@ sub waitcmd {
 	    or croak "Wait for pid $pid without command";
 	my @cmd = @$cmd;
 	if ($?) {
-	    logmsg "Command '@cmd' failed: $?\n";
+	    logmsg "Command '@cmd' failed: $?";
 	    $failed++;
 	} else {
-	    logmsg "Command '@cmd' finished\n";
+	    logmsg "Command '@cmd' finished.\n";
 	}
     }
     $failed and croak "Commands $failed out of $total failed";
@@ -104,7 +104,7 @@ sub logcmd {
     } else {
 	@cmd = @_;
     }
-    logmsg "Command '@cmd' started\n";
+    logmsg "Command '@cmd' started.\n";
     open(my $fh, '>', $outfile)
 	or croak "Open file '$outfile' for writing failed: $!"
 	if $outfile;
@@ -138,7 +138,7 @@ sub logcmd {
     close($out) or croak $! ?
 	"Close pipe from '@cmd' failed: $!" :
 	"Command '@cmd' failed: $?";
-    logmsg "Command '@cmd' finished\n";
+    logmsg "Command '@cmd' finished.\n";
 }
 
 sub loggrep {

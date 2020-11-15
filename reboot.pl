@@ -80,7 +80,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 
 createlog(file => "reboot-$host.log", verbose => $opts{v});
 $date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' started at $date\n");
+logmsg("Script '$scriptname' started at $date.\n");
 
 createhost($user, $host);
 
@@ -101,4 +101,4 @@ get_version();
 # finish reboot log
 
 $date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $date\n");
+logmsg("Script '$scriptname' finished at $date.\n");

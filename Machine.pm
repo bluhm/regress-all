@@ -65,7 +65,7 @@ sub upgrade_pxe {
 sub get_version {
     my @sshcmd = (('ssh', "$user\@$host", 'sysctl'),
 	qw(kern.version hw.machine hw.ncpu));
-    logmsg "Command '@sshcmd' started\n";
+    logmsg "Command '@sshcmd' started.\n";
     open(my $ctl, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
     open(my $version, '>', "version-$host.txt.new")
@@ -85,7 +85,7 @@ sub get_version {
     close($ctl) or die $! ?
 	"Close pipe from '@sshcmd' failed: $!" :
 	"Command '@sshcmd' failed: $?";
-    logmsg "Command '@sshcmd' finished\n";
+    logmsg "Command '@sshcmd' finished.\n";
     close($version)
 	or die "Close 'version-$host.txt.new' after writing failed: $!";
     rename("version-$host.txt.new", "version-$host.txt") or
@@ -124,7 +124,7 @@ sub diff_cvs {
     $path = $path ? " $path" : "";
     my @sshcmd = ('ssh', "$user\@$host",
 	"cd /usr/src && cvs -qR diff -up$path");
-    logmsg "Command '@sshcmd' started\n";
+    logmsg "Command '@sshcmd' started.\n";
     open(my $cvs, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
     open(my $diff, '>', "diff-$host.txt.new")
@@ -138,7 +138,7 @@ sub diff_cvs {
 	# cvs diff returns 0 without and 1 with differences
 	die "Command '@sshcmd' failed: $?" if $? != 0 && $? != (1<<8);
     };
-    logmsg "Command '@sshcmd' finished\n";
+    logmsg "Command '@sshcmd' finished.\n";
     close($diff)
 	or die "Close 'diff-$host.txt.new' after writing failed: $!";
     rename("diff-$host.txt.new", "diff-$host.txt")
@@ -239,7 +239,7 @@ sub reorder_kernel {
 
 sub get_bsdnm {
     my @sshcmd = ('ssh', "$user\@$host", 'nm', '/bsd');
-    logmsg "Command '@sshcmd' started\n";
+    logmsg "Command '@sshcmd' started.\n";
     open(my $nm, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
     open(my $fh, '>', "nm-bsd-$host.txt.new")
@@ -248,7 +248,7 @@ sub get_bsdnm {
     close($nm) or die $! ?
 	"Close pipe from '@sshcmd' failed: $!" :
 	"Command '@sshcmd' failed: $?";
-    logmsg "Command '@sshcmd' finished\n";
+    logmsg "Command '@sshcmd' finished.\n";
     close($fh)
 	or die "Close 'nm-bsd-$host.txt.new' after writing failed: $!";
     rename("nm-bsd-$host.txt.new", "nm-bsd-$host.txt") or

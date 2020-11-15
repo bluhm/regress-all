@@ -79,7 +79,7 @@ chdir($resultdir)
 
 createlog(file => "once.log", verbose => $opts{v});
 my $date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' started at $date\n");
+logmsg("Script '$scriptname' started at $date.\n");
 
 # setup remote machines
 
@@ -97,4 +97,4 @@ my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
 logcmd(@sshcmd);
 
 $date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $date\n");
+logmsg("Script '$scriptname' finished at $date.\n");

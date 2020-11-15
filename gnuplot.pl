@@ -131,10 +131,10 @@ if ($dry) {
 } else {
     push @plotcmd, (map { ("-e", $_) } @plotvars);
     push @plotcmd, $plotfile;
-    print "Command '@plotcmd' started\n" if $verbose;
+    print "Command '@plotcmd' started.\n" if $verbose;
     system(@plotcmd)
 	and die "Command '@plotcmd' failed: $?";
-    print "Command '@plotcmd' finished\n" if $verbose;
+    print "Command '@plotcmd' finished.\n" if $verbose;
 }
 
 my $htmlfile = "$prefix.html";
