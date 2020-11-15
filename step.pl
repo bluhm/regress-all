@@ -130,10 +130,10 @@ chdir($resultdir)
     or die "Chdir to '$resultdir' failed: $!";
 
 createlog(file => "step.log", verbose => $opts{v});
-logmsg("script '$scriptname' started at $date\n");
+logmsg("Script '$scriptname' started at $date\n");
 
 open(my $fh, '>', "stepconf.txt")
-    or die "Open 'stepconf.txt' for writing failed :$!";
+    or die "Open 'stepconf.txt' for writing failed: $!";
 print $fh "ARGUMENTS @ARGV\n";
 print $fh "HOST $opts{h}\n";
 print $fh "RELEASE $opts{r}\n";
@@ -243,7 +243,7 @@ foreach (glob("results/gnuplot/$date-*")) {
 runcmd("bin/perform-html.pl");
 
 $date = strftime("%FT%TZ", gmtime);
-logmsg("script '$scriptname' finished at $date\n");
+logmsg("Script '$scriptname' finished at $date\n");
 
 exit;
 

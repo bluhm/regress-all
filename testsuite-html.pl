@@ -53,10 +53,10 @@ foreach (glob("latest-*")) {
 
 my $testdir = "$publish/os-test";
 -d "$testdir/out" || make_path("$testdir/out")
-    or die "make path '$testdir/out' failed: $!";
+    or die "Make path '$testdir/out' failed: $!";
 $testdir = "$publish/posixtestsuite";
 -d "$testdir/out" || make_path("$testdir/out")
-    or die "make path '$testdir/out' failed: $!";
+    or die "Make path '$testdir/out' failed: $!";
 chdir($publish)
     or die "Chdir to '$publish' failed: $!";
 
@@ -128,7 +128,7 @@ my $htmlfile = "os-test.html";
 unlink("$htmlfile.new");
 
 defined(my $pid = fork())
-    or die "fork failed: $!";
+    or die "Fork failed: $!";
 if ($pid == 0) {
     open(STDOUT, '>', "$htmlfile.new")
 	or die "Redirect '$htmlfile.new' to stdout failed: $!";
@@ -136,14 +136,14 @@ if ($pid == 0) {
     die "Exec '/usr/local/bin/os-test-html' failed: $!";
 }
 (my $waitpid = wait()) > 1
-    or die "wait failed: $!";
+    or die "Wait failed: $!";
 $? and die "Command '@cmd' failed: $?";
 
 rename("$htmlfile.new", "$htmlfile")
     or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
 
 system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-    and die "gzip $htmlfile failed: $?";
+    and die "Gzip $htmlfile failed: $?";
 rename("$htmlfile.gz.new", "$htmlfile.gz")
     or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
 
@@ -163,7 +163,7 @@ $htmlfile = "posixtestsuite.html";
 unlink("$htmlfile.new");
 
 defined($pid = fork())
-    or die "fork failed: $!";
+    or die "Fork failed: $!";
 if ($pid == 0) {
     open(STDOUT, '>', "$htmlfile.new")
 	or die "Redirect '$htmlfile.new' to stdout failed: $!";
@@ -171,13 +171,13 @@ if ($pid == 0) {
     die "Exec '/usr/local/bin/posixtestsuite-html' failed: $!";
 }
 ($waitpid = wait()) > 1
-    or die "wait failed: $!";
+    or die "Wait failed: $!";
 $? and die "Command '@cmd' failed: $?";
 
 rename("$htmlfile.new", "$htmlfile")
     or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
 
 system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-    and die "gzip $htmlfile failed: $?";
+    and die "Gzip $htmlfile failed: $?";
 rename("$htmlfile.gz.new", "$htmlfile.gz")
     or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";

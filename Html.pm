@@ -51,7 +51,7 @@ sub html_close {
     rename("$htmlfile.new", "$htmlfile")
 	or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
     system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-	and die "gzip $htmlfile failed: $?";
+	and die "Gzip $htmlfile failed: $?";
     rename("$htmlfile.gz.new", "$htmlfile.gz")
 	or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
 }

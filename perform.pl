@@ -737,7 +737,7 @@ sub statistics {
 	open(my $fh, '>', $name)
 	    or die "Open '$name' for writing failed: $!";
 	defined(my $pid = fork())
-	    or die "fork failed: $!";
+	    or die "Fork failed: $!";
 	unless ($pid) {
 	    # child process
 	    open(STDOUT, ">&", $fh)
@@ -748,7 +748,7 @@ sub statistics {
 	    die "Exec failed: $!";
 	}
 	waitpid($pid, 0)
-	    or die "Wait for pid '$pid' failed:$!";
+	    or die "Wait for pid '$pid' failed: $!";
 	$? == 0
 	    or die "Command '@statcmd' failed: $?";
     }

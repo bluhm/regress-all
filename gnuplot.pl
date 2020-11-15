@@ -133,7 +133,7 @@ if ($dry) {
     push @plotcmd, $plotfile;
     print "Command '@plotcmd' started\n" if $verbose;
     system(@plotcmd)
-	and die "system @plotcmd failed: $?";
+	and die "Command '@plotcmd' failed: $?";
     print "Command '@plotcmd' finished\n" if $verbose;
 }
 

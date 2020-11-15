@@ -80,7 +80,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 
 createlog(file => "setup-$host.log", verbose => $opts{v});
 $date = strftime("%FT%TZ", gmtime);
-logmsg("script '$scriptname' started at $date\n");
+logmsg("Script '$scriptname' started at $date\n");
 
 createhost($user, $host);
 
@@ -105,7 +105,7 @@ run_commands() if $mode{install} || $mode{upgrade} || $mode{commands};
 # finish setup log
 
 $date = strftime("%FT%TZ", gmtime);
-logmsg("script '$scriptname' finished at $date\n");
+logmsg("Script '$scriptname' finished at $date\n");
 
 exit;
 
@@ -179,7 +179,7 @@ sub install_packages {
 	    '-l', "regress/pkg-$host.list",
 	    '-Ivx', $release ? () : '-Dsnap')
     };
-    logmsg "WARNING: command failed\n" if $@;
+    logmsg "WARNING: Command failed.\n" if $@;
 }
 
 # build and install addtitional tools
