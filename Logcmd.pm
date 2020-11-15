@@ -86,7 +86,8 @@ sub waitcmd {
 	    or croak "Wait for pid $pid without command";
 	my @cmd = @$cmd;
 	if ($?) {
-	    logmsg "Command '@cmd' failed: $?";
+	    eval { croak "Command '@cmd' failed: $?" };
+	    logmsg $@;
 	    $failed++;
 	} else {
 	    logmsg "Command '@cmd' finished.\n";
