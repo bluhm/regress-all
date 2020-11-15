@@ -90,6 +90,7 @@ close($fh);
 usehosts(bindir => "$regressdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 
+END { setup_html(nolog => 1) };
 setup_hosts(mode => \%mode) unless $mode{keep} || $mode{reboot};
 reboot_hosts(mode => \%mode) if $mode{reboot};
 collect_version();
@@ -142,7 +143,7 @@ collect_dmesg();
 chdir($regressdir)
     or die "Chdir to '$regressdir' failed: $!";
 
-setup_html();
+setup_html(date => 1);
 runcmd("bin/regress-html.pl", "-h", $host);
 runcmd("bin/regress-html.pl");
 

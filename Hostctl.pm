@@ -223,7 +223,16 @@ sub reboot_hosts {
 
 # there may be races with other running instances, make it non fatal
 sub setup_html {
-    eval { runcmd("$bindir/setup-html.pl") };
+    my %args = @_;
+    return if !$bindir && $args{nolog};
+    my @cmd = "$bindir/setup-html.pl";
+    push @cmd, '-a' if $args{all};
+    push @cmd, '-d', $date if $args{date};
+    if ($args{nolog}) {
+	eval { system(@cmd) and croak "Command '@cmd' failed: $?" };
+    } else {
+	eval { runcmd(@cmd) };
+    }
     warn $@ if $@;
 }
 

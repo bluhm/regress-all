@@ -152,6 +152,7 @@ usehosts(bindir => "$performdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 (my $host = $opts{h}) =~ s/.*\@//;
 
+END { setup_html(nolog => 1) };
 setup_hosts(release => $release, mode => \%setupmode) unless $setupmode{keep};
 collect_version();
 setup_html();
@@ -234,7 +235,7 @@ foreach my $current (@steps) {
 chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
 
-setup_html();
+setup_html(date => 1);
 # remove possible preliminary created images before stepping was finished
 foreach (glob("results/gnuplot/$date-*")) {
     unlink($_)

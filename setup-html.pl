@@ -32,10 +32,11 @@ use Html;
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('d:', \%opts) or do {
+getopts('ad:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-d date]
-    -d date	create setup.html for a specific date, otherwise for all
+usage: $0 [-a] [-d date]
+    -a		create setup.html for all dates
+    -d date	create setup.html for a specific date
 EOF
     exit(2);
 };
@@ -50,7 +51,11 @@ chdir($dir)
 
 my $typename = "";
 my @dates;
-if ($opts{d}) {
+if ($opts{a}) {
+    @dates =
+	map { dirname($_) }
+	(glob("*T*/run.log"), glob("*T*/step.log"));
+} elsif ($opts{d}) {
     @dates = $opts{d};
 } else {
     @dates =
@@ -59,6 +64,7 @@ if ($opts{d}) {
 	map { dirname($_) }
 	(glob("*T*/run.log"), glob("*T*/step.log"));
 }
+
 my (%D, %M);
 foreach my $date (@dates) {
     $dir = "$regressdir/results/$date";
@@ -151,39 +157,41 @@ foreach my $date (@dates) {
     }
 }
 
-foreach my $date (@dates) {
-    next unless keys %{$D{$date}{host}};
+if ($opts{a} || $opts{d}) {
+    foreach my $date (@dates) {
+	next unless keys %{$D{$date}{host}};
 
-    my @cvsdates = @{$D{$date}{cvsdates}};
-    create_html_setup($date, @cvsdates);
+	my @cvsdates = @{$D{$date}{cvsdates}};
+	create_html_setup($date, @cvsdates);
 
-    foreach my $cvsdate (@cvsdates) {
-	my $subdir = "$dir/$cvsdate";
-	chdir($subdir)
-	    or die "Chdir to '$subdir' failed: $!";
-
-	next unless keys %{$D{$date}{$cvsdate}{host}};
-	my @repeats = @{$D{$date}{$cvsdate}{repeats}};
-	create_html_build($date, $cvsdate, @repeats);
-
-	foreach my $repeat (@repeats) {
-	    my $subdir = "$dir/$cvsdate/$repeat";
+	foreach my $cvsdate (@cvsdates) {
+	    my $subdir = "$dir/$cvsdate";
 	    chdir($subdir)
 		or die "Chdir to '$subdir' failed: $!";
 
-	    next unless keys %{$D{$date}{$cvsdate}{$repeat}{host}};
-	    create_html_reboot($date, $cvsdate, $repeat);
+	    next unless keys %{$D{$date}{$cvsdate}{host}};
+	    my @repeats = @{$D{$date}{$cvsdate}{repeats}};
+	    create_html_build($date, $cvsdate, @repeats);
+
+	    foreach my $repeat (@repeats) {
+		my $subdir = "$dir/$cvsdate/$repeat";
+		chdir($subdir)
+		    or die "Chdir to '$subdir' failed: $!";
+
+		next unless keys %{$D{$date}{$cvsdate}{$repeat}{host}};
+		create_html_reboot($date, $cvsdate, $repeat);
+	    }
 	}
     }
 }
-
-exit if $opts{d};
 
 $dir = "$regressdir/results";
 chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
-create_html_run();
+unless ($opts{d}) {
+    create_html_run();
+}
 
 exit;
 
