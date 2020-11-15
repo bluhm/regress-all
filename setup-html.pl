@@ -530,16 +530,8 @@ chdir($dir)
     or die "Chdir to '$dir' failed: $!";
 
 my ($html, $htmlfile) = html_open("run");
+html_header($html, "OpenBSD Test Run", "OpenBSD $typename test run");
 print $html <<"HEADER";
-<!DOCTYPE html>
-<html>
-<head>
-  <title>OpenBSD Test Run</title>
-  <style>th { text-align: left; }</style>
-</head>
-
-<body>
-<h1>OpenBSD $typename test run</h1>
 <table>
   <tr>
     <th>created at</th>
@@ -599,6 +591,5 @@ foreach my $date (reverse sort keys %d) {
     }
 }
 print $html "</table>\n";
-print $html "</body>\n";
-print $html "</html>\n";
+html_footer($html);
 html_close($html, $htmlfile);
