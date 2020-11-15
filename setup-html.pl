@@ -138,8 +138,43 @@ foreach my $date (@dates) {
     $typename = "regress" if -f "run.log";
     $typename = "perform" if -f "step.log";
 
+    next unless keys %{$D{$date}{host}};
+    create_html_setup($date, @cvsdates);
+
+    foreach my $cvsdate (@cvsdates) {
+	my $subdir = "$dir/$cvsdate";
+	chdir($subdir)
+	    or die "Chdir to '$subdir' failed: $!";
+
+	next unless keys %{$D{$date}{$cvsdate}{host}};
+	my @repeats = @{$D{$date}{$cvsdate}{repeats}};
+	create_html_build($date, $cvsdate, @repeats);
+
+	foreach my $repeat (@repeats) {
+	    my $subdir = "$dir/$cvsdate/$repeat";
+	    chdir($subdir)
+		or die "Chdir to '$subdir' failed: $!";
+
+	    next unless keys %{$D{$date}{$cvsdate}{$repeat}{host}};
+	    create_html_reboot($date, $cvsdate, $repeat);
+	}
+    }
+}
+
+exit if $opts{d};
+
+$dir = "$regressdir/results";
+chdir($dir)
+    or die "Chdir to '$dir' failed: $!";
+
+create_html_run();
+
+exit;
+
+sub create_html_setup {
+    my ($date, @cvsdates) = @_;
+
     my $h = $D{$date}{host};
-    next unless keys %$h;
 
     my ($html, $htmlfile) = html_open("setup");
     print $html "<!DOCTYPE html>\n";
@@ -278,261 +313,249 @@ foreach my $date (@dates) {
     print $html "</body>\n";
     print $html "</html>\n";
     html_close($html, $htmlfile);
-
-    foreach my $cvsdate (@cvsdates) {
-	my $subdir = "$dir/$cvsdate";
-	chdir($subdir)
-	    or die "Chdir to '$subdir' failed: $!";
-
-	my $h = $D{$date}{$cvsdate}{host};
-	next unless keys %$h;
-	my @repeats = @{$D{$date}{$cvsdate}{repeats}};
-
-	my ($html, $htmlfile) = html_open("build");
-	print $html "<!DOCTYPE html>\n";
-	print $html "<html>\n";
-	print $html "<head>\n";
-	print $html "  <title>OpenBSD CVS Build</title>\n";
-	print $html "  <style>th { text-align: left; }</style>\n";
-	print $html "</head>\n";
-
-	print $html "<body>\n";
-	print $html "<h1>OpenBSD perform test machine build</h1>\n";
-	print $html "<table>\n";
-	print $html "  <tr>\n    <th>created at</th>\n";
-	print $html "    <td>$now</td>\n";
-	print $html "  </tr>\n";
-	print $html "  <tr>\n    <th>run at</th>\n";
-	print $html "    <td>$date</td>\n";
-	print $html "  </tr>\n";
-	print $html "  <tr>\n    <th>cvs checkout</th>\n";
-	print $html "    <td>$cvsdate</td>\n";
-	print $html "  </tr>\n";
-	print $html "</table>\n";
-	print $html "<table>\n";
-	print $html "  <tr>\n    <th>machine</th>\n";
-	print $html "    <th>repeat</th>\n" if @repeats;
-	print $html "    <th>checkout</th>\n";
-	print $html "    <th>kernel</th>\n";
-	print $html "    <th>arch</th>\n";
-	print $html "    <th>build</th>\n";
-	print $html "    <th colspan=\"2\">dmesg</th>\n";
-	print $html "    <th>diff</th>\n";
-	print $html "    <th>quirks</th>\n";
-	print $html "    <th>nmbsd</th>\n";
-	print $html "  </tr>\n";
-	foreach my $repeat ("", @repeats) {
-	    $h = $D{$date}{$cvsdate}{$repeat}{host} if $repeat;
-	    foreach my $host (sort keys %$h) {
-		print $html "  <tr>\n    <th>$host</th>\n";
-		if ($repeat) {
-		    print $html "    <td>$repeat</td>\n";
-		} elsif (@repeats) {
-		    print $html "    <td></td>\n";
-		}
-		(my $cvsshort = $cvsdate) =~ s/T.*//;
-		print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
-		my $version = $h->{$host}{version};
-		my $time = encode_entities($h->{$host}{time});
-		my $short = $h->{$host}{short};
-		my $arch = encode_entities($h->{$host}{arch}) || "";
-		my $build = $h->{$host}{build} || $h->{$host}{reboot};
-		my $dmesg = $h->{$host}{dmesg};
-		my $dmesgboot = $h->{$host}{dmesgboot};
-		my $diff = $h->{$host}{diff};
-		my $quirks = $h->{$host}{quirks};
-		my $nmbsd = $h->{$host}{nmbsd};
-		if ($version) {
-		    $version =~ s,[^/]+/,,;
-		    $version = uri_escape($version, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td title=\"$time\">".
-			"<a href=\"$version\">$short</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		print $html "    <td>$arch</td>\n";
-		if ($build) {
-		    $build =~ s,[^/]+/,,;
-		    $build = uri_escape($build, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td><a href=\"$build\">log</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		if ($dmesgboot) {
-		    $dmesgboot =~ s,[^/]+/,,;
-		    $dmesgboot = uri_escape($dmesgboot, "^A-Za-z0-9\-\._~/");
-		    print $html
-			"    <td><a href=\"$dmesgboot\">boot</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		if ($dmesg) {
-		    $dmesg =~ s,[^/]+/,,;
-		    $dmesg = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		if ($diff) {
-		    $diff =~ s,[^/]+/,,;
-		    $diff = uri_escape($diff, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td><a href=\"$diff\">diff</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		if ($quirks) {
-		    $quirks =~ s,[^/]+/,,;
-		    $quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		if ($nmbsd) {
-		    $nmbsd =~ s,[^/]+/,,;
-		    $nmbsd = uri_escape($nmbsd, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td><a href=\"$nmbsd\">nmbsd</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		print $html "  </tr>\n";
-	    }
-	}
-	print $html "</table>\n";
-	print $html "</body>\n";
-	print $html "</html>\n";
-	html_close($html, $htmlfile);
-
-	foreach my $repeat (@repeats) {
-	    my $subdir = "$dir/$cvsdate/$repeat";
-	    chdir($subdir)
-		or die "Chdir to '$subdir' failed: $!";
-
-	    $h = $D{$date}{$cvsdate}{$repeat}{host};
-	    next unless keys %$h;
-
-	    my ($html, $htmlfile) = html_open("reboot");
-	    print $html "<!DOCTYPE html>\n";
-	    print $html "<html>\n";
-	    print $html "<head>\n";
-	    print $html "  <title>OpenBSD Machine Reboot</title>\n";
-	    print $html "  <style>th { text-align: left; }</style>\n";
-	    print $html "</head>\n";
-
-	    print $html "<body>\n";
-	    print $html "<h1>OpenBSD perform test machine reboot</h1>\n";
-	    print $html "<table>\n";
-	    print $html "  <tr>\n    <th>created at</th>\n";
-	    print $html "    <td>$now</td>\n";
-	    print $html "  </tr>\n";
-	    print $html "  <tr>\n    <th>run at</th>\n";
-	    print $html "    <td>$date</td>\n";
-	    print $html "  </tr>\n";
-	    print $html "  <tr>\n    <th>cvs checkout</th>\n";
-	    print $html "    <td>$cvsdate</td>\n";
-	    print $html "  </tr>\n";
-	    print $html "  <tr>\n    <th>repetition</th>\n";
-	    print $html "    <td>$repeat</td>\n";
-	    print $html "  </tr>\n";
-	    print $html "</table>\n";
-	    print $html "<table>\n";
-	    print $html "  <tr>\n    <th>machine</th>\n";
-	    print $html "    <th>repeat</th>\n";
-	    print $html "    <th>checkout</th>\n";
-	    print $html "    <th>kernel</th>\n";
-	    print $html "    <th>arch</th>\n";
-	    print $html "    <th>reboot</th>\n";
-	    print $html "    <th colspan=\"2\">dmesg</th>\n";
-	    print $html "    <th>diff</th>\n";
-	    print $html "    <th>quirks</th>\n";
-	    print $html "    <th>nmbsd</th>\n";
-	    print $html "  </tr>\n";
-	    foreach my $host (sort keys %$h) {
-		print $html "  <tr>\n    <th>$host</th>\n";
-		print $html "    <td>$repeat</td>\n";
-		(my $cvsshort = $cvsdate) =~ s/T.*//;
-		print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
-		my $version = $h->{$host}{version};
-		my $time = encode_entities($h->{$host}{time});
-		my $short = $h->{$host}{short};
-		my $arch = encode_entities($h->{$host}{arch}) || "";
-		my $reboot = $h->{$host}{reboot};
-		my $dmesg = $h->{$host}{dmesg};
-		my $dmesgboot = $h->{$host}{dmesgboot};
-		my $diff = $h->{$host}{diff};
-		my $quirks = $h->{$host}{quirks};
-		my $nmbsd = $h->{$host}{nmbsd};
-		if ($version) {
-		    $version =~ s,[^/]+/[^/]+/,,;
-		    $version = uri_escape($version, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td title=\"$time\">".
-			"<a href=\"$version\">$short</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		print $html "    <td>$arch</td>\n";
-		if ($reboot) {
-		    $reboot =~ s,[^/]+/[^/]+/,,;
-		    $reboot = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
-		    print $html
-			"    <td><a href=\"$reboot\">log</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		if ($dmesgboot) {
-		    $dmesgboot =~ s,[^/]+/[^/]+/,,;
-		    $dmesgboot = uri_escape($dmesgboot, "^A-Za-z0-9\-\._~/");
-		    print $html
-			"    <td><a href=\"$dmesgboot\">boot</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		if ($dmesg) {
-		    $dmesg =~ s,[^/]+/[^/]+/,,;
-		    $dmesg = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		if ($diff) {
-		    $diff =~ s,[^/]+/[^/]+/,,;
-		    $diff = uri_escape($diff, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td><a href=\"$diff\">diff</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		if ($quirks) {
-		    $quirks =~ s,[^/]+/[^/]+/,,;
-		    $quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		if ($nmbsd) {
-		    $nmbsd =~ s,[^/]+/[^/]+/,,;
-		    $nmbsd = uri_escape($nmbsd, "^A-Za-z0-9\-\._~/");
-		    print $html "    <td><a href=\"$nmbsd\">nmbsd</a></td>\n";
-		} else {
-		    print $html "    <td></td>\n";
-		}
-		print $html "  </tr>\n";
-	    }
-	    print $html "</table>\n";
-	    print $html "</body>\n";
-	    print $html "</html>\n";
-	    html_close($html, $htmlfile);
-	}
-    }
 }
 
-exit if $opts{d};
+sub create_html_build {
+    my ($date, $cvsdate, @repeats) = @_;
 
-$dir = "$regressdir/results";
-chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    my $h = $D{$date}{$cvsdate}{host};
 
-my ($html, $htmlfile) = html_open("run");
-html_header($html, "OpenBSD Test Run", "OpenBSD $typename test run");
-print $html <<"HEADER";
+    my ($html, $htmlfile) = html_open("build");
+    print $html "<!DOCTYPE html>\n";
+    print $html "<html>\n";
+    print $html "<head>\n";
+    print $html "  <title>OpenBSD CVS Build</title>\n";
+    print $html "  <style>th { text-align: left; }</style>\n";
+    print $html "</head>\n";
+
+    print $html "<body>\n";
+    print $html "<h1>OpenBSD perform test machine build</h1>\n";
+    print $html "<table>\n";
+    print $html "  <tr>\n    <th>created at</th>\n";
+    print $html "    <td>$now</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>run at</th>\n";
+    print $html "    <td>$date</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>cvs checkout</th>\n";
+    print $html "    <td>$cvsdate</td>\n";
+    print $html "  </tr>\n";
+    print $html "</table>\n";
+    print $html "<table>\n";
+    print $html "  <tr>\n    <th>machine</th>\n";
+    print $html "    <th>repeat</th>\n" if @repeats;
+    print $html "    <th>checkout</th>\n";
+    print $html "    <th>kernel</th>\n";
+    print $html "    <th>arch</th>\n";
+    print $html "    <th>build</th>\n";
+    print $html "    <th colspan=\"2\">dmesg</th>\n";
+    print $html "    <th>diff</th>\n";
+    print $html "    <th>quirks</th>\n";
+    print $html "    <th>nmbsd</th>\n";
+    print $html "  </tr>\n";
+    foreach my $repeat ("", @repeats) {
+	$h = $D{$date}{$cvsdate}{$repeat}{host} if $repeat;
+	foreach my $host (sort keys %$h) {
+	    print $html "  <tr>\n    <th>$host</th>\n";
+	    if ($repeat) {
+		print $html "    <td>$repeat</td>\n";
+	    } elsif (@repeats) {
+		print $html "    <td></td>\n";
+	    }
+	    (my $cvsshort = $cvsdate) =~ s/T.*//;
+	    print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
+	    my $version = $h->{$host}{version};
+	    my $time = encode_entities($h->{$host}{time});
+	    my $short = $h->{$host}{short};
+	    my $arch = encode_entities($h->{$host}{arch}) || "";
+	    my $build = $h->{$host}{build} || $h->{$host}{reboot};
+	    my $dmesg = $h->{$host}{dmesg};
+	    my $dmesgboot = $h->{$host}{dmesgboot};
+	    my $diff = $h->{$host}{diff};
+	    my $quirks = $h->{$host}{quirks};
+	    my $nmbsd = $h->{$host}{nmbsd};
+	    if ($version) {
+		$version =~ s,[^/]+/,,;
+		$version = uri_escape($version, "^A-Za-z0-9\-\._~/");
+		print $html "    <td title=\"$time\">".
+		    "<a href=\"$version\">$short</a></td>\n";
+	    } else {
+		print $html "    <td></td>\n";
+	    }
+	    print $html "    <td>$arch</td>\n";
+	    if ($build) {
+		$build =~ s,[^/]+/,,;
+		$build = uri_escape($build, "^A-Za-z0-9\-\._~/");
+		print $html "    <td><a href=\"$build\">log</a></td>\n";
+	    } else {
+		print $html "    <td></td>\n";
+	    }
+	    if ($dmesgboot) {
+		$dmesgboot =~ s,[^/]+/,,;
+		$dmesgboot = uri_escape($dmesgboot, "^A-Za-z0-9\-\._~/");
+		print $html
+		    "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
+	    } else {
+		print $html "    <td></td>\n";
+	    }
+	    if ($dmesg) {
+		$dmesg =~ s,[^/]+/,,;
+		$dmesg = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
+		print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
+	    } else {
+		print $html "    <td></td>\n";
+	    }
+	    if ($diff) {
+		$diff =~ s,[^/]+/,,;
+		$diff = uri_escape($diff, "^A-Za-z0-9\-\._~/");
+		print $html "    <td><a href=\"$diff\">diff</a></td>\n";
+	    } else {
+		print $html "    <td></td>\n";
+	    }
+	    if ($quirks) {
+		$quirks =~ s,[^/]+/,,;
+		$quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
+		print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
+	    } else {
+		print $html "    <td></td>\n";
+	    }
+	    if ($nmbsd) {
+		$nmbsd =~ s,[^/]+/,,;
+		$nmbsd = uri_escape($nmbsd, "^A-Za-z0-9\-\._~/");
+		print $html "    <td><a href=\"$nmbsd\">nmbsd</a></td>\n";
+	    } else {
+		print $html "    <td></td>\n";
+	    }
+	    print $html "  </tr>\n";
+	}
+    }
+    print $html "</table>\n";
+    print $html "</body>\n";
+    print $html "</html>\n";
+    html_close($html, $htmlfile);
+}
+
+sub create_html_reboot {
+    my ($date, $cvsdate, $repeat) = @_;
+
+    my $h = $D{$date}{$cvsdate}{$repeat}{host};
+
+    my ($html, $htmlfile) = html_open("reboot");
+    print $html "<!DOCTYPE html>\n";
+    print $html "<html>\n";
+    print $html "<head>\n";
+    print $html "  <title>OpenBSD Machine Reboot</title>\n";
+    print $html "  <style>th { text-align: left; }</style>\n";
+    print $html "</head>\n";
+
+    print $html "<body>\n";
+    print $html "<h1>OpenBSD perform test machine reboot</h1>\n";
+    print $html "<table>\n";
+    print $html "  <tr>\n    <th>created at</th>\n";
+    print $html "    <td>$now</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>run at</th>\n";
+    print $html "    <td>$date</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>cvs checkout</th>\n";
+    print $html "    <td>$cvsdate</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>repetition</th>\n";
+    print $html "    <td>$repeat</td>\n";
+    print $html "  </tr>\n";
+    print $html "</table>\n";
+    print $html "<table>\n";
+    print $html "  <tr>\n    <th>machine</th>\n";
+    print $html "    <th>repeat</th>\n";
+    print $html "    <th>checkout</th>\n";
+    print $html "    <th>kernel</th>\n";
+    print $html "    <th>arch</th>\n";
+    print $html "    <th>reboot</th>\n";
+    print $html "    <th colspan=\"2\">dmesg</th>\n";
+    print $html "    <th>diff</th>\n";
+    print $html "    <th>quirks</th>\n";
+    print $html "    <th>nmbsd</th>\n";
+    print $html "  </tr>\n";
+    foreach my $host (sort keys %$h) {
+	print $html "  <tr>\n    <th>$host</th>\n";
+	print $html "    <td>$repeat</td>\n";
+	(my $cvsshort = $cvsdate) =~ s/T.*//;
+	print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
+	my $version = $h->{$host}{version};
+	my $time = encode_entities($h->{$host}{time});
+	my $short = $h->{$host}{short};
+	my $arch = encode_entities($h->{$host}{arch}) || "";
+	my $reboot = $h->{$host}{reboot};
+	my $dmesg = $h->{$host}{dmesg};
+	my $dmesgboot = $h->{$host}{dmesgboot};
+	my $diff = $h->{$host}{diff};
+	my $quirks = $h->{$host}{quirks};
+	my $nmbsd = $h->{$host}{nmbsd};
+	if ($version) {
+	    $version =~ s,[^/]+/[^/]+/,,;
+	    $version = uri_escape($version, "^A-Za-z0-9\-\._~/");
+	    print $html "    <td title=\"$time\">".
+		"<a href=\"$version\">$short</a></td>\n";
+	} else {
+	    print $html "    <td></td>\n";
+	}
+	print $html "    <td>$arch</td>\n";
+	if ($reboot) {
+	    $reboot =~ s,[^/]+/[^/]+/,,;
+	    $reboot = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
+	    print $html
+		"    <td><a href=\"$reboot\">log</a></td>\n";
+	} else {
+	    print $html "    <td></td>\n";
+	}
+	if ($dmesgboot) {
+	    $dmesgboot =~ s,[^/]+/[^/]+/,,;
+	    $dmesgboot = uri_escape($dmesgboot, "^A-Za-z0-9\-\._~/");
+	    print $html
+		"    <td><a href=\"$dmesgboot\">boot</a></td>\n";
+	} else {
+	    print $html "    <td></td>\n";
+	}
+	if ($dmesg) {
+	    $dmesg =~ s,[^/]+/[^/]+/,,;
+	    $dmesg = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
+	    print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
+	} else {
+	    print $html "    <td></td>\n";
+	}
+	if ($diff) {
+	    $diff =~ s,[^/]+/[^/]+/,,;
+	    $diff = uri_escape($diff, "^A-Za-z0-9\-\._~/");
+	    print $html "    <td><a href=\"$diff\">diff</a></td>\n";
+	} else {
+	    print $html "    <td></td>\n";
+	}
+	if ($quirks) {
+	    $quirks =~ s,[^/]+/[^/]+/,,;
+	    $quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
+	    print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
+	} else {
+	    print $html "    <td></td>\n";
+	}
+	if ($nmbsd) {
+	    $nmbsd =~ s,[^/]+/[^/]+/,,;
+	    $nmbsd = uri_escape($nmbsd, "^A-Za-z0-9\-\._~/");
+	    print $html "    <td><a href=\"$nmbsd\">nmbsd</a></td>\n";
+	} else {
+	    print $html "    <td></td>\n";
+	}
+	print $html "  </tr>\n";
+    }
+    print $html "</table>\n";
+    print $html "</body>\n";
+    print $html "</html>\n";
+    html_close($html, $htmlfile);
+}
+
+sub create_html_run {
+    my ($html, $htmlfile) = html_open("run");
+    html_header($html, "OpenBSD Test Run", "OpenBSD $typename test run");
+    print $html <<"HEADER";
 <table>
   <tr>
     <th>created at</th>
@@ -541,66 +564,65 @@ print $html <<"HEADER";
 </table>
 HEADER
 
-print $html "<table>\n";
-print $html "  <tr>\n    <th>run log</th>\n";
-foreach my $host (sort keys %M) {
-    print $html "    <th>$host setup log</th>\n";
-}
-print $html "  </tr>\n";
+    print $html "<table>\n";
+    print $html "  <tr>\n    <th>run log</th>\n";
+    foreach my $host (sort keys %M) {
+	print $html "    <th>$host setup log</th>\n";
+    }
+    print $html "  </tr>\n";
 
-foreach my $date (reverse sort keys %D) {
-    my @cvsdates = @{$D{$date}{cvsdates} || []};
-    foreach my $cvsdate (reverse "", @cvsdates) {
-	my @repeats = $cvsdate ? @{$D{$date}{$cvsdate}{repeats} || []} : ();
-	foreach my $repeat (reverse "", @repeats) {
-	    my $h;
-	    if ($repeat) {
-		print $html "  <tr>\n    <td></td>\n";
-		$h = $D{$date}{$cvsdate}{$repeat}{host};
-	    } elsif ($cvsdate) {
-		print $html "  <tr>\n    <td></td>\n";
-		$h = $D{$date}{$cvsdate}{host};
-	    } else {
-		my $log = $D{$date}{log} || "";
-		my $logfile = "$date/$log";
-		my $status = $log ? log_status($logfile) : "";
-		my $class = $status ? " class=\"status $status\"" : "";
-		my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-		my $href = $log ? "<a href=\"$link\">" : "";
-		my $enda = $href ? "</a>" : "";
-		print $html "  <tr>\n";
-		print $html "    <td$class>$href$date$enda</td>\n";
-		$h = $D{$date}{host};
-	    }
-	    foreach my $host (sort keys %M) {
-		unless ($D{$date}{host}{$host} ||
-		    $D{$date}{$cvsdate}{host}{$host} ||
-		    $D{$date}{$cvsdate}{$repeat}{host}{$host}) {
-		    print $html "    <td></td>\n";
-		    next;
+    foreach my $date (reverse sort keys %D) {
+	my @cvsdates = @{$D{$date}{cvsdates} || []};
+	foreach my $cvsdate (reverse "", @cvsdates) {
+	    my @repeats = $cvsdate ? @{$D{$date}{$cvsdate}{repeats} || []} : ();
+	    foreach my $repeat (reverse "", @repeats) {
+		my $h;
+		if ($repeat) {
+		    print $html "  <tr>\n    <td></td>\n";
+		    $h = $D{$date}{$cvsdate}{$repeat}{host};
+		} elsif ($cvsdate) {
+		    print $html "  <tr>\n    <td></td>\n";
+		    $h = $D{$date}{$cvsdate}{host};
+		} else {
+		    my $log = $D{$date}{log} || "";
+		    my $logfile = "$date/$log";
+		    my $status = $log ? log_status($logfile) : "";
+		    my $class = $status ? " class=\"status $status\"" : "";
+		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+		    my $href = $log ? "<a href=\"$link\">" : "";
+		    my $enda = $href ? "</a>" : "";
+		    print $html "  <tr>\n";
+		    print $html "    <td$class>$href$date$enda</td>\n";
+		    $h = $D{$date}{host};
 		}
-		my $time = encode_entities($repeat || $cvsdate ||
-		    $h->{$host}{time}) || "";
-		my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
-		    $h->{$host}{reboot} || "";
-		$time ||= "log" if $setup;
-		my $logfile = "$date/$setup";
-		my $status = $setup ? log_status($logfile) : "";
-		my $class = $status ? " class=\"status $status\"" : "";
-		my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-		my $href = $setup ? "<a href=\"$link\">" : "";
-		my $enda = $href ? "</a>" : "";
-		print $html "    <td$class>$href$time$enda</td>\n";
+		foreach my $host (sort keys %M) {
+		    unless ($D{$date}{host}{$host} ||
+			$D{$date}{$cvsdate}{host}{$host} ||
+			$D{$date}{$cvsdate}{$repeat}{host}{$host}) {
+			print $html "    <td></td>\n";
+			next;
+		    }
+		    my $time = encode_entities($repeat || $cvsdate ||
+			$h->{$host}{time}) || "";
+		    my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
+			$h->{$host}{reboot} || "";
+		    $time ||= "log" if $setup;
+		    my $logfile = "$date/$setup";
+		    my $status = $setup ? log_status($logfile) : "";
+		    my $class = $status ? " class=\"status $status\"" : "";
+		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+		    my $href = $setup ? "<a href=\"$link\">" : "";
+		    my $enda = $href ? "</a>" : "";
+		    print $html "    <td$class>$href$time$enda</td>\n";
+		}
+		print $html "  </tr>\n";
 	    }
-	    print $html "  </tr>\n";
 	}
     }
+    print $html "</table>\n";
+    html_footer($html);
+    html_close($html, $htmlfile);
 }
-print $html "</table>\n";
-html_footer($html);
-html_close($html, $htmlfile);
-
-exit;
 
 # extract status from log file
 sub log_status {
