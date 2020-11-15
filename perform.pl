@@ -253,7 +253,6 @@ sub tcpbench_parser {
 	    return;
 	}
 	push @tcpbench_subvalues, $value;
-	print $tr "SUBVALUE $value bits/sec\n";
     }
     return 1;
 }
@@ -295,9 +294,6 @@ sub time_parser {
     if ($line =~ /^(\w+) +(\d+\.\d+)$/) {
 	print $tr "VALUE $2 sec $1\n";
     }
-    if ($line =~ /^ *(\d+)  ([\w ]+)$/) {
-	print $tr "SUBVALUE $1 1 $2\n";
-    }
     return 1;
 }
 
@@ -329,8 +325,7 @@ sub fsmark_parser {
 	    my $unit = $fsmark_units[$i];
 	    my $key = $fsmark_keys[$i];
 	    $value /= 1000000 if $key eq "overhead";
-	    print $tr "SUB" unless $key eq "files";
-	    print $tr "VALUE $value $unit $key\n";
+	    print $tr "VALUE $value $unit $key\n" if $key eq "files";
 	}
     }
     return 1;
@@ -343,17 +338,6 @@ sub fsmark_finalize {
 	print "FAILED no values\n" if $opts{v};
 	return;
     }
-    return 1;
-}
-
-my $wallclock;
-sub wallclock_initialize {
-    $wallclock = Time::HiRes::time();
-    return 1;
-}
-
-sub wallclock_finalize {
-    printf $tr "SUBVALUE %.2f sec wall\n", Time::HiRes::time() - $wallclock;
     return 1;
 }
 
@@ -574,11 +558,9 @@ push @tests, (
 ) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
 push @tests, (
     {
-	initialize => \&wallclock_initialize,
 	testcmd => ['time', '-lp', 'make',
 	    "-C/usr/src/sys/arch/$machine/compile/$kconf", "-j$ncpu", '-s'],
 	parser => \&time_parser,
-	finalize => \&wallclock_finalize,
     }
 ) if $testmode{make};
 push @tests, (
