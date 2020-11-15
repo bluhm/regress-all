@@ -18,6 +18,7 @@
 use strict;
 use warnings;
 use Cwd;
+use Fcntl qw(SEEK_SET SEEK_CUR SEEK_END);
 use File::Basename;
 use HTML::Entities;
 use Getopt::Std;
@@ -554,18 +555,21 @@ foreach my $date (reverse sort keys %d) {
 	foreach my $repeat (reverse "", @repeats) {
 	    my $h;
 	    if ($repeat) {
-		print $html "  <tr>\n    <th></th>\n";
+		print $html "  <tr>\n    <td></td>\n";
 		$h = $d{$date}{$cvsdate}{$repeat}{host};
 	    } elsif ($cvsdate) {
-		print $html "  <tr>\n    <th></th>\n";
+		print $html "  <tr>\n    <td></td>\n";
 		$h = $d{$date}{$cvsdate}{host};
 	    } else {
 		my $log = $d{$date}{log} || "";
 		my $logfile = "$date/$log";
+		my $status = $log ? log_status($logfile) : "";
+		my $class = $status ? " class=\"status $status\"" : "";
 		my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 		my $href = $log ? "<a href=\"$link\">" : "";
 		my $enda = $href ? "</a>" : "";
-		print $html "  <tr>\n    <th>$href$date$enda</th>\n";
+		print $html "  <tr>\n";
+		print $html "    <td$class>$href$date$enda</td>\n";
 		$h = $d{$date}{host};
 	    }
 	    foreach my $host (sort keys %m) {
@@ -581,10 +585,12 @@ foreach my $date (reverse sort keys %d) {
 		    $h->{$host}{reboot} || "";
 		$time ||= "log" if $setup;
 		my $logfile = "$date/$setup";
+		my $status = $setup ? log_status($logfile) : "";
+		my $class = $status ? " class=\"status $status\"" : "";
 		my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 		my $href = $setup ? "<a href=\"$link\">" : "";
 		my $enda = $href ? "</a>" : "";
-		print $html "    <td>$href$time$enda</td>\n";
+		print $html "    <td$class>$href$time$enda</td>\n";
 	    }
 	    print $html "  </tr>\n";
 	}
@@ -593,3 +599,34 @@ foreach my $date (reverse sort keys %d) {
 print $html "</table>\n";
 html_footer($html);
 html_close($html, $htmlfile);
+
+exit;
+
+# extract status from log file
+sub log_status {
+    my ($logfile) = @_;
+
+    open(my $fh, '<', $logfile)
+	or return 'NOEXIST';
+
+    defined(my $line = <$fh>)
+	or return 'NOLOG';
+    $line =~ /^Script .* started/i
+	or return 'NORUN';
+
+    # if seek from end fails, file is too short, then read from the beginning
+    seek($fh, 0, SEEK_SET);
+    seek($fh, -1000, SEEK_END);
+    # reread file buffer at current position, ignore error or end of file
+    readline($fh);
+    # find final line
+    while (<$fh>) {
+	$line = $_;
+    }
+
+    $line =~ /^[A-Z].* failed/
+	and return 'FAIL';
+    $line =~ /^Script .* finished/i
+	and return 'PASS';
+    return 'NOEXIT';
+}
