@@ -1,5 +1,6 @@
 bzip2
 diffstat
+dtb
 git
 gmake
 gsed
@@ -8,6 +9,8 @@ p5-BSD-Resource
 p5-BSD-Socket-Splice
 p5-IO-Socket-INET6
 p5-IO-Socket-SSL
+raspberrypi-firmware
 rsync--
 sysclean
+u-boot-aarch64
 xz
