@@ -159,8 +159,11 @@ foreach my $date (@dates) {
 
 if ($opts{a} || $opts{d}) {
     foreach my $date (@dates) {
-	next unless keys %{$D{$date}{host}};
+	$dir = "$regressdir/results/$date";
+	chdir($dir)
+	    or die "Chdir to '$dir' failed: $!";
 
+	next unless keys %{$D{$date}{host}};
 	my @cvsdates = @{$D{$date}{cvsdates}};
 	create_html_setup($date, @cvsdates);
 
