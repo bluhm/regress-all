@@ -72,14 +72,14 @@ foreach my $date (@dates) {
 	or die "Chdir to '$dir' failed: $!";
 
     my @cvsdates = grep { -d $_ } glob("*T*");
-    $D{$date}{cvsdates} = \@cvsdates;
+    $D{$date}{cvsdates} = [ @cvsdates ];
 
     foreach my $cvsdate ("", @cvsdates) {
 	chdir("$dir/$cvsdate")
 	    or die "Chdir to '$dir/$cvsdate' failed: $!";
 
 	my @repeats = grep { -d $_ } glob("[0-9][0-9][0-9]");
-	$D{$date}{$cvsdate}{repeats} = \@repeats if $cvsdate;
+	$D{$date}{$cvsdate}{repeats} = [ @repeats ] if $cvsdate;
 
 	foreach my $repeat ("", @repeats) {
 	    chdir("$dir/$cvsdate/$repeat")
@@ -588,9 +588,9 @@ HEADER
     print $html "  </tr>\n";
 
     foreach my $date (reverse sort keys %D) {
-	my @cvsdates = @{$D{$date}{cvsdates} || []};
+	my @cvsdates = @{$D{$date}{cvsdates}};
 	foreach my $cvsdate (reverse "", @cvsdates) {
-	    my @repeats = $cvsdate ? @{$D{$date}{$cvsdate}{repeats} || []} : ();
+	    my @repeats = $cvsdate ? @{$D{$date}{$cvsdate}{repeats}} : ();
 	    foreach my $repeat (reverse "", @repeats) {
 		my $h;
 		if ($repeat) {
