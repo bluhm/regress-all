@@ -728,6 +728,9 @@ BEGIN {
 	}
 	die "testorder values not unique";
     }
+    foreach (keys %testplot) {
+	die "testplot $_ is not in testorder\n" unless $testorder{$_};
+    }
 }
 
 sub list_tests {
@@ -741,6 +744,160 @@ sub list_tests {
 
 sub list_dates {
     return reverse sort keys %D;
+}
+
+my %testdesc;
+BEGIN {
+    # add a test description
+    my @testdesc = (
+    'iperf3_-c10.3.45.35_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.45.35_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.0.33_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.0.33_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.0.33_-w1m_-t60'					=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.0.33_-w1m_-t60_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.2.35_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.2.35_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60'			=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-c10.3.46.36_-w2m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.46.36_-w2m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-t10'						=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-t60'						=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-t60_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-w2m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-w2m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-w400k_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-w400k_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-w410k_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-w410k_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10'				=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60'				=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'tcpbench_-S1000000_-t10_10.3.45.35'				=> "openbsd-openbsd-stack-tcp-tcpdump",
+    'tcpbench_-S1000000_-t10_10.3.0.33'					=> "openbsd-openbsd-stack-tcp-tcpdump",
+    'tcpbench_-S1000000_-t10_10.3.2.35'					=> "openbsd-openbsd-stack-tcp-tcpdump",
+    'tcpbench_-S1000000_-t60_10.3.0.33'					=> "openbsd-openbsd-stack-tcp-tcpdump",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0345::35'			=> "openbsd-openbsd-stack-tcp6-tcpdump",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0300::33'			=> "openbsd-openbsd-stack-tcp6-tcpdump",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35'			=> "openbsd-openbsd-stack-tcp6-tcpdump",
+    'tcpbench_-S1000000_-t60_fdd7:e83e:66bc:0300::33'			=> "openbsd-openbsd-stack-tcp6-tcpdump",
+    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'				=> "openbsd-openbsd-stack-tcp-tcpdump-parallel",
+    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'				=> "openbsd-openbsd-stack-tcp-tcpdump-parallel",
+    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'				=> "openbsd-openbsd-stack-tcp-tcpdump-parallel",
+    'tcpbench_-S1000000_-t60_-n100_10.3.0.33'				=> "openbsd-openbsd-stack-tcp-tcpdump-parallel",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-tcp6-tcpdump-parallel",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-tcp6-tcpdump-parallel",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-tcp6-tcpdump-parallel",
+    'tcpbench_-S1000000_-t60_-n100_fdd7:e83e:66bc:0300:33'		=> "openbsd-openbsd-stack-tcp6-tcpdump-parallel",
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-iperf",
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-iperf-reverse",
+    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-iperf",
+    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-iperf-reverse",
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-iperf",
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-iperf-reverse",
+    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-iperf",
+    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-iperf-reverse",
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-iperf",
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10'		=> "openbsd-openbsd-stack-udp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10_-R'		=> "openbsd-openbsd-stack-udp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10'		=> "openbsd-openbsd-stack-udp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10_-R'		=> "openbsd-openbsd-stack-udp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10'		=> "openbsd-openbsd-stack-udp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R'		=> "openbsd-openbsd-stack-udp6-iperf-reverse",
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'			=> "openbsd-openbsd-stack-udp-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'			=> "openbsd-openbsd-stack-udp-udpbench-long-send",
+    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'			=> "openbsd-openbsd-stack-udp-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'			=> "openbsd-openbsd-stack-udp-udpbench-long-send",
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'			=> "openbsd-openbsd-stack-udp-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'			=> "openbsd-openbsd-stack-udp-udpbench-long-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'			=> "openbsd-openbsd-stack-udp-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'			=> "openbsd-openbsd-stack-udp-udpbench-short-send",
+    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'				=> "openbsd-openbsd-stack-udp-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'				=> "openbsd-openbsd-stack-udp-udpbench-short-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'				=> "openbsd-openbsd-stack-udp-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'				=> "openbsd-openbsd-stack-udp-udpbench-short-send",
+    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l1452_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1452_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l1472_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'udpbench_-l16_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l16_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'udpbench_-l36_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10'			=> "linux-openbsd-linux-forward-tcp-iperf",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10_-R'			=> "linux-openbsd-linux-forward-tcp-iperf-reverse",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-t10'				=> "linux-openbsd-linux-forward-tcp-iperf",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10'	=> "linux-openbsd-linux-forward-tcp6-iperf",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10_-R'	=> "linux-openbsd-linux-forward-tcp6-iperf-reverse",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'		=> "linux-openbsd-linux-forward-tcp6-iperf",
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10'			=> "linux-openbsd-linux-splice-tcp-iperf",
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10_-R'			=> "linux-openbsd-linux-splice-tcp-iperf-reverse",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10'	=> "linux-openbsd-linux-splice-tcp6-iperf",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10_-R'	=> "linux-openbsd-linux-splice-tcp6-iperf-reverse",
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10'			=> "linux-openbsd-openbsd-splice-tcp-iperf",
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10_-R'			=> "linux-openbsd-openbsd-splice-tcp-iperf-reverse",
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10'			=> "linux-openbsd-splice-tcp-iperf",
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10_-R'			=> "linux-openbsd-splice-tcp-iperf-reverse",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10'	=> "linux-openbsd-openbsd-splice-tcp6-iperf",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=> "linux-openbsd-openbsd-splice-tcp6-iperf-reverse",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=> "linux-openbsd-splice-tcp6-iperf",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=> "linux-openbsd-splice-tcp6-iperf-reverse",
+    'time_-lp_make_-CGENERIC.MP_-j4_-s'					=> "make-bsd",
+    'time_-lp_make_-CGENERIC.MP_-j8_-s'					=> "make-bsd",
+    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=> "file-system",
+    );
+    %testdesc = @testdesc;
+    if (2 * keys %testdesc != @testdesc) {
+	die "testdesc keys not unique";
+    }
+    my %num;
+    for (my $i = 0; $i < @testdesc; $i += 2) {
+	my ($test, $desc) = @testdesc[$i, $i + 1];
+	if ($num{$desc}++) {
+	    $testdesc{$test} = "$desc-$num{$desc}";
+	}
+    }
+    foreach (keys %testdesc) {
+	die "testdesc $_ is not in testorder\n" unless $testorder{$_};
+    }
 }
 
 # create gnuplot graphs for all runs
@@ -933,6 +1090,7 @@ HEADER
 sub html_repeat_test_head {
     my ($html, $date, $cvsdate, @repeats) = @_;
     print $html "  <tr>\n    <th>repeat</th>\n";
+    print $html "    <td></td>\n";
     foreach my $repeat (@repeats) {
 	print $html "    <th>$repeat</th>\n";
     }
@@ -940,6 +1098,7 @@ sub html_repeat_test_head {
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
+    print $html "    <td></td>\n";
     my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
 	$D{$date}{stepconf}{repmodes};
     foreach my $repeat (@repeats) {
@@ -962,6 +1121,7 @@ sub html_repeat_test_head {
 sub html_repeat_test_row {
     my ($html, $date, $cvsdate, $test, $td, @repeats) = @_;
     print $html "  <tr>\n    <th>$test</th>\n";
+    print $html "    <td>$testdesc{$test}</td>\n";
     foreach my $repeat (@repeats) {
 	html_status_data($html, "$date/$cvsdate", $repeat, $test,
 	    $td->{$repeat});
@@ -1070,6 +1230,7 @@ HEADER
 sub html_cvsdate_test_head {
     my ($html, $date, @cvsdates) = @_;
     print $html "  <tr>\n    <th>cvs checkout</th>\n";
+    print $html "    <td></td>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
 	my $time = encode_entities($cvsdate);
@@ -1083,6 +1244,7 @@ sub html_cvsdate_test_head {
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
+    print $html "    <td></td>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $build = $D{$date}{$cvsdate}{build};
 	$build =~ s,[^/]+/,, if $build;
@@ -1095,6 +1257,7 @@ sub html_cvsdate_test_head {
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>kernel build</th>\n";
+    print $html "    <td></td>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $version = $D{$date}{$cvsdate}{version};
 	unless ($version) {
@@ -1111,6 +1274,7 @@ sub html_cvsdate_test_head {
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>kernel commits</th>\n";
+    print $html "    <td></td>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $cvslog = $D{$date}{$cvsdate}{cvslog};
 	unless ($cvslog) {
@@ -1134,6 +1298,7 @@ sub html_cvsdate_test_head {
     print $html "  </tr>\n";
     if (($D{$date}{stepconf}{kernelmodes} || "") eq "align") {
 	print $html "  <tr>\n    <th>kernel name list</th>\n";
+    print $html "    <td></td>\n";
 	foreach my $cvsdate (@cvsdates) {
 	    my $nmstat = $D{$date}{$cvsdate}{nmstat};
 	    unless ($nmstat) {
@@ -1150,6 +1315,7 @@ sub html_cvsdate_test_head {
 	print $html "  </tr>\n";
     }
     print $html "  <tr>\n    <th>build quirks</th>\n";
+    print $html "    <td></td>\n";
     my $prevcvsdate;
     my $index = keys %{{quirks(undef, $cvsdates[0])}};
     foreach my $cvsdate (@cvsdates) {
@@ -1173,6 +1339,7 @@ sub html_cvsdate_test_head {
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
+    print $html "    <td></td>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $repeats = @{$D{$date}{$cvsdate}{repeats} || []} || "";
 	my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
@@ -1188,6 +1355,7 @@ sub html_cvsdate_test_head {
     print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  <tr>\n    <th>zoom</th>\n";
+    print $html "    <td></td>\n";
     $prevcvsdate = undef;
     foreach my $cvsdate (@cvsdates) {
 	print $html "    <th>";
@@ -1203,6 +1371,7 @@ sub html_cvsdate_test_head {
 sub html_cvsdate_test_row {
     my ($html, $date, $test, $td, @cvsdates) = @_;
     print $html "  <tr>\n    <th>$test</th>\n";
+    print $html "    <td>$testdesc{$test}</td>\n";
     foreach my $cvsdate (@cvsdates) {
 	html_status_data($html, $date, $cvsdate, $test, $td->{$cvsdate});
     }
@@ -1319,6 +1488,7 @@ HEADER
 sub html_date_test_head {
     my ($html, @dates) = @_;
     print $html "  <tr>\n    <th>run</th>\n";
+    print $html "    <td></td>\n";
     foreach my $date (@dates) {
 	my $short = $D{$date}{short};
 	my $time = encode_entities($date);
@@ -1330,6 +1500,7 @@ sub html_date_test_head {
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>host cores</th>\n";
+    print $html "    <td></td>\n";
     foreach my $date (@dates) {
 	my $hostname = $D{$date}{host};
 	my $core = $D{$date}{core};
@@ -1337,6 +1508,7 @@ sub html_date_test_head {
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>release setup</th>\n";
+    print $html "    <td></td>\n";
     foreach my $date (@dates) {
 	my $release = $D{$date}{stepconf}{release};
 	my $setupmodes = $D{$date}{stepconf}{setupmodes} ||
@@ -1345,6 +1517,7 @@ sub html_date_test_head {
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>first cvs checkout</th>\n";
+    print $html "    <td></td>\n";
     foreach my $date (@dates) {
 	my $cvsdate = $D{$date}{cvsdates}[0];
 	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
@@ -1353,6 +1526,7 @@ sub html_date_test_head {
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>last cvs checkout</th>\n";
+    print $html "    <td></td>\n";
     foreach my $date (@dates) {
 	my $cvsdate = $D{$date}{cvsdates}[-1];
 	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
@@ -1361,6 +1535,7 @@ sub html_date_test_head {
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";
+    print $html "    <td></td>\n";
     foreach my $date (@dates) {
 	my $steps = @{$D{$date}{cvsdates}};
 	my $interval = $D{$date}{stepconf}{step};
@@ -1372,6 +1547,7 @@ sub html_date_test_head {
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
     foreach my $date (@dates) {
+    print $html "    <td></td>\n";
 	my $cvsdate0 = $D{$date}{cvsdates}[0];
 	my $repeats = @{$D{$date}{$cvsdate0}{repeats} || []} || "";
 	my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
@@ -1390,6 +1566,7 @@ sub html_date_test_head {
 sub html_date_test_row {
     my ($html, $test, $td, @dates) = @_;
     print $html "  <tr>\n    <th>$test</th>\n";
+    print $html "    <td>$testdesc{$test}</td>\n";
     foreach my $date (@dates) {
 	html_status_data($html, ".", $date, $test, $td->{$date});
     }
