@@ -1272,6 +1272,7 @@ sub html_repeat_test_row {
 	my $value0 = first { $_ } map { $vt->{$_}[$i] } @repeats;
 	my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 	print $html "  <tr>\n    <th>$name0</th>\n";
+	print $html "    <td></td>\n";
 	my @numbers = map { $vt->{$_}[$i]{number} }
 	    grep { $td->{$_} && $td->{$_}{status} eq 'PASS' } @repeats;
 	my ($sum, $mean, $maximum, $minimum, $deviation, $relative,
@@ -1533,6 +1534,7 @@ sub html_cvsdate_test_row {
 	    first { $_ } map { $vt->{$_}[$i] } @cvsdates;
 	my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 	print $html "  <tr>\n    <th>$name0</th>\n";
+	print $html "    <td></td>\n";
 	my @numbers = map { $rp0 ?
 	    $vt->{$_}{summary}[$i] : $vt->{$_}[$i]{number} }
 	    grep { $td->{$_} && $td->{$_}{status} eq 'PASS' } @cvsdates;
