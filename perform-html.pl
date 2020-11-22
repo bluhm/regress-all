@@ -383,36 +383,36 @@ my %testplot;
 BEGIN {
     @plotorder = qw(tcp tcp6 udp udp6 linux linux6 make fs);
     my @testplot = (
-    'iperf3_-c10.3.0.33_-w1m_-t10'			=> "tcp",
-    'iperf3_-c10.3.2.35_-w1m_-t10'			=> "tcp",
-    'iperf3_-c10.3.45.35_-w1m_-t10'			=> "tcp",
-    'iperf3_-c10.3.0.33_-w1m_-t10_-R'			=> "tcp",
-    'iperf3_-c10.3.2.35_-w1m_-t10_-R'			=> "tcp",
-    'iperf3_-c10.3.45.35_-w1m_-t10_-R'			=> "tcp",
-    'tcpbench_-S1000000_-t10_10.3.0.33'			=> "tcp",
-    'tcpbench_-S1000000_-t10_10.3.2.35'			=> "tcp",
-    'tcpbench_-S1000000_-t10_10.3.45.35'		=> "tcp",
-    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'		=> "tcp",
-    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'		=> "tcp",
-    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'		=> "tcp",
-    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'		=> "udp",
-    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'		=> "udp",
-    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'		=> "udp",
-    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'		=> "udp",
-    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'		=> "udp",
-    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'		=> "udp",
-    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'	=> "udp",
-    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'	=> "udp",
-    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'	=> "udp",
-    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'	=> "udp",
-    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'	=> "udp",
-    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'	=> "udp",
-    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'		=> "udp",
-    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'		=> "udp",
-    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'	=> "udp",
-    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'		=> "udp",
-    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'		=> "udp",
-    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'	=> "udp",
+    'iperf3_-c10.3.0.33_-w1m_-t10'				=> "tcp",
+    'iperf3_-c10.3.2.35_-w1m_-t10'				=> "tcp",
+    'iperf3_-c10.3.45.35_-w1m_-t10'				=> "tcp",
+    'iperf3_-c10.3.0.33_-w1m_-t10_-R'				=> "tcp",
+    'iperf3_-c10.3.2.35_-w1m_-t10_-R'				=> "tcp",
+    'iperf3_-c10.3.45.35_-w1m_-t10_-R'				=> "tcp",
+    'tcpbench_-S1000000_-t10_10.3.0.33'				=> "tcp",
+    'tcpbench_-S1000000_-t10_10.3.2.35'				=> "tcp",
+    'tcpbench_-S1000000_-t10_10.3.45.35'			=> "tcp",
+    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'			=> "tcp",
+    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'			=> "tcp",
+    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'			=> "tcp",
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'			=> "udp",
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'			=> "udp",
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'			=> "udp",
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'			=> "udp",
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'			=> "udp",
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'			=> "udp",
+    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'		=> "udp",
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'		=> "udp",
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'		=> "udp",
+    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'		=> "udp",
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'		=> "udp",
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'		=> "udp",
+    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'			=> "udp",
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'			=> "udp",
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'		=> "udp",
+    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'			=> "udp",
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'			=> "udp",
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'		=> "udp",
     'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10'		=> "tcp6",
     'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10'		=> "tcp6",
     'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R'		=> "tcp6",
@@ -433,17 +433,17 @@ BEGIN {
     'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'	=> "udp6",
     'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'	=> "udp6",
     'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'	=> "udp6",
-    'iperf3_-c10.3.3.36_-w2m_-t10'			=> "linux",
-    'iperf3_-c10.3.46.36_-w2m_-t10'			=> "linux",
-    'iperf3_-c10.3.3.36_-w2m_-t10_-R'			=> "linux",
-    'iperf3_-c10.3.46.36_-w2m_-t10_-R'			=> "linux",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'	=> "linux6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'	=> "linux6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'	=> "linux6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'	=> "linux6",
-    'time_-lp_make_-CGENERIC.MP_-j4_-s'			=> "make",
-    'time_-lp_make_-CGENERIC.MP_-j8_-s'			=> "make",
-    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'	=> "fs",
+    'iperf3_-c10.3.3.36_-w2m_-t10'				=> "linux",
+    'iperf3_-c10.3.46.36_-w2m_-t10'				=> "linux",
+    'iperf3_-c10.3.3.36_-w2m_-t10_-R'				=> "linux",
+    'iperf3_-c10.3.46.36_-w2m_-t10_-R'				=> "linux",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'		=> "linux6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'		=> "linux6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'		=> "linux6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'		=> "linux6",
+    'time_-lp_make_-CGENERIC.MP_-j4_-s'				=> "make",
+    'time_-lp_make_-CGENERIC.MP_-j8_-s'				=> "make",
+    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'		=> "fs",
     );
     %testplot = @testplot;
     if (2 * keys %testplot != @testplot) {
@@ -750,139 +750,272 @@ my %testdesc;
 BEGIN {
     # add a test description
     my @testdesc = (
-    'iperf3_-c10.3.45.35_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.45.35_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-c10.3.0.33_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.0.33_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-c10.3.0.33_-w1m_-t60'					=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.0.33_-w1m_-t60_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-c10.3.2.35_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.2.35_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60'			=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'iperf3_-c10.3.46.36_-w2m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.46.36_-w2m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-c10.3.3.36_-t10'						=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.3.36_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-c10.3.3.36_-t60'						=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.3.36_-t60_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-c10.3.3.36_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.3.36_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-c10.3.3.36_-w2m_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.3.36_-w2m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-c10.3.3.36_-w400k_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.3.36_-w400k_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-c10.3.3.36_-w410k_-t10'					=> "openbsd-openbsd-stack-tcp-iperf",
-    'iperf3_-c10.3.3.36_-w410k_-t10_-R'					=> "openbsd-openbsd-stack-tcp-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10'				=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60'				=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10'			=> "openbsd-openbsd-stack-tcp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10_-R'			=> "openbsd-openbsd-stack-tcp6-iperf-reverse",
-    'tcpbench_-S1000000_-t10_10.3.45.35'				=> "openbsd-openbsd-stack-tcp-tcpdump",
-    'tcpbench_-S1000000_-t10_10.3.0.33'					=> "openbsd-openbsd-stack-tcp-tcpdump",
-    'tcpbench_-S1000000_-t10_10.3.2.35'					=> "openbsd-openbsd-stack-tcp-tcpdump",
-    'tcpbench_-S1000000_-t60_10.3.0.33'					=> "openbsd-openbsd-stack-tcp-tcpdump",
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0345::35'			=> "openbsd-openbsd-stack-tcp6-tcpdump",
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0300::33'			=> "openbsd-openbsd-stack-tcp6-tcpdump",
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35'			=> "openbsd-openbsd-stack-tcp6-tcpdump",
-    'tcpbench_-S1000000_-t60_fdd7:e83e:66bc:0300::33'			=> "openbsd-openbsd-stack-tcp6-tcpdump",
-    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'				=> "openbsd-openbsd-stack-tcp-tcpdump-parallel",
-    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'				=> "openbsd-openbsd-stack-tcp-tcpdump-parallel",
-    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'				=> "openbsd-openbsd-stack-tcp-tcpdump-parallel",
-    'tcpbench_-S1000000_-t60_-n100_10.3.0.33'				=> "openbsd-openbsd-stack-tcp-tcpdump-parallel",
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-tcp6-tcpdump-parallel",
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-tcp6-tcpdump-parallel",
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-tcp6-tcpdump-parallel",
-    'tcpbench_-S1000000_-t60_-n100_fdd7:e83e:66bc:0300:33'		=> "openbsd-openbsd-stack-tcp6-tcpdump-parallel",
-    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-iperf",
-    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-iperf-reverse",
-    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-iperf",
-    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-iperf-reverse",
-    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-iperf",
-    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-iperf-reverse",
-    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-iperf",
-    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-iperf-reverse",
-    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-iperf",
-    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10'		=> "openbsd-openbsd-stack-udp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10_-R'		=> "openbsd-openbsd-stack-udp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10'		=> "openbsd-openbsd-stack-udp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10_-R'		=> "openbsd-openbsd-stack-udp6-iperf-reverse",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10'		=> "openbsd-openbsd-stack-udp6-iperf",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R'		=> "openbsd-openbsd-stack-udp6-iperf-reverse",
-    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'			=> "openbsd-openbsd-stack-udp-udpbench-long-recv",
-    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'			=> "openbsd-openbsd-stack-udp-udpbench-long-send",
-    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'			=> "openbsd-openbsd-stack-udp-udpbench-long-recv",
-    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'			=> "openbsd-openbsd-stack-udp-udpbench-long-send",
-    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'			=> "openbsd-openbsd-stack-udp-udpbench-long-recv",
-    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'			=> "openbsd-openbsd-stack-udp-udpbench-long-send",
-    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'			=> "openbsd-openbsd-stack-udp-udpbench-short-recv",
-    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'			=> "openbsd-openbsd-stack-udp-udpbench-short-send",
-    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'				=> "openbsd-openbsd-stack-udp-udpbench-short-recv",
-    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'				=> "openbsd-openbsd-stack-udp-udpbench-short-send",
-    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'				=> "openbsd-openbsd-stack-udp-udpbench-short-recv",
-    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'				=> "openbsd-openbsd-stack-udp-udpbench-short-send",
-    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
-    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
-    'udpbench_-l1452_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
-    'udpbench_-l1452_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
-    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
-    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
-    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
-    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
-    'udpbench_-l1472_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
-    'udpbench_-l1472_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
-    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-udpbench-long-recv",
-    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-udpbench-long-send",
-    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
-    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
-    'udpbench_-l16_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
-    'udpbench_-l16_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
-    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
-    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
-    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
-    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
-    'udpbench_-l36_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
-    'udpbench_-l36_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
-    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-udpbench-short-recv",
-    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-udpbench-short-send",
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10'			=> "linux-openbsd-linux-forward-tcp-iperf",
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10_-R'			=> "linux-openbsd-linux-forward-tcp-iperf-reverse",
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-t10'				=> "linux-openbsd-linux-forward-tcp-iperf",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10'	=> "linux-openbsd-linux-forward-tcp6-iperf",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10_-R'	=> "linux-openbsd-linux-forward-tcp6-iperf-reverse",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'		=> "linux-openbsd-linux-forward-tcp6-iperf",
-    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10'			=> "linux-openbsd-linux-splice-tcp-iperf",
-    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10_-R'			=> "linux-openbsd-linux-splice-tcp-iperf-reverse",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10'	=> "linux-openbsd-linux-splice-tcp6-iperf",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10_-R'	=> "linux-openbsd-linux-splice-tcp6-iperf-reverse",
-    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10'			=> "linux-openbsd-openbsd-splice-tcp-iperf",
-    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10_-R'			=> "linux-openbsd-openbsd-splice-tcp-iperf-reverse",
-    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10'			=> "linux-openbsd-splice-tcp-iperf",
-    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10_-R'			=> "linux-openbsd-splice-tcp-iperf-reverse",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10'	=> "linux-openbsd-openbsd-splice-tcp6-iperf",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=> "linux-openbsd-openbsd-splice-tcp6-iperf-reverse",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=> "linux-openbsd-splice-tcp6-iperf",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=> "linux-openbsd-splice-tcp6-iperf-reverse",
-    'time_-lp_make_-CGENERIC.MP_-j4_-s'					=> "make-bsd",
-    'time_-lp_make_-CGENERIC.MP_-j8_-s'					=> "make-bsd",
-    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=> "file-system",
+    'iperf3_-c10.3.45.35_-w1m_-t10'					=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.45.35_-w1m_-t10_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.0.33_-w1m_-t10'					=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.0.33_-w1m_-t10_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.0.33_-w1m_-t60'					=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.0.33_-w1m_-t60_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.2.35_-w1m_-t10'					=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.2.35_-w1m_-t10_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10'			=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10'			=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60'			=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10'			=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-c10.3.46.36_-w2m_-t10'					=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.46.36_-w2m_-t10_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-t10'						=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-t10_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-t60'						=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-t60_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-w1m_-t10'					=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-w1m_-t10_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-w2m_-t10'					=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-w2m_-t10_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-w400k_-t10'					=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-w400k_-t10_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-c10.3.3.36_-w410k_-t10'					=>
+	"openbsd-openbsd-stack-tcp-iperf",
+    'iperf3_-c10.3.3.36_-w410k_-t10_-R'					=>
+	"openbsd-openbsd-stack-tcp-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'			=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10'				=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60'				=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10'			=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'			=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10'			=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10'			=>
+	"openbsd-openbsd-stack-tcp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10_-R'			=>
+	"openbsd-openbsd-stack-tcp6-iperf-reverse",
+    'tcpbench_-S1000000_-t10_10.3.45.35'				=>
+	"openbsd-openbsd-stack-tcp-tcpdump",
+    'tcpbench_-S1000000_-t10_10.3.0.33'					=>
+	"openbsd-openbsd-stack-tcp-tcpdump",
+    'tcpbench_-S1000000_-t10_10.3.2.35'					=>
+	"openbsd-openbsd-stack-tcp-tcpdump",
+    'tcpbench_-S1000000_-t60_10.3.0.33'					=>
+	"openbsd-openbsd-stack-tcp-tcpdump",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0345::35'			=>
+	"openbsd-openbsd-stack-tcp6-tcpdump",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0300::33'			=>
+	"openbsd-openbsd-stack-tcp6-tcpdump",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35'			=>
+	"openbsd-openbsd-stack-tcp6-tcpdump",
+    'tcpbench_-S1000000_-t60_fdd7:e83e:66bc:0300::33'			=>
+	"openbsd-openbsd-stack-tcp6-tcpdump",
+    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'				=>
+	"openbsd-openbsd-stack-tcp-tcpdump-parallel",
+    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'				=>
+	"openbsd-openbsd-stack-tcp-tcpdump-parallel",
+    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'				=>
+	"openbsd-openbsd-stack-tcp-tcpdump-parallel",
+    'tcpbench_-S1000000_-t60_-n100_10.3.0.33'				=>
+	"openbsd-openbsd-stack-tcp-tcpdump-parallel",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0345::35'		=>
+	"openbsd-openbsd-stack-tcp6-tcpdump-parallel",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0300::33'		=>
+	"openbsd-openbsd-stack-tcp6-tcpdump-parallel",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35'		=>
+	"openbsd-openbsd-stack-tcp6-tcpdump-parallel",
+    'tcpbench_-S1000000_-t60_-n100_fdd7:e83e:66bc:0300:33'		=>
+	"openbsd-openbsd-stack-tcp6-tcpdump-parallel",
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'				=>
+	"openbsd-openbsd-stack-udp-iperf",
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'				=>
+	"openbsd-openbsd-stack-udp-iperf-reverse",
+    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10'				=>
+	"openbsd-openbsd-stack-udp-iperf",
+    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R'				=>
+	"openbsd-openbsd-stack-udp-iperf-reverse",
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'				=>
+	"openbsd-openbsd-stack-udp-iperf",
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'				=>
+	"openbsd-openbsd-stack-udp-iperf-reverse",
+    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10'				=>
+	"openbsd-openbsd-stack-udp-iperf",
+    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R'				=>
+	"openbsd-openbsd-stack-udp-iperf-reverse",
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'				=>
+	"openbsd-openbsd-stack-udp-iperf",
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'				=>
+	"openbsd-openbsd-stack-udp-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10'		=>
+	"openbsd-openbsd-stack-udp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10_-R'		=>
+	"openbsd-openbsd-stack-udp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10'		=>
+	"openbsd-openbsd-stack-udp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10_-R'		=>
+	"openbsd-openbsd-stack-udp6-iperf-reverse",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10'		=>
+	"openbsd-openbsd-stack-udp6-iperf",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R'		=>
+	"openbsd-openbsd-stack-udp6-iperf-reverse",
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'			=>
+	"openbsd-openbsd-stack-udp-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'			=>
+	"openbsd-openbsd-stack-udp-udpbench-long-send",
+    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'			=>
+	"openbsd-openbsd-stack-udp-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'			=>
+	"openbsd-openbsd-stack-udp-udpbench-long-send",
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'			=>
+	"openbsd-openbsd-stack-udp-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'			=>
+	"openbsd-openbsd-stack-udp-udpbench-long-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'			=>
+	"openbsd-openbsd-stack-udp-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'			=>
+	"openbsd-openbsd-stack-udp-udpbench-short-send",
+    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'				=>
+	"openbsd-openbsd-stack-udp-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'				=>
+	"openbsd-openbsd-stack-udp-udpbench-short-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'				=>
+	"openbsd-openbsd-stack-udp-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'				=>
+	"openbsd-openbsd-stack-udp-udpbench-short-send",
+    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l1452_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1452_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l1472_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-long-send",
+    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'udpbench_-l16_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l16_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'udpbench_-l36_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=>
+	"openbsd-openbsd-stack-udp6-udpbench-short-send",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10'			=>
+	"linux-openbsd-linux-forward-tcp-iperf",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10_-R'			=>
+	"linux-openbsd-linux-forward-tcp-iperf-reverse",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-t10'				=>
+	"linux-openbsd-linux-forward-tcp-iperf",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10'	=>
+	"linux-openbsd-linux-forward-tcp6-iperf",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10_-R'	=>
+	"linux-openbsd-linux-forward-tcp6-iperf-reverse",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'		=>
+	"linux-openbsd-linux-forward-tcp6-iperf",
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10'			=>
+	"linux-openbsd-linux-splice-tcp-iperf",
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10_-R'			=>
+	"linux-openbsd-linux-splice-tcp-iperf-reverse",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10'	=>
+	"linux-openbsd-linux-splice-tcp6-iperf",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10_-R'	=>
+	"linux-openbsd-linux-splice-tcp6-iperf-reverse",
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10'			=>
+	"linux-openbsd-openbsd-splice-tcp-iperf",
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10_-R'			=>
+	"linux-openbsd-openbsd-splice-tcp-iperf-reverse",
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10'			=>
+	"linux-openbsd-splice-tcp-iperf",
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10_-R'			=>
+	"linux-openbsd-splice-tcp-iperf-reverse",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10'	=>
+	"linux-openbsd-openbsd-splice-tcp6-iperf",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=>
+	"linux-openbsd-openbsd-splice-tcp6-iperf-reverse",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=>
+	"linux-openbsd-splice-tcp6-iperf",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=>
+	"linux-openbsd-splice-tcp6-iperf-reverse",
+    'time_-lp_make_-CGENERIC.MP_-j4_-s'					=>
+	"make-bsd",
+    'time_-lp_make_-CGENERIC.MP_-j8_-s'					=>
+	"make-bsd",
+    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=>
+	"file-system",
     );
     %testdesc = @testdesc;
     if (2 * keys %testdesc != @testdesc) {
@@ -894,6 +1027,9 @@ BEGIN {
 	if ($num{$desc}++) {
 	    $testdesc{$test} = "$desc-$num{$desc}";
 	}
+    }
+    foreach (keys %testplot) {
+	die "testplot $_ is not in testdesc\n" unless $testdesc{$_};
     }
     foreach (keys %testdesc) {
 	die "testdesc $_ is not in testorder\n" unless $testorder{$_};
