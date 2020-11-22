@@ -468,6 +468,11 @@ push @tests, (
 	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_forward_addr",
 	    '-P10', '-t10'],
 	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_forward_addr",
+	    '-P10', '-t10', '-R'],
+	parser => \&iperf3_parser,
     }
 ) if $testmode{forward4} && $linux_forward_addr && $linux_ssh;
 push @tests, (
@@ -475,6 +480,11 @@ push @tests, (
 	initialize => \&iperf3_initialize,
 	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_forward_addr6",
 	    '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_forward_addr6",
+	    '-P10', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{forward6} && $linux_forward_addr6 && $linux_ssh;
