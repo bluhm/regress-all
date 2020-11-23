@@ -39,7 +39,8 @@ usage: $0 [-vn] [-B date] [-D date] [-E date] [-r release] -T test
     -D date	when performace test was run
     -E date	end date of x range, inclusive
     -r release	OpenBSD version number
-    -T test	test plot (tcp|tcp6|linux|linux6|make|udp|udp6|fs)
+    -T test	test plot (tcp|tcp6|udp|udp6|linux|linux6|forward|forward6|
+		make|fs)
 EOF
     exit(2);
 };

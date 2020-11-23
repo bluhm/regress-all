@@ -381,7 +381,7 @@ sub parse_result_files {
 my @plotorder;
 my %testplot;
 BEGIN {
-    @plotorder = qw(tcp tcp6 udp udp6 linux linux6 make fs);
+    @plotorder = qw(tcp tcp6 udp udp6 linux linux6 forward forward6 make fs);
     my @testplot = (
     'iperf3_-c10.3.0.33_-w1m_-t10'				=> "tcp",
     'iperf3_-c10.3.2.35_-w1m_-t10'				=> "tcp",
@@ -441,6 +441,33 @@ BEGIN {
     'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'		=> "linux6",
     'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'		=> "linux6",
     'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'		=> "linux6",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10'		=> "forward",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10_-R'		=> "forward",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-t10'			=> "forward",
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10'		=> "forward",
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10_-R'		=> "forward",
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10'		=> "forward",
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10_-R'		=> "forward",
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10'		=> "forward",
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10_-R'		=> "forward",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10'	=>
+	"forward6",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10_-R'	=>
+	"forward6",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'		=>
+	"forward6",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10'	=>
+	"forward6",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10_-R'	=>
+	"forward6",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10'	=>
+	"forward6",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=>
+	"forward6",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=>
+	"forward6",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=>
+	"forward6",
     'time_-lp_make_-CGENERIC.MP_-j4_-s'				=> "make",
     'time_-lp_make_-CGENERIC.MP_-j8_-s'				=> "make",
     'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'		=> "fs",
