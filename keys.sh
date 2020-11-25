@@ -24,7 +24,7 @@ cat > $PLOT << EOG
 EOD
 set xrange [0.99:1.01]
 set yrange [0.99:1.01]
-set terminal png transparent
+set terminal pngcairo transparent
 do for [i = $FROM:$TO] {
 	set output "key_".i.".png"
 	plot \$point using 1:1 with points lc i pt i
