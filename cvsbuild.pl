@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # recompile parts of machine for performance comparison
 
-# Copyright (c) 2018 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -90,11 +90,11 @@ if ($sysctl{'kern.version'} =~
     $before = $1;
 }
 if ($before) {
-    my @comments = quirk_comments($before, $cvsdate);
-    if (@comments) {
+    my %q = quirks($before, $cvsdate);
+    if (keys %q) {
 	open(my $fh, '>', "quirks-$host.txt")
 	    or die "Open 'quirks-$host.txt' for writing failed: $!";
-	print $fh map { "$_\n" } @comments;
+	print $fh map { "$q{$_}{date} $q{$_}{comment}\n" } sort keys %q;
     }
     foreach my $cmd (quirk_commands($before, $cvsdate, \%sysctl)) {
 	if ($cmd eq "reboot") {

@@ -23,8 +23,8 @@ use Date::Parse;
 use POSIX;
 
 use parent 'Exporter';
-our @EXPORT= qw(quirks quirk_comments quirk_patches quirk_commands
-    quirk_releases quirk_index2letters);
+our @EXPORT= qw(quirks quirk_patches quirk_commands quirk_releases
+    quirk_index2letters);
 
 #### Quirks ####
 
@@ -984,11 +984,6 @@ sub quirks {
 	$q{$commit} = $v;
     }
     return %q;
-}
-
-sub quirk_comments {
-    my %q = quirks(@_);
-    return map { "$q{$_}{date} $q{$_}{comment}" } sort keys %q;
 }
 
 sub quirk_patches {
