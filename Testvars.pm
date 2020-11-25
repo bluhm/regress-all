@@ -30,94 +30,85 @@ our @PLOTORDER;
 
 our %TESTPLOT;
 my @testplot = (
-    'iperf3_-c10.3.0.33_-w1m_-t10'				=> "tcp",
-    'iperf3_-c10.3.2.35_-w1m_-t10'				=> "tcp",
-    'iperf3_-c10.3.45.35_-w1m_-t10'				=> "tcp",
-    'iperf3_-c10.3.0.33_-w1m_-t10_-R'				=> "tcp",
-    'iperf3_-c10.3.2.35_-w1m_-t10_-R'				=> "tcp",
-    'iperf3_-c10.3.45.35_-w1m_-t10_-R'				=> "tcp",
-    'tcpbench_-S1000000_-t10_10.3.0.33'				=> "tcp",
-    'tcpbench_-S1000000_-t10_10.3.2.35'				=> "tcp",
-    'tcpbench_-S1000000_-t10_10.3.45.35'			=> "tcp",
-    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'			=> "tcp",
-    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'			=> "tcp",
-    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'			=> "tcp",
-    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'			=> "udp",
-    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'			=> "udp",
-    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'			=> "udp",
-    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'			=> "udp",
-    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'			=> "udp",
-    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'			=> "udp",
-    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'		=> "udp",
-    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'		=> "udp",
-    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'		=> "udp",
-    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'		=> "udp",
-    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'		=> "udp",
-    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'		=> "udp",
-    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'			=> "udp",
-    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'			=> "udp",
-    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'		=> "udp",
-    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'			=> "udp",
-    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'			=> "udp",
-    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'		=> "udp",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10'		=> "tcp6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10'		=> "tcp6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R'		=> "tcp6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10_-R'		=> "tcp6",
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35'		=> "tcp6",
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0345::35'		=> "tcp6",
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35'	=> "tcp6",
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0345::35'	=> "tcp6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10'	=> "udp6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10'	=> "udp6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R'	=> "udp6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10_-R'	=> "udp6",
-    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'	=> "udp6",
-    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'	=> "udp6",
-    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'	=> "udp6",
-    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'	=> "udp6",
-    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'	=> "udp6",
-    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'	=> "udp6",
-    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'	=> "udp6",
-    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'	=> "udp6",
-    'iperf3_-c10.3.3.36_-w2m_-t10'				=> "linux",
-    'iperf3_-c10.3.46.36_-w2m_-t10'				=> "linux",
-    'iperf3_-c10.3.3.36_-w2m_-t10_-R'				=> "linux",
-    'iperf3_-c10.3.46.36_-w2m_-t10_-R'				=> "linux",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'		=> "linux6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'		=> "linux6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'		=> "linux6",
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'		=> "linux6",
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10'		=> "forward",
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10_-R'		=> "forward",
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-t10'			=> "forward",
-    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10'		=> "forward",
-    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10_-R'		=> "forward",
-    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10'		=> "forward",
-    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10_-R'		=> "forward",
-    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10'		=> "forward",
-    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10_-R'		=> "forward",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10'	=>
-	"forward6",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10_-R'	=>
-	"forward6",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'		=>
-	"forward6",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10'	=>
-	"forward6",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10_-R'	=>
-	"forward6",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10'	=>
-	"forward6",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=>
-	"forward6",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=>
-	"forward6",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=>
-	"forward6",
-    'time_-lp_make_-CGENERIC.MP_-j4_-s'				=> "make",
-    'time_-lp_make_-CGENERIC.MP_-j8_-s'				=> "make",
-    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'		=> "fs",
+    'iperf3_-c10.3.0.33_-w1m_-t10'					=> "tcp",
+    'iperf3_-c10.3.2.35_-w1m_-t10'					=> "tcp",
+    'iperf3_-c10.3.45.35_-w1m_-t10'					=> "tcp",
+    'iperf3_-c10.3.0.33_-w1m_-t10_-R'					=> "tcp",
+    'iperf3_-c10.3.2.35_-w1m_-t10_-R'					=> "tcp",
+    'iperf3_-c10.3.45.35_-w1m_-t10_-R'					=> "tcp",
+    'tcpbench_-S1000000_-t10_10.3.0.33'					=> "tcp",
+    'tcpbench_-S1000000_-t10_10.3.2.35'					=> "tcp",
+    'tcpbench_-S1000000_-t10_10.3.45.35'				=> "tcp",
+    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'				=> "tcp",
+    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'				=> "tcp",
+    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'				=> "tcp",
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'				=> "udp",
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'				=> "udp",
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'				=> "udp",
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'				=> "udp",
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'				=> "udp",
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'				=> "udp",
+    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'			=> "udp",
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'			=> "udp",
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'			=> "udp",
+    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'			=> "udp",
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'			=> "udp",
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'			=> "udp",
+    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'				=> "udp",
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'				=> "udp",
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'			=> "udp",
+    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'				=> "udp",
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'				=> "udp",
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'			=> "udp",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10'			=> "tcp6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10'			=> "tcp6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R'			=> "tcp6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10_-R'			=> "tcp6",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35'			=> "tcp6",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0345::35'			=> "tcp6",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35'		=> "tcp6",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0345::35'		=> "tcp6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10'		=> "udp6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10'		=> "udp6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R'		=> "udp6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10_-R'		=> "udp6",
+    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "udp6",
+    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "udp6",
+    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "udp6",
+    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "udp6",
+    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "udp6",
+    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "udp6",
+    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "udp6",
+    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "udp6",
+    'iperf3_-c10.3.3.36_-w2m_-t10'					=> "linux",
+    'iperf3_-c10.3.46.36_-w2m_-t10'					=> "linux",
+    'iperf3_-c10.3.3.36_-w2m_-t10_-R'					=> "linux",
+    'iperf3_-c10.3.46.36_-w2m_-t10_-R'					=> "linux",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'			=> "linux6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'			=> "linux6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'			=> "linux6",
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'			=> "linux6",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10'			=> "forward",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10_-R'			=> "forward",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-t10'				=> "forward",
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10'			=> "forward",
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10_-R'			=> "forward",
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10'			=> "forward",
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10_-R'			=> "forward",
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10'			=> "forward",
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10_-R'			=> "forward",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10'	=> "forward6",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10_-R'	=> "forward6",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'		=> "forward6",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10'	=> "forward6",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10_-R'	=> "forward6",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10'	=> "forward6",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=> "forward6",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=> "forward6",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=> "forward6",
+    'time_-lp_make_-CGENERIC.MP_-j4_-s'					=> "make",
+    'time_-lp_make_-CGENERIC.MP_-j8_-s'					=> "make",
+    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=> "fs",
 );
 
 %TESTPLOT = @testplot;
@@ -181,157 +172,148 @@ our %TESTORDER;
 #   xxxxx4 iperf tcp window 2m
 #   xxxxx5 iperf tcp window 400k
 #   xxxxx6 iperf tcp window 410k
-# put testorder in begin block to check consistency during compile time
 my @testorder = (
-    'iperf3_-c10.3.0.33_-w1m_-t10'				=> 111111,
-    'iperf3_-c10.3.2.35_-w1m_-t10'				=> 211111,
-    'iperf3_-c10.3.45.35_-w1m_-t10'				=> 411111,
-    'iperf3_-c10.3.0.33_-w1m_-t60'				=> 111112,
-    'iperf3_-c10.3.0.33_-w1m_-t10_-R'				=> 111121,
-    'iperf3_-c10.3.2.35_-w1m_-t10_-R'				=> 211121,
-    'iperf3_-c10.3.45.35_-w1m_-t10_-R'				=> 411121,
-    'iperf3_-c10.3.0.33_-w1m_-t60_-R'				=> 111122,
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10'		=> 121111,
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10'		=> 221111,
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10'		=> 421111,
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60'		=> 121112,
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10_-R'		=> 121121,
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R'		=> 221121,
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10_-R'		=> 421121,
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60_-R'		=> 121122,
-    'iperf3_-c10.3.3.36_-t10'					=> 311111,
-    'iperf3_-c10.3.46.36_-t10'					=> 511111,
-    'iperf3_-c10.3.3.36_-t60'					=> 311112,
-    'iperf3_-c10.3.3.36_-w1m_-t10'				=> 311113,
-    'iperf3_-c10.3.3.36_-w2m_-t10'				=> 311114,
-    'iperf3_-c10.3.46.36_-w2m_-t10'				=> 511114,
-    'iperf3_-c10.3.3.36_-w400k_-t10'				=> 311115,
-    'iperf3_-c10.3.3.36_-w410k_-t10'				=> 311116,
-    'iperf3_-c10.3.3.36_-t10_-R'				=> 311121,
-    'iperf3_-c10.3.46.36_-t10_-R'				=> 511121,
-    'iperf3_-c10.3.3.36_-t60_-R'				=> 311122,
-    'iperf3_-c10.3.3.36_-w1m_-t10_-R'				=> 311123,
-    'iperf3_-c10.3.3.36_-w2m_-t10_-R'				=> 311124,
-    'iperf3_-c10.3.46.36_-w2m_-t10_-R'				=> 511124,
-    'iperf3_-c10.3.3.36_-w400k_-t10_-R'				=> 311125,
-    'iperf3_-c10.3.3.36_-w410k_-t10_-R'				=> 311126,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10'			=> 321111,
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'			=> 521111,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60'			=> 321112,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10'		=> 321113,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'		=> 321114,
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'		=> 521114,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10'		=> 321115,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10'		=> 321116,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10_-R'		=> 321121,
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10_-R'		=> 521121,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60_-R'		=> 321122,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10_-R'		=> 321123,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'		=> 321124,
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'		=> 521124,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10_-R'		=> 321125,
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10_-R'		=> 321126,
-    'tcpbench_-S1000000_-t10_10.3.0.33'				=> 111211,
-    'tcpbench_-S1000000_-t10_10.3.2.35'				=> 211211,
-    'tcpbench_-S1000000_-t10_10.3.45.35'			=> 411211,
-    'tcpbench_-S1000000_-t60_10.3.0.33'				=> 111212,
-    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'			=> 111221,
-    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'			=> 211221,
-    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'			=> 411221,
-    'tcpbench_-S1000000_-t60_-n100_10.3.0.33'			=> 111222,
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0300::33'		=> 121211,
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35'		=> 221211,
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0345::35'		=> 421211,
-    'tcpbench_-S1000000_-t60_fdd7:e83e:66bc:0300::33'		=> 121212,
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0300::33'	=> 121221,
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35'	=> 221221,
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0345::35'	=> 421221,
-    'tcpbench_-S1000000_-t60_-n100_fdd7:e83e:66bc:0300:33'	=> 121222,
-    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10'			=> 111311,
-    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10'			=> 211311,
-    'iperf3_-c10.3.45.35_-u_-b0_-w1m_-t10'			=> 411311,
-    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R'			=> 111321,
-    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R'			=> 211321,
-    'iperf3_-c10.3.45.35_-u_-b0_-w1m_-t10_-R'			=> 411321,
-    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'			=> 111413,
-    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'			=> 211413,
-    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'			=> 411413,
-    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'			=> 111423,
-    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'			=> 211423,
-    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'			=> 411423,
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10'	=> 121413,
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10'	=> 221413,
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10'	=> 421413,
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10_-R'	=> 121423,
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R'	=> 221423,
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10_-R'	=> 421423,
-    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'		=> 111511,
-    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'		=> 111521,
-    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'			=> 111531,
-    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'			=> 111541,
-    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'		=> 211511,
-    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'		=> 411511,
-    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'		=> 211521,
-    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'		=> 411521,
-    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'			=> 211531,
-    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'		=> 411531,
-    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'			=> 211541,
-    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'		=> 411541,
-    'udpbench_-l1452_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'	=> 121511,
-    'udpbench_-l1452_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'	=> 121521,
-    'udpbench_-l16_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'	=> 121531,
-    'udpbench_-l16_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'	=> 121541,
-    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'	=> 221511,
-    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'	=> 421511,
-    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'	=> 221521,
-    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'	=> 421521,
-    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'	=> 221531,
-    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'	=> 421531,
-    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'	=> 221541,
-    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'	=> 421541,
-    'udpbench_-l1472_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'	=> 121512,
-    'udpbench_-l1472_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'	=> 121522,
-    'udpbench_-l36_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'	=> 121532,
-    'udpbench_-l36_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'	=> 121542,
-    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'	=> 221512,
-    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'	=> 421512,
-    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'	=> 221522,
-    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'	=> 421522,
-    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'	=> 221532,
-    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'	=> 421532,
-    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'	=> 221542,
-    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'	=> 421542,
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10'		=> 612151,
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10_-R'		=> 612161,
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-t10'			=> 612111,
-    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10'		=> 613151,
-    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10_-R'		=> 613161,
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10'	=>
-	622151,
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10_-R'	=>
-	622161,
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'		=>
-	622111,
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10'	=>
-	623151,
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10_-R'	=>
-	623161,
-    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10'		=> 614151,
-    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10_-R'		=> 614161,
-    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10'		=> 615151,
-    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10_-R'		=> 615161,
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10'	=>
-	624151,
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=>
-	624161,
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=>
-	625151,
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=>
-	625161,
-    'time_-lp_make_-CGENERIC.MP_-j4_-s'				=> 800040,
-    'time_-lp_make_-CGENERIC.MP_-j8_-s'				=> 800080,
-    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'		=> 900080,
+    'iperf3_-c10.3.0.33_-w1m_-t10'					=> 111111,
+    'iperf3_-c10.3.2.35_-w1m_-t10'					=> 211111,
+    'iperf3_-c10.3.45.35_-w1m_-t10'					=> 411111,
+    'iperf3_-c10.3.0.33_-w1m_-t60'					=> 111112,
+    'iperf3_-c10.3.0.33_-w1m_-t10_-R'					=> 111121,
+    'iperf3_-c10.3.2.35_-w1m_-t10_-R'					=> 211121,
+    'iperf3_-c10.3.45.35_-w1m_-t10_-R'					=> 411121,
+    'iperf3_-c10.3.0.33_-w1m_-t60_-R'					=> 111122,
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10'			=> 121111,
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10'			=> 221111,
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10'			=> 421111,
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60'			=> 121112,
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10_-R'			=> 121121,
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R'			=> 221121,
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10_-R'			=> 421121,
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60_-R'			=> 121122,
+    'iperf3_-c10.3.3.36_-t10'						=> 311111,
+    'iperf3_-c10.3.46.36_-t10'						=> 511111,
+    'iperf3_-c10.3.3.36_-t60'						=> 311112,
+    'iperf3_-c10.3.3.36_-w1m_-t10'					=> 311113,
+    'iperf3_-c10.3.3.36_-w2m_-t10'					=> 311114,
+    'iperf3_-c10.3.46.36_-w2m_-t10'					=> 511114,
+    'iperf3_-c10.3.3.36_-w400k_-t10'					=> 311115,
+    'iperf3_-c10.3.3.36_-w410k_-t10'					=> 311116,
+    'iperf3_-c10.3.3.36_-t10_-R'					=> 311121,
+    'iperf3_-c10.3.46.36_-t10_-R'					=> 511121,
+    'iperf3_-c10.3.3.36_-t60_-R'					=> 311122,
+    'iperf3_-c10.3.3.36_-w1m_-t10_-R'					=> 311123,
+    'iperf3_-c10.3.3.36_-w2m_-t10_-R'					=> 311124,
+    'iperf3_-c10.3.46.36_-w2m_-t10_-R'					=> 511124,
+    'iperf3_-c10.3.3.36_-w400k_-t10_-R'					=> 311125,
+    'iperf3_-c10.3.3.36_-w410k_-t10_-R'					=> 311126,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10'				=> 321111,
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'				=> 521111,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60'				=> 321112,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10'			=> 321113,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'			=> 321114,
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'			=> 521114,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10'			=> 321115,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10'			=> 321116,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10_-R'			=> 321121,
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10_-R'			=> 521121,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60_-R'			=> 321122,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10_-R'			=> 321123,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'			=> 321124,
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'			=> 521124,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10_-R'			=> 321125,
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10_-R'			=> 321126,
+    'tcpbench_-S1000000_-t10_10.3.0.33'					=> 111211,
+    'tcpbench_-S1000000_-t10_10.3.2.35'					=> 211211,
+    'tcpbench_-S1000000_-t10_10.3.45.35'				=> 411211,
+    'tcpbench_-S1000000_-t60_10.3.0.33'					=> 111212,
+    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'				=> 111221,
+    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'				=> 211221,
+    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'				=> 411221,
+    'tcpbench_-S1000000_-t60_-n100_10.3.0.33'				=> 111222,
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0300::33'			=> 121211,
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35'			=> 221211,
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0345::35'			=> 421211,
+    'tcpbench_-S1000000_-t60_fdd7:e83e:66bc:0300::33'			=> 121212,
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0300::33'		=> 121221,
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35'		=> 221221,
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0345::35'		=> 421221,
+    'tcpbench_-S1000000_-t60_-n100_fdd7:e83e:66bc:0300:33'		=> 121222,
+    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10'				=> 111311,
+    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10'				=> 211311,
+    'iperf3_-c10.3.45.35_-u_-b0_-w1m_-t10'				=> 411311,
+    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R'				=> 111321,
+    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R'				=> 211321,
+    'iperf3_-c10.3.45.35_-u_-b0_-w1m_-t10_-R'				=> 411321,
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'				=> 111413,
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'				=> 211413,
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'				=> 411413,
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'				=> 111423,
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'				=> 211423,
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'				=> 411423,
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10'		=> 121413,
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10'		=> 221413,
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10'		=> 421413,
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10_-R'		=> 121423,
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R'		=> 221423,
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10_-R'		=> 421423,
+    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'			=> 111511,
+    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'			=> 111521,
+    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'				=> 111531,
+    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'				=> 111541,
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'			=> 211511,
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'			=> 411511,
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'			=> 211521,
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'			=> 411521,
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'				=> 211531,
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'			=> 411531,
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'				=> 211541,
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'			=> 411541,
+    'udpbench_-l1452_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> 121511,
+    'udpbench_-l1452_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> 121521,
+    'udpbench_-l16_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> 121531,
+    'udpbench_-l16_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> 121541,
+    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> 221511,
+    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> 421511,
+    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> 221521,
+    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> 421521,
+    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> 221531,
+    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> 421531,
+    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> 221541,
+    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> 421541,
+    'udpbench_-l1472_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> 121512,
+    'udpbench_-l1472_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> 121522,
+    'udpbench_-l36_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> 121532,
+    'udpbench_-l36_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> 121542,
+    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> 221512,
+    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> 421512,
+    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> 221522,
+    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> 421522,
+    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> 221532,
+    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> 421532,
+    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> 221542,
+    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> 421542,
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10'			=> 612151,
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10_-R'			=> 612161,
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-t10'				=> 612111,
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10'			=> 613151,
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10_-R'			=> 613161,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10'	=> 622151,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10_-R'	=> 622161,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'		=> 622111,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10'	=> 623151,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10_-R'	=> 623161,
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10'			=> 614151,
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10_-R'			=> 614161,
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10'			=> 615151,
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10_-R'			=> 615161,
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10'	=> 624151,
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=> 624161,
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=> 625151,
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=> 625161,
+    'time_-lp_make_-CGENERIC.MP_-j4_-s'					=> 800040,
+    'time_-lp_make_-CGENERIC.MP_-j8_-s'					=> 800080,
+    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=> 900080,
 );
+
 %TESTORDER = @testorder;
 if (2 * keys %TESTORDER != @testorder) {
     die "testorder keys not unique";
@@ -353,272 +335,139 @@ foreach (keys %TESTPLOT) {
 our %TESTDESC;
 # add a test description
 my @testdesc = (
-    'iperf3_-c10.3.45.35_-w1m_-t10'					=>
-	"openbsd-openbsd-stack-tcp-fwd",
-    'iperf3_-c10.3.45.35_-w1m_-t10_-R'					=>
-	"openbsd-openbsd-stack-tcp-rev",
-    'iperf3_-c10.3.0.33_-w1m_-t10'					=>
-	"openbsd-openbsd-stack-tcp-fwd",
-    'iperf3_-c10.3.0.33_-w1m_-t10_-R'					=>
-	"openbsd-openbsd-stack-tcp-rev",
-    'iperf3_-c10.3.0.33_-w1m_-t60'					=>
-	"openbsd-openbsd-stack-tcp-fwd",
-    'iperf3_-c10.3.0.33_-w1m_-t60_-R'					=>
-	"openbsd-openbsd-stack-tcp-rev",
-    'iperf3_-c10.3.2.35_-w1m_-t10'					=>
-	"openbsd-openbsd-stack-tcp-fwd",
-    'iperf3_-c10.3.2.35_-w1m_-t10_-R'					=>
-	"openbsd-openbsd-stack-tcp-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10'			=>
-	"openbsd-openbsd-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10_-R'			=>
-	"openbsd-openbsd-stack-tcp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10'			=>
-	"openbsd-openbsd-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10_-R'			=>
-	"openbsd-openbsd-stack-tcp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60'			=>
-	"openbsd-openbsd-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60_-R'			=>
-	"openbsd-openbsd-stack-tcp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10'			=>
-	"openbsd-openbsd-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R'			=>
-	"openbsd-openbsd-stack-tcp6-rev",
-    'iperf3_-c10.3.46.36_-w2m_-t10'					=>
-	"openbsd-linux-stack-tcp-fwd",
-    'iperf3_-c10.3.46.36_-w2m_-t10_-R'					=>
-	"openbsd-linux-stack-tcp-rev",
-    'iperf3_-c10.3.3.36_-t10'						=>
-	"openbsd-linux-stack-tcp-fwd",
-    'iperf3_-c10.3.3.36_-t10_-R'					=>
-	"openbsd-linux-stack-tcp-rev",
-    'iperf3_-c10.3.3.36_-t60'						=>
-	"openbsd-linux-stack-tcp-fwd",
-    'iperf3_-c10.3.3.36_-t60_-R'					=>
-	"openbsd-linux-stack-tcp-rev",
-    'iperf3_-c10.3.3.36_-w1m_-t10'					=>
-	"openbsd-linux-stack-tcp-fwd",
-    'iperf3_-c10.3.3.36_-w1m_-t10_-R'					=>
-	"openbsd-linux-stack-tcp-rev",
-    'iperf3_-c10.3.3.36_-w2m_-t10'					=>
-	"openbsd-linux-stack-tcp-fwd",
-    'iperf3_-c10.3.3.36_-w2m_-t10_-R'					=>
-	"openbsd-linux-stack-tcp-rev",
-    'iperf3_-c10.3.3.36_-w400k_-t10'					=>
-	"openbsd-linux-stack-tcp-fwd",
-    'iperf3_-c10.3.3.36_-w400k_-t10_-R'					=>
-	"openbsd-linux-stack-tcp-rev",
-    'iperf3_-c10.3.3.36_-w410k_-t10'					=>
-	"openbsd-linux-stack-tcp-fwd",
-    'iperf3_-c10.3.3.36_-w410k_-t10_-R'					=>
-	"openbsd-linux-stack-tcp-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'			=>
-	"openbsd-linux-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'			=>
-	"openbsd-linux-stack-tcp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10'				=>
-	"openbsd-linux-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10_-R'			=>
-	"openbsd-linux-stack-tcp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60'				=>
-	"openbsd-linux-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60_-R'			=>
-	"openbsd-linux-stack-tcp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10'			=>
-	"openbsd-linux-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10_-R'			=>
-	"openbsd-linux-stack-tcp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'			=>
-	"openbsd-linux-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'			=>
-	"openbsd-linux-stack-tcp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10'			=>
-	"openbsd-linux-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10_-R'			=>
-	"openbsd-linux-stack-tcp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10'			=>
-	"openbsd-linux-stack-tcp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10_-R'			=>
-	"openbsd-linux-stack-tcp6-rev",
-    'tcpbench_-S1000000_-t10_10.3.45.35'				=>
-	"openbsd-openbsd-stack-tcp-single",
-    'tcpbench_-S1000000_-t10_10.3.0.33'					=>
-	"openbsd-openbsd-stack-tcp-single",
-    'tcpbench_-S1000000_-t10_10.3.2.35'					=>
-	"openbsd-openbsd-stack-tcp-single",
-    'tcpbench_-S1000000_-t60_10.3.0.33'					=>
-	"openbsd-openbsd-stack-tcp-single",
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0345::35'			=>
-	"openbsd-openbsd-stack-tcp6-single",
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0300::33'			=>
-	"openbsd-openbsd-stack-tcp6-single",
-    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35'			=>
-	"openbsd-openbsd-stack-tcp6-single",
-    'tcpbench_-S1000000_-t60_fdd7:e83e:66bc:0300::33'			=>
-	"openbsd-openbsd-stack-tcp6-single",
-    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'				=>
-	"openbsd-openbsd-stack-tcp-parallel",
-    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'				=>
-	"openbsd-openbsd-stack-tcp-parallel",
-    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'				=>
-	"openbsd-openbsd-stack-tcp-parallel",
-    'tcpbench_-S1000000_-t60_-n100_10.3.0.33'				=>
-	"openbsd-openbsd-stack-tcp-parallel",
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0345::35'		=>
-	"openbsd-openbsd-stack-tcp6-parallel",
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0300::33'		=>
-	"openbsd-openbsd-stack-tcp6-parallel",
-    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35'		=>
-	"openbsd-openbsd-stack-tcp6-parallel",
-    'tcpbench_-S1000000_-t60_-n100_fdd7:e83e:66bc:0300:33'		=>
-	"openbsd-openbsd-stack-tcp6-parallel",
-    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'				=>
-	"openbsd-openbsd-stack-udp-fwd",
-    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'				=>
-	"openbsd-openbsd-stack-udp-rev",
-    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10'				=>
-	"openbsd-openbsd-stack-udp-fwd",
-    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R'				=>
-	"openbsd-openbsd-stack-udp-rev",
-    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'				=>
-	"openbsd-openbsd-stack-udp-fwd",
-    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'				=>
-	"openbsd-openbsd-stack-udp-rev",
-    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10'				=>
-	"openbsd-openbsd-stack-udp-fwd",
-    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R'				=>
-	"openbsd-openbsd-stack-udp-rev",
-    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'				=>
-	"openbsd-openbsd-stack-udp-fwd",
-    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'				=>
-	"openbsd-openbsd-stack-udp-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10'		=>
-	"openbsd-openbsd-stack-udp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10_-R'		=>
-	"openbsd-openbsd-stack-udp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10'		=>
-	"openbsd-openbsd-stack-udp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10_-R'		=>
-	"openbsd-openbsd-stack-udp6-rev",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10'		=>
-	"openbsd-openbsd-stack-udp6-fwd",
-    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R'		=>
-	"openbsd-openbsd-stack-udp6-rev",
-    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'			=>
-	"openbsd-openbsd-stack-udp-long-recv",
-    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'			=>
-	"openbsd-openbsd-stack-udp-long-send",
-    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'			=>
-	"openbsd-openbsd-stack-udp-long-recv",
-    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'			=>
-	"openbsd-openbsd-stack-udp-long-send",
-    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'			=>
-	"openbsd-openbsd-stack-udp-long-recv",
-    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'			=>
-	"openbsd-openbsd-stack-udp-long-send",
-    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'			=>
-	"openbsd-openbsd-stack-udp-short-recv",
-    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'			=>
-	"openbsd-openbsd-stack-udp-short-send",
-    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'				=>
-	"openbsd-openbsd-stack-udp-short-recv",
-    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'				=>
-	"openbsd-openbsd-stack-udp-short-send",
-    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'				=>
-	"openbsd-openbsd-stack-udp-short-recv",
-    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'				=>
-	"openbsd-openbsd-stack-udp-short-send",
-    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=>
-	"openbsd-openbsd-stack-udp6-long-recv",
-    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=>
-	"openbsd-openbsd-stack-udp6-long-send",
-    'udpbench_-l1452_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=>
-	"openbsd-openbsd-stack-udp6-long-recv",
-    'udpbench_-l1452_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=>
-	"openbsd-openbsd-stack-udp6-long-send",
-    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=>
-	"openbsd-openbsd-stack-udp6-long-recv",
-    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=>
-	"openbsd-openbsd-stack-udp6-long-send",
-    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=>
-	"openbsd-openbsd-stack-udp6-long-recv",
-    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=>
-	"openbsd-openbsd-stack-udp6-long-send",
-    'udpbench_-l1472_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=>
-	"openbsd-openbsd-stack-udp6-long-recv",
-    'udpbench_-l1472_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=>
-	"openbsd-openbsd-stack-udp6-long-send",
-    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=>
-	"openbsd-openbsd-stack-udp6-long-recv",
-    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=>
-	"openbsd-openbsd-stack-udp6-long-send",
-    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=>
-	"openbsd-openbsd-stack-udp6-short-recv",
-    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=>
-	"openbsd-openbsd-stack-udp6-short-send",
-    'udpbench_-l16_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=>
-	"openbsd-openbsd-stack-udp6-short-recv",
-    'udpbench_-l16_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=>
-	"openbsd-openbsd-stack-udp6-short-send",
-    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=>
-	"openbsd-openbsd-stack-udp6-short-recv",
-    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=>
-	"openbsd-openbsd-stack-udp6-short-send",
-    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=>
-	"openbsd-openbsd-stack-udp6-short-recv",
-    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=>
-	"openbsd-openbsd-stack-udp6-short-send",
-    'udpbench_-l36_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=>
-	"openbsd-openbsd-stack-udp6-short-recv",
-    'udpbench_-l36_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=>
-	"openbsd-openbsd-stack-udp6-short-send",
-    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=>
-	"openbsd-openbsd-stack-udp6-short-recv",
-    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=>
-	"openbsd-openbsd-stack-udp6-short-send",
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10'			=>
-	"linux-openbsd-linux-forward-tcp-fwd",
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10_-R'			=>
-	"linux-openbsd-linux-forward-tcp-rev",
-    'ssh_perform@lt13_iperf3_-c10.3.46.36_-t10'				=>
-	"linux-openbsd-linux-forward-tcp-fwd",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10'	=>
-	"linux-openbsd-linux-forward-tcp6-fwd",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10_-R'	=>
-	"linux-openbsd-linux-forward-tcp6-rev",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'		=>
-	"linux-openbsd-linux-forward-tcp6-fwd",
-    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10'			=>
-	"linux-openbsd-linux-splice-tcp-fwd",
-    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10_-R'			=>
-	"linux-openbsd-linux-splice-tcp-rev",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10'	=>
-	"linux-openbsd-linux-splice-tcp6-fwd",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10_-R'	=>
-	"linux-openbsd-linux-splice-tcp6-rev",
-    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10'			=>
-	"linux-openbsd-openbsd-splice-tcp-fwd",
-    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10_-R'			=>
-	"linux-openbsd-openbsd-splice-tcp-rev",
-    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10'			=>
-	"linux-openbsd-splice-tcp-fwd",
-    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10_-R'			=>
-	"linux-openbsd-splice-tcp-rev",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10'	=>
-	"linux-openbsd-openbsd-splice-tcp6-fwd",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=>
-	"linux-openbsd-openbsd-splice-tcp6-rev",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=>
-	"linux-openbsd-splice-tcp6-fwd",
-    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=>
-	"linux-openbsd-splice-tcp6-rev",
-    'time_-lp_make_-CGENERIC.MP_-j4_-s'					=>
-	"make-bsd",
-    'time_-lp_make_-CGENERIC.MP_-j8_-s'					=>
-	"make-bsd",
-    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=>
-	"file-system",
+    'iperf3_-c10.3.45.35_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-fwd",
+    'iperf3_-c10.3.45.35_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-rev",
+    'iperf3_-c10.3.0.33_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-fwd",
+    'iperf3_-c10.3.0.33_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-rev",
+    'iperf3_-c10.3.0.33_-w1m_-t60'					=> "openbsd-openbsd-stack-tcp-fwd",
+    'iperf3_-c10.3.0.33_-w1m_-t60_-R'					=> "openbsd-openbsd-stack-tcp-rev",
+    'iperf3_-c10.3.2.35_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-fwd",
+    'iperf3_-c10.3.2.35_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60'			=> "openbsd-openbsd-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-w1m_-t60_-R'			=> "openbsd-openbsd-stack-tcp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10'			=> "openbsd-openbsd-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-w1m_-t10_-R'			=> "openbsd-openbsd-stack-tcp6-rev",
+    'iperf3_-c10.3.46.36_-w2m_-t10'					=> "openbsd-linux-stack-tcp-fwd",
+    'iperf3_-c10.3.46.36_-w2m_-t10_-R'					=> "openbsd-linux-stack-tcp-rev",
+    'iperf3_-c10.3.3.36_-t10'						=> "openbsd-linux-stack-tcp-fwd",
+    'iperf3_-c10.3.3.36_-t10_-R'					=> "openbsd-linux-stack-tcp-rev",
+    'iperf3_-c10.3.3.36_-t60'						=> "openbsd-linux-stack-tcp-fwd",
+    'iperf3_-c10.3.3.36_-t60_-R'					=> "openbsd-linux-stack-tcp-rev",
+    'iperf3_-c10.3.3.36_-w1m_-t10'					=> "openbsd-linux-stack-tcp-fwd",
+    'iperf3_-c10.3.3.36_-w1m_-t10_-R'					=> "openbsd-linux-stack-tcp-rev",
+    'iperf3_-c10.3.3.36_-w2m_-t10'					=> "openbsd-linux-stack-tcp-fwd",
+    'iperf3_-c10.3.3.36_-w2m_-t10_-R'					=> "openbsd-linux-stack-tcp-rev",
+    'iperf3_-c10.3.3.36_-w400k_-t10'					=> "openbsd-linux-stack-tcp-fwd",
+    'iperf3_-c10.3.3.36_-w400k_-t10_-R'					=> "openbsd-linux-stack-tcp-rev",
+    'iperf3_-c10.3.3.36_-w410k_-t10'					=> "openbsd-linux-stack-tcp-fwd",
+    'iperf3_-c10.3.3.36_-w410k_-t10_-R'					=> "openbsd-linux-stack-tcp-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10'			=> "openbsd-linux-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0346::36_-w2m_-t10_-R'			=> "openbsd-linux-stack-tcp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10'				=> "openbsd-linux-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t10_-R'			=> "openbsd-linux-stack-tcp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60'				=> "openbsd-linux-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-t60_-R'			=> "openbsd-linux-stack-tcp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10'			=> "openbsd-linux-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w1m_-t10_-R'			=> "openbsd-linux-stack-tcp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10'			=> "openbsd-linux-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w2m_-t10_-R'			=> "openbsd-linux-stack-tcp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10'			=> "openbsd-linux-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w400k-t10_-R'			=> "openbsd-linux-stack-tcp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10'			=> "openbsd-linux-stack-tcp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0303::36_-w410k-t10_-R'			=> "openbsd-linux-stack-tcp6-rev",
+    'tcpbench_-S1000000_-t10_10.3.45.35'				=> "openbsd-openbsd-stack-tcp-single",
+    'tcpbench_-S1000000_-t10_10.3.0.33'					=> "openbsd-openbsd-stack-tcp-single",
+    'tcpbench_-S1000000_-t10_10.3.2.35'					=> "openbsd-openbsd-stack-tcp-single",
+    'tcpbench_-S1000000_-t60_10.3.0.33'					=> "openbsd-openbsd-stack-tcp-single",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0345::35'			=> "openbsd-openbsd-stack-tcp6-single",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0300::33'			=> "openbsd-openbsd-stack-tcp6-single",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bc:0302::35'			=> "openbsd-openbsd-stack-tcp6-single",
+    'tcpbench_-S1000000_-t60_fdd7:e83e:66bc:0300::33'			=> "openbsd-openbsd-stack-tcp6-single",
+    'tcpbench_-S1000000_-t10_-n100_10.3.45.35'				=> "openbsd-openbsd-stack-tcp-parallel",
+    'tcpbench_-S1000000_-t10_-n100_10.3.0.33'				=> "openbsd-openbsd-stack-tcp-parallel",
+    'tcpbench_-S1000000_-t10_-n100_10.3.2.35'				=> "openbsd-openbsd-stack-tcp-parallel",
+    'tcpbench_-S1000000_-t60_-n100_10.3.0.33'				=> "openbsd-openbsd-stack-tcp-parallel",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-tcp6-parallel",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-tcp6-parallel",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-tcp6-parallel",
+    'tcpbench_-S1000000_-t60_-n100_fdd7:e83e:66bc:0300:33'		=> "openbsd-openbsd-stack-tcp6-parallel",
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-fwd",
+    'iperf3_-c10.3.45.35_-u_-b10G_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-rev",
+    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-fwd",
+    'iperf3_-c10.3.0.33_-u_-b0_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-rev",
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-fwd",
+    'iperf3_-c10.3.0.33_-u_-b10G_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-rev",
+    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-fwd",
+    'iperf3_-c10.3.2.35_-u_-b0_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-rev",
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10'				=> "openbsd-openbsd-stack-udp-fwd",
+    'iperf3_-c10.3.2.35_-u_-b10G_-w1m_-t10_-R'				=> "openbsd-openbsd-stack-udp-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10'		=> "openbsd-openbsd-stack-udp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0345::35_-u_-b10G_-w1m_-t10_-R'		=> "openbsd-openbsd-stack-udp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10'		=> "openbsd-openbsd-stack-udp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0300::33_-u_-b10G_-w1m_-t10_-R'		=> "openbsd-openbsd-stack-udp6-rev",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10'		=> "openbsd-openbsd-stack-udp6-fwd",
+    'iperf3_-6_-cfdd7:e83e:66bc:0302::35_-u_-b10G_-w1m_-t10_-R'		=> "openbsd-openbsd-stack-udp6-rev",
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.45.34'			=> "openbsd-openbsd-stack-udp-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.45.35'			=> "openbsd-openbsd-stack-udp-long-send",
+    'udpbench_-l1472_-t10_-r_ot13_recv_10.3.0.32'			=> "openbsd-openbsd-stack-udp-long-recv",
+    'udpbench_-l1472_-t10_-r_ot13_send_10.3.0.33'			=> "openbsd-openbsd-stack-udp-long-send",
+    'udpbench_-l1472_-t10_-r_ot15_recv_10.3.2.34'			=> "openbsd-openbsd-stack-udp-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_10.3.2.35'			=> "openbsd-openbsd-stack-udp-long-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.45.34'			=> "openbsd-openbsd-stack-udp-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.45.35'			=> "openbsd-openbsd-stack-udp-short-send",
+    'udpbench_-l36_-t10_-r_ot13_recv_10.3.0.32'				=> "openbsd-openbsd-stack-udp-short-recv",
+    'udpbench_-l36_-t10_-r_ot13_send_10.3.0.33'				=> "openbsd-openbsd-stack-udp-short-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_10.3.2.34'				=> "openbsd-openbsd-stack-udp-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_10.3.2.35'				=> "openbsd-openbsd-stack-udp-short-send",
+    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-long-recv",
+    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-long-send",
+    'udpbench_-l1452_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-long-recv",
+    'udpbench_-l1452_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-long-send",
+    'udpbench_-l1452_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-long-recv",
+    'udpbench_-l1452_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-long-send",
+    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-long-send",
+    'udpbench_-l1472_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-long-recv",
+    'udpbench_-l1472_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-long-send",
+    'udpbench_-l1472_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-long-recv",
+    'udpbench_-l1472_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-long-send",
+    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-short-recv",
+    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-short-send",
+    'udpbench_-l16_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-short-recv",
+    'udpbench_-l16_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-short-send",
+    'udpbench_-l16_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-short-recv",
+    'udpbench_-l16_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-short-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0345::34'		=> "openbsd-openbsd-stack-udp6-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0345::35'		=> "openbsd-openbsd-stack-udp6-short-send",
+    'udpbench_-l36_-t10_-r_ot13_recv_fdd7:e83e:66bc:0300::32'		=> "openbsd-openbsd-stack-udp6-short-recv",
+    'udpbench_-l36_-t10_-r_ot13_send_fdd7:e83e:66bc:0300::33'		=> "openbsd-openbsd-stack-udp6-short-send",
+    'udpbench_-l36_-t10_-r_ot15_recv_fdd7:e83e:66bc:0302::34'		=> "openbsd-openbsd-stack-udp6-short-recv",
+    'udpbench_-l36_-t10_-r_ot15_send_fdd7:e83e:66bc:0302::35'		=> "openbsd-openbsd-stack-udp6-short-send",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10'			=> "linux-openbsd-linux-forward-tcp-fwd",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-P10_-t10_-R'			=> "linux-openbsd-linux-forward-tcp-rev",
+    'ssh_perform@lt13_iperf3_-c10.3.46.36_-t10'				=> "linux-openbsd-linux-forward-tcp-fwd",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10'	=> "linux-openbsd-linux-forward-tcp6-fwd",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-P10_-t10_-R'	=> "linux-openbsd-linux-forward-tcp6-rev",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0346::36_-t10'		=> "linux-openbsd-linux-forward-tcp6-fwd",
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10'			=> "linux-openbsd-linux-splice-tcp-fwd",
+    'ssh_perform@lt13_iperf3_-c10.3.34.34_-P10_-t10_-R'			=> "linux-openbsd-linux-splice-tcp-rev",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10'	=> "linux-openbsd-linux-splice-tcp6-fwd",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0334::34_-P10_-t10_-R'	=> "linux-openbsd-linux-splice-tcp6-rev",
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10'			=> "linux-openbsd-openbsd-splice-tcp-fwd",
+    'ssh_perform@lt16_iperf3_-c10.3.46.34_-P10_-t10_-R'			=> "linux-openbsd-openbsd-splice-tcp-rev",
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10'			=> "linux-openbsd-splice-tcp-fwd",
+    'ssh_perform@lt16_iperf3_-c10.3.56.35_-P10_-t10_-R'			=> "linux-openbsd-splice-tcp-rev",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10'	=> "linux-openbsd-openbsd-splice-tcp6-fwd",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=> "linux-openbsd-openbsd-splice-tcp6-rev",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=> "linux-openbsd-splice-tcp6-fwd",
+    'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=> "linux-openbsd-splice-tcp6-rev",
+    'time_-lp_make_-CGENERIC.MP_-j4_-s'					=> "make-bsd",
+    'time_-lp_make_-CGENERIC.MP_-j8_-s'					=> "make-bsd",
+    'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=> "file-system",
 );
 
 %TESTDESC = @testdesc;
