@@ -27,7 +27,7 @@ use Time::Local;
 
 use lib dirname($0);
 use Buildquirks;
-my $scriptname = "$0 @ARGV";
+use Testvars qw(%TESTDESC);
 
 my %opts;
 getopts('vnB:D:E:r:T:', \%opts) or do {
@@ -89,22 +89,24 @@ my $testdata = "test-$testplot.data";
     or die "No test data file '$testdata' in $gnuplotdir";
 
 my $title = uc($testplot). " Performance";
-my %tests;
+my %subtests;
 open (my $fh, '<', $testdata)
     or die "Open '$testdata' for reading failed: $!";
 
 # test subtest run checkout repeat value unit host
 <$fh>; # skip file head
-my ($tst, $sub, $checkout, $unit);
+my $unit;
 while (<$fh>) {
-    ($tst, $sub, undef, $checkout, undef, undef, $unit, undef) = split;
-    exit 0 unless $unit || keys %tests;
+    (my $test, my $sub, undef, my $checkout, undef, undef, $unit) = split;
+    exit 0 unless $unit || keys %subtests;
     next if $begin && $checkout < $begin;
     next if $end && $end < $checkout;
-    $tests{"$tst $sub"} = 1;
+    $subtests{"$TESTDESC{$test} $sub"} = "$test $sub";
 }
 
-my @tests = sort keys %tests;
+# sort by description, use test values for gnuplot
+my @descs = sort keys %subtests;
+my @tests = map { $subtests{$_} } @descs;
 my @quirks = sort keys %{{quirks()}};
 
 my $prefix = "";
@@ -169,7 +171,7 @@ print $html "<!DOCTYPE html>
 	    width: 24px;
 	    height: 16px;
 	}
-	input[type=\"checkbox\"]:not(:checked)".(" + * "x(2 * keys %tests)).
+	input[type=\"checkbox\"]:not(:checked)".(" + * "x(2 * @descs)).
 	"+ img {
 	    display: none;
 	}
@@ -199,7 +201,7 @@ print $html "<!DOCTYPE html>
 <body>";
 
 my $i = 1;
-foreach my $cmd (sort keys %tests) {
+foreach my $cmd (@descs) {
     print $html "<input id=\"checkbox-$i\" checked type=checkbox>
 	<label for=\"checkbox-$i\">
 	<img class=\"key\" src=\"key_$i.png\" alt=\"Key $i\">
@@ -212,7 +214,7 @@ print $html "<img id=\"frame\" src=\"";
 print $html "$prefix\_0.png\" alt=\"". uc($testplot). " Grid\">";
 
 $i = 1;
-foreach my $cmd (sort keys %tests) {
+foreach my $cmd (@descs) {
     print $html "<img src=\"";
     print $html "$prefix\_$i.png\" alt=\"". uc($testplot). " $cmd\">";
     print $html "<span></span>";
