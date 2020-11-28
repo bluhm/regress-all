@@ -477,6 +477,13 @@ my %quirks = (
 	comment => "move asmc.c kernel source file",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2020-10-01T14:02:08Z' => {
+	comment => "pfctl routing domain check",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+	patches => { 'sys-pf-rdomain' => patch_sys_pf_rdomain() },
+    },
 # OpenBSD 6.8, 2020-09-27Z
     '2020-10-05T00:22:38Z' => {
 	comment => "OpenBSD/amd64 6.8 release",
@@ -926,7 +933,7 @@ Index: sys/dev/pci/ixgbe.h
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/ixgbe.h,v
 retrieving revision 1.30
 retrieving revision 1.31
-diff -u -p -u -p -r1.30 -r1.31
+diff -u -p -r1.30 -r1.31
 --- sys/dev/pci/ixgbe.h	17 Jul 2020 06:27:36 -0000	1.30
 +++ sys/dev/pci/ixgbe.h	17 Jul 2020 07:49:49 -0000	1.31
 @@ -58,6 +58,7 @@
@@ -948,7 +955,7 @@ Index: sys/dev/pci/if_ix.c
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/if_ix.c,v
 retrieving revision 1.170
 retrieving revision 1.169
-diff -u -p -u -p -r1.170 -r1.169
+diff -u -p -r1.170 -r1.169
 --- sys/dev/pci/if_ix.c	17 Jul 2020 07:40:35 -0000	1.170
 +++ sys/dev/pci/if_ix.c	17 Jul 2020 06:33:07 -0000	1.169
 @@ -33,8 +33,6 @@
@@ -960,6 +967,30 @@ diff -u -p -u -p -r1.170 -r1.169
  
  #include <dev/pci/if_ix.h>
  #include <dev/pci/ixgbe_type.h>
+PATCH
+}
+
+# Fix loading pf rules.  Relax check for valid onrdomain range.
+sub patch_sys_pf_rdomain {
+	return <<'PATCH';
+Index: sys/net/pf_ioctl.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/pf_ioctl.c,v
+retrieving revision 1.357
+retrieving revision 1.358
+diff -u -p -r1.357 -r1.358
+--- sys/net/pf_ioctl.c	1 Oct 2020 14:02:08 -0000	1.357
++++ sys/net/pf_ioctl.c	2 Oct 2020 09:14:33 -0000	1.358
+@@ -2820,7 +2820,8 @@ pf_rule_copyin(struct pf_rule *from, str
+ 	if (to->rtableid >= 0 && !rtable_exists(to->rtableid))
+ 		return (EBUSY);
+ 	to->onrdomain = from->onrdomain;
+-	if (to->onrdomain < 0 || to->onrdomain > RT_TABLEID_MAX)
++	if (to->onrdomain != -1 && (to->onrdomain < 0 ||
++	    to->onrdomain > RT_TABLEID_MAX))
+ 		return (EINVAL);
+ 
+ 	for (i = 0; i < PFTM_MAX; i++)
 PATCH
 }
 
