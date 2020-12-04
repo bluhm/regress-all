@@ -97,6 +97,7 @@ foreach my $date (@dates) {
 		    /^hw.machine=(\w+)$/ and $arch = $1;
 		}
 		$time or next;
+		(my $bsdcons = $version) =~ s,version,bsdcons,;
 		(my $dmesg = $version) =~ s,version,dmesg,;
 		(my $dmesgboot = $version) =~ s,version,dmesg-boot,;
 		(my $diff = $version) =~ s,version,diff,;
@@ -110,6 +111,7 @@ foreach my $date (@dates) {
 		    time      => $time,
 		    short     => $short,
 		    arch      => $arch,
+		    bsdcons   => -f $bsdcons ? $subdir.$bsdcons : undef,
 		    dmesg     => -f $dmesg ? $subdir.$dmesg : undef,
 		    dmesgboot => -f $dmesgboot ? $subdir.$dmesgboot : undef,
 		    diff      => -f $diff ? $subdir.$diff : undef,
@@ -245,6 +247,7 @@ sub create_html_setup {
     print $html "    <th>kernel</th>\n";
     print $html "    <th>arch</th>\n";
     print $html "    <th>setup</th>\n";
+    print $html "    <th>console</th>\n";
     print $html "    <th colspan=\"2\">dmesg</th>\n";
     print $html "    <th>diff</th>\n";
     print $html "    <th>quirks</th>\n";
@@ -274,6 +277,7 @@ sub create_html_setup {
 		my $arch = encode_entities($h->{$host}{arch}) || "";
 		my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
 		    $h->{$host}{reboot};
+		my $bsdcons = $h->{$host}{bsdcons};
 		my $dmesg = $h->{$host}{dmesg};
 		my $dmesgboot = $h->{$host}{dmesgboot};
 		my $diff = $h->{$host}{diff};
@@ -290,6 +294,12 @@ sub create_html_setup {
 		if ($setup) {
 		    $setup = uri_escape($setup, "^A-Za-z0-9\-\._~/");
 		    print $html "    <td><a href=\"$setup\">log</a></td>\n";
+		} else {
+		    print $html "    <td></td>\n";
+		}
+		if ($bsdcons) {
+		    $bsdcons = uri_escape($bsdcons, "^A-Za-z0-9\-\._~/");
+		    print $html "    <td><a href=\"$bsdcons\">cons</a></td>\n";
 		} else {
 		    print $html "    <td></td>\n";
 		}
@@ -632,7 +642,14 @@ HEADER
 		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 		    my $href = $setup ? "<a href=\"$link\">" : "";
 		    my $enda = $href ? "</a>" : "";
-		    print $html "    <td$class>$href$time$enda</td>\n";
+		    print $html "    <td$class>$href$time$enda";
+		    my $bsdcons = $h->{$host}{bsdcons};
+		    if ($bsdcons) {
+			$logfile = "$date/$bsdcons";
+			$link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+			print $html " <a href=\"$link\">cons</a>";
+		    }
+		    print $html "</td>\n";
 		}
 		print $html "  </tr>\n";
 	    }
