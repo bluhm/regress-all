@@ -26,7 +26,7 @@ use Logcmd;
 
 use parent 'Exporter';
 our @EXPORT= qw(createhost reboot
-    install_pxe upgrade_pxe get_version
+    install_pxe upgrade_pxe get_bsdcons get_version
     checkout_cvs update_cvs diff_cvs
     make_kernel make_build
     align_kernel gap_kernel sort_kernel reorder_kernel
@@ -58,6 +58,17 @@ sub install_pxe {
 
 sub upgrade_pxe {
     logcmd('ssh', "$host\@$testmaster", "upgrade");
+}
+
+# console output since last OpenBSD kernel boot
+
+sub get_bsdcons {
+    logcmd({
+	cmd => ['ssh', "$host\@$testmaster", "bsdcons"],
+	outfile => "bsdcons-$host.log.new",
+    });
+    rename("bsdcons-$host.log.new", "bsdcons-$host.log") or
+	die "Rename 'bsdcons-$host.log.new' to 'bsdcons-$host.log' failed: $!";
 }
 
 # get version information

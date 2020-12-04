@@ -101,6 +101,7 @@ get_version() if $mode{kernel} || $mode{build};
 install_packages($release) if $mode{install} || $mode{upgrade};
 build_tools() if $mode{install} || $mode{upgrade} || $mode{tools};
 run_commands() if $mode{install} || $mode{upgrade} || $mode{commands};
+get_bsdcons();
 
 # finish setup log
 
