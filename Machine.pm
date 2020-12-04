@@ -65,10 +65,10 @@ sub upgrade_pxe {
 sub get_bsdcons {
     logcmd({
 	cmd => ['ssh', "$host\@$testmaster", "bsdcons"],
-	outfile => "bsdcons-$host.log.new",
+	outfile => "bsdcons-$host.txt.new",
     });
-    rename("bsdcons-$host.log.new", "bsdcons-$host.log") or
-	die "Rename 'bsdcons-$host.log.new' to 'bsdcons-$host.log' failed: $!";
+    rename("bsdcons-$host.txt.new", "bsdcons-$host.txt") or
+	die "Rename 'bsdcons-$host.txt.new' to 'bsdcons-$host.txt' failed: $!";
 }
 
 # get version information
