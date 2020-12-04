@@ -90,7 +90,10 @@ close($fh);
 usehosts(bindir => "$regressdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 
-END { setup_html(nolog => 1) };
+END {
+    collect_bsdcons();
+    setup_html(nolog => 1)
+};
 setup_hosts(mode => \%mode) unless $mode{keep} || $mode{reboot};
 reboot_hosts(mode => \%mode) if $mode{reboot};
 collect_version();

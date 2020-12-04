@@ -26,7 +26,7 @@ use Machine;
 use parent 'Exporter';
 our @EXPORT= qw(
     usehosts setup_hosts
-    collect_version collect_dmesg collect_result
+    collect_version collect_bsdcons collect_dmesg collect_result
     cvsbuild_hosts reboot_hosts
     setup_html
 );
@@ -117,6 +117,18 @@ sub collect_version {
 	})};
 	if ($@) {
 	    unlink $dmesg;
+	    last;
+	}
+    }
+}
+
+sub collect_bsdcons {
+    return if !$bindir;
+    for (my $host = $firsthost; $host le $lasthost; $host++) {
+	createhost($user, $host);
+	eval { get_bsdcons() };
+	if ($@) {
+	    warn $@;
 	    last;
 	}
     }
@@ -223,8 +235,8 @@ sub reboot_hosts {
 
 # there may be races with other running instances, make it non fatal
 sub setup_html {
+    return if !$bindir;
     my %args = @_;
-    return if !$bindir && $args{nolog};
     my @cmd = "$bindir/setup-html.pl";
     push @cmd, '-a' if $args{all};
     push @cmd, '-d', $date if $args{date};
