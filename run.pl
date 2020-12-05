@@ -90,9 +90,14 @@ close($fh);
 usehosts(bindir => "$regressdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 
+my $finish = 1;
 END {
-    collect_bsdcons();
-    setup_html(nolog => 1)
+    if ($finish) {
+	my @cmd = ("$regressdir/bin/bsdcons.pl", '-d', $date, '-h', $opts{h});
+	system(@cmd);
+	@cmd = ("$regressdir/bin/setup-html.pl");
+	system(@cmd);
+    }
 };
 setup_hosts(mode => \%mode) unless $mode{keep} || $mode{reboot};
 reboot_hosts(mode => \%mode) if $mode{reboot};

@@ -153,7 +153,15 @@ usehosts(bindir => "$performdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 (my $host = $opts{h}) =~ s/.*\@//;
 
-END { setup_html(nolog => 1) };
+my $finish = 1;
+END {
+    if ($finish) {
+	my @cmd = ("$performdir/bin/bsdcons.pl", '-d', $date, '-h', $opts{h});
+	system(@cmd);
+	@cmd = ("$performdir/bin/setup-html.pl");
+	system(@cmd);
+    }
+};
 setup_hosts(release => $release, mode => \%setupmode) unless $setupmode{keep};
 collect_version();
 setup_html();
