@@ -153,10 +153,11 @@ usehosts(bindir => "$performdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 (my $host = $opts{h}) =~ s/.*\@//;
 
-my $finish = 1;
+# do not run end block until initialized, date may change later
+my $odate = $date;
 END {
-    if ($finish) {
-	my @cmd = ("$performdir/bin/bsdcons.pl", '-d', $date, '-h', $opts{h});
+    if ($odate) {
+	my @cmd = ("$performdir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
 	system(@cmd);
 	@cmd = ("$performdir/bin/setup-html.pl");
 	system(@cmd);

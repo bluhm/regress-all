@@ -90,10 +90,11 @@ close($fh);
 usehosts(bindir => "$regressdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 
-my $finish = 1;
+# do not run end block until initialized, date may change later
+my $odate = $date;
 END {
-    if ($finish) {
-	my @cmd = ("$regressdir/bin/bsdcons.pl", '-d', $date, '-h', $opts{h});
+    if ($odate) {
+	my @cmd = ("$regressdir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
 	system(@cmd);
 	@cmd = ("$regressdir/bin/setup-html.pl");
 	system(@cmd);
