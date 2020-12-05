@@ -16,6 +16,7 @@ Buildquirks.pm	- create tool chain to compile kernel from certain date
 Hostctl.pm	- run commands on all tests hosts to configure them
 Logcmd.pm	- common log funtions for run.pl, setp.pl, and setup.pl
 Machine.pm	- functions to setup a single machine
+bsdcons.pl	- collect kernel output from console of selected machine
 cleanup.pl	- remove old test logs to recover disk space
 cvsbuild.pl	- checkout kernel at certain cvs date and install it
 cvslog.pl	- collect all cvs commit messages between two dates

@@ -30,19 +30,20 @@ sub createlog {
     my %args = @_;
     $file = $args{file};
     open($fh, '>', $file)
-	or croak "Open '$file' for writing failed: $!";
-    $fh->autoflush();
+	or croak "Open '$file' for writing failed: $!"
+	if $file;
+    $fh->autoflush() if $fh;
     $verbose = $args{verbose};
     $| = 1 if $verbose;
 
     $SIG{__DIE__} = sub {
-	print $fh @_;
+	print $fh @_ if $fh;
 	die @_;
     };
 }
 
 sub logmsg {
-    print $fh @_;
+    print $fh @_ if $fh;
     print @_ if $verbose;
 }
 
