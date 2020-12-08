@@ -621,8 +621,18 @@ HEADER
 		    my $href = $log ? "<a href=\"$link\">" : "";
 		    my $enda = $href ? "</a>" : "";
 		    print $html "  <tr>\n";
-		    print $html "    <td$class>$href$date$enda</td>\n";
+		    print $html "    <td$class>$href$date$enda";
 		    $h = $D{$date}{host};
+		    my $console = 0;
+		    foreach my $host (sort keys %M) {
+			my $bsdcons = $h->{$host}{bsdcons}
+			    or next;
+			print $html "<br>console" unless $console++;
+			$logfile = "$date/$bsdcons";
+			$link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+			print $html " <a href=\"$link\">$host</a>";
+		    }
+		    print $html "</td>\n";
 		}
 		foreach my $host (sort keys %M) {
 		    unless ($D{$date}{host}{$host} ||
@@ -643,12 +653,6 @@ HEADER
 		    my $href = $setup ? "<a href=\"$link\">" : "";
 		    my $enda = $href ? "</a>" : "";
 		    print $html "    <td$class>$href$time$enda";
-		    my $bsdcons = $h->{$host}{bsdcons};
-		    if ($bsdcons) {
-			$logfile = "$date/$bsdcons";
-			$link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-			print $html " <a href=\"$link\">cons</a>";
-		    }
 		    print $html "</td>\n";
 		}
 		print $html "  </tr>\n";
