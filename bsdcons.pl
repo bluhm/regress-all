@@ -30,12 +30,13 @@ use Machine;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:R:v', \%opts) or do {
+getopts('d:D:h:lR:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] [-D cvsdate] -h host [-R repeat]
+usage: $0 [-lv] [-d date] [-D cvsdate] -h host [-R repeat]
     -d date	set date string and change to sub directory
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
+    -l		update bsdcons in latest directory with this host
     -R repeat	repetition number
     -v		verbose
 EOF
@@ -51,15 +52,14 @@ my $cvsdate = $opts{D};
 !$opts{R} || $opts{R} =~ /^\d{3}$/
     or die "Invalid -R repeat '$opts{R}'";
 my $repeat = $opts{R};
+$opts{d} && $opts{l}
+    and die "Use either specific date or latest date";
 
 my $testdir = dirname($0). "/..";
 chdir($testdir)
     or die "Chdir to '$testdir' failed: $!";
 $testdir = getcwd();
 my $resultdir = "$testdir/results";
-$resultdir .= "/$date" if $date;
-$resultdir .= "/$cvsdate" if $date && $cvsdate;
-$resultdir .= "/$repeat" if $date && $cvsdate && $repeat;
 chdir($resultdir)
     or die "Chdir to '$resultdir' failed: $!";
 
@@ -67,8 +67,21 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
 createlog(verbose => $opts{v});
-$date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' started at $date.\n");
+my $now = strftime("%FT%TZ", gmtime);
+logmsg("Script '$scriptname' started at $now.\n");
+
+if ($opts{l}) {
+    my @bsdcons = sort glob("*T*/bsdcons-$host.txt")
+	or die "No latest 'bsdcons-$host.txt' in date directories";
+    logmsg("Update latest '$bsdcons[-1]' file.\n");
+    $date = dirname($bsdcons[-1]);
+}
+
+$resultdir .= "/$date" if $date;
+$resultdir .= "/$cvsdate" if $date && $cvsdate;
+$resultdir .= "/$repeat" if $date && $cvsdate && $repeat;
+chdir($resultdir)
+    or die "Chdir to '$resultdir' failed: $!";
 
 createhost($user, $host);
 
@@ -76,5 +89,5 @@ createhost($user, $host);
 
 get_bsdcons();
 
-$date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $date.\n");
+$now = strftime("%FT%TZ", gmtime);
+logmsg("Script '$scriptname' finished at $now.\n");
