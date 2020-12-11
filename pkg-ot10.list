@@ -27,11 +27,13 @@ p5-YAML
 p5-ldap
 posixtestsuite
 py3-tlsfuzzer
+raspberrypi-firmware
 rsync--
 rsyslog
 scapy
 sudo--
 sysclean
+u-boot-aarch64
 ucspi-tcp
 wycheproof-testvectors
 xz

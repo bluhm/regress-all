@@ -1,6 +1,7 @@
 botan2
 bzip2
 diffstat
+dtb
 exabgp
 git
 gmake
@@ -32,6 +33,7 @@ rsyslog
 scapy
 sudo--
 sysclean
+u-boot-arm
 ucspi-tcp
 wycheproof-testvectors
 xz
