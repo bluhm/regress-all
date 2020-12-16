@@ -64,8 +64,10 @@ close($sudo) or die $! ?
 
 sub bad {
     my ($test, $reason, $message, $log) = @_;
-    print $log "\n$reason\t$test\t$message\n" if $log;
-    print "\n$reason\t$test\t$message\n\n" if $opts{v};
+    my $nl = "";
+    $nl = "\n" if $reason =~ /^NO/;
+    print $log "$nl$reason\t$test\t$message\n" if $log;
+    print "$nl$reason\t$test\t$message\n\n" if $opts{v};
     print $tr "$reason\t$test\t$message\n";
     $log->sync() if $log;
     $tr->sync();
@@ -76,8 +78,8 @@ sub bad {
 sub good {
     my ($test, $diff, $log) = @_;
     my $duration = sprintf("%dm%02d.%02ds", $diff/60, $diff%60, 100*$diff%100);
-    print $log "\nPASS\t$test\tDuration $duration\n" if $log;
-    print "\nPASS\t$test\tDuration $duration\n\n" if $opts{v};
+    print $log "PASS\t$test\tDuration $duration\n" if $log;
+    print "PASS\t$test\tDuration $duration\n\n" if $opts{v};
     print $tr "PASS\t$test\tDuration $duration\n";
     $log->sync() if $log;
     $tr->sync();
