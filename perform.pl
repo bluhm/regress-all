@@ -295,7 +295,7 @@ sub udpbench_parser {
     return 1;
 }
 
-sub iked_initialize {
+sub iked_startup {
     my @cmd = ('/etc/rc.d/iked', '-f', 'start');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
@@ -304,14 +304,14 @@ sub iked_initialize {
 	die "Command '@sshcmd' failed: $?";
     @cmd = ('ping', '-n', '-c1', '-w1',
 	'-I', $local_ipsec_addr, $remote_ipsec_addr);
-    foreach (1..10) {
-	system(@cmd) or last;
+    foreach (1..20) {
 	sleep 1;
+	system(@cmd) or return;
     }
-    return 1;
+    die "Command '@cmd' failed for 20 seconds: $?";
 }
 
-sub iked_finalize {
+sub iked_shutdown {
     my @cmd = ('/etc/rc.d/iked', '-f', 'stop');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
@@ -325,7 +325,6 @@ sub iked_finalize {
     @sshcmd = ('ssh', $remote_ssh, @cmd);
     system(@sshcmd) and
 	die "Command '@sshcmd' failed: $?";
-    return 1;
 }
 
 sub time_parser {
@@ -607,7 +606,8 @@ push @tests, (
 ) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
 push @tests, (
     {
-	initialize => sub { iked_initialize(@_); iperf3_initialize(@_); },
+	startup => \&iked_startup,
+	initialize => \&iperf3_initialize,
 	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_ipsec_addr",
 	    '-P10', '-t10'],
 	parser => \&iperf3_parser,
@@ -616,12 +616,13 @@ push @tests, (
 	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_ipsec_addr",
 	    '-P10', '-t10', '-R'],
 	parser => \&iperf3_parser,
-	finalize => \&iked_finalize,
+	shutdown => \&iked_shutdown,
     }
 ) if $testmode{ipsec4} && $linux_ipsec_addr && $linux_ssh;
 push @tests, (
     {
-	initialize => sub { iked_initialize(@_); iperf3_initialize(@_); },
+	startup => \&iked_startup,
+	initialize => \&iperf3_initialize,
 	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_ipsec_addr6",
 	    '-P10', '-t10'],
 	parser => \&iperf3_parser,
@@ -630,7 +631,7 @@ push @tests, (
 	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_ipsec_addr6",
 	    '-P10', '-t10', '-R'],
 	parser => \&iperf3_parser,
-	finalize => \&iked_finalize,
+	shutdown => \&iked_shutdown,
     }
 ) if $testmode{ipsec6} && $linux_ipsec_addr6 && $linux_ssh;
 push @tests, (
@@ -684,6 +685,11 @@ foreach my $t (@tests) {
     print $log "START\t$test\t$date\n\n";
     $log->sync();
 
+    eval { $t->{startup}($log) if $t->{startup}; };
+    if ($@) {
+	bad $test, 'NOEXIST', "Could not startup", $log
+    }
+
     # XXX temporarily disabled
     #statistics($test, "before");
 
@@ -734,6 +740,11 @@ foreach my $t (@tests) {
 
     # XXX temporarily disabled
     #statistics($test, "after");
+
+    eval { $t->{shutdown}($log) if $t->{shutdown}; };
+    if ($@) {
+	bad $test, 'NOCLEAN', "Could not shutdown", $log
+    }
 
     my $end = Time::HiRes::time();
     good $test, $end - $begin, $log;
