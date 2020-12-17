@@ -295,20 +295,28 @@ sub udpbench_parser {
 
 sub iked_initialize {
     my @cmd = ('iked');
-    system(@cmd);
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd);
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+    return 1;
 }
 
 sub iked_finalize {
     my @cmd = ('pkill', 'iked');
-    system(@cmd);
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd);
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
     @cmd = ('ipsecctl', '-F');
-    system(@cmd);
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
     @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd);
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+    return 1;
 }
 
 sub time_parser {
@@ -590,7 +598,7 @@ push @tests, (
 ) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
 push @tests, (
     {
-	initialize => sub { iked_initialize(); iperf3_initialize(); },
+	initialize => sub { iked_initialize(@_); iperf3_initialize(@_); },
 	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_ipsec_addr",
 	    '-P10', '-t10'],
 	parser => \&iperf3_parser,
@@ -604,7 +612,7 @@ push @tests, (
 ) if $testmode{ipsec4} && $linux_ipsec_addr && $linux_ssh;
 push @tests, (
     {
-	initialize => sub { iked_initialize(); iperf3_initialize(); },
+	initialize => sub { iked_initialize(@_); iperf3_initialize(@_); },
 	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_ipsec_addr6",
 	    '-P10', '-t10'],
 	parser => \&iperf3_parser,
