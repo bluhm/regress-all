@@ -128,6 +128,8 @@ my $local_addr6 = $ENV{LOCAL_ADDR6}
     or die "Environemnt LOCAL_ADDR6 not set";
 my $remote_addr6 = $ENV{REMOTE_ADDR6}
     or die "Environemnt REMOTE_ADDR6 not set";
+my $local_ipsec_addr = $ENV{LOCAL_IPSEC_ADDR};
+my $remote_ipsec_addr = $ENV{REMOTE_IPSEC_ADDR};
 
 my $linux_addr = $ENV{LINUX_ADDR};
 my $linux_addr6 = $ENV{LINUX_ADDR6};
@@ -294,22 +296,29 @@ sub udpbench_parser {
 }
 
 sub iked_initialize {
-    my @cmd = ('iked');
+    my @cmd = ('/etc/rc.d/iked', '-f', 'start');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $remote_ssh, @cmd);
     system(@sshcmd) and
 	die "Command '@sshcmd' failed: $?";
+    @cmd = ('ping', '-n', '-c1', '-w1',
+	'-I', $local_ipsec_addr, $remote_ipsec_addr);
+    foreach (1..10) {
+	system(@cmd) or last;
+	sleep 1;
+    }
     return 1;
 }
 
 sub iked_finalize {
-    my @cmd = ('pkill', 'iked');
+    my @cmd = ('/etc/rc.d/iked', '-f', 'stop');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $remote_ssh, @cmd);
     system(@sshcmd) and
 	die "Command '@sshcmd' failed: $?";
+    sleep 1;
     @cmd = ('ipsecctl', '-F');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
