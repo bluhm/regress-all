@@ -458,7 +458,7 @@ sub create_gnuplot_files {
 	foreach my $date (keys %V) {
 	    my $outfile = "$date-$plot.html";
 	    if ($opts{g} || ! -f "gnuplot/$outfile") {
-		my @cmd = ("$performdir/bin/gnuplot.pl", "-D", $date,
+		my @cmd = ("$performdir/bin/gnuplot.pl", "-d", $date,
 		    "-T", "$plot");
 		system(@cmd)
 		    and die "Command '@cmd' failed: $?";

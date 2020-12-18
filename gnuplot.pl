@@ -30,13 +30,13 @@ use Buildquirks;
 use Testvars qw(%TESTDESC);
 
 my %opts;
-getopts('vnB:D:E:r:T:', \%opts) or do {
+getopts('vnB:d:E:r:T:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-vn] [-B date] [-D date] [-E date] [-r release] -T test
+usage: $0 [-vn] [-B date] [-d date] [-E date] [-r release] -T test
     -v		verbose
     -n		dry run
     -B date	begin date of x range, inclusive
-    -D date	when performace test was run
+    -d date	when performace test was run
     -E date	end date of x range, inclusive
     -r release	OpenBSD version number
     -T test	test plot (tcp|tcp6|udp|udp6|linux|linux6|forward|forward6|
@@ -52,10 +52,10 @@ if ($opts{r} && $opts{r} ne "current") {
 	or die "Release '$release' must be major.minor format";
 }
 my ($run, $date);
-if ($opts{D}) {
-    $run = str2time($opts{D})
-	or die "Invalid -D date '$opts{D}'";
-    $date = $opts{D};
+if ($opts{d}) {
+    $run = str2time($opts{d})
+	or die "Invalid -d date '$opts{d}'";
+    $date = $opts{d};
 }
 my ($begin, $end);
 if ($opts{B}) {
