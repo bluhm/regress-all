@@ -1015,9 +1015,11 @@ sub html_value_data {
 	$class = ' class="outlier"' if $vv->{outlier}[$i];
     } else {
 	$number = $vv->[$i]{number};
-	my $reldev = ($number - $summary) / $summary;
-	$title = " title=\"$reldev\"";
-	$class = ' class="outlier"' if abs($reldev) >= 0.1;
+	if ($number && $summary) {
+	    my $reldev = ($number - $summary) / $summary;
+	    $title = " title=\"$reldev\"";
+	    $class = ' class="outlier"' if abs($reldev) >= 0.1;
+	}
     }
     print $html "    <td$title$class>$number</td>\n";
 }
