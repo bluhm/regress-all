@@ -63,11 +63,11 @@ close($sudo) or die $! ?
     "Command '@sudocmd' failed: $?";
 
 sub bad {
-    my ($test, $reason, $message, $log) = @_;
+    my ($prev, $test, $reason, $message, $log) = @_;
     my $nl = "";
-    $nl = "\n" if $reason =~ /^NO/;
-    print $log "$nl$reason\t$test\t$message\n" if $log;
-    print "$nl$reason\t$test\t$message\n\n" if $opts{v};
+    $nl = "\n" if $prev ne "";
+    print $log "${nl}$reason\t$test\t$message\n" if $log;
+    print "${nl}$reason\t$test\t$message\n\n" if $opts{v};
     print $tr "$reason\t$test\t$message\n";
     $log->sync() if $log;
     $tr->sync();
@@ -76,10 +76,12 @@ sub bad {
 }
 
 sub good {
-    my ($test, $diff, $log) = @_;
+    my ($prev, $test, $diff, $log) = @_;
+    my $nl = "";
+    $nl = "\n" if $prev ne "";
     my $duration = sprintf("%dm%02d.%02ds", $diff/60, $diff%60, 100*$diff%100);
-    print $log "PASS\t$test\tDuration $duration\n" if $log;
-    print "PASS\t$test\tDuration $duration\n\n" if $opts{v};
+    print $log "${nl}PASS\t$test\tDuration $duration\n" if $log;
+    print "${nl}PASS\t$test\tDuration $duration\n\n" if $opts{v};
     print $tr "PASS\t$test\tDuration $duration\n";
     $log->sync() if $log;
     $tr->sync();
@@ -96,24 +98,25 @@ foreach my $test (@tests) {
     print $pax $paxlog if $paxlog;
     undef $paxlog;
 
+    my $prev = "";
     my $begin = Time::HiRes::time();
     my $date = strftime("%FT%TZ", gmtime($begin));
     print "\nSTART\t$test\t$date\n\n" if $opts{v};
 
     $dir = $test =~ m,^/, ? $test : "/usr/src/regress/$test";
     chdir($dir)
-	or bad $test, 'NOEXIST', "Chdir to '$dir' failed: $!";
+	or bad $prev, $test, 'NOEXIST', "Chdir to '$dir' failed: $!";
 
     my $cleancmd = "make clean";
     $cleancmd .= " >/dev/null" unless $opts{v};
     $cleancmd .= " 2>&1";
     system($cleancmd)
-	and bad $test, 'NOCLEAN', "Command '$cleancmd' failed: $?";
+	and bad $prev, $test, 'NOCLEAN', "Command '$cleancmd' failed: $?";
     print "\n" if $opts{v};
 
     # write make output into log file
     open(my $log, '>', "make.log")
-	or bad $test, 'NOLOG', "Open 'make.log' for writing failed: $!";
+	or bad $prev, $test, 'NOLOG', "Open 'make.log' for writing failed: $!";
     $log->autoflush();
     $paxlog = "$dir/make.log\n";
 
@@ -124,7 +127,8 @@ foreach my $test (@tests) {
     my (@xfailed, @xpassed, @failed);
     my @runcmd = qw(make regress);
     defined(my $pid = open(my $out, '-|'))
-	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
+	or bad $prev, $test, 'NORUN', "Open pipe from '@runcmd' failed: $!",
+	$log;
     if ($pid == 0) {
 	close($out);
 	open(STDIN, '<', "/dev/null")
@@ -140,7 +144,6 @@ foreach my $test (@tests) {
     eval {
 	local $SIG{ALRM} = sub { die "Test running too long, aborted.\n" };
 	alarm($timeout);
-	my $prev = "";
 	while (<$out>) {
 	    print $log $_;
 	    s/[^\s[:print:]]/_/g;
@@ -156,19 +159,19 @@ foreach my $test (@tests) {
     kill 'KILL', -$pid;
     if ($@) {
 	chomp($@);
-	bad $test, 'NOTERM', $@, $log;
+	bad $prev, $test, 'NOTERM', $@, $log;
     }
     close($out)
-	or bad $test, 'NOEXIT', $! ?
+	or bad $prev, $test, 'NOEXIT', $! ?
 	"Close pipe from '@runcmd' failed: $!" :
 	"Command '@runcmd' failed: $?", $log;
 
-    bad $test, 'FAIL', join(", ", @failed), $log if @failed;
-    bad $test, 'XPASS', join(", ", @xpassed), $log if @xpassed;
-    bad $test, 'SKIP', "Test skipped itself", $log if $skipped;
-    bad $test, 'XFAIL', join(", ", @xfailed), $log if @xfailed;
+    bad $prev, $test, 'FAIL', join(", ", @failed), $log if @failed;
+    bad $prev, $test, 'XPASS', join(", ", @xpassed), $log if @xpassed;
+    bad $prev, $test, 'SKIP', "Test skipped itself", $log if $skipped;
+    bad $prev, $test, 'XFAIL', join(", ", @xfailed), $log if @xfailed;
     my $end = Time::HiRes::time();
-    good $test, $end - $begin, $log;
+    good $prev, $test, $end - $begin, $log;
 
     close($log)
 	or die "Close 'make.log' after writing failed: $!";
