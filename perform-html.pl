@@ -704,7 +704,7 @@ sub html_repeat_test_row {
 	    }
 	    $variance /= @numbers;
 	    $deviation = sqrt $variance;
-	    $relative = $deviation / $mean;
+	    $relative = $mean ? $deviation / $mean : 0;
 	    $summary = $vt->{summary}[$i] =
 		$unit0 eq 'bits/sec' ?  $maximum : $mean;
 	    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
@@ -967,7 +967,7 @@ sub html_cvsdate_test_row {
 	    }
 	    $variance /= @numbers;
 	    $deviation = sqrt $variance;
-	    $relative = $deviation / $mean;
+	    $relative = $mean ? $deviation / $mean : 0;
 	    $summary = $vt->{summary}[$i] =
 		$unit0 eq 'bits/sec' ?  $maximum : $mean;
 	    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
