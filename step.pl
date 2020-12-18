@@ -258,7 +258,7 @@ foreach (glob("results/gnuplot/$date-*")) {
     unlink($_)
 	or warn "Unlink image '$_' failed: $!";
 }
-runcmd("bin/perform-html.pl");
+runcmd("bin/perform-html.pl", "-d", $date);
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $date.\n");

@@ -36,7 +36,7 @@ usage: $0 [-vn] [-B date] [-d date] [-E date] [-r release] -T test
     -v		verbose
     -n		dry run
     -B date	begin date of x range, inclusive
-    -d date	when performace test was run
+    -d date	run date of performance test
     -E date	end date of x range, inclusive
     -r release	OpenBSD version number
     -T test	test plot (tcp|tcp6|udp|udp6|linux|linux6|forward|forward6|

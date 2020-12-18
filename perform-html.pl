@@ -36,13 +36,20 @@ use Testvars qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('g', \%opts) or do {
+getopts('d:g', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-g]
+usage: $0 [-g] [-d date]
+    -d date	run date of performance test
     -g		generate all gnuplot files, even if they already exist
 EOF
     exit(2);
 };
+my $date;
+if ($opts{d}) {
+    str2time($opts{d})
+	or die "Invalid -d date '$opts{d}'";
+    $date = $opts{d};
+}
 
 my $dir = dirname($0). "/..";
 chdir($dir)
@@ -130,13 +137,13 @@ my (%T, %D, %V, %Z, @Z);
 parse_result_files(@result_files);
 
 write_data_files();
-create_gnuplot_files();
-create_cvslog_files();
-create_nmbsd_files();
+create_gnuplot_files($date);
+create_cvslog_files($date);
+create_nmbsd_files($date);
 
 my @plots = list_plots();
 my @tests = list_tests();
-my @dates = list_dates();
+my @dates = list_dates($date);
 
 # html per date per cvsdate with repetitions
 
@@ -448,14 +455,16 @@ sub list_tests {
 }
 
 sub list_dates {
-    return reverse sort keys %D;
+    my @dates = @_ ? shift : reverse sort keys %D;
+    return @dates;
 }
 
 # create gnuplot graphs for all runs
 sub create_gnuplot_files {
+    my @dates = @_ ? shift : reverse sort keys %V;
     my %releases = quirk_releases();
     foreach my $plot (list_plots()) {
-	foreach my $date (keys %V) {
+	foreach my $date (@dates) {
 	    my $outfile = "$date-$plot.html";
 	    if ($opts{g} || ! -f "gnuplot/$outfile") {
 		my @cmd = ("$performdir/bin/gnuplot.pl", "-d", $date,
@@ -479,7 +488,8 @@ sub create_gnuplot_files {
 
 # create cvs log file with commits after previous cvsdates
 sub create_cvslog_files {
-    foreach my $dd (values %D) {
+    my @dates = @_ ? shift : reverse sort keys %D;
+    foreach my $dd (@D{@dates}) {
 	my %cvsdates;
 	@cvsdates{@{$dd->{cvsdates}}} = ();
 	@{$dd->{cvsdates}} = sort keys %cvsdates;
@@ -518,7 +528,8 @@ sub create_cvslog_files {
 }
 
 sub create_nmbsd_files {
-    foreach my $date (sort keys %D) {
+    my @dates = @_ ? shift : reverse sort keys %D;
+    foreach my $date (@dates) {
 	my $dv = $D{$date};
 	next if ($dv->{stepconf}{kernelmodes} || "") ne "align";
 	my $hostname = $dv->{host};
