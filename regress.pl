@@ -109,6 +109,7 @@ foreach my $test (@tests) {
     $cleancmd .= " 2>&1";
     system($cleancmd)
 	and bad $test, 'NOCLEAN', "Command '$cleancmd' failed: $?";
+    print "\n" if $opts{v};
 
     # write make output into log file
     open(my $log, '>', "make.log")
