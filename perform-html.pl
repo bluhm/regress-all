@@ -210,6 +210,9 @@ foreach my $date (@dates) {
 
 # html with date
 
+# the main page must contain all dates, call without specific date
+@dates = list_dates();
+
 my ($html, $htmlfile) = html_open("perform");
 html_header($html, "OpenBSD Perform Test Results",
     "OpenBSD perform all test results");
