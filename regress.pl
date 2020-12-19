@@ -187,6 +187,14 @@ my $objdir = "/usr/obj/regress";
 @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$regressdir/test.obj.tgz");
 push @paxcmd, '-v' if $opts{v};
 push @paxcmd, ("-s,^$objdir/,,", "-s,^$objdir,,", $objdir);
+my @toobig = qw(
+    /diskimage
+    /htdocs/[0-9]*
+    /toobig
+    /tsort//pairs[0-9]*
+    \.core
+);
+push @paxcmd, map { "-s,^.*$_\$,," } @toobig;
 system(@paxcmd)
     and die "Command '@paxcmd' failed: $?";
 
