@@ -715,7 +715,7 @@ sub html_repeat_test_row {
 	    }
 	    $variance /= @numbers;
 	    $deviation = sqrt $variance;
-	    $relative = $mean ? $deviation / $mean : 0;
+	    $relative = $mean != 0 ? $deviation / $mean : 0;
 	    $summary = $vt->{summary}[$i] =
 		$unit0 eq 'bits/sec' ?  $maximum : $mean;
 	    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
@@ -978,7 +978,7 @@ sub html_cvsdate_test_row {
 	    }
 	    $variance /= @numbers;
 	    $deviation = sqrt $variance;
-	    $relative = $mean ? $deviation / $mean : 0;
+	    $relative = $mean != 0 ? $deviation / $mean : 0;
 	    $summary = $vt->{summary}[$i] =
 		$unit0 eq 'bits/sec' ?  $maximum : $mean;
 	    $outlier = $vt->{outlier}[$i] = abs($relative) >= 0.025;
@@ -1019,14 +1019,14 @@ sub html_value_data {
     my $class = "";
     if (ref($vv) eq 'HASH') {
 	$number = $vv->{summary}[$i] // "";
-	if ($number && $summary) {
+	if ($number && $summary != 0) {
 	    my $reldev = ($number - $summary) / $summary;
 	    $title = " title=\"$reldev\"";
 	}
 	$class = ' class="outlier"' if $vv->{outlier}[$i];
     } else {
 	$number = $vv->[$i]{number};
-	if ($number && $summary) {
+	if ($number && $summary != 0) {
 	    my $reldev = ($number - $summary) / $summary;
 	    $title = " title=\"$reldev\"";
 	    $class = ' class="outlier"' if abs($reldev) >= 0.1;
