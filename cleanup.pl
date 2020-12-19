@@ -26,18 +26,29 @@ use POSIX;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('m:nvw:', \%opts) or do {
+getopts('d:m:nvw:y:', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-nv] [-m months] [-w weeks]
-    -m months	keep directories from past months, default 1
+    -d days	remove log and obj tgz older than days, default 3
+    -m months	thin out directories older than months, default 1
     -n		do not clean, just display obsolete directories
     -v		verbose
-    -w weeks	keep obj from past weeks, default 1
+    -w weeks	remove setup and run log than weeks, default 2
+    -y years	remove all directories older than years, default 1
 EOF
     exit(2);
 };
+my $dy = 365.25;
+my $dm = $dy/12;
+my $dw = 7;
+my $alldays = ($opts{y} // 1) * $dy;
+my $thindays = ($opts{m} // 1) * $dm;
+my $logdays = ($opts{w} // 2) * $dw;
+my $tgzdays = ($opts{d} // 3);
 
-my ($year, $month, $day) = split('-', strftime("%F", gmtime));
+my $now = strftime("%FT%TZ", gmtime);
+my ($year, $month, $day) = $now =~ /^(\d+)-(\d+)-(\d+)T/
+    or die "Bad date: $now";
 
 my $dir = dirname($0). "/..";
 chdir($dir)
@@ -52,32 +63,25 @@ my @datedirs = glob('20[0-9][0-9]-[01][0-9]-[0-3][0-9]T*Z');
 foreach my $date (reverse sort @datedirs) {
     my ($y, $m, $d) = $date =~ /^(\d+)-(\d+)-(\d+)T/
 	or die "Bad date directory name: $date";
-    my $dy = 365.25;
-    my $dm = $dy/12;
-    if (($year*$dy+$month*$dm+$day) - ($y*$dy+$m*$dm+$d) > ($opts{w} // 1)*7) {
-	my $cleanfile = "$date/test.obj.tgz";
-	if (-f $cleanfile) {
-	    print "clean $date\n" if $opts{v};
-	    unlink($cleanfile) or die "Unlink '$cleanfile' failed: $!"
-		unless $opts{n};
-	}
+    my $age = ($year*$dy + $month*$dm + $day) - ($y*$dy + $m*$dm + $d);
+
+    if ($age > $alldays or ($age > $thindays && $d !~ /5$/)) {
+	print "remove $date\n" if $opts{v};
+	remove_tree($date, { safe => 1 }) unless $opts{n};
+	next;
     }
-    if (($year*$dy+$month*$dm+$day) - ($y*$dy+$m*$dm+$d) <=
-	($opts{m} // 1)*31) {
-	    print "skip $date\n" if $opts{v};
-    } else {
-	if ($d =~ /5$/) {
-	    my $cleanfile = "$date/test.obj.tgz";
-	    if (-f $cleanfile) {
-		print "clean $date\n" if $opts{v};
-		unlink($cleanfile) or die "Unlink '$cleanfile' failed: $!"
-		    unless $opts{n};
-	    } else {
-		print "skip $date\n" if $opts{v};
-	    }
-	} else {
-	    print "remove $date\n" if $opts{v};
-	    remove_tree($date, { safe => 1 }) unless $opts{n};
-	}
+    my @cleanfiles;
+    if ($age > $tgzdays) {
+	push @cleanfiles, glob("$date/test.*.tgz");
     }
+    if ($age > $logdays) {
+	push @cleanfiles, glob("$date/*.log");
+    }
+    if (@cleanfiles) {
+	print "clean $date\n" if $opts{v};
+	unlink(@cleanfiles) or die "Unlink '@cleanfiles' failed: $!"
+	    unless $opts{n};
+	next;
+    }
+    print "skip $date\n" if $opts{v};
 }
