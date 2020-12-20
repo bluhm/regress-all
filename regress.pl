@@ -190,7 +190,7 @@ my @toobig = qw(
     /diskimage
     /htdocs/[0-9]*
     /toobig
-    /tsort//pairs[0-9]*
+    /tsort/pairs[0-9]*
     \.core
 );
 push @paxcmd, map { "-s,^.*$_\$,," } @toobig;
