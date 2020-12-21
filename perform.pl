@@ -296,7 +296,7 @@ sub udpbench_parser {
 }
 
 sub iked_startup {
-    my @cmd = ('/etc/rc.d/iked', '-f', 'start');
+    my @cmd = ('/etc/rc.d/iked', '-f', 'restart');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $remote_ssh, @cmd);
