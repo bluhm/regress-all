@@ -245,6 +245,7 @@ foreach my $current (@steps) {
 	}
     }
     collect_dmesg();
+    setup_html();
 }
 
 # create html output

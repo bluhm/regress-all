@@ -146,6 +146,7 @@ chdir($resultdir)
     or die "Chdir to '$regressdir' failed: $!";
 
 collect_dmesg();
+setup_html();
 
 # create html output
 
