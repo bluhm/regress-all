@@ -145,7 +145,7 @@ rename("$htmlfile.new", "$htmlfile")
 system("gzip -f -c $htmlfile >$htmlfile.gz.new")
     and die "Gzip $htmlfile failed: $?";
 rename("$htmlfile.gz.new", "$htmlfile.gz")
-    or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+    or die "Rename '$htmlfile.gz.new' to '$htmlfile.gz' failed: $!";
 
 ### posixtestsuite
 
@@ -180,4 +180,4 @@ rename("$htmlfile.new", "$htmlfile")
 system("gzip -f -c $htmlfile >$htmlfile.gz.new")
     and die "Gzip $htmlfile failed: $?";
 rename("$htmlfile.gz.new", "$htmlfile.gz")
-    or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+    or die "Rename '$htmlfile.gz.new' to '$htmlfile.gz' failed: $!";

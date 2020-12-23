@@ -55,7 +55,7 @@ sub html_close {
     system("gzip -f -c $htmlfile >$htmlfile.gz.new")
 	and croak "Gzip $htmlfile failed: $?";
     rename("$htmlfile.gz.new", "$htmlfile.gz")
-	or croak "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+	or croak "Rename '$htmlfile.gz.new' to '$htmlfile.gz' failed: $!";
 }
 # open html page, print head, open body
 sub html_header {

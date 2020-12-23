@@ -459,6 +459,10 @@ sub write_data_files {
 	or die "Close 'test.data.new' after writing failed: $!";
     rename("test.data.new", "test.data")
 	or die "Rename 'test.data.new' to 'test.data' failed: $!";
+    system("gzip -f -c test.data >test.data.gz.new")
+	and die "Gzip test.data failed: $?";
+    rename("test.data.gz.new", "test.data.gz")
+	or die "Rename 'test.data.gz.new' to 'test.data.gz' failed: $!";
     foreach my $plot (keys %plotfh) {
 	my $datafile = "$testdata-$plot.data";
 	close($plotfh{$plot})
