@@ -87,31 +87,20 @@ my $datafile = "$gnuplotdir/test-$plot.data";
 -f $datafile
     or die "No test data file '$datafile' in $gnuplotdir";
 
-my $title = uc($plot). " Performance";
-my %subtests;
-open (my $fh, '<', $datafile)
-    or die "Open '$datafile' for reading failed: $!";
-
-# test subtest run checkout repeat value unit host
-<$fh>; # skip file head
-my $unit;
-while (<$fh>) {
-    (my $test, my $sub, undef, my $checkout, undef, undef, $unit) = split;
-    exit 0 unless $unit || keys %subtests;
-    next if $begin && $checkout < $begin;
-    next if $end && $end < $checkout;
-    $subtests{"$TESTDESC{$test} $sub"} = "$test $sub";
-}
+my ($UNIT, %SUBTESTS);
+parse_data_file();
+exit unless keys %SUBTESTS;
 
 # sort by description, use test values for gnuplot
-my @descs = sort keys %subtests;
-my @tests = map { $subtests{$_} } @descs;
+my @descs = sort keys %SUBTESTS;
+my @tests = map { $SUBTESTS{$_} } @descs;
 my @quirks = sort keys %{{quirks()}};
 
 my $prefix = "";
 $prefix .= "$release-" if $release;
 $prefix .= "$date-" if $date;
 $prefix .= "$plot";
+my $title = uc($plot). " Performance";
 
 my @plotvars = (
     "DATA_FILE='$datafile'",
@@ -119,7 +108,7 @@ my @plotvars = (
     "QUIRKS='@quirks'",
     "TESTS='@tests'",
     "TITLE='$title'",
-    "UNIT='$unit'"
+    "UNIT='$UNIT'"
 );
 push @plotvars, "RUN_DATE='$run'" if $run;
 push @plotvars, "XRANGE_MIN='$begin'" if $begin;
@@ -233,6 +222,23 @@ rename("$htmlfile.new", $htmlfile)
     or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
 
 exit;
+
+sub parse_data_file {
+    open (my $fh, '<', $datafile)
+	or die "Open '$datafile' for reading failed: $!";
+
+    # test subtest run checkout repeat value unit host
+    <$fh>; # skip file head
+    my ($test, $sub, $checkout, $unit);
+    while (<$fh>) {
+	($test, $sub, undef, $checkout, undef, undef, $unit) = split;
+	next unless $unit;
+	$UNIT ||= $unit;
+	next if $begin && $checkout < $begin;
+	next if $end && $end < $checkout;
+	$SUBTESTS{"$TESTDESC{$test} $sub"} = "$test $sub";
+    }
+}
 
 sub create_key_files {
     my ($from, $to) = @_;
