@@ -87,46 +87,21 @@ my $datafile = "$gnuplotdir/test-$plot.data";
 -f $datafile
     or die "No test data file '$datafile' in $gnuplotdir";
 
-my ($UNIT, %SUBTESTS);
-parse_data_file();
-exit unless keys %SUBTESTS;
-
-# sort by description, use test values for gnuplot
-my @descs = sort keys %SUBTESTS;
-my @tests = map { $SUBTESTS{$_} } @descs;
-my @quirks = sort keys %{{quirks()}};
-
 my $prefix = "";
 $prefix .= "$release-" if $release;
 $prefix .= "$date-" if $date;
 $prefix .= "$plot";
-my $title = uc($plot). " Performance";
 
-my @plotvars = (
-    "DATA_FILE='$datafile'",
-    "PREFIX='$prefix'",
-    "QUIRKS='@quirks'",
-    "TESTS='@tests'",
-    "TITLE='$title'",
-    "UNIT='$UNIT'"
-);
-push @plotvars, "RUN_DATE='$run'" if $run;
-push @plotvars, "XRANGE_MIN='$begin'" if $begin;
-push @plotvars, "XRANGE_MAX='$end'" if $end;
-my @plotcmd = ("gnuplot", "-d");
-if ($dry) {
-    push @plotcmd, (map { ("-e", "\"$_\"") } @plotvars);
-    push @plotcmd, $gplotfile;
-    print "@plotcmd\n";
-    exit 0;
-} else {
-    push @plotcmd, (map { ("-e", $_) } @plotvars);
-    push @plotcmd, $gplotfile;
-    print "Command '@plotcmd' started.\n" if $verbose;
-    system(@plotcmd)
-	and die "Command '@plotcmd' failed: $?";
-    print "Command '@plotcmd' finished.\n" if $verbose;
-}
+my ($UNIT, %SUBTESTS);
+parse_data_file();
+
+exit unless keys %SUBTESTS;
+
+my @descs = sort keys %SUBTESTS;
+
+create_plot_files();
+
+exit if $dry;
 
 my $num = @descs;
 create_key_files(1, $num) unless -f "key_$num.png";
@@ -237,6 +212,39 @@ sub parse_data_file {
 	next if $begin && $checkout < $begin;
 	next if $end && $end < $checkout;
 	$SUBTESTS{"$TESTDESC{$test} $sub"} = "$test $sub";
+    }
+}
+
+sub create_plot_files {
+    # sort by description, use test values for gnuplot
+    my @tests = map { $SUBTESTS{$_} } sort keys %SUBTESTS;
+    my @quirks = sort keys %{{quirks()}};
+
+    my $title = uc($plot). " Performance";
+
+    my @vars = (
+	"DATA_FILE='$datafile'",
+	"PREFIX='$prefix'",
+	"QUIRKS='@quirks'",
+	"TESTS='@tests'",
+	"TITLE='$title'",
+	"UNIT='$UNIT'"
+    );
+    push @vars, "RUN_DATE='$run'" if $run;
+    push @vars, "XRANGE_MIN='$begin'" if $begin;
+    push @vars, "XRANGE_MAX='$end'" if $end;
+    my @cmd = ("gnuplot", "-d");
+    if ($dry) {
+	push @cmd, (map { ("-e", "\"$_\"") } @vars);
+	push @cmd, $gplotfile;
+	print "@cmd\n";
+    } else {
+	push @cmd, (map { ("-e", $_) } @vars);
+	push @cmd, $gplotfile;
+	print "Command '@cmd' started.\n" if $verbose;
+	system(@cmd)
+	    and die "Command '@cmd' failed: $?";
+	print "Command '@cmd' finished.\n" if $verbose;
     }
 }
 
