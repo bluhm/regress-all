@@ -406,8 +406,8 @@ sub write_data_files {
 	print {$plotfh{$plot}}
 	    "# test subtest run checkout repeat value unit host\n";
     }
-    open(my $fh, '>', "$testdata.data.new")
-	or die "Open '$testdata.data.new' for writing failed: $!";
+    open(my $fh, '>', "test.data.new")
+	or die "Open 'test.data.new' for writing failed: $!";
     print $fh "# test subtest run checkout repeat value unit host\n";
     foreach my $date (sort keys %V) {
 	my $vd = $V{$date};
@@ -436,9 +436,9 @@ sub write_data_files {
 	}
     }
     close($fh)
-	or die "Close '$testdata.data.new' after writing failed: $!";
-    rename("$testdata.data.new", "$testdata.data")
-	or die "Rename '$testdata.data.new' to '$testdata.data' failed: $!";
+	or die "Close 'test.data.new' after writing failed: $!";
+    rename("test.data.new", "test.data")
+	or die "Rename 'test.data.new' to 'test.data' failed: $!";
     foreach my $plot (keys %plotfh) {
 	my $datafile = "$testdata-$plot.data";
 	close($plotfh{$plot})
