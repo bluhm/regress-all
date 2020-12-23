@@ -140,6 +140,9 @@ if ($dry) {
     print "Command '@plotcmd' finished.\n" if $verbose;
 }
 
+my $num = @descs;
+create_key_files(1, $num) unless -f "key_$num.png";
+
 my $htmlfile = "$prefix.html";
 unlink("$htmlfile.new");
 open(my $html, '>', "$htmlfile.new")
@@ -229,3 +232,14 @@ print $html "</body>
 
 rename("$htmlfile.new", $htmlfile)
     or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
+
+exit;
+
+sub create_key_files {
+    my ($from, $to) = @_;
+    my @cmd = ("$performdir/bin/keys.sh", $from, $to);
+    print "Command '@cmd' started.\n" if $verbose;
+    system(@cmd)
+	and die "Command '@cmd' failed: $?";
+    print "Command '@cmd' finished.\n" if $verbose;
+}
