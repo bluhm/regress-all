@@ -473,6 +473,22 @@ sub create_gnuplot_files {
     }
     my %releases = quirk_releases();
     foreach my $plot (list_plots()) {
+	my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot");
+	system(@cmd)
+	    and die "Command '@cmd' failed: $?";
+	foreach my $rel (reverse sort keys %releases) {
+	    my $v = $releases{$rel};
+	    next if $first && $v->{end} && $first gt $v->{end};
+	    next if $last && $v->{begin} && $last lt $v->{begin};
+	    @cmd = ("$performdir/bin/gnuplot.pl", "-r", $rel);
+	    push @cmd, "-B", $v->{begin} if $v->{begin};
+	    push @cmd, "-E", $v->{end} if $v->{end};
+	    push @cmd, "-p", "$plot";
+	    system(@cmd)
+		and die "Command '@cmd' failed: $?";
+	}
+    }
+    foreach my $plot (list_plots()) {
 	foreach my $date (@dates) {
 	    my $outfile = "$date-$plot.html";
 	    if ($opts{g} || ! -f "gnuplot/$outfile") {
@@ -481,18 +497,6 @@ sub create_gnuplot_files {
 		system(@cmd)
 		    and die "Command '@cmd' failed: $?";
 	    }
-	}
-	my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot");
-	system(@cmd)
-	    and die "Command '@cmd' failed: $?";
-	while (my($k, $v) = each %releases) {
-	    next if $first && $v->{end} && $first gt $v->{end};
-	    next if $last && $v->{begin} && $last lt $v->{begin};
-	    @cmd = ("$performdir/bin/gnuplot.pl", "-r", $k, "-B", $v->{begin});
-	    push @cmd, "-E", $v->{end} if $v->{end};
-	    push @cmd, "-p", "$plot";
-	    system(@cmd)
-		and die "Command '@cmd' failed: $?";
 	}
     }
 }
