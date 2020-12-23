@@ -88,9 +88,17 @@ my $datafile = "$gnuplotdir/test-$plot.data";
 -f $datafile
     or die "No test data file '$datafile' in $gnuplotdir";
 
+if ($date) {
+    $gnuplotdir = "$performdir/results/$date/gnuplot";
+    -d $gnuplotdir || mkdir $gnuplotdir
+	or die "Make directory '$gnuplotdir' failed: $!";
+    chdir($gnuplotdir)
+	or die "Chdir to '$gnuplotdir' failed: $!";
+    $gnuplotdir = getcwd();
+}
+
 my $prefix = "";
 $prefix .= "$release-" if $release;
-$prefix .= "$date-" if $date;
 $prefix .= "$plot";
 
 my ($UNIT, %SUBTESTS);

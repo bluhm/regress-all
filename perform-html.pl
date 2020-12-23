@@ -480,23 +480,23 @@ sub create_gnuplot_files {
 	    my $v = $releases{$rel};
 	    next if $first && $v->{end} && $first gt $v->{end};
 	    next if $last && $v->{begin} && $last lt $v->{begin};
-	    @cmd = ("$performdir/bin/gnuplot.pl", "-r", $rel);
+	    @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot", "-r", $rel);
 	    push @cmd, "-B", $v->{begin} if $v->{begin};
 	    push @cmd, "-E", $v->{end} if $v->{end};
-	    push @cmd, "-p", "$plot";
 	    system(@cmd)
 		and die "Command '@cmd' failed: $?";
 	}
     }
     foreach my $plot (list_plots()) {
 	foreach my $date (@dates) {
-	    my $outfile = "$date-$plot.html";
-	    if ($opts{g} || ! -f "gnuplot/$outfile") {
-		my @cmd = ("$performdir/bin/gnuplot.pl", "-d", $date,
-		    "-p", "$plot");
-		system(@cmd)
-		    and die "Command '@cmd' failed: $?";
+	    unless ($opts{g}) {
+		next if -f "gnuplot/$date-$plot.png";
+		next if -f "$date/gnuplot/$plot.png";
 	    }
+	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
+		"-d", $date);
+	    system(@cmd)
+		and die "Command '@cmd' failed: $?";
 	}
     }
 }
@@ -1186,6 +1186,7 @@ sub html_plot_data {
     $file .= "gnuplot/";
     $file .= "$prefix-" if $prefix;
     $file .= $plot;
+    $file = "gnuplot/$plot" unless -f "$file.png";
     my $href = "$file.html";
     my $src = "$file.png";
     my $alt = uc($plot)." Performance";
