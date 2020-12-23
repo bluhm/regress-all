@@ -1022,14 +1022,14 @@ sub html_value_data {
     my $class = "";
     if (ref($vv) eq 'HASH') {
 	$number = $vv->{summary}[$i] // "";
-	if ($number && $summary != 0) {
+	if ($number && $summary && $summary != 0) {
 	    my $reldev = ($number - $summary) / $summary;
 	    $title = " title=\"$reldev\"";
 	}
 	$class = ' class="outlier"' if $vv->{outlier}[$i];
     } else {
 	$number = $vv->[$i]{number};
-	if ($number && $summary != 0) {
+	if ($number && $summary && $summary != 0) {
 	    my $reldev = ($number - $summary) / $summary;
 	    $title = " title=\"$reldev\"";
 	    $class = ' class="outlier"' if abs($reldev) >= 0.1;
