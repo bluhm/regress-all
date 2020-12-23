@@ -126,7 +126,7 @@ chdir($performdir)
 $performdir = getcwd();
 my $resultdir = "results";
 -d $resultdir || mkdir $resultdir
-    or die "Make result directory '$resultdir' failed: $!";
+    or die "Make directory '$resultdir' failed: $!";
 $resultdir .= "/$date";
 mkdir $resultdir
     or die "Make directory '$resultdir' failed: $!";

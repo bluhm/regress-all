@@ -396,7 +396,7 @@ sub list_plots {
 # write test results into gnuplot data file
 sub write_data_files {
     -d "gnuplot" || mkdir "gnuplot"
-	or die "Create directory 'gnuplot' failed: $!";
+	or die "Make directory 'gnuplot' failed: $!";
     my $testdata = "gnuplot/test";
     my %plotfh;
     @plotfh{values %TESTPLOT} = ();
