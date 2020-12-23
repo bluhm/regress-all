@@ -36,11 +36,12 @@ use Testvars qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('d:g', \%opts) or do {
+getopts('d:gv', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-g] [-d date]
     -d date	run date of performance test
     -g		generate all gnuplot files, even if they already exist
+    -v		verbose
 EOF
     exit(2);
 };
@@ -50,6 +51,8 @@ if ($opts{d}) {
 	or die "Invalid -d date '$opts{d}'";
     $date = $opts{d};
 }
+my $verbose = $opts{v};
+$| = 1 if $verbose;
 
 my $dir = dirname($0). "/..";
 chdir($dir)
@@ -134,12 +137,18 @@ my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
 # $Z[$index]				hash of dates containing cvs checkout
 
 my (%T, %D, %V, %Z, @Z);
+print "parse result files" if $verbose;
 parse_result_files(@result_files);
 
+print "\ncreate data files" if $verbose;
 write_data_files();
+print "\ncreate gnuplot files" if $verbose;
 create_gnuplot_files($date);
+print "\ncreate cvslog files" if $verbose;
 create_cvslog_files($date);
+print "\ncreate nmbsd files" if $verbose;
 create_nmbsd_files($date);
+print "\n" if $verbose;
 
 my @plots = list_plots();
 my @tests = list_tests();
@@ -147,9 +156,11 @@ my @dates = list_dates($date);
 
 # html per date per cvsdate with repetitions
 
+print "create html per repeat files" if $verbose;
 foreach my $date (@dates) {
     my $short = $D{$date}{short};
     foreach my $cvsdate (@{$D{$date}{cvsdates}}) {
+	print "." if $verbose;
 	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
 	my @repeats = sort @{$D{$date}{$cvsdate}{repeats} || []}
 	    or next;
@@ -173,10 +184,13 @@ foreach my $date (@dates) {
 	html_close($html, $htmlfile);
     }
 }
+print "\n" if $verbose;
 
 # html per date with cvsdate
 
+print "create html per cvsdate files" if $verbose;
 foreach my $date (@dates) {
+    print "." if $verbose;
     my $short = $D{$date}{short};
     my @cvsdates = @{$D{$date}{cvsdates}};
 
@@ -207,12 +221,14 @@ foreach my $date (@dates) {
     html_footer($html);
     html_close($html, $htmlfile);
 }
+print "\n" if $verbose;
 
 # html with date
 
 # the main page must contain all dates, call without specific date
 @dates = list_dates();
 
+print "create html per cvsdate files" if $verbose;
 my ($html, $htmlfile) = html_open("perform");
 html_header($html, "OpenBSD Perform Test Results",
     "OpenBSD perform all test results");
@@ -225,6 +241,7 @@ foreach my $test (@tests) {
     html_date_test_row($html, $test, $td, @dates);
 }
 print $html "</table>\n";
+print "." if $verbose;
 
 print $html "<table>\n";
 foreach my $plot (@plots) {
@@ -252,12 +269,14 @@ html_quirks_table($html);
 html_status_table($html, "perform");
 html_footer($html);
 html_close($html, $htmlfile);
+print "\n" if $verbose;
 
 exit;
 
 # fill global hashes %T %D %V %Z @Z
 sub parse_result_files {
     foreach my $result (@_) {
+	print "." if $verbose;
 
 	# parse result file
 	my ($date, $short, $cvsdate, $cvsshort, $repeat) =
@@ -410,6 +429,7 @@ sub write_data_files {
 	or die "Open 'test.data.new' for writing failed: $!";
     print $fh "# test subtest run checkout repeat value unit host\n";
     foreach my $date (sort keys %V) {
+	print "." if $verbose;
 	my $vd = $V{$date};
 	my $run = str2time($date);
 	foreach my $test (sort keys %$vd) {
@@ -473,6 +493,7 @@ sub create_gnuplot_files {
     }
     my %releases = quirk_releases();
     foreach my $plot (list_plots()) {
+	print "." if $verbose;
 	my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot");
 	system(@cmd)
 	    and die "Command '@cmd' failed: $?";
@@ -488,6 +509,7 @@ sub create_gnuplot_files {
 	}
     }
     foreach my $plot (list_plots()) {
+	print "." if $verbose;
 	foreach my $date (@dates) {
 	    unless ($opts{g}) {
 		next if -f "gnuplot/$date-$plot.png";
@@ -505,6 +527,7 @@ sub create_gnuplot_files {
 sub create_cvslog_files {
     my @dates = @_ ? shift : reverse sort keys %D;
     foreach my $dd (@D{@dates}) {
+	print "." if $verbose;
 	my %cvsdates;
 	@cvsdates{@{$dd->{cvsdates}}} = ();
 	@{$dd->{cvsdates}} = sort keys %cvsdates;
@@ -545,6 +568,7 @@ sub create_cvslog_files {
 sub create_nmbsd_files {
     my @dates = @_ ? shift : reverse sort keys %D;
     foreach my $date (@dates) {
+	print "." if $verbose;
 	my $dv = $D{$date};
 	next if ($dv->{stepconf}{kernelmodes} || "") ne "align";
 	my $hostname = $dv->{host};
