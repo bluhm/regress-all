@@ -465,6 +465,12 @@ sub list_dates {
 # create gnuplot graphs for all runs
 sub create_gnuplot_files {
     my @dates = @_ ? shift : reverse sort keys %V;
+    my ($first, $last);
+    if (@dates == 1) {
+	my @cvsdates = sort @{$D{$dates[0]}{cvsdates}};
+	$first = $cvsdates[0];
+	$last = $cvsdates[-1];
+    }
     my %releases = quirk_releases();
     foreach my $plot (list_plots()) {
 	foreach my $date (@dates) {
@@ -480,6 +486,8 @@ sub create_gnuplot_files {
 	system(@cmd)
 	    and die "Command '@cmd' failed: $?";
 	while (my($k, $v) = each %releases) {
+	    next if $first && $v->{end} && $first gt $v->{end};
+	    next if $last && $v->{begin} && $last lt $v->{begin};
 	    @cmd = ("$performdir/bin/gnuplot.pl", "-r", $k, "-B", $v->{begin});
 	    push @cmd, "-E", $v->{end} if $v->{end};
 	    push @cmd, "-T", "$plot";
