@@ -30,17 +30,16 @@ use Buildquirks;
 use Testvars qw(%TESTDESC);
 
 my %opts;
-getopts('vnB:d:E:r:T:', \%opts) or do {
+getopts('vnB:d:E:p:r:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-vn] [-B date] [-d date] [-E date] [-r release] -T test
+usage: $0 [-vn] [-B date] [-d date] [-E date] -p plot [-r release]
     -v		verbose
     -n		dry run
     -B date	begin date of x range, inclusive
     -d date	run date of performance test
     -E date	end date of x range, inclusive
+    -p plot	(tcp|tcp6|udp|udp6|linux|linux6|forward|forward6|ipsec|make|fs)
     -r release	OpenBSD version number
-    -T test	test plot (tcp|tcp6|udp|udp6|linux|linux6|forward|forward6|
-		make|fs)
 EOF
     exit(2);
 };
@@ -66,8 +65,8 @@ if ($opts{E}) {
     $end = str2time($opts{E})
 	or die "Invalid -E date '$opts{E}'";
 }
-my $testplot = $opts{T}
-    or die "Option -T test missing";
+my $plot = $opts{p}
+    or die "Option -p plot missing";
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';
@@ -81,17 +80,17 @@ chdir($gnuplotdir)
     or die "Chdir to '$gnuplotdir' failed: $!";
 $gnuplotdir = getcwd();
 
-my $plotfile = "$performdir/bin/plot.gp";
--f $plotfile
-    or die "No gnuplot file '$plotfile'";
-my $testdata = "test-$testplot.data";
--f $testdata
-    or die "No test data file '$testdata' in $gnuplotdir";
+my $gplotfile = "$performdir/bin/plot.gp";
+-f $gplotfile
+    or die "No gnuplot file '$gplotfile'";
+my $datafile = "$gnuplotdir/test-$plot.data";
+-f $datafile
+    or die "No test data file '$datafile' in $gnuplotdir";
 
-my $title = uc($testplot). " Performance";
+my $title = uc($plot). " Performance";
 my %subtests;
-open (my $fh, '<', $testdata)
-    or die "Open '$testdata' for reading failed: $!";
+open (my $fh, '<', $datafile)
+    or die "Open '$datafile' for reading failed: $!";
 
 # test subtest run checkout repeat value unit host
 <$fh>; # skip file head
@@ -112,10 +111,10 @@ my @quirks = sort keys %{{quirks()}};
 my $prefix = "";
 $prefix .= "$release-" if $release;
 $prefix .= "$date-" if $date;
-$prefix .= "$testplot";
+$prefix .= "$plot";
 
 my @plotvars = (
-    "DATA_FILE='$testdata'",
+    "DATA_FILE='$datafile'",
     "PREFIX='$prefix'",
     "QUIRKS='@quirks'",
     "TESTS='@tests'",
@@ -128,12 +127,12 @@ push @plotvars, "XRANGE_MAX='$end'" if $end;
 my @plotcmd = ("gnuplot", "-d");
 if ($dry) {
     push @plotcmd, (map { ("-e", "\"$_\"") } @plotvars);
-    push @plotcmd, $plotfile;
+    push @plotcmd, $gplotfile;
     print "@plotcmd\n";
     exit 0;
 } else {
     push @plotcmd, (map { ("-e", $_) } @plotvars);
-    push @plotcmd, $plotfile;
+    push @plotcmd, $gplotfile;
     print "Command '@plotcmd' started.\n" if $verbose;
     system(@plotcmd)
 	and die "Command '@plotcmd' failed: $?";
@@ -214,18 +213,18 @@ foreach my $cmd (@descs) {
 }
 
 print $html "<img id=\"frame\" src=\"";
-print $html "$prefix\_0.png\" alt=\"". uc($testplot). " Grid\">";
+print $html "$prefix\_0.png\" alt=\"". uc($plot). " Grid\">";
 
 $i = 1;
 foreach my $cmd (@descs) {
     print $html "<img src=\"";
-    print $html "$prefix\_$i.png\" alt=\"". uc($testplot). " $cmd\">";
+    print $html "$prefix\_$i.png\" alt=\"". uc($plot). " $cmd\">";
     print $html "<span></span>";
     $i++;
 }
 
 print $html "<img id=\"combined\" src=\"";
-print $html "$prefix.png\" alt=\"". uc($testplot). " Performance\">";
+print $html "$prefix.png\" alt=\"". uc($plot). " Performance\">";
 
 print $html "</body>
 </html>";
