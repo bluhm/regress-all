@@ -27,6 +27,7 @@ use Time::Local;
 
 use lib dirname($0);
 use Buildquirks;
+use Html;
 use Testvars qw(%TESTDESC);
 
 my %opts;
@@ -97,104 +98,14 @@ parse_data_file();
 
 exit unless keys %SUBTESTS;
 
-my @descs = sort keys %SUBTESTS;
-
 create_plot_files();
 
 exit if $dry;
 
-my $num = @descs;
+my $num = scalar keys %SUBTESTS;
 create_key_files(1, $num) unless -f "key_$num.png";
 
-my $htmlfile = "$prefix.html";
-unlink("$htmlfile.new");
-open(my $html, '>', "$htmlfile.new")
-    or die "Open '$htmlfile.new' for writing failed: $!";
-my $htmltitle = uc $opts{T}. " Performance";
-$htmltitle .= ", run $date" if $date;
-
-print $html "<!DOCTYPE html>
-<html>
-<head>
-    <title>OpenBSD Perform $htmltitle Results</title>
-    <style>
-	body {
-	    display: flex;
-	    flex-direction: row;
-	    flex-wrap: wrap;
-	    margin-top: 768px;
-	}
-	img {
-	    position: absolute;
-	    left: 0;
-	    right: 0;
-	    max-width: 100%;
-	    top: 0;
-	}
-	input {
-	    z-index: 2;
-	    margin: 0;
-	    width: 24px;
-	    height: 16px;
-	}
-	input[type=\"checkbox\"]:not(:checked)".(" + * "x(2 * @descs)).
-	"+ img {
-	    display: none;
-	}
-	body :nth-child(6n) {
-	    page-break-after: always;
-	}
-	label {
-	    display: inherit;
-	    width: calc(33vw - 30px);
-	    align-items: center;
-	}
-	.key {
-	    position: unset;
-	    margin: 0 2px;
-	    height: 24px;
-	    width: 16px;
-	}
-	#frame {
-	    z-index: 1;
-	}
-	#combined {
-	    z-index: 2;
-	    opacity: 0;
-	}
-    </style>
-</head>
-<body>";
-
-my $i = 1;
-foreach my $cmd (@descs) {
-    print $html "<input id=\"checkbox-$i\" checked type=checkbox>
-	<label for=\"checkbox-$i\">
-	<img class=\"key\" src=\"key_$i.png\" alt=\"Key $i\">
-	$cmd
-	</label>";
-    $i++;
-}
-
-print $html "<img id=\"frame\" src=\"";
-print $html "$prefix\_0.png\" alt=\"". uc($plot). " Grid\">";
-
-$i = 1;
-foreach my $cmd (@descs) {
-    print $html "<img src=\"";
-    print $html "$prefix\_$i.png\" alt=\"". uc($plot). " $cmd\">";
-    print $html "<span></span>";
-    $i++;
-}
-
-print $html "<img id=\"combined\" src=\"";
-print $html "$prefix.png\" alt=\"". uc($plot). " Performance\">";
-
-print $html "</body>
-</html>";
-
-rename("$htmlfile.new", $htmlfile)
-    or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
+create_html_file();
 
 exit;
 
@@ -255,4 +166,93 @@ sub create_key_files {
     system(@cmd)
 	and die "Command '@cmd' failed: $?";
     print "Command '@cmd' finished.\n" if $verbose;
+}
+
+sub create_html_file {
+    my @descs = sort keys %SUBTESTS;
+    my $htmltitle = uc($plot). " Performance";
+    $htmltitle .= ", run $date" if $date;
+
+    my ($html, $htmlfile) = html_open($prefix);
+    print $html <<"HEADER";
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OpenBSD Perform $htmltitle Results</title>
+  <style>
+    body {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	margin-top: 768px;
+    }
+    img {
+	position: absolute;
+	left: 0;
+	right: 0;
+	max-width: 100%;
+	top: 0;
+    }
+    input {
+	z-index: 2;
+	margin: 0;
+	width: 24px;
+	height: 16px;
+    }
+    input[type=\"checkbox\"]:not(:checked)".(" + * "x(2 * @descs)).
+    "+ img {
+	display: none;
+    }
+    body :nth-child(6n) {
+	page-break-after: always;
+    }
+    label {
+	display: inherit;
+	width: calc(33vw - 30px);
+	align-items: center;
+    }
+    .key {
+	position: unset;
+	margin: 0 2px;
+	height: 24px;
+	width: 16px;
+    }
+    #frame {
+	z-index: 1;
+    }
+    #combined {
+	z-index: 2;
+	opacity: 0;
+    }
+  </style>
+</head>
+<body>
+HEADER
+
+    my $i = 1;
+    foreach my $cmd (@descs) {
+	print $html "<input id=\"checkbox-$i\" checked type=checkbox>
+	    <label for=\"checkbox-$i\">
+	    <img class=\"key\" src=\"key_$i.png\" alt=\"Key $i\">
+	    $cmd
+	    </label>";
+	$i++;
+    }
+
+    print $html "<img id=\"frame\" src=\"";
+    print $html "$prefix\_0.png\" alt=\"". uc($plot). " Grid\">";
+
+    $i = 1;
+    foreach my $cmd (@descs) {
+	print $html "<img src=\"";
+	print $html "$prefix\_$i.png\" alt=\"". uc($plot). " $cmd\">";
+	print $html "<span></span>";
+	$i++;
+    }
+
+    print $html "<img id=\"combined\" src=\"";
+    print $html "$prefix.png\" alt=\"". uc($plot). " Performance\">";
+
+    html_footer($html);
+    html_close($html, $htmlfile, "nozip");
 }

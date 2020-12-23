@@ -19,6 +19,7 @@ package Html;
 
 use strict;
 use warnings;
+use Carp;
 
 use Buildquirks;
 
@@ -39,21 +40,22 @@ sub html_open {
     my $htmlfile = "$path.html";
     unlink("$htmlfile.new");
     open(my $html, '>', "$htmlfile.new")
-	or die "Open '$htmlfile.new' for writing failed: $!";
+	or croak "Open '$htmlfile.new' for writing failed: $!";
     return wantarray ? ($html, $htmlfile) : $html;
 }
 
 # close new html file, rename atomically, create gzipped copy
 sub html_close {
-    my ($html, $htmlfile) = @_;
+    my ($html, $htmlfile, $nozip) = @_;
     close($html)
-	or die "Close '$htmlfile.new' after writing failed: $!";
+	or croak "Close '$htmlfile.new' after writing failed: $!";
     rename("$htmlfile.new", "$htmlfile")
-	or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
+	or croak "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
+    return if $nozip;
     system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-	and die "Gzip $htmlfile failed: $?";
+	and croak "Gzip $htmlfile failed: $?";
     rename("$htmlfile.gz.new", "$htmlfile.gz")
-	or die "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
+	or croak "Rename '$htmlfile.new.gz' to '$htmlfile.gz' failed: $!";
 }
 # open html page, print head, open body
 sub html_header {
