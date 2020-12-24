@@ -182,6 +182,7 @@ sub create_html_file {
     $htmltitle .= ", run $date" if $date;
 
     my ($html, $htmlfile) = html_open($prefix);
+    my $plusstar = " + *" x (2 * @descs);
     print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
@@ -189,48 +190,47 @@ sub create_html_file {
   <title>OpenBSD Perform $htmltitle Results</title>
   <style>
     body {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	margin-top: 768px;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      margin-top: 768px;
     }
     img {
-	position: absolute;
-	left: 0;
-	right: 0;
-	max-width: 100%;
-	top: 0;
+      position: absolute;
+      left: 0;
+      right: 0;
+      max-width: 100%;
+      top: 0;
     }
     input {
-	z-index: 2;
-	margin: 0;
-	width: 24px;
-	height: 16px;
+      z-index: 2;
+      margin: 0;
+      width: 24px;
+      height: 16px;
     }
-    input[type=\"checkbox\"]:not(:checked)".(" + * "x(2 * @descs)).
-    "+ img {
-	display: none;
+    input[type="checkbox"]:not(:checked)$plusstar + img {
+      display: none;
     }
     body :nth-child(6n) {
-	page-break-after: always;
+      page-break-after: always;
     }
     label {
-	display: inherit;
-	width: calc(33vw - 30px);
-	align-items: center;
+      display: inherit;
+      width: calc(33vw - 30px);
+      align-items: center;
     }
     .key {
-	position: unset;
-	margin: 0 2px;
-	height: 24px;
-	width: 16px;
+      position: unset;
+      margin: 0 2px;
+      height: 24px;
+      width: 16px;
     }
     #frame {
-	z-index: 1;
+      z-index: 1;
     }
     #combined {
-	z-index: 2;
-	opacity: 0;
+      z-index: 2;
+      opacity: 0;
     }
   </style>
 </head>
@@ -239,27 +239,31 @@ HEADER
 
     my $i = 1;
     foreach my $cmd (@descs) {
-	print $html "<input id=\"checkbox-$i\" checked type=checkbox>
-	    <label for=\"checkbox-$i\">
-	    <img class=\"key\" src=\"key_$i.png\" alt=\"Key $i\">
-	    $cmd
-	    </label>";
+	print $html <<"INPUT";
+  <input id="checkbox-$i" checked type=checkbox>
+    <label for="checkbox-$i">
+      <img class="key" src="key_$i.png" alt="Key $i">
+      $cmd
+    </label>
+INPUT
 	$i++;
     }
 
-    print $html "<img id=\"frame\" src=\"";
-    print $html "$prefix\_0.png\" alt=\"". uc($plot). " Grid\">";
+    print $html "  <img id=\"frame\" src=\"$prefix\_0.png\" ";
+    print $html "alt=\"". uc($plot). " Grid\">";
+    print $html "\n";
 
     $i = 1;
     foreach my $cmd (@descs) {
-	print $html "<img src=\"";
-	print $html "$prefix\_$i.png\" alt=\"". uc($plot). " $cmd\">";
-	print $html "<span></span>";
+	print $html "  <img src=\"$prefix\_$i.png\" ";
+	print $html "alt=\"". uc($plot). " $cmd\">";
+	print $html "<span></span>\n";
 	$i++;
     }
 
-    print $html "<img id=\"combined\" src=\"";
-    print $html "$prefix.png\" alt=\"". uc($plot). " Performance\">";
+    print $html "  <img id=\"combined\" src=\"$prefix.png\" ";
+    print $html "alt=\"". uc($plot). " Performance\">";
+    print $html "\n";
 
     html_footer($html);
     html_close($html, $htmlfile, "nozip");
