@@ -140,7 +140,7 @@ my (%T, %D, %V, %Z, @Z);
 print "parse result files" if $verbose;
 parse_result_files(@result_files);
 
-print "\ncreate data files" if $verbose;
+print "\nwrite data files" if $verbose;
 write_data_files();
 print "\ncreate gnuplot files" if $verbose;
 create_gnuplot_files($date);
