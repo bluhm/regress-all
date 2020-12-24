@@ -482,13 +482,13 @@ sub list_tests {
 }
 
 sub list_dates {
-    my @dates = @_ ? shift : reverse sort keys %D;
+    my @dates = shift || reverse sort keys %D;
     return @dates;
 }
 
 # create gnuplot graphs for all runs
 sub create_gnuplot_files {
-    my @dates = @_ ? shift : reverse sort keys %V;
+    my @dates = shift || reverse sort keys %V;
     my ($first, $last);
     if (@dates == 1) {
 	my @cvsdates = sort @{$D{$dates[0]}{cvsdates}};
@@ -529,7 +529,7 @@ sub create_gnuplot_files {
 
 # create cvs log file with commits after previous cvsdates
 sub create_cvslog_files {
-    my @dates = @_ ? shift : reverse sort keys %D;
+    my @dates = shift || reverse sort keys %D;
     foreach my $dd (@D{@dates}) {
 	print "." if $verbose;
 	my %cvsdates;
@@ -570,7 +570,7 @@ sub create_cvslog_files {
 }
 
 sub create_nmbsd_files {
-    my @dates = @_ ? shift : reverse sort keys %D;
+    my @dates = shift || reverse sort keys %D;
     foreach my $date (@dates) {
 	print "." if $verbose;
 	my $dv = $D{$date};
