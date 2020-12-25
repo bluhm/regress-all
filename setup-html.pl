@@ -339,9 +339,8 @@ sub create_html_setup {
 	}
     }
     print $html "</table>\n";
-    print $html "</body>\n";
-    print $html "</html>\n";
-    html_close($html, $htmlfile);
+    html_footer($html);
+    html_close($html, $htmlfile, "nozip");
 }
 
 sub create_html_build {
@@ -459,9 +458,8 @@ sub create_html_build {
 	}
     }
     print $html "</table>\n";
-    print $html "</body>\n";
-    print $html "</html>\n";
-    html_close($html, $htmlfile);
+    html_footer($html);
+    html_close($html, $htmlfile, "nozip");
 }
 
 sub create_html_reboot {
@@ -576,9 +574,8 @@ sub create_html_reboot {
 	print $html "  </tr>\n";
     }
     print $html "</table>\n";
-    print $html "</body>\n";
-    print $html "</html>\n";
-    html_close($html, $htmlfile);
+    html_footer($html);
+    html_close($html, $htmlfile, "nozip");
 }
 
 sub create_html_run {
@@ -661,7 +658,7 @@ HEADER
     }
     print $html "</table>\n";
     html_footer($html);
-    html_close($html, $htmlfile);
+    html_close($html, $htmlfile, "nozip");
 }
 
 # extract status from log file
