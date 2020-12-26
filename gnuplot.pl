@@ -104,8 +104,6 @@ $prefix .= "$plot";
 my ($UNIT, %SUBTESTS);
 parse_data_file();
 
-exit unless keys %SUBTESTS;
-
 create_plot_files();
 
 exit if $dry;
@@ -123,11 +121,12 @@ sub parse_data_file {
 
     # test subtest run checkout repeat value unit host
     <$fh>; # skip file head
-    my ($test, $sub, $checkout, $unit);
+    my ($test, $sub, $create, $checkout, $unit);
     while (<$fh>) {
-	($test, $sub, undef, $checkout, undef, undef, $unit) = split;
+	($test, $sub, $create, $checkout, undef, undef, $unit) = split;
 	next unless $unit;
 	$UNIT ||= $unit;
+	next if $run && $run != $create;
 	next if $begin && $checkout < $begin;
 	next if $end && $end < $checkout;
 	$SUBTESTS{"$TESTDESC{$test} $sub"} = "$test $sub";
@@ -169,6 +168,7 @@ sub create_plot_files {
 
 sub create_key_files {
     my ($from, $to) = @_;
+    return if $from > $to;
     my @cmd = ("$performdir/bin/keys.sh", $from, $to);
     print "Command '@cmd' started.\n" if $verbose;
     system(@cmd)
