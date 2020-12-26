@@ -211,7 +211,7 @@ foreach my $date (@dates) {
     print $html "<table>\n";
     foreach my $plot (@plots) {
 	print $html "  <tr class=\"IMG\">\n";
-	html_plot_data($html, $plot, $date, "..");
+	html_plot_data($html, $plot);
 	print $html "  </tr>\n";
     }
     print $html "</table>\n";
@@ -512,13 +512,10 @@ sub create_gnuplot_files {
 		and die "Command '@cmd' failed: $?";
 	}
     }
-    foreach my $plot (list_plots()) {
+    foreach my $date (@dates) {
 	print "." if $verbose;
-	foreach my $date (@dates) {
-	    unless ($opts{g}) {
-		next if -f "gnuplot/$date-$plot.png";
-		next if -f "$date/gnuplot/$plot.png";
-	    }
+	foreach my $plot (list_plots()) {
+	    next if !$opts{g} && -f "$date/gnuplot/$plot.png";
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
 		"-d", $date);
 	    system(@cmd)
@@ -1208,15 +1205,16 @@ sub html_status_data {
 }
 
 sub html_plot_data {
-    my ($html, $plot, $prefix, $dir) = @_;
-    my $file = "";
-    $file .= "$dir/" if $dir;
-    $file .= "gnuplot/";
-    $file .= "$prefix-" if $prefix;
-    $file .= $plot;
-    $file = "gnuplot/$plot" unless -f "$file.png";
-    my $href = "$file.html";
-    my $src = "$file.png";
+    my ($html, $plot, $release) = @_;
+    my $prefix = "gnuplot/";
+    $prefix .= "$release-" if $release;
+    $prefix .= $plot;
+    my $src = "$prefix.png";
+    unless (-f $src) {
+	print $html "    <td></td>\n";
+	return;
+    }
+    my $href = "$prefix.html";
     my $alt = uc($plot)." Performance";
     print $html <<IMAGE;
     <td>

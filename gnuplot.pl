@@ -104,6 +104,11 @@ $prefix .= "$plot";
 my ($UNIT, %SUBTESTS);
 parse_data_file();
 
+my @files = (glob("$prefix.png"), glob("${prefix}_*.png"),
+    glob("$prefix.html"));
+unlink(@files) if @files;
+exit if !keys %SUBTESTS && $date;
+
 create_plot_files();
 
 exit if $dry;
