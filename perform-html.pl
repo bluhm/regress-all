@@ -210,6 +210,7 @@ foreach my $date (@dates) {
 
     print $html "<table>\n";
     foreach my $plot (@plots) {
+	next unless -f "$date/gnuplot/$plot.png";
 	print $html "  <tr class=\"IMG\">\n";
 	html_plot_data($html, $plot);
 	print $html "  </tr>\n";
@@ -1210,13 +1211,9 @@ sub html_plot_data {
     $prefix .= "$release-" if $release;
     $prefix .= $plot;
     my $src = "$prefix.png";
-    unless (-f $src) {
-	print $html "    <td></td>\n";
-	return;
-    }
     my $href = "$prefix.html";
     my $alt = uc($plot)." Performance";
-    print $html <<IMAGE;
+    print $html <<"IMAGE";
     <td>
       <a href="$href">
 	<img src="$src" alt="$alt">
