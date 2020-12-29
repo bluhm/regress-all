@@ -1,0 +1,5 @@
+cd /usr/ports && mkdir -p bulk distfiles plist logs packages pobj
+cd /usr/ports && chown _pfetch:_pfetch distfiles
+cd /usr/ports && chown _pbuild:_pbuild logs
+cd /usr/ports && chgrp _pbuild bulk plist packages pobj
+cd /usr/ports && chmod 775 bulk distfiles plist logs packages pobj

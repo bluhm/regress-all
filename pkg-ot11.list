@@ -10,6 +10,7 @@ p5-IO-Socket-INET6
 p5-IO-Socket-SSL
 raspberrypi-firmware
 rsync--
+sudo
 sysclean
 u-boot-aarch64
 xz
