@@ -26,8 +26,11 @@ once.pl		- run performance test once, used for manual testing
 perform-html.pl	- convert performance test results into html table
 perform.pl	- run one set up performace test on test machine,
 		  this is started by step.pl
+portstest.pl	- run port test for set of ports on test machine
+		  this is started by test.pl
 pkg-ot1.list	- list of packages that must be installed on test machine ot1
 pkg-ot2.list	- list of packages that must be installed on test machine ot2
+ports.list	- list of /usr/ports subdirectories that should be tested
 reboot.pl	- reboot machine, after optionally reordering kernel
 regress-html.pl	- convert all regression test results into html table
 regress.pl	- run one openbsd regression test on test machine,
@@ -38,6 +41,7 @@ setup.pl	- install one test machine,
 		  this is started by run.pl and step.pl
 site.list	- list of config files that must be installed on test machine
 step.pl		- do performance tests, add this to cron job
+test.pl		- do ports tests, add this to cron job
 test.list	- list of /usr/src/regress subdirectories that should be tested
 testsuite-html.pl - create html of test suites run during regress
 

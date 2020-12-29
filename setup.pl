@@ -43,7 +43,7 @@ usage: $0 [-v] [-d date] -h host [-r release] mode ...
     install	install from snapshot
     kernel	build kernel from source /usr/src/sys
     keep	only copy version and scripts
-    ports	cvs update /usr/ports 
+    ports	cvs update /usr/ports
     tools	build and install tools needed for some tests
     upgrade	upgrade with snapshot
 EOF
@@ -103,7 +103,7 @@ get_version() if $mode{kernel} || $mode{build};
 install_packages($release) if $mode{install} || $mode{upgrade};
 build_tools() if $mode{install} || $mode{upgrade} || $mode{tools};
 run_commands() if $mode{install} || $mode{upgrade} || $mode{commands};
-get_bsdcons() if !$mode{ports};
+get_bsdcons();
 
 # finish setup log
 
@@ -118,7 +118,9 @@ sub copy_scripts {
     chdir($bindir)
 	or die "Chdir to '$bindir' failed: $!";
 
-    runcmd('ssh', "$user\@$host", 'mkdir', '-p', '/root/regress');
+    my @mkdirs = map { "/root/$_" } qw(regress perform portstest);
+    runcmd('ssh', "$user\@$host", 'mkdir', '-p', @mkdirs);
+
     my @copy = grep { -f $_ }
 	("regress.pl", "env-$host.sh", "pkg-$host.list", "test.list",
 	"site.list");
@@ -127,12 +129,18 @@ sub copy_scripts {
     push @scpcmd, (@copy, "$user\@$host:/root/regress");
     runcmd(@scpcmd);
 
-    runcmd('ssh', "$user\@$host", 'mkdir', '-p', '/root/perform');
     @copy = grep { -f $_ }
 	("perform.pl", "makealign.sh", "env-$host.sh", "pkg-$host.list");
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$user\@$host:/root/perform");
+    runcmd(@scpcmd);
+
+    @copy = grep { -f $_ }
+	("portstest.pl", "env-$host.sh", "ports.list");
+    @scpcmd = ('scp');
+    push @scpcmd, '-q' unless $opts{v};
+    push @scpcmd, (@copy, "$user\@$host:/root/portstest");
     runcmd(@scpcmd);
 
     chdir($resultdir)
