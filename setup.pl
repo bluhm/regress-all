@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # setup machine for regress test
 
-# Copyright (c) 2016-2018 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2020 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -43,6 +43,7 @@ usage: $0 [-v] [-d date] -h host [-r release] mode ...
     install	install from snapshot
     kernel	build kernel from source /usr/src/sys
     keep	only copy version and scripts
+    ports	cvs update /usr/ports 
     tools	build and install tools needed for some tests
     upgrade	upgrade with snapshot
 EOF
@@ -52,7 +53,7 @@ $opts{h} or die "No -h specified";
 my $date = $opts{d};
 
 my %allmodes;
-@allmodes{qw(build commands cvs install kernel keep tools upgrade)} = ();
+@allmodes{qw(build commands cvs install kernel keep ports tools upgrade)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
@@ -89,9 +90,10 @@ createhost($user, $host);
 install_pxe($release) if $mode{install} && !$mode{keep};
 upgrade_pxe() if $mode{upgrade} && !$mode{keep};
 get_version();
-copy_scripts();
+copy_scripts() if !$mode{ports};
 checkout_cvs($release) if $mode{install} || $mode{upgrade};
 update_cvs($release) if $mode{cvs};
+update_ports($release) if $mode{ports};
 make_kernel() if $mode{kernel} || $mode{build};
 make_build() if $mode{build};
 diff_cvs("sys") if $mode{kernel} && !$mode{build};
@@ -101,7 +103,7 @@ get_version() if $mode{kernel} || $mode{build};
 install_packages($release) if $mode{install} || $mode{upgrade};
 build_tools() if $mode{install} || $mode{upgrade} || $mode{tools};
 run_commands() if $mode{install} || $mode{upgrade} || $mode{commands};
-get_bsdcons();
+get_bsdcons() if !$mode{ports};
 
 # finish setup log
 

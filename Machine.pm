@@ -27,7 +27,7 @@ use Logcmd;
 use parent 'Exporter';
 our @EXPORT= qw(createhost reboot
     install_pxe upgrade_pxe get_bsdcons get_version
-    checkout_cvs update_cvs diff_cvs
+    checkout_cvs update_cvs diff_cvs update_ports
     make_kernel make_build
     align_kernel gap_kernel sort_kernel reorder_kernel
     get_bsdnm
@@ -119,15 +119,19 @@ sub checkout_cvs {
 }
 
 sub update_cvs {
-    my ($release, $date, $path) = @_;
+    cvs_update("src", @_);
+}
+
+sub cvs_update {
+    my ($repo, $release, $date, $path) = @_;
     my $tag = $release || "";
     $tag =~ s/(\d+)\.(\d+)/ -rOPENBSD_${1}_${2}_BASE/;
     $tag = $date ? strftime(" -D%FZ%T", gmtime(str2time($date))) : "";
     $tag ||= "AC";  # for step checkouts per date preserve quirk patches
     $path = $path ? " $path" : "";
-    logcmd('ssh', "$user\@$host", "cd /usr/src && cvs -qR up -Pd$tag$path");
+    logcmd('ssh', "$user\@$host", "cd /usr/$repo && cvs -qR up -Pd$tag$path");
     $path = $path ? " -C$path" : "";
-    logcmd('ssh', "$user\@$host", "cd /usr/src && make$path obj");
+    logcmd('ssh', "$user\@$host", "cd /usr/$repo && make$path obj");
 }
 
 sub diff_cvs {
@@ -154,6 +158,10 @@ sub diff_cvs {
 	or die "Close 'diff-$host.txt.new' after writing failed: $!";
     rename("diff-$host.txt.new", "diff-$host.txt")
 	or die "Rename 'diff-$host.txt.new' to 'diff-$host.txt' failed: $!";
+}
+
+sub update_ports {
+    cvs_update("ports", @_);
 }
 
 # make /usr/src
