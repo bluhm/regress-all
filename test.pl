@@ -57,11 +57,11 @@ $SIG{PIPE} = 'IGNORE';
 # create directory for this test run with timestamp 2016-07-13T12:30:42Z
 my $date = strftime("%FT%TZ", gmtime);
 
-my $portstestdir = dirname($0). "/..";
-chdir($portstestdir)
-    or die "Chdir to '$portstestdir' failed: $!";
-$portstestdir = getcwd();
-my $resultdir = "$portstestdir/results/$date";
+my $regressdir = dirname($0). "/..";
+chdir($regressdir)
+    or die "Chdir to '$regressdir' failed: $!";
+$regressdir = getcwd();
+my $resultdir = "$regressdir/results/$date";
 mkdir $resultdir
     or die "Make directory '$resultdir' failed: $!";
 unlink("results/current");
@@ -70,11 +70,11 @@ symlink($date, "results/current")
 chdir($resultdir)
     or die "Chdir to '$resultdir' failed: $!";
 
-createlog(file => "test.log", verbose => $opts{v});
+createlog(file => "run.log", verbose => $opts{v});
 logmsg("Script '$scriptname' started at $date.\n");
 
-open(my $fh, '>', "testconf.txt")
-    or die "Open 'testconf.txt' for writing failed: $!";
+open(my $fh, '>', "runconf.txt")
+    or die "Open 'runconf.txt' for writing failed: $!";
 print $fh "ARGUMENTS @ARGV\n";
 print $fh "HOST $opts{h}\n";
 print $fh "MODE ", join(" ", sort keys %mode), "\n";
@@ -82,14 +82,14 @@ close($fh);
 
 # setup remote machines
 
-usehosts(bindir => "$portstestdir/bin", date => $date,
+usehosts(bindir => "$regressdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 
 # do not run end block until initialized, date may change later
 my $odate = $date;
 END {
     if ($odate) {
-	my @cmd = ("$portstestdir/bin/setup-html.pl");
+	my @cmd = ("$regressdir/bin/setup-html.pl");
 	system(@cmd);
     }
 };
@@ -100,7 +100,7 @@ setup_html();
 # run port tests remotely
 
 chdir($resultdir)
-    or die "Chdir to '$portstestdir' failed: $!";
+    or die "Chdir to '$resultdir' failed: $!";
 
 (my $host = $opts{h}) =~ s/.*\@//;
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/portstest/portstest.pl',
@@ -135,17 +135,27 @@ close($tr)
     or die "Close 'test.result' after reading failed: $!";
 
 chdir($resultdir)
-    or die "Chdir to '$portstestdir' failed: $!";
+    or die "Chdir to '$resultdir' failed: $!";
 
+collect_dmesg();
 setup_html();
 
 # create html output
 
-chdir($portstestdir)
-    or die "Chdir to '$portstestdir' failed: $!";
+chdir($regressdir)
+    or die "Chdir to '$regressdir' failed: $!";
 
 setup_html(date => 1);
+runcmd("bin/regress-html.pl", "-h", $host, "ports");
 runcmd("bin/regress-html.pl", "ports");
+
+unlink("results/latest-$host");
+symlink($date, "results/latest-$host")
+    or die "Make symlink 'results/latest-$host' failed: $!";
+unlink("results/latest");
+symlink($date, "results/latest")
+    or die "Make symlink 'results/latest' failed: $!";
+runcmd("bin/regress-html.pl", "-l", "ports");
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $date.\n");
