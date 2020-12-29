@@ -90,7 +90,7 @@ createhost($user, $host);
 install_pxe($release) if $mode{install} && !$mode{keep};
 upgrade_pxe() if $mode{upgrade} && !$mode{keep};
 get_version();
-copy_scripts() if !$mode{ports};
+copy_scripts();
 checkout_cvs($release) if $mode{install} || $mode{upgrade};
 update_cvs($release) if $mode{cvs};
 update_ports($release) if $mode{ports};
@@ -102,7 +102,8 @@ reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
 install_packages($release) if $mode{install} || $mode{upgrade};
 build_tools() if $mode{install} || $mode{upgrade} || $mode{tools};
-run_commands() if $mode{install} || $mode{upgrade} || $mode{commands};
+run_commands() if $mode{install} || $mode{upgrade} || $mode{commands} ||
+    $mode{ports};
 get_bsdcons();
 
 # finish setup log
