@@ -33,7 +33,7 @@ usage: $0 [-nv] [-m months] [-w weeks]
     -m months	thin out directories older than months, default 1
     -n		do not clean, just display obsolete directories
     -v		verbose
-    -w weeks	remove setup and run log than weeks, default 2
+    -w weeks	remove setup and run log than weeks, default 4
     -y years	remove all directories older than years, default 1
 EOF
     exit(2);
@@ -43,7 +43,7 @@ my $dm = $dy/12;
 my $dw = 7;
 my $alldays = ($opts{y} // 1) * $dy;
 my $thindays = ($opts{m} // 1) * $dm;
-my $logdays = ($opts{w} // 2) * $dw;
+my $logdays = ($opts{w} // 4) * $dw;
 my $tgzdays = ($opts{d} // 3);
 
 my $now = strftime("%FT%TZ", gmtime);
