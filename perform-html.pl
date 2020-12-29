@@ -516,7 +516,7 @@ sub create_gnuplot_files {
     foreach my $date (@dates) {
 	print "." if $verbose;
 	foreach my $plot (list_plots()) {
-	    next if !$opts{g} && -f "$date/gnuplot/$plot.png";
+	    next if !$opts{d} && !$opts{g} && -f "$date/gnuplot/$plot.png";
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
 		"-d", $date);
 	    system(@cmd)

@@ -254,11 +254,6 @@ chdir($performdir)
     or die "Chdir to '$performdir' failed: $!";
 
 setup_html(date => 1);
-# remove possible preliminary created images before stepping was finished
-foreach (glob("results/gnuplot/$date-*")) {
-    unlink($_)
-	or warn "Unlink image '$_' failed: $!";
-}
 runcmd("bin/perform-html.pl", "-d", $date);
 
 $date = strftime("%FT%TZ", gmtime);
