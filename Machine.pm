@@ -119,7 +119,10 @@ sub checkout_cvs {
 }
 
 sub update_cvs {
+    my ($release, $date, $path) = @_;
     cvs_update("src", @_);
+    $path = $path ? " -C$path" : "";
+    logcmd('ssh', "$user\@$host", "cd /usr/src && make$path obj");
 }
 
 sub cvs_update {
@@ -130,8 +133,6 @@ sub cvs_update {
     $tag ||= "AC";  # for step checkouts per date preserve quirk patches
     $path = $path ? " $path" : "";
     logcmd('ssh', "$user\@$host", "cd /usr/$repo && cvs -qR up -Pd$tag$path");
-    $path = $path ? " -C$path" : "";
-    logcmd('ssh', "$user\@$host", "cd /usr/$repo && make$path obj");
 }
 
 sub diff_cvs {
