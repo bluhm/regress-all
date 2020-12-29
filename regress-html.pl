@@ -114,7 +114,7 @@ my $bodytitle = $host ? ($opts{l} ? "latest $host" : $host) :
 
 my $topic = $mode{src} ? "Regress" : $mode{ports} ? "Ports" : "";
 html_header($html, "OpenBSD $topic $htmltitle Results",
-    "OpenBSD ". lc($topic). "$bodytitle test results");
+    "OpenBSD ". lc($topic). " $bodytitle test results");
 
 print $html <<"HEADER";
 <table>
