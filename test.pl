@@ -103,7 +103,7 @@ chdir($resultdir)
     or die "Chdir to '$portstestdir' failed: $!";
 
 (my $host = $opts{h}) =~ s/.*\@//;
-my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/portstest/test.pl',
+my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/portstest/portstest.pl',
     '-e', "/root/portstest/env-$host.sh", '-v');
 logcmd(@sshcmd);
 
