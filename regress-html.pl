@@ -170,7 +170,10 @@ print $html "  <tr>\n    <th>host architecture</th>\n";
 foreach my $date (@dates) {
     my $hostname = $D{$date}{host};
     my $hostlink;
-    $hostlink = "regress-$hostname.html" if !$host || $opts{l};
+    if (!$host || $opts{l}) {
+	$hostlink = "regress-$hostname.html";
+	undef $hostlink unless -f $hostlink;
+    }
     my $hhref = $hostlink ? "<a href=\"$hostlink\">" : "";
     my $henda = $hhref ? "</a>" : "";
     my $arch = $D{$date}{arch};

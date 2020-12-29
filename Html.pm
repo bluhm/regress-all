@@ -127,6 +127,7 @@ sub html_status_table {
     my ($topic, $tool);
     ($topic, $tool) = ("make regress", "make") if $type eq "regress";
     ($topic, $tool) = ("performance test", "test") if $type eq "perform";
+    ($topic, $tool) = ("make test", "make") if $type eq "portstest";
     print $html <<"TABLE";
 <table>
   <tr>
@@ -158,11 +159,27 @@ TABLE
     <td>$topic failed to produce value</td>
   </tr>
 TABLE
-    print $html <<"TABLE";
+    print $html <<"TABLE" if $type eq "portstest";
+  <tr>
+    <td class="status FAIL">FAIL</td>
+    <td>$topic failed</td>
+  </tr>
+  <tr>
+    <td class="status SKIP">SKIP</td>
+    <td>make fetch failed, test skipped</td>
+  </tr>
+  <tr>
+    <td class="status NOEXIT">NOEXIT</td>
+    <td>make build failed</td>
+  </tr>
+TABLE
+    print $html <<"TABLE" if $type eq "regress" || $type eq "perform";
   <tr>
     <td class="status NOEXIT">NOEXIT</td>
     <td>$topic did not exit with code 0, $tool failed</td>
   </tr>
+TABLE
+    print $html <<"TABLE";
   <tr>
     <td class="status NOTERM">NOTERM</td>
     <td>$topic did not terminate, aborted after timeout</td>
@@ -176,7 +193,7 @@ TABLE
     <td>create log file for $tool output failed</td>
   </tr>
 TABLE
-    print $html <<"TABLE" if $type eq "regress";
+    print $html <<"TABLE" if $type eq "regress" || $type eq "portstest";
   <tr>
     <td class="status NOCLEAN">NOCLEAN</td>
     <td>make clean before running test failed</td>
