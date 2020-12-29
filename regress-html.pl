@@ -32,12 +32,24 @@ my $now = strftime("%FT%TZ", gmtime);
 my %opts;
 getopts('h:l', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-l] [-h host]
+usage: $0 [-l] [-h host] mode
     -h host	user and host for version information, user defaults to root
     -l		create latest.html with one column of the latest results
+    mode	src ports
 EOF
     exit(2);
 };
+
+my %allmodes;
+@allmodes{qw(src ports)} = ();
+@ARGV or die "No mode specified";
+my %mode = map {
+    die "Unknown mode: $_" unless exists $allmodes{$_};
+    $_ => 1;
+} @ARGV;
+foreach (qw(src ports)) {
+    die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
+}
 
 my $dir = dirname($0). "/..";
 chdir($dir)
@@ -100,8 +112,9 @@ my $htmltitle = $opts{l} ? "Latest" : "Test";
 my $bodytitle = $host ? ($opts{l} ? "latest $host" : $host) :
     ($opts{l} ? "latest" : "all");
 
-html_header($html, "OpenBSD Regress $htmltitle Results",
-    "OpenBSD regress $bodytitle test results");
+my $topic = $mode{src} ? "Regress" : $mode{ports} ? "Ports" : "";
+html_header($html, "OpenBSD $topic $htmltitle Results",
+    "OpenBSD ". lc($topic). "$bodytitle test results");
 
 print $html <<"HEADER";
 <table>
@@ -169,7 +182,9 @@ foreach my $date (@dates) {
 }
 print $html "  </tr>\n";
 
-my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/regress/";
+my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/";
+$cvsweb .= "src/regress/" if $mode{src};
+$cvsweb .= "ports/" if $mode{ports};
 my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
     keys %T;
 foreach my $test (@tests) {
@@ -189,7 +204,8 @@ foreach my $test (@tests) {
 }
 print $html "</table>\n";
 
-html_status_table($html, "regress");
+my $type = $mode{src} ? "regress" : $mode{ports} ? "portstest" : "";
+html_status_table($html, $type);
 html_footer($html);
 html_close($html, $htmlfile);
 

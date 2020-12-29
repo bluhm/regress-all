@@ -145,7 +145,7 @@ chdir($portstestdir)
     or die "Chdir to '$portstestdir' failed: $!";
 
 setup_html(date => 1);
-runcmd("bin/portstest-html.pl");
+runcmd("bin/regress-html.pl", "ports");
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $date.\n");

@@ -154,8 +154,8 @@ chdir($regressdir)
     or die "Chdir to '$regressdir' failed: $!";
 
 setup_html(date => 1);
-runcmd("bin/regress-html.pl", "-h", $host);
-runcmd("bin/regress-html.pl");
+runcmd("bin/regress-html.pl", "-h", $host, "src");
+runcmd("bin/regress-html.pl", "src");
 
 unlink("results/latest-$host");
 symlink($date, "results/latest-$host")
@@ -163,7 +163,7 @@ symlink($date, "results/latest-$host")
 unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
-runcmd("bin/regress-html.pl", "-l");
+runcmd("bin/regress-html.pl", "-l", "src");
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $date.\n");
