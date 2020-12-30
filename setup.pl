@@ -191,7 +191,7 @@ sub install_packages {
 	    '-l', "regress/pkg-$host.list",
 	    '-Ivx', $release ? () : '-Dsnap')
     };
-    logmsg "WARNING: Command failed.\n" if $@;
+    logmsg("WARNING: $@") if $@;
 }
 
 # build and install addtitional tools
@@ -229,6 +229,12 @@ sub run_commands {
 	or die "Close '$bindir/cmd-$host.list' after reading failed: $!";
 
     foreach my $run (@commands) {
-	logcmd('ssh', "$user\@$host", $run);
+	# like make, ignore error when command starts with -
+	if ($run =~ s/^-//) {
+	    eval { logcmd('ssh', "$user\@$host", $run) };
+	    logmsg("WARNING: $@") if $@;
+	} else {
+	    logcmd('ssh', "$user\@$host", $run);
+	}
     }
 }

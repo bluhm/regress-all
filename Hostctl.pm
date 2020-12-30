@@ -129,7 +129,7 @@ sub collect_bsdcons {
 	createhost($user, $host);
 	eval { get_bsdcons() };
 	if ($@) {
-	    warn $@;
+	    logmsg("WARNING: $@");
 	    last;
 	}
     }
@@ -241,7 +241,7 @@ sub setup_html {
     push @cmd, '-a' if $args{all};
     push @cmd, '-d', $date if $args{date};
     eval { runcmd(@cmd) };
-    warn $@ if $@;
+    logmsg("WARNING: $@") if $@;
 }
 
 1;
