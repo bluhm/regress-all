@@ -33,6 +33,7 @@ getopts('h:v', \%opts) or do {
 usage: $0 [-v] -h host mode ...
     -h host	user and host for make test, user defaults to root
     -v		verbose
+    commands	run commands needed for ports tests
     ports	cvs update /usr/ports
     keep	keep installed host as is, skip setup
 EOF
@@ -41,13 +42,13 @@ EOF
 $opts{h} or die "No -h specified";
 
 my %allmodes;
-@allmodes{qw(keep ports)} = ();
+@allmodes{qw(commands keep ports)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
-foreach (qw(keep ports)) {
+foreach (qw(keep)) {
     die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
 
