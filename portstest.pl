@@ -107,20 +107,13 @@ foreach my $test (@tests) {
     chdir($dir)
 	or bad $prev, $test, 'NOEXIST', "Chdir to '$dir' failed: $!";
 
-    my $cleancmd = "make clean";
-    $cleancmd .= " >/dev/null" unless $opts{v};
-    $cleancmd .= " 2>&1";
-    system($cleancmd)
-	and bad $prev, $test, 'NOCLEAN', "Command '$cleancmd' failed: $?";
-    print "\n" if $opts{v};
-
     # write make output into log file
     open(my $log, '>', "make.log")
 	or bad $prev, $test, 'NOLOG', "Open 'make.log' for writing failed: $!";
     $log->autoflush();
     $paxlog = "$dir/make.log\n";
 
-    sub runcmd {
+    my sub runcmd {
 	my ($reason, @cmd) = @_;
 
 	$log->truncate(0);
@@ -163,6 +156,7 @@ foreach my $test (@tests) {
 	    "Close pipe from '@cmd' failed: $!" :
 	    "Command '@cmd' failed: $?", $log;
     }
+    runcmd('NOCLEAN', qw(make unlock clean));
     runcmd('SKIP', qw(make fetch));
     runcmd('NOEXIT', qw(make build));
     runcmd('FAIL', qw(make test));
