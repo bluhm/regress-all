@@ -49,8 +49,7 @@ sub logmsg {
 
 sub logeval(&) {
     my $code = shift;
-    local %SIG;
-    delete $SIG{__DIE__};
+    local $SIG{__DIE__};
     eval { &$code };
     logmsg "Warning: $@" if $@;
 }
@@ -69,7 +68,7 @@ sub forkcmd {
     defined(my $pid = fork())
 	or croak "Fork '@cmd' failed: $!";
     if ($pid == 0) {
-	$SIG{__DIE__} = 'DEFAULT';
+	undef $SIG{__DIE__};
 	open(STDIN, '<', "/dev/null")
 	    or carp "Redirect stdin to /dev/null failed: $!";
 	setsid()
