@@ -17,6 +17,7 @@
 use strict;
 use warnings;
 use Cwd;
+use Fcntl qw(SEEK_SET);
 use File::Basename;
 use Getopt::Std;
 use POSIX;
@@ -108,6 +109,7 @@ foreach my $test (@tests) {
 	my ($reason, @cmd) = @_;
 
 	$log->truncate(0);
+	$log->seek(0, SEEK_SET);
 	print $log "START\t$test\t$date\n\n";
 	$log->sync();
 
