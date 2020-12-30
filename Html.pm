@@ -170,7 +170,7 @@ TABLE
   </tr>
   <tr>
     <td class="status NOEXIT">NOEXIT</td>
-    <td>make build failed</td>
+    <td>make build failed, cannot test</td>
   </tr>
 TABLE
     print $html <<"TABLE" if $type eq "regress" || $type eq "perform";
@@ -182,11 +182,11 @@ TABLE
     print $html <<"TABLE";
   <tr>
     <td class="status NOTERM">NOTERM</td>
-    <td>$topic did not terminate, aborted after timeout</td>
+    <td>$tool did not terminate, aborted after timeout</td>
   </tr>
   <tr>
     <td class="status NORUN">NORUN</td>
-    <td>$topic did not run, execute $tool failed</td>
+    <td>$tool did not run, execute failed</td>
   </tr>
   <tr>
     <td class="status NOLOG">NOLOG</td>
