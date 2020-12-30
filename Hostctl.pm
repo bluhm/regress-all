@@ -102,7 +102,7 @@ sub setup_hosts {
 sub collect_version {
     for (my $host = $firsthost; $host le $lasthost; $host++) {
 	my $version = "version-$host.txt";
-	eval { logcmd({
+	logeval { logcmd({
 	    cmd => ['ssh', "$user\@$host", 'sysctl',
 		'kern.version', 'hw.machine', 'hw.ncpu'],
 	    outfile => $version,
@@ -112,7 +112,7 @@ sub collect_version {
 	    last;
 	}
 	my $dmesg = "dmesg-boot-$host.txt";
-	eval { logcmd({
+	logeval { logcmd({
 	    cmd => ['ssh', "$user\@$host", 'cat', '/var/run/dmesg.boot'],
 	    outfile => $dmesg,
 	})};
@@ -127,18 +127,15 @@ sub collect_bsdcons {
     return if !$bindir;
     for (my $host = $firsthost; $host le $lasthost; $host++) {
 	createhost($user, $host);
-	eval { get_bsdcons() };
-	if ($@) {
-	    logmsg("WARNING: $@");
-	    last;
-	}
+	logeval { get_bsdcons() };
+	last if $@;
     }
 }
 
 sub collect_dmesg {
     for (my $host = $firsthost; $host le $lasthost; $host++) {
 	my $dmesg = "dmesg-$host.txt";
-	eval { logcmd({
+	logeval { logcmd({
 	    cmd => ['ssh', "$user\@$host", 'dmesg'],
 	    outfile => $dmesg,
 	})};
@@ -240,8 +237,7 @@ sub setup_html {
     my @cmd = ("$bindir/setup-html.pl");
     push @cmd, '-a' if $args{all};
     push @cmd, '-d', $date if $args{date};
-    eval { runcmd(@cmd) };
-    logmsg("WARNING: $@") if $@;
+    logeval { runcmd(@cmd) };
 }
 
 1;

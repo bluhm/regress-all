@@ -22,7 +22,7 @@ use Carp;
 use POSIX;
 
 use parent 'Exporter';
-our @EXPORT= qw(createlog logmsg runcmd forkcmd waitcmd logcmd loggrep);
+our @EXPORT= qw(createlog logmsg logeval runcmd forkcmd waitcmd logcmd loggrep);
 use subs qw(logmsg);
 
 my ($fh, $file, $verbose);
@@ -45,6 +45,14 @@ sub createlog {
 sub logmsg {
     print $fh @_ if $fh;
     print @_ if $verbose;
+}
+
+sub logeval(&) {
+    my $code = shift;
+    local %SIG;
+    delete $SIG{__DIE__};
+    eval { &$code };
+    logmsg "Warning: $@" if $@;
 }
 
 sub runcmd {
@@ -87,9 +95,7 @@ sub waitcmd {
 	    or croak "Wait for pid $pid without command";
 	my @cmd = @$cmd;
 	if ($?) {
-	    # logged by die handler
-	    eval { croak "Command '@cmd' failed: $?" };
-	    print $@ if $verbose;
+	    logeval { croak "Command '@cmd' failed: $?" };
 	    $failed++;
 	} else {
 	    logmsg "Command '@cmd' finished.\n";

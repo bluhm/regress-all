@@ -186,12 +186,11 @@ sub install_packages {
     my ($release) = @_;
     return unless -f "$bindir/pkg-$host.list";
 
-    eval {
+    logeval {
 	logcmd('ssh', "$user\@$host", 'pkg_add',
 	    '-l', "regress/pkg-$host.list",
 	    '-Ivx', $release ? () : '-Dsnap')
     };
-    logmsg("WARNING: $@") if $@;
 }
 
 # build and install addtitional tools
@@ -231,8 +230,7 @@ sub run_commands {
     foreach my $run (@commands) {
 	# like make, ignore error when command starts with -
 	if ($run =~ s/^-//) {
-	    eval { logcmd('ssh', "$user\@$host", $run) };
-	    logmsg("WARNING: $@") if $@;
+	    logeval { logcmd('ssh', "$user\@$host", $run) };
 	} else {
 	    logcmd('ssh', "$user\@$host", $run);
 	}
