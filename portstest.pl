@@ -53,15 +53,6 @@ if (@ARGV) {
 	or die "Close 'ports.list' after reading failed: $!";
 }
 
-# run sudo is if is set to get password in advance
-my @sudocmd = qw(make -s -f - sudo);
-open(my $sudo, '|-', @sudocmd)
-    or die "Open pipe to '@sudocmd' failed: $!";
-print $sudo "sudo:\n\t\${SUDO} true\n";
-close($sudo) or die $! ?
-    "Close pipe to '@sudocmd' failed: $!" :
-    "Command '@sudocmd' failed: $?";
-
 sub bad {
     my ($prev, $test, $reason, $message, $log) = @_;
     my $nl = "";
