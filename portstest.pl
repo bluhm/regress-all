@@ -120,59 +120,52 @@ foreach my $test (@tests) {
     $log->autoflush();
     $paxlog = "$dir/make.log\n";
 
-    print $log "START\t$test\t$date\n\n";
-    $log->sync();
+    sub runcmd {
+	my ($reason, @cmd) = @_;
 
-    my $fetchcmd = "make fetch";
-    $fetchcmd .= " >/dev/null" unless $opts{v};
-    $fetchcmd .= " 2>&1";
-    system($fetchcmd)
-	and bad $prev, $test, 'SKIP', "Command '$fetchcmd' failed: $?";
-    print "\n" if $opts{v};
+	$log->truncate(0);
+	print $log "START\t$test\t$date\n\n";
+	$log->sync();
 
-    my $buildcmd = "make build";
-    $buildcmd .= " >/dev/null" unless $opts{v};
-    $buildcmd .= " 2>&1";
-    system($buildcmd)
-	and bad $prev, $test, 'NOEXIT', "Command '$buildcmd' failed: $?";
-    print "\n" if $opts{v};
-
-    my @runcmd = qw(make test);
-    defined(my $pid = open(my $out, '-|'))
-	or bad $prev, $test, 'NORUN', "Open pipe from '@runcmd' failed: $!",
-	$log;
-    if ($pid == 0) {
-	close($out);
-	open(STDIN, '<', "/dev/null")
-	    or warn "Redirect stdin to /dev/null failed: $!";
-	open(STDERR, '>&', \*STDOUT)
-	    or warn "Redirect stderr to stdout failed: $!";
-	setsid()
-	    or warn "Setsid $$ failed: $!";
-	exec(@runcmd);
-	warn "Exec '@runcmd' failed: $!";
-	_exit(126);
-    }
-    eval {
-	local $SIG{ALRM} = sub { die "Test running too long, aborted.\n" };
-	alarm($timeout);
-	while (<$out>) {
-	    print $log $_;
-	    s/[^\s[:print:]]/_/g;
-	    print if $opts{v};
-	    chomp($prev = $_);
+	defined(my $pid = open(my $out, '-|'))
+	    or bad $prev, $test, 'NORUN', "Open pipe from '@cmd' failed: $!",
+	    $log;
+	if ($pid == 0) {
+	    close($out);
+	    open(STDIN, '<', "/dev/null")
+		or warn "Redirect stdin to /dev/null failed: $!";
+	    open(STDERR, '>&', \*STDOUT)
+		or warn "Redirect stderr to stdout failed: $!";
+	    setsid()
+		or warn "Setsid $$ failed: $!";
+	    exec(@cmd);
+	    warn "Exec '@cmd' failed: $!";
+	    _exit(126);
 	}
-	alarm(0);
-    };
-    kill 'KILL', -$pid;
-    if ($@) {
-	chomp($@);
-	bad $prev, $test, 'NOTERM', $@, $log;
+	eval {
+	    local $SIG{ALRM} = sub { die "Test running too long, aborted.\n" };
+	    alarm($timeout);
+	    while (<$out>) {
+		print $log $_;
+		s/[^\s[:print:]]/_/g;
+		print if $opts{v};
+		chomp($prev = $_);
+	    }
+	    alarm(0);
+	};
+	kill 'KILL', -$pid;
+	if ($@) {
+	    chomp($@);
+	    bad $prev, $test, 'NOTERM', $@, $log;
+	}
+	close($out)
+	    or bad $prev, $test, $reason, $! ?
+	    "Close pipe from '@cmd' failed: $!" :
+	    "Command '@cmd' failed: $?", $log;
     }
-    close($out)
-	or bad $prev, $test, 'FAIL', $! ?
-	"Close pipe from '@runcmd' failed: $!" :
-	"Command '@runcmd' failed: $?", $log;
+    runcmd('SKIP', qw(make fetch));
+    runcmd('NOEXIT', qw(make build));
+    runcmd('FAIL', qw(make test));
 
     my $end = Time::HiRes::time();
     good $prev, $test, $end - $begin, $log;
