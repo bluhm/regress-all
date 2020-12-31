@@ -72,8 +72,11 @@ if ($opts{l}) {
     } else {
 	@latest = glob("latest-*/test.result");
     }
-    @result_files = map { (readlink(dirname($_))
+    @result_files = sort map { (readlink(dirname($_))
 	or die "Readlink latest '$_' failed: $!") . "/test.result" } @latest;
+} elsif ($host) {
+    @result_files = sort grep { -f dirname($_). "/version-$host.txt" }
+	glob("*/test.result");
 } else {
     @result_files = sort glob("*/test.result");
 }
@@ -251,11 +254,6 @@ sub parse_result_files {
 	$D{$date}{pass} = $pass / $total if $total;
 
 	# parse version file
-	if ($host && ! -f "$date/version-$host.txt") {
-	    # if host is specified, only print result for this one
-	    delete $D{$date};
-	    next;
-	}
 	foreach my $version (sort glob("$date/version-*.txt")) {
 	    $version =~ m,/version-(.+)\.txt$,;
 	    my $hostname = $1;
