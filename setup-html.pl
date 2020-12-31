@@ -686,6 +686,8 @@ sub log_status {
 	$line = $_;
     }
 
+    $line =~ /^Warning:/
+	and return 'NOTERM';
     $line =~ /^[A-Z].* failed/
 	and return 'FAIL';
     $line =~ /^Script .* finished/i
