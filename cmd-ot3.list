@@ -1,0 +1,2 @@
+make -C /usr/ports fix-permissions
+-pkg_add -u
