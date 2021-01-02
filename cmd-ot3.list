@@ -1,3 +1,4 @@
 [ ! -f /usr/ports/infrastructure/mk/bsd.port.subdir.mk ] || \
     make -C /usr/ports fix-permissions
--pkg_add -u
+-pkg_add -u -Ivx
+-pkg_add -l portstest/pkg-ot3.list -Ivx

@@ -138,7 +138,7 @@ sub copy_scripts {
     runcmd(@scpcmd);
 
     @copy = grep { -f $_ }
-	("portstest.pl", "env-$host.sh", "ports.list");
+	("portstest.pl", "env-$host.sh", "pkg-$host.list", "ports.list");
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$user\@$host:/root/portstest");
