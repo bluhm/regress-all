@@ -288,6 +288,7 @@ sys/kern/signal/sigprof
 sys/kern/signal/sigpthread
 sys/kern/signal/sigsuspend
 sys/kern/sosplice/error
+sys/kern/sosplice/loop
 sys/kern/sosplice/perf
 sys/kern/sosplice/scapy
 sys/kern/sosplice/tcp
