@@ -227,7 +227,20 @@ sub run_commands {
     close($fh)
 	or die "Close '$bindir/cmd-$host.list' after reading failed: $!";
 
+    my $prev;
     foreach my $run (@commands) {
+	# line continuations are concatenated with a single space
+	if (defined($prev)) {
+	    $run =~ s/^\s*/$prev /;
+	    undef $prev;
+	}
+	# comment starts in first column
+	next if $run =~ /^#/;
+	# long lines can be split with backslash
+	if ($run =~ s/\s*\\$//) {
+		$prev = $run;
+		next;
+	}
 	# like make, ignore error when command starts with -
 	if ($run =~ s/^-//) {
 	    logeval { logcmd('ssh', "$user\@$host", $run) };
