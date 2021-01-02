@@ -16,7 +16,7 @@ xz
 ImageMagick
 aspell
 cairo
-db
+db%v4
 gd
 graphviz
 libidn
@@ -24,9 +24,9 @@ libmagic
 libxml
 libxslt
 open62541
-openldap-server
+openldap-server--%openldap
 perltidy
-python3.8
+python%3.8
 rrdtool
-unzip
+unzip--
 zip
