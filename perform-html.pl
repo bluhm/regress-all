@@ -166,8 +166,8 @@ foreach my $date (@dates) {
 	    or next;
 
 	my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
-	html_header($html, "OpenBSD Perform CVS Date Results",
-	    "OpenBSD perform $short cvs $cvsshort test results");
+	html_header($html, "OpenBSD Perform Repeat",
+	    "OpenBSD perform $short cvs $cvsshort repeat test results");
 	html_repeat_top($html, $date, $cvsdate, @repeats);
 
 	print $html "<table>\n";
@@ -195,8 +195,8 @@ foreach my $date (@dates) {
     my @cvsdates = @{$D{$date}{cvsdates}};
 
     my ($html, $htmlfile) = html_open("$date/perform");
-    html_header($html, "OpenBSD Perform Date Results",
-	"OpenBSD perform $short test results");
+    html_header($html, "OpenBSD Perform CVS",
+	"OpenBSD perform $short cvs test results");
     html_cvsdate_top($html, $date, @cvsdates);
 
     print $html "<table>\n";
@@ -231,7 +231,7 @@ print "\n" if $verbose;
 
 print "create html per cvsdate files" if $verbose;
 my ($html, $htmlfile) = html_open("perform");
-html_header($html, "OpenBSD Perform Test Results",
+html_header($html, "OpenBSD Perform Results",
     "OpenBSD perform all test results");
 html_date_top($html);
 

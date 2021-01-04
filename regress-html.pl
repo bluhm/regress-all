@@ -111,13 +111,12 @@ parse_result_files(@result_files);
 my $file = $opts{l} ? "latest" : "regress";
 $file .= "-$host" if $host;
 my ($html, $htmlfile) = html_open($file);
-my $htmltitle = $opts{l} ? "Latest" : "Test";
-my $bodytitle = $host ? ($opts{l} ? "latest $host" : $host) :
+my $topic = $host ? ($opts{l} ? "latest $host" : $host) :
     ($opts{l} ? "latest" : "all");
 
-my $topic = $mode{src} ? "Regress" : $mode{ports} ? "Ports" : "";
-html_header($html, "OpenBSD $topic $htmltitle Results",
-    "OpenBSD ". lc($topic). " $bodytitle test results");
+my $typename = $mode{src} ? "Regress" : $mode{ports} ? "Ports" : "";
+html_header($html, "OpenBSD $typename Results",
+    "OpenBSD ". lc($typename). " $topic test results");
 
 print $html <<"HEADER";
 <table>

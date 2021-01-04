@@ -146,13 +146,13 @@ foreach my $date (@dates) {
 
     if (-f "run.log") {
 	$D{$date}{log} = "run.log";
-	$typename = "regress";
+	$typename = "Regress";
     } elsif (-f "step.log") {
 	$D{$date}{log} = "step.log";
-	$typename = "perform";
+	$typename = "Perform";
     } elsif (-f "test.log") {
 	$D{$date}{log} = "test.log";
-	$typename = "ports";
+	$typename = "Ports";
     }
     if (-f "test.log.tgz") {
 	$D{$date}{logtgz} = "test.log.tgz";
@@ -209,15 +209,8 @@ sub create_html_setup {
     my $h = $D{$date}{host};
 
     my ($html, $htmlfile) = html_open("setup");
-    print $html "<!DOCTYPE html>\n";
-    print $html "<html>\n";
-    print $html "<head>\n";
-    print $html "  <title>OpenBSD Test Setup</title>\n";
-    print $html "  <style>th { text-align: left; }</style>\n";
-    print $html "</head>\n";
-
-    print $html "<body>\n";
-    print $html "<h1>OpenBSD $typename test machine setup</h1>\n";
+    html_header($html, "OpenBSD $typename Setup",
+	"OpenBSD ". lc($typename). " test machine setup");
     print $html "<table>\n";
     print $html "  <tr>\n    <th>created at</th>\n";
     print $html "    <td>$now</td>\n";
@@ -583,7 +576,8 @@ sub create_html_reboot {
 
 sub create_html_run {
     my ($html, $htmlfile) = html_open("run");
-    html_header($html, "OpenBSD Test Run", "OpenBSD $typename test run");
+    html_header($html, "OpenBSD $typename Run",
+	"OpenBSD ". lc($typename). " test run");
     print $html <<"HEADER";
 <table>
   <tr>
