@@ -21,6 +21,7 @@ cleanup.pl	- remove old test logs to recover disk space
 cvsbuild.pl	- checkout kernel at certain cvs date and install it
 cvslog.pl	- collect all cvs commit messages between two dates
 env-ot1.sh	- environment variables to be set on the test machine ot1
+force-iperf3.pl	- restrict ssh command to iperf3 in client mode
 mktestlist.pl	- find possible names of tests in regress directory
 once.pl		- run performance test once, used for manual testing
 perform-html.pl	- convert performance test results into html table
