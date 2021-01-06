@@ -36,7 +36,7 @@ getopts('p:f:i:A:B:V:J:d:v:h:c:ub:t:n:k:l:P:Rw:M:N46S:L:Z:O:T:C:', \%opts)
     or die "Parsing iperf3 options failed.\n";
 $opts{c}
     or die "Client option for iperf3 must be present.\n";
-$opts{c} =~ /^10\./ || $opts{c} =~ /^f[cd][0-9a-f][0-9a-f]:/i
+$opts{c} =~ /^10\.[0-9.]+$/ || $opts{c} =~ /^f[cd][0-9a-f]{2}:[0-9a-f:]+$/i
     or die "Server address must be local.\n";
 
 $ENV{PATH} = "/bin:/usr/bin:/usr/local/bin";
