@@ -14,6 +14,7 @@ gnu/egcs/gcc-bounds
 gnu/egcs/gcc-builtins
 include
 lib/csu
+lib/libagentx
 lib/libc/_setjmp
 lib/libc/alloca
 lib/libc/arc4random-fork
@@ -316,6 +317,7 @@ sys/net/pf_fragment
 sys/net/pf_print
 sys/net/pf_state
 sys/net/pf_table
+sys/net/pflog
 sys/net/pflow
 sys/net/rdomains
 sys/net/rtable
