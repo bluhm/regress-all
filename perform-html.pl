@@ -36,11 +36,12 @@ use Testvars qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('d:gv', \%opts) or do {
+getopts('d:gnv', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-g] [-d date]
     -d date	run date of performance test
     -g		generate all gnuplot files, even if they already exist
+    -n		do not generate gnuplot files on main release page
     -v		verbose
 EOF
     exit(2);
@@ -498,6 +499,7 @@ sub create_gnuplot_files {
     }
     my %releases = quirk_releases();
     foreach my $plot (list_plots()) {
+	next if $opts{n};
 	print "." if $verbose;
 	my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot");
 	system(@cmd)
