@@ -83,7 +83,6 @@ devel/p5-Package-DeprecationManager
 devel/p5-Package-Stash
 devel/p5-Params-Util
 devel/p5-Pod-Constant
-devel/p5-Regexp-Copy
 devel/p5-Regexp-IPv6
 devel/p5-Set-Infinite
 devel/p5-Sub-Attribute
