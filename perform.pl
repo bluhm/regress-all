@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -158,6 +158,13 @@ if ($local_if && $local_if =~ /^ix\d/) {
 if ($remote_if && $remote_if =~ /^ix\d/) {
     my @sshcmd = ('ssh', $remote_ssh,
 	"tcpdump -ni '$remote_if' & sleep 1; kill \$!");
+    system(@sshcmd);
+}
+
+# I have seen hanging iperf3 processes on linux machines, reap them
+
+if ($linux_ssh) {
+    my @sshcmd = ('ssh', $linux_ssh, 'pkill', 'iperf3');
     system(@sshcmd);
 }
 
