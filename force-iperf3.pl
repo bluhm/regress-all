@@ -25,6 +25,11 @@ $sshcmd =~ /^([ 0-9A-Za-z.:_-]+)$/
     or die "Invalid characters in ssh command.\n";
 my @args = split(" ", $1)
     or die "Split ssh command failed.\n";
+if (@args == 2 && $args[0] eq "pkill" && $args[1] eq "iperf3") {
+    $ENV{PATH} = "/bin:/usr/bin:/usr/local/bin";
+    exec { 'pkill' } @args;
+    die "Exec 'pkill' failed: $!\n";
+}
 $args[0] eq "iperf3"
     or die "Only 'iperf3' command allowed.\n";
 
