@@ -319,6 +319,8 @@ sub iked_startup {
 }
 
 sub iked_shutdown {
+    # XXX give the iperf3 server on linux host some time to close connection
+    sleep 5;
     my @cmd = ('/etc/rc.d/iked', '-f', 'stop');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
