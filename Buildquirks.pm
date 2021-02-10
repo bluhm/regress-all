@@ -492,7 +492,15 @@ my %quirks = (
     '2021-02-08T11:20:04Z' => {
 	comment => "softraid_raid1c.c was not added in commit",
 	updatecommands => [
-	    "cvs -qR up -PdC -r1.1 sys/dev/softraid_raid1c.c",
+	    "cvs -qR up -p -r1.1 sys/dev/softraid_raid1c.c ".
+		">sys/dev/softraid_raid1c.c",
+	],
+    },
+    '2021-02-08T11:21:53Z' => {
+	comment => "replace softraid_raid1c.c copy with commit",
+	updatecommands => [
+	    "rm -f sys/dev/softraid_raid1c.c",
+	    "cvs -qR up -C -r1.1 sys/dev/softraid_raid1c.c",
 	],
     },
 );
