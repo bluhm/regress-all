@@ -1,6 +1,6 @@
 # functions to manipulate remote test machine
 
-# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -20,6 +20,7 @@ use strict;
 use warnings;
 use Carp;
 use Date::Parse;
+use File::Copy;
 use POSIX;
 
 use Logcmd;
@@ -27,7 +28,7 @@ use Logcmd;
 use parent 'Exporter';
 our @EXPORT= qw(createhost reboot
     install_pxe upgrade_pxe get_bsdcons get_version
-    checkout_cvs update_cvs diff_cvs update_ports
+    checkout_cvs update_cvs diff_cvs clean_cvs patch_cvs update_ports
     make_kernel make_build
     align_kernel gap_kernel sort_kernel reorder_kernel
     get_bsdnm
@@ -159,6 +160,27 @@ sub diff_cvs {
 	or die "Close 'diff-$host.txt.new' after writing failed: $!";
     rename("diff-$host.txt.new", "diff-$host.txt")
 	or die "Rename 'diff-$host.txt.new' to 'diff-$host.txt' failed: $!";
+}
+
+sub clean_cvs {
+    my ($path) = @_;
+    $path = $path ? " $path" : "";
+    logcmd('ssh', "$user\@$host", "cd /usr/src && cvs -qR up -C$path");
+}
+
+sub patch_cvs {
+    my ($file, $path) = @_;
+    $path = $path ? "/$path" : "";
+    my @sshcmd = ('ssh', "$user\@$host", "cd /usr/src$path && patch -fF0");
+    logmsg "Command '@sshcmd' started.\n";
+    open(my $patch, '|-', @sshcmd)
+	or die "Open pipe to '@sshcmd' failed: $!";
+    copy($file, $patch)
+	or die "Copy '$file' to '@sshcmd' failed: $!";
+    close($patch) or die $! ?
+	die "Close pipe to '@sshcmd' failed: $!" :
+	die "Command '@sshcmd' failed: $?";
+    logmsg "Command '@sshcmd' finished.\n";
 }
 
 sub update_ports {

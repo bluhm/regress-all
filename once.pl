@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2019 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -31,13 +31,14 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:k:v', \%opts) or do {
+getopts('d:D:h:k:P:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] [-D cvsdate] -h host [-k kernel] [test ...]
+usage: $0 [-v] [-d date] [-D cvsdate] -h host [-k kernel] [-P patch] [test ...]
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for performance test, user defaults to root
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
+    -P patch	apply patch to clean kernel source
     -v		verbose
     test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
 		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
@@ -58,6 +59,7 @@ my $date = $opts{d};
 !$opts{D} || str2time($opts{D})
     or die "Invalid -D cvsdate '$opts{D}'";
 my $cvsdate = $opts{D};
+my $patch = $opts{P};
 
 my %allmodes;
 @allmodes{qw(align gap sort reorder reboot keep)} = ();
@@ -65,6 +67,8 @@ my %allmodes;
     or die "Unknown kernel mode '$opts{k}'";
 my %kernelmode;
 $kernelmode{$opts{k}} = 1 if $opts{k};
+$patch && $kernelmode{keep}
+    and die "Cannot patch with kernel mode keep";
 
 @allmodes{qw(
     all net tcp udp make fs iperf tcpbench udpbench iperftcp
@@ -93,6 +97,21 @@ if ($date && $date eq "current") {
 	or die "Test directory '$resultdir/$current' failed: $!";
     $date = $current;
 }
+$resultdir = "$resultdir/$date";
+if ($patch) {
+    my $patchdir = "patch-". basename($patch);
+    $patchdir =~ s/\..*//;
+    for (my $suffix = 0; $suffix < 10; $suffix++) {
+	my $dir = "$resultdir/$patchdir.$suffix";
+	if (mkdir($dir)) {
+	    $resultdir = $dir;
+	    last;
+	} else {
+	    $!{EEXIST} && $suffix < 9
+		or die "Make directory '$dir' failed: $!";
+	}
+    }
+}
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
@@ -105,7 +124,7 @@ usehosts(bindir => "$performdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 (my $host = $opts{h}) =~ s/.*\@//;
 
-cvsbuild_hosts(cvsdate => $cvsdate, mode => \%kernelmode)
+cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch, mode => \%kernelmode)
     unless $kernelmode{keep};
 collect_version();
 

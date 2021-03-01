@@ -1,6 +1,6 @@
 # functions to control a set of hosts
 
-# Copyright (c) 2018 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -183,6 +183,7 @@ sub collect_result {
 sub cvsbuild_hosts {
     my %args = @_;
     my $cvsdate = delete $args{cvsdate};
+    my $patch = delete $args{patch};
     my %mode = %{delete $args{mode}};
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
@@ -192,6 +193,7 @@ sub cvsbuild_hosts {
 	my @cvscmd = ("$bindir/cvsbuild.pl", '-h', "$user\@$host");
 	push @cvscmd, '-d', $date if $date;
 	push @cvscmd, '-D', $cvsdate if $cvsdate;
+	push @cvscmd, '-P', $patch if $patch;
 	push @cvscmd, '-v' if $verbose;
 	push @cvscmd, keys %mode;
 	push @pidcmds, forkcmd(@cvscmd);

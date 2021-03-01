@@ -33,12 +33,13 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:v', \%opts) or do {
+getopts('d:D:h:P:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] [-D cvsdate] -h host [kernel ...]
-    -d date	set date string and change to sub directory, may be current
+usage: $0 [-v] [-d date] [-D cvsdate] -h host [-P patch] [kernel ...]
+    -d date	set date string and change to sub directory
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
+    -P patch	apply patch to clean kernel source
     -v		verbose
     align	relink kernel aligning all object at page size, no randomness
     gap		relink kernel sorting object files, but use random gap
@@ -55,6 +56,7 @@ my $date = $opts{d};
 !$opts{D} || str2time($opts{D})
     or die "Invalid -D cvsdate '$opts{D}'";
 my $cvsdate = $opts{D};
+my $patch = $opts{P};
 
 my %allmodes;
 @allmodes{qw(align gap sort reorder reboot)} = ();
@@ -77,6 +79,13 @@ if ($date && $date eq "current") {
 }
 $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $date && $cvsdate;
+if ($patch) {
+    my $patchdir = "patch-". basename($patch);
+    $patchdir =~ s/\..*//;
+    my $dir = "$resultdir/$patchdir.[0-9]";
+    $resultdir = (glob($dir))[-1]
+	or die "Patch directory '$dir' not found";
+}
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
@@ -114,6 +123,7 @@ if ($before) {
 }
 
 update_cvs(undef, $cvsdate, "sys") if $cvsdate;
+patch_cvs($patch, "sys") if $patch;
 make_kernel();
 if ($kernelmode{align}) {
     align_kernel();
@@ -125,6 +135,7 @@ if ($kernelmode{align}) {
 reorder_kernel() if $kernelmode{align} || $kernelmode{gap} ||
     $kernelmode{sort} || $kernelmode{reorder};
 get_bsdnm();
+diff_cvs("sys") if $patch;
 reboot();
 get_version();
 
