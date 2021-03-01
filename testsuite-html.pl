@@ -36,12 +36,12 @@ $publish = getcwd(). "/". $publish if substr($publish, 0, 1) ne "/";
 
 my $dir = dirname($0). "/..";
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 my $regressdir = getcwd();
 
 my $resultsdir = "$regressdir/results";
 chdir($resultsdir)
-    or die "Chdir to '$resultsdir' failed: $!";
+    or die "Change directory to '$resultsdir' failed: $!";
 my $latest = readlink "latest";
 my %latesthost;
 foreach (glob("latest-*")) {
@@ -58,7 +58,7 @@ $testdir = "$publish/posixtestsuite";
 -d "$testdir/out" || make_path("$testdir/out")
     or die "Make path '$testdir/out' failed: $!";
 chdir($publish)
-    or die "Chdir to '$publish' failed: $!";
+    or die "Change directory to '$publish' failed: $!";
 
 if ($latest) {
     my $obj = "$resultsdir/$latest/test.obj.tgz";
@@ -113,7 +113,7 @@ while (my ($host, $date) = each %latesthost) {
 
 my $outdir = "$publish/os-test/out";
 chdir($outdir)
-    or die "Chdir to '$outdir' failed: $!";
+    or die "Change directory to '$outdir' failed: $!";
 
 my @oslist = reverse sort grep { -d } glob("*");
 my @suites = qw(io udp);
@@ -122,7 +122,7 @@ my @cmd = ("os-test-html", "--enable-suites-overview", "--suite-list=@suites",
 
 $testdir = "$publish/os-test";
 chdir($testdir)
-    or die "Chdir to '$testdir' failed: $!";
+    or die "Change directory to '$testdir' failed: $!";
 
 my $htmlfile = "os-test.html";
 unlink("$htmlfile.new");
@@ -151,13 +151,13 @@ rename("$htmlfile.gz.new", "$htmlfile.gz")
 
 $outdir = "$publish/posixtestsuite/out";
 chdir($outdir)
-    or die "Chdir to '$outdir' failed: $!";
+    or die "Change directory to '$outdir' failed: $!";
 @oslist = reverse sort grep { -d } glob("*");
 @cmd = ("posixtestsuite-html", "-o", "@oslist");
 
 $testdir = "$publish/posixtestsuite";
 chdir($testdir)
-    or die "Chdir to '$testdir' failed: $!";
+    or die "Change directory to '$testdir' failed: $!";
 
 $htmlfile = "posixtestsuite.html";
 unlink("$htmlfile.new");

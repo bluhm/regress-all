@@ -57,11 +57,11 @@ $opts{d} && $opts{l}
 
 my $testdir = dirname($0). "/..";
 chdir($testdir)
-    or die "Chdir to '$testdir' failed: $!";
+    or die "Change directory to '$testdir' failed: $!";
 $testdir = getcwd();
 my $resultdir = "$testdir/results";
 chdir($resultdir)
-    or die "Chdir to '$resultdir' failed: $!";
+    or die "Change directory to '$resultdir' failed: $!";
 
 my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
@@ -81,7 +81,7 @@ $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $date && $cvsdate;
 $resultdir .= "/$repeat" if $date && $cvsdate && $repeat;
 chdir($resultdir)
-    or die "Chdir to '$resultdir' failed: $!";
+    or die "Change directory to '$resultdir' failed: $!";
 
 createhost($user, $host);
 

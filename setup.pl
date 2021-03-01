@@ -68,12 +68,12 @@ if ($opts{r} && $opts{r} ne "current") {
 
 my $regressdir = dirname($0). "/..";
 chdir($regressdir)
-    or die "Chdir to '$regressdir' failed: $!";
+    or die "Change directory to '$regressdir' failed: $!";
 $regressdir = getcwd();
 my $resultdir = "$regressdir/results";
 $resultdir .= "/$date" if $date;
 chdir($resultdir)
-    or die "Chdir to '$resultdir' failed: $!";
+    or die "Change directory to '$resultdir' failed: $!";
 my $bindir = "$regressdir/bin";
 
 my ($user, $host) = split('@', $opts{h}, 2);
@@ -117,7 +117,7 @@ exit;
 
 sub copy_scripts {
     chdir($bindir)
-	or die "Chdir to '$bindir' failed: $!";
+	or die "Change directory to '$bindir' failed: $!";
 
     my @mkdirs = map { "/root/$_" } qw(regress perform portstest);
     runcmd('ssh', "$user\@$host", 'mkdir', '-p', @mkdirs);
@@ -145,7 +145,7 @@ sub copy_scripts {
     runcmd(@scpcmd);
 
     chdir($resultdir)
-	or die "Chdir to '$resultdir' failed: $!";
+	or die "Change directory to '$resultdir' failed: $!";
 
     if (my %patches = quirk_patches()) {
 	my $patchdir = "$resultdir/patches";
@@ -165,7 +165,7 @@ sub copy_scripts {
 		or die "Rename '$patchdir.tmp' to '$patchdir' failed: $!";
 	} else {
 	    $!{EEXIST}
-		or die "Mkdir '$patchdir.tmp' failed: $!";
+		or die "Make directory '$patchdir.tmp' failed: $!";
 	}
 	foreach (1..60) {
 	    last if -d $patchdir;

@@ -60,7 +60,7 @@ my $date = strftime("%FT%TZ", gmtime);
 
 my $regressdir = dirname($0). "/..";
 chdir($regressdir)
-    or die "Chdir to '$regressdir' failed: $!";
+    or die "Change directory to '$regressdir' failed: $!";
 $regressdir = getcwd();
 my $resultdir = "$regressdir/results/$date";
 mkdir $resultdir
@@ -69,7 +69,7 @@ unlink("results/current");
 symlink($date, "results/current")
     or die "Make symlink 'results/current' failed: $!";
 chdir($resultdir)
-    or die "Chdir to '$resultdir' failed: $!";
+    or die "Change directory to '$resultdir' failed: $!";
 
 createlog(file => "test.log", verbose => $opts{v});
 logmsg("Script '$scriptname' started at $date.\n");
@@ -101,7 +101,7 @@ setup_html();
 # run port tests remotely
 
 chdir($resultdir)
-    or die "Chdir to '$resultdir' failed: $!";
+    or die "Change directory to '$resultdir' failed: $!";
 
 (my $host = $opts{h}) =~ s/.*\@//;
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/portstest/portstest.pl',
@@ -121,7 +121,7 @@ my $logdir = "$resultdir/logs";
 mkdir $logdir
     or die "Make directory '$logdir' failed: $!";
 chdir($logdir)
-    or die "Chdir to '$logdir' failed: $!";
+    or die "Change directory to '$logdir' failed: $!";
 my @paxcmd = ('pax', '-rzf', "../test.log.tgz");
 open(my $pax, '|-', @paxcmd)
     or die "Open pipe to '@paxcmd' failed: $!";
@@ -136,7 +136,7 @@ close($tr)
     or die "Close 'test.result' after reading failed: $!";
 
 chdir($resultdir)
-    or die "Chdir to '$resultdir' failed: $!";
+    or die "Change directory to '$resultdir' failed: $!";
 
 collect_dmesg();
 setup_html();
@@ -144,7 +144,7 @@ setup_html();
 # create html output
 
 chdir($regressdir)
-    or die "Chdir to '$regressdir' failed: $!";
+    or die "Change directory to '$regressdir' failed: $!";
 
 setup_html(date => 1);
 runcmd("bin/regress-html.pl", "-h", $host, "ports");

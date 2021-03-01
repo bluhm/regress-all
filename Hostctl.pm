@@ -160,7 +160,7 @@ sub collect_result {
 	mkdir $logdir
 	    or die "Make directory '$logdir' failed: $!";
 	chdir($logdir)
-	    or die "Chdir to '$logdir' failed: $!";
+	    or die "Change directory to '$logdir' failed: $!";
 	my @paxcmd = ('pax', '-rzf', "../test.log.tgz");
 	open(my $pax, '|-', @paxcmd)
 	    or die "Open pipe to '@paxcmd' failed: $!";
@@ -176,7 +176,7 @@ sub collect_result {
 	    or die "Close 'test.result' after reading failed: $!";
 
 	chdir("..")
-	    or die "Chdir to '..' failed: $!";
+	    or die "Change directory to '..' failed: $!";
     }
 }
 

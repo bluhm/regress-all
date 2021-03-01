@@ -43,11 +43,11 @@ EOF
 
 my $dir = dirname($0). "/..";
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 my $regressdir = getcwd();
 $dir = "results";
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 
 my $typename = "";
 my @dates;
@@ -69,21 +69,21 @@ my (%D, %M);
 foreach my $date (@dates) {
     $dir = "$regressdir/results/$date";
     chdir($dir)
-	or die "Chdir to '$dir' failed: $!";
+	or die "Change directory to '$dir' failed: $!";
 
     my @cvsdates = grep { -d $_ } glob("*T*");
     $D{$date}{cvsdates} = [ @cvsdates ];
 
     foreach my $cvsdate ("", @cvsdates) {
 	chdir("$dir/$cvsdate")
-	    or die "Chdir to '$dir/$cvsdate' failed: $!";
+	    or die "Change directory to '$dir/$cvsdate' failed: $!";
 
 	my @repeats = grep { -d $_ } glob("[0-9][0-9][0-9]");
 	$D{$date}{$cvsdate}{repeats} = [ @repeats ] if $cvsdate;
 
 	foreach my $repeat ("", @repeats) {
 	    chdir("$dir/$cvsdate/$repeat")
-		or die "Chdir to '$dir/$cvsdate/$repeat' failed: $!";
+		or die "Change directory to '$dir/$cvsdate/$repeat' failed: $!";
 
 	    my %h;
 	    foreach my $version (glob("version-*.txt")) {
@@ -142,7 +142,7 @@ foreach my $date (@dates) {
 	}
     }
     chdir($dir)
-	or die "Chdir to '$dir' failed: $!";
+	or die "Change directory to '$dir' failed: $!";
 
     if (-f "run.log") {
 	$D{$date}{log} = "run.log";
@@ -166,7 +166,7 @@ if ($opts{a} || $opts{d}) {
     foreach my $date (@dates) {
 	$dir = "$regressdir/results/$date";
 	chdir($dir)
-	    or die "Chdir to '$dir' failed: $!";
+	    or die "Change directory to '$dir' failed: $!";
 
 	next unless keys %{$D{$date}{host}};
 	my @cvsdates = @{$D{$date}{cvsdates}};
@@ -175,7 +175,7 @@ if ($opts{a} || $opts{d}) {
 	foreach my $cvsdate (@cvsdates) {
 	    my $subdir = "$dir/$cvsdate";
 	    chdir($subdir)
-		or die "Chdir to '$subdir' failed: $!";
+		or die "Change directory to '$subdir' failed: $!";
 
 	    next unless keys %{$D{$date}{$cvsdate}{host}};
 	    my @repeats = @{$D{$date}{$cvsdate}{repeats}};
@@ -184,7 +184,7 @@ if ($opts{a} || $opts{d}) {
 	    foreach my $repeat (@repeats) {
 		my $subdir = "$dir/$cvsdate/$repeat";
 		chdir($subdir)
-		    or die "Chdir to '$subdir' failed: $!";
+		    or die "Change directory to '$subdir' failed: $!";
 
 		next unless keys %{$D{$date}{$cvsdate}{$repeat}{host}};
 		create_html_reboot($date, $cvsdate, $repeat);
@@ -195,7 +195,7 @@ if ($opts{a} || $opts{d}) {
 
 $dir = "$regressdir/results";
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 
 unless ($opts{d}) {
     create_html_run();

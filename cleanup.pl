@@ -52,11 +52,11 @@ my ($year, $month, $day) = $now =~ /^(\d+)-(\d+)-(\d+)T/
 
 my $dir = dirname($0). "/..";
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 my $regressdir = getcwd();
 $dir = "results";
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 
 my @datedirs = glob('20[0-9][0-9]-[01][0-9]-[0-3][0-9]T*Z');
 

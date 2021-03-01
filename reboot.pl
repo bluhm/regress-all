@@ -66,14 +66,14 @@ my %kernelmode = map {
 
 my $performdir = dirname($0). "/..";
 chdir($performdir)
-    or die "Chdir to '$performdir' failed: $!";
+    or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
 my $resultdir = "$performdir/results";
 $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $date && $cvsdate;
 $resultdir .= "/$repeat" if $date && $cvsdate && $repeat;
 chdir($resultdir)
-    or die "Chdir to '$resultdir' failed: $!";
+    or die "Change directory to '$resultdir' failed: $!";
 
 my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;

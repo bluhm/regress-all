@@ -77,11 +77,11 @@ $SIG{PIPE} = 'IGNORE';
 
 my $performdir = dirname($0). "/..";
 chdir($performdir)
-    or die "Chdir to '$performdir' failed: $!";
+    or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
 my $resultdir = "results";
 chdir($resultdir)
-    or die "Chdir to '$resultdir' failed: $!";
+    or die "Change directory to '$resultdir' failed: $!";
 
 createlog(file => "once.log", verbose => $opts{v});
 my $date = strftime("%FT%TZ", gmtime);

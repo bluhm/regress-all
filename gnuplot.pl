@@ -74,11 +74,11 @@ $SIG{PIPE} = 'IGNORE';
 
 my $performdir = dirname($0). "/..";
 chdir($performdir)
-    or die "Chdir to '$performdir' failed: $!";
+    or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
 my $gnuplotdir = "results/gnuplot";
 chdir($gnuplotdir)
-    or die "Chdir to '$gnuplotdir' failed: $!";
+    or die "Change directory to '$gnuplotdir' failed: $!";
 $gnuplotdir = getcwd();
 
 my $gplotfile = "$performdir/bin/plot.gp";
@@ -93,7 +93,7 @@ if ($date) {
     -d $gnuplotdir || mkdir $gnuplotdir
 	or die "Make directory '$gnuplotdir' failed: $!";
     chdir($gnuplotdir)
-	or die "Chdir to '$gnuplotdir' failed: $!";
+	or die "Change directory to '$gnuplotdir' failed: $!";
     $gnuplotdir = getcwd();
 }
 

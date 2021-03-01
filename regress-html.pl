@@ -53,11 +53,11 @@ foreach (qw(src ports)) {
 
 my $dir = dirname($0). "/..";
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 my $regressdir = getcwd();
 $dir = "results";
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;

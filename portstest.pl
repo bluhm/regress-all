@@ -33,7 +33,7 @@ environment($opts{e}) if $opts{e};
 
 my $dir = dirname($0);
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 my $portstestdir = getcwd();
 
 # write summary of results into result file
@@ -97,7 +97,7 @@ foreach my $test (@tests) {
 
     $dir = "/usr/ports/$test";
     chdir($dir)
-	or bad $prev, $test, 'NOEXIST', "Chdir to '$dir' failed: $!";
+	or bad $prev, $test, 'NOEXIST', "Change directory to '$dir' failed: $!";
 
     # write make output into log file
     open(my $log, '>', "make.log")

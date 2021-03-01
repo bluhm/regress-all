@@ -57,11 +57,11 @@ $| = 1 if $verbose;
 
 my $dir = dirname($0). "/..";
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 my $performdir = getcwd();
 $dir = "results";
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 
 # cvs checkout and repeated results
 my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));

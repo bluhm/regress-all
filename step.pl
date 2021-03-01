@@ -122,7 +122,7 @@ my $date = strftime("%FT%TZ", gmtime);
 
 my $performdir = dirname($0). "/..";
 chdir($performdir)
-    or die "Chdir to '$performdir' failed: $!";
+    or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
 my $resultdir = "results";
 -d $resultdir || mkdir $resultdir
@@ -134,7 +134,7 @@ unlink("results/current");
 symlink($date, "results/current")
     or die "Make symlink 'results/current' failed: $!";
 chdir($resultdir)
-    or die "Chdir to '$resultdir' failed: $!";
+    or die "Change directory to '$resultdir' failed: $!";
 
 createlog(file => "step.log", verbose => $opts{v});
 logmsg("Script '$scriptname' started at $date.\n");
@@ -194,14 +194,14 @@ if ($unit eq "commit") {
 
 foreach my $current (@steps) {
     chdir($performdir)
-	or die "Chdir to '$performdir' failed: $!";
+	or die "Change directory to '$performdir' failed: $!";
 
     my $cvsdate = strftime("%FT%TZ", gmtime($current));
     my $cvsdir = "results/$date/$cvsdate";
     mkdir $cvsdir
 	or die "Make directory '$cvsdir' failed: $!";
     chdir($cvsdir)
-	or die "Chdir to '$cvsdir' failed: $!";
+	or die "Change directory to '$cvsdir' failed: $!";
     my %cvsmode = %kernelmode;
     if ($kernelmode{keep}) {
 	# cannot keep the kernel after building a new one
@@ -220,7 +220,7 @@ foreach my $current (@steps) {
 	    mkdir $repeatdir
 		or die "Make directory '$repeatdir' failed: $!";
 	    chdir($repeatdir)
-		or die "Chdir to '$repeatdir' failed: $!";
+		or die "Change directory to '$repeatdir' failed: $!";
 	}
 
 	# run performance tests remotely
@@ -241,7 +241,7 @@ foreach my $current (@steps) {
 		setup_html();
 	    }
 	    chdir("..")
-		or die "Chdir to '..' failed: $!";
+		or die "Change directory to '..' failed: $!";
 	}
     }
     collect_dmesg();
@@ -251,7 +251,7 @@ foreach my $current (@steps) {
 # create html output
 
 chdir($performdir)
-    or die "Chdir to '$performdir' failed: $!";
+    or die "Change directory to '$performdir' failed: $!";
 
 setup_html(date => 1);
 runcmd("bin/perform-html.pl", "-d", $date);

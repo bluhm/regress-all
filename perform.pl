@@ -79,7 +79,7 @@ $testmode{all} = 1 unless @ARGV;
 
 my $dir = dirname($0);
 chdir($dir)
-    or die "Chdir to '$dir' failed: $!";
+    or die "Change directory to '$dir' failed: $!";
 my $performdir = getcwd();
 
 # write summary of results into result file
@@ -93,7 +93,7 @@ remove_tree($logdir);
 mkdir $logdir
     or die "Make directory '$logdir' failed: $!";
 chdir($logdir)
-    or die "Chdir to '$logdir' failed: $!";
+    or die "Change directory to '$logdir' failed: $!";
 
 sub bad {
     my ($test, $reason, $message, $log) = @_;
@@ -763,7 +763,7 @@ foreach my $t (@tests) {
 }
 
 chdir($performdir)
-    or die "Chdir to '$performdir' failed: $!";
+    or die "Change directory to '$performdir' failed: $!";
 
 # kill remote commands or ssh will hang forever
 if ($testmode{tcpbench4} || $testmode{tcpbench6}) {

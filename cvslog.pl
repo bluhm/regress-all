@@ -62,7 +62,7 @@ $SIG{PIPE} = 'IGNORE';
 
 my $performdir = dirname($0). "/..";
 chdir($performdir)
-    or die "Chdir to '$performdir' failed: $!";
+    or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
 
 # collect cvs log data
@@ -70,7 +70,7 @@ $performdir = getcwd();
 -f "/usr/$module/CVS/Root"
     or die "No cvs root at /usr/$module, do a checkout";
 chdir("/usr/$module")
-    or die "Chdir to '/usr/$module' failed: $!";
+    or die "Change directory to '/usr/$module' failed: $!";
 
 my $cvsbegin = strftime("%FZ%T", gmtime($begin));
 my $cvsend = strftime("%FZ%T", gmtime($end));
@@ -180,7 +180,7 @@ print "Pipe from command '@cvscmd' finished.\n" if $verbose;
 # write result log file
 
 chdir($performdir)
-    or die "Chdir to '$performdir' failed: $!";
+    or die "Change directory to '$performdir' failed: $!";
 my $cvslogdir = "results/cvslog/$module/$path";
 -d $cvslogdir || make_path $cvslogdir
     or die "Make cvslog path '$cvslogdir' failed: $!";
