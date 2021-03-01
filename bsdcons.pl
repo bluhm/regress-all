@@ -27,6 +27,8 @@ use lib dirname($0);
 use Logcmd;
 use Machine;
 
+my $now = strftime("%FT%TZ", gmtime);
+
 my $scriptname = "$0 @ARGV";
 
 my %opts;
@@ -67,7 +69,6 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
 createlog(verbose => $opts{v});
-my $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' started at $now.\n");
 
 if ($opts{l}) {

@@ -23,6 +23,8 @@ use File::Path qw(remove_tree);
 use Getopt::Std;
 use POSIX;
 
+my $now = strftime("%FT%TZ", gmtime);
+
 my $scriptname = "$0 @ARGV";
 
 my %opts;
@@ -46,7 +48,6 @@ my $thindays = ($opts{m} // 1) * $dm;
 my $logdays = ($opts{w} // 4) * $dw;
 my $tgzdays = ($opts{d} // 3);
 
-my $now = strftime("%FT%TZ", gmtime);
 my ($year, $month, $day) = $now =~ /^(\d+)-(\d+)-(\d+)T/
     or die "Bad date: $now";
 

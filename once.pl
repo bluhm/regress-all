@@ -26,6 +26,8 @@ use lib dirname($0);
 use Logcmd;
 use Hostctl;
 
+my $now = strftime("%FT%TZ", gmtime);
+
 my $scriptname = "$0 @ARGV";
 
 my %opts;
@@ -84,8 +86,7 @@ chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
 createlog(file => "once.log", verbose => $opts{v});
-my $date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' started at $date.\n");
+logmsg("Script '$scriptname' started at $now.\n");
 
 # setup remote machines
 
@@ -102,5 +103,5 @@ my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
     '-e', "/root/perform/env-$host.sh", '-v', keys %testmode);
 logcmd(@sshcmd);
 
-$date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $date.\n");
+$now = strftime("%FT%TZ", gmtime);
+logmsg("Script '$scriptname' finished at $now.\n");

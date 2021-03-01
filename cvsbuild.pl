@@ -28,6 +28,8 @@ use Logcmd;
 use Machine;
 use Buildquirks;
 
+my $now = strftime("%FT%TZ", gmtime);
+
 my $scriptname = "$0 @ARGV";
 
 my %opts;
@@ -75,8 +77,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
 createlog(file => "cvsbuild-$host.log", verbose => $opts{v});
-$date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' started at $date.\n");
+logmsg("Script '$scriptname' started at $now.\n");
 
 createhost($user, $host);
 
@@ -122,5 +123,5 @@ get_version();
 
 # finish build log
 
-$date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $date.\n");
+$now = strftime("%FT%TZ", gmtime);
+logmsg("Script '$scriptname' finished at $now.\n");
