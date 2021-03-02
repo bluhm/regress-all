@@ -31,13 +31,15 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:k:P:v', \%opts) or do {
+getopts('d:D:h:k:N:P:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] [-D cvsdate] -h host [-k kernel] [-P patch] [test ...]
+usage: $0 [-v] [-d date] [-D cvsdate] -h host [-k kernel] [-N repeat]
+    [-P patch] [test ...]
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for performance test, user defaults to root
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
+    -N repeat	number of build, reboot, test repetitions per step
     -P patch	apply patch to clean kernel source
     -v		verbose
     test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
@@ -61,6 +63,9 @@ my $date = $opts{d};
 my $cvsdate = $opts{D};
 my $patch = $opts{P};
 
+my $repeat = $opts{N} || 1;
+$repeat >= 1
+    or die "Repeat '$opts{N}' must be positive integer";
 my %allmodes;
 @allmodes{qw(align gap sort reorder reboot keep)} = ();
 !$opts{k} || exists $allmodes{$opts{k}}
@@ -128,11 +133,45 @@ cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch, mode => \%kernelmode)
     unless $kernelmode{keep};
 collect_version();
 
-# run performance tests remotely
+for (my $n = 0; $n < $repeat; $n++) {
+    my $repeatdir = sprintf("%03d", $n);
+    if ($repeat > 1) {
+	mkdir $repeatdir
+	    or die "Make directory '$repeatdir' failed: $!";
+	chdir($repeatdir)
+	    or die "Change directory to '$repeatdir' failed: $!";
+    }
 
-my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
-    '-e', "/root/perform/env-$host.sh", '-v', keys %testmode);
-logcmd(@sshcmd);
+    # run performance tests remotely
+
+    my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
+	'-e', "/root/perform/env-$host.sh", '-v', keys %testmode);
+    logcmd(@sshcmd);
+
+    # get result and logs
+
+    collect_result("$opts{h}:/root/perform");
+
+    if ($repeat > 1) {
+	unless ($kernelmode{keep} || $n + 1 == $repeat) {
+	    reboot_hosts(cvsdate => $cvsdate, repeat => $repeatdir,
+		mode => \%kernelmode);
+	    collect_version();
+	}
+	chdir("..")
+	    or die "Change directory to '..' failed: $!";
+    }
+}
+
+# create html output
+
+chdir($performdir)
+    or die "Change directory to '$performdir' failed: $!";
+
+if ($date) {
+    setup_html(date => 1);
+    runcmd("bin/perform-html.pl", "-d", $date, "-n", "-v");
+}
 
 $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $now.\n");
