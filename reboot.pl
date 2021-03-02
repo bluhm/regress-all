@@ -33,7 +33,7 @@ my %opts;
 getopts('d:D:h:R:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-d date] [-D cvsdate] -h host [-R repeat] [kernel ...]
-    -d date	set date string and change to sub directory
+    -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
     -R repeat	repetition number
@@ -47,7 +47,7 @@ EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
-!$opts{d} || str2time($opts{d})
+!$opts{d} || $opts{d} eq "current" || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
 !$opts{D} || str2time($opts{D})
@@ -69,6 +69,13 @@ chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
 my $resultdir = "$performdir/results";
+if ($date && $date eq "current") {
+     my $current = readlink("$resultdir/$date")
+	 or die "Read link '$resultdir/$date' failed: $!";
+     -d "$resultdir/$current"
+	 or die "Test directory '$resultdir/$current' failed: $!";
+     $date = $current;
+}
 $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $date && $cvsdate;
 $resultdir .= "/$repeat" if $date && $cvsdate && $repeat;

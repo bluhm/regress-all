@@ -39,19 +39,16 @@ my %opts;
 getopts('d:gnv', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-g] [-d date]
-    -d date	run date of performance test
+    -d date	run date of performance test, may be current
     -g		generate all gnuplot files, even if they already exist
     -n		do not generate gnuplot files on main release page
     -v		verbose
 EOF
     exit(2);
 };
-my $date;
-if ($opts{d}) {
-    str2time($opts{d})
-	or die "Invalid -d date '$opts{d}'";
-    $date = $opts{d};
-}
+!$opts{d} || $opts{d} eq "current" || str2time($opts{d})
+    or die "Invalid -d date '$opts{d}'";
+my $date = $opts{d};
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 
@@ -60,6 +57,13 @@ chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
 my $resultdir = "results";
+if ($date && $date eq "current") {
+     my $current = readlink("$resultdir/$date")
+	 or die "Read link '$resultdir/$date' failed: $!";
+     -d "$resultdir/$current"
+	 or die "Test directory '$resultdir/$current' failed: $!";
+     $date = $current;
+}
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 

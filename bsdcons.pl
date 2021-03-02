@@ -35,7 +35,7 @@ my %opts;
 getopts('d:D:h:lR:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-lv] [-d date] [-D cvsdate] -h host [-R repeat]
-    -d date	set date string and change to sub directory
+    -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
     -l		update bsdcons in latest directory with this host
@@ -45,7 +45,7 @@ EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
-!$opts{d} || str2time($opts{d})
+!$opts{d} || $opts{d} eq "current" || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
 !$opts{D} || str2time($opts{D})
@@ -62,6 +62,13 @@ chdir($testdir)
     or die "Change directory to '$testdir' failed: $!";
 $testdir = getcwd();
 my $resultdir = "$testdir/results";
+if ($date && $date eq "current") {
+    my $current = readlink("$resultdir/$date")
+	or die "Read link '$resultdir/$date' failed: $!";
+    -d "$resultdir/$current"
+	or die "Test directory '$resultdir/$current' failed: $!";
+    $date = $current;
+}
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 

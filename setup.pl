@@ -50,6 +50,8 @@ EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
+!$opts{d} || str2time($opts{d})
+    or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
 
 my %allmodes;
