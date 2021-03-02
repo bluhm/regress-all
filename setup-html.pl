@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # convert test setup details to a html table
 
-# Copyright (c) 2016-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -36,18 +36,28 @@ getopts('ad:', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-a] [-d date]
     -a		create setup.html for all dates
-    -d date	create setup.html for a specific date
+    -d date	create setup.html for a specific date, may be current
 EOF
     exit(2);
 };
+!$opts{d} || $opts{d} eq "current" || str2time($opts{d})
+    or die "Invalid -d date '$opts{d}'";
+my $date = $opts{d};
 
-my $dir = dirname($0). "/..";
-chdir($dir)
-    or die "Change directory to '$dir' failed: $!";
-my $regressdir = getcwd();
-$dir = "results";
-chdir($dir)
-    or die "Change directory to '$dir' failed: $!";
+my $regressdir = dirname($0). "/..";
+chdir($regressdir)
+    or die "Change directory to '$regressdir' failed: $!";
+$regressdir = getcwd();
+my $resultdir = "results";
+if ($date && $date eq "current") {
+    my $current = readlink("$resultdir/$date")
+	or die "Read link '$resultdir/$date' failed: $!";
+    -d "$resultdir/$current"
+	or die "Test directory '$resultdir/$current' failed: $!";
+    $date = $current;
+}
+chdir($resultdir)
+    or die "Change directory to '$resultdir' failed: $!";
 
 my $typename = "";
 my @dates;
@@ -56,7 +66,7 @@ if ($opts{a}) {
 	map { dirname($_) }
 	(glob("*T*/run.log"), glob("*T*/step.log"), glob("*T*/test.log"));
 } elsif ($opts{d}) {
-    @dates = $opts{d};
+    @dates = $date;
 } else {
     @dates =
 	# run times older than two weeks are irrelevant
@@ -67,7 +77,7 @@ if ($opts{a}) {
 
 my (%D, %M);
 foreach my $date (@dates) {
-    $dir = "$regressdir/results/$date";
+    my $dir = "$regressdir/results/$date";
     chdir($dir)
 	or die "Change directory to '$dir' failed: $!";
 
@@ -164,7 +174,7 @@ foreach my $date (@dates) {
 
 if ($opts{a} || $opts{d}) {
     foreach my $date (@dates) {
-	$dir = "$regressdir/results/$date";
+	my $dir = "$regressdir/results/$date";
 	chdir($dir)
 	    or die "Change directory to '$dir' failed: $!";
 
@@ -193,9 +203,8 @@ if ($opts{a} || $opts{d}) {
     }
 }
 
-$dir = "$regressdir/results";
-chdir($dir)
-    or die "Change directory to '$dir' failed: $!";
+chdir($resultdir)
+    or die "Change directory to '$resultdir' failed: $!";
 
 unless ($opts{d}) {
     create_html_run();
