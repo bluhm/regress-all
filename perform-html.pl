@@ -56,7 +56,7 @@ my $performdir = dirname($0). "/..";
 chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
-my $resultdir = "results";
+my $resultdir = "$performdir/results";
 if ($date && $date eq "current") {
     my $current = readlink("$resultdir/$date")
 	or die "Read link '$resultdir/$date' failed: $!";

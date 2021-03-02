@@ -55,7 +55,7 @@ my $regressdir = dirname($0). "/..";
 chdir($regressdir)
     or die "Change directory to '$regressdir' failed: $!";
 $regressdir = getcwd();
-my $resultdir = "results";
+my $resultdir = "$regressdir/results";
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 

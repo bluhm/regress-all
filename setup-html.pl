@@ -48,7 +48,7 @@ my $regressdir = dirname($0). "/..";
 chdir($regressdir)
     or die "Change directory to '$regressdir' failed: $!";
 $regressdir = getcwd();
-my $resultdir = "results";
+my $resultdir = "$regressdir/results";
 if ($date && $date eq "current") {
     my $current = readlink("$resultdir/$date")
 	or die "Read link '$resultdir/$date' failed: $!";

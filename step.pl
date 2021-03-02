@@ -124,7 +124,7 @@ my $performdir = dirname($0). "/..";
 chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
-my $resultdir = "results";
+my $resultdir = "$performdir/results";
 -d $resultdir || mkdir $resultdir
     or die "Make directory '$resultdir' failed: $!";
 $resultdir .= "/$date";
