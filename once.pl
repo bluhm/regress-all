@@ -36,7 +36,6 @@ getopts('D:h:k:v', \%opts) or do {
 usage: $0 [-v] [-d date] [-D cvsdate] -h host [-k kernel] [test ...]
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
-    -D cvsdate	update sources from cvs to this date, may be current
     -h host	user and host for performance test, user defaults to root
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
     -v		verbose
@@ -88,11 +87,11 @@ chdir($performdir)
 $performdir = getcwd();
 my $resultdir = "results";
 if ($date && $date eq "current") {
-     my $current = readlink("$resultdir/$date")
-	 or die "Read link '$resultdir/$date' failed: $!";
-     -d "$resultdir/$current"
-	 or die "Test directory '$resultdir/$current' failed: $!";
-     $date = $current;
+    my $current = readlink("$resultdir/$date")
+	or die "Read link '$resultdir/$date' failed: $!";
+    -d "$resultdir/$current"
+	or die "Test directory '$resultdir/$current' failed: $!";
+    $date = $current;
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";

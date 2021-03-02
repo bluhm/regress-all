@@ -190,7 +190,7 @@ my $isoend = strftime("%FT%TZ", gmtime($end));
 my $logfile = "$cvslogdir/$isobegin--$isoend";
 
 open(my $fh, '>', "$logfile.txt.new")
-     or die "Open '$logfile.txt.new' for writing failed: $!";
+    or die "Open '$logfile.txt.new' for writing failed: $!";
 open(my $html, '>', "$logfile.html.new")
     or die "Open '$logfile.html.new' for writing failed: $!";
 

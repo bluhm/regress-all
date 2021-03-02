@@ -58,11 +58,11 @@ chdir($performdir)
 $performdir = getcwd();
 my $resultdir = "results";
 if ($date && $date eq "current") {
-     my $current = readlink("$resultdir/$date")
-	 or die "Read link '$resultdir/$date' failed: $!";
-     -d "$resultdir/$current"
-	 or die "Test directory '$resultdir/$current' failed: $!";
-     $date = $current;
+    my $current = readlink("$resultdir/$date")
+	or die "Read link '$resultdir/$date' failed: $!";
+    -d "$resultdir/$current"
+	or die "Test directory '$resultdir/$current' failed: $!";
+    $date = $current;
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";

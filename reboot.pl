@@ -70,11 +70,11 @@ chdir($performdir)
 $performdir = getcwd();
 my $resultdir = "$performdir/results";
 if ($date && $date eq "current") {
-     my $current = readlink("$resultdir/$date")
-	 or die "Read link '$resultdir/$date' failed: $!";
-     -d "$resultdir/$current"
-	 or die "Test directory '$resultdir/$current' failed: $!";
-     $date = $current;
+    my $current = readlink("$resultdir/$date")
+	or die "Read link '$resultdir/$date' failed: $!";
+    -d "$resultdir/$current"
+	or die "Test directory '$resultdir/$current' failed: $!";
+    $date = $current;
 }
 $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $date && $cvsdate;
