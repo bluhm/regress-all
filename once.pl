@@ -132,6 +132,7 @@ usehosts(bindir => "$performdir/bin", date => $date,
 cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch, mode => \%kernelmode)
     unless $kernelmode{keep};
 collect_version();
+setup_html();
 
 for (my $n = 0; $n < $repeat; $n++) {
     my $repeatdir = sprintf("%03d", $n);
@@ -157,10 +158,13 @@ for (my $n = 0; $n < $repeat; $n++) {
 	    reboot_hosts(cvsdate => $cvsdate, repeat => $repeatdir,
 		mode => \%kernelmode);
 	    collect_version();
+	    setup_html();
 	}
 	chdir("..")
 	    or die "Change directory to '..' failed: $!";
     }
+    collect_dmesg();
+    setup_html();
 }
 
 # create html output
