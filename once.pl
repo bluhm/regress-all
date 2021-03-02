@@ -174,7 +174,9 @@ chdir($performdir)
 
 if ($date) {
     setup_html(date => 1);
-    runcmd("bin/perform-html.pl", "-d", $date, "-n", "-v");
+    my @cmd = ("bin/perform-html.pl", "-d", $date, "-n");
+    push @cmd, "-v" if $opts{v};
+    runcmd(@cmd);
 }
 
 $now = strftime("%FT%TZ", gmtime);

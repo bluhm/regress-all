@@ -254,7 +254,9 @@ chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
 
 setup_html(date => 1);
-runcmd("bin/perform-html.pl", "-d", $date);
+my @cmd = ("bin/perform-html.pl", "-d", $date);
+push @cmd, "-v" if $opts{v};
+runcmd(@cmd);
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $date.\n");
