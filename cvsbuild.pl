@@ -123,6 +123,7 @@ if ($before) {
 }
 
 update_cvs(undef, $cvsdate, "sys") if $cvsdate;
+clean_cvs("sys") if $patch;
 patch_cvs($patch, "sys") if $patch;
 make_kernel();
 if ($kernelmode{align}) {
