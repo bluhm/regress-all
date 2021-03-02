@@ -55,13 +55,13 @@ if ($opts{d}) {
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 
-my $dir = dirname($0). "/..";
-chdir($dir)
-    or die "Change directory to '$dir' failed: $!";
-my $performdir = getcwd();
-$dir = "results";
-chdir($dir)
-    or die "Change directory to '$dir' failed: $!";
+my $performdir = dirname($0). "/..";
+chdir($performdir)
+    or die "Change directory to '$performdir' failed: $!";
+$performdir = getcwd();
+my $resultdir = "results";
+chdir($resultdir)
+    or die "Change directory to '$resultdir' failed: $!";
 
 # cvs checkout and repeated results
 my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));

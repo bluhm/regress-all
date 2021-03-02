@@ -51,13 +51,13 @@ foreach (qw(src ports)) {
     die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
 
-my $dir = dirname($0). "/..";
-chdir($dir)
-    or die "Change directory to '$dir' failed: $!";
-my $regressdir = getcwd();
-$dir = "results";
-chdir($dir)
-    or die "Change directory to '$dir' failed: $!";
+my $regressdir = dirname($0). "/..";
+chdir($regressdir)
+    or die "Change directory to '$regressdir' failed: $!";
+$regressdir = getcwd();
+my $resultdir = "results";
+chdir($resultdir)
+    or die "Change directory to '$resultdir' failed: $!";
 
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;

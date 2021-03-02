@@ -34,14 +34,13 @@ EOF
 my $publish = $opts{p} or die "No -p specified";
 $publish = getcwd(). "/". $publish if substr($publish, 0, 1) ne "/";
 
-my $dir = dirname($0). "/..";
-chdir($dir)
-    or die "Change directory to '$dir' failed: $!";
-my $regressdir = getcwd();
-
-my $resultsdir = "$regressdir/results";
-chdir($resultsdir)
-    or die "Change directory to '$resultsdir' failed: $!";
+my $regressdir = dirname($0). "/..";
+chdir($regressdir)
+    or die "Change directory to '$regressdir' failed: $!";
+$regressdir = getcwd();
+my $resultdir = "$regressdir/results";
+chdir($resultdir)
+    or die "Change directory to '$resultdir' failed: $!";
 my $latest = readlink "latest";
 my %latesthost;
 foreach (glob("latest-*")) {
@@ -61,7 +60,7 @@ chdir($publish)
     or die "Change directory to '$publish' failed: $!";
 
 if ($latest) {
-    my $obj = "$resultsdir/$latest/test.obj.tgz";
+    my $obj = "$resultdir/$latest/test.obj.tgz";
     my @pax = ("pax", "-zrf", $obj,
 	"-s,^/misc/os-test/,$publish/os-test/,",
 	"-s,^/misc/posixtestsuite/,$publish/posixtestsuite/,",
@@ -71,7 +70,7 @@ if ($latest) {
 }
 
 while (my ($host, $date) = each %latesthost) {
-    my $version = "$resultsdir/$date/version-$host.txt";
+    my $version = "$resultdir/$date/version-$host.txt";
     open(my $fh, '<', $version)
 	or die "Open '$version' for reading failed: $!";
     my ($kernel, $time, $location, $arch);
@@ -97,7 +96,7 @@ while (my ($host, $date) = each %latesthost) {
     }
     my $snap = sprintf("%04d-%02d-%02d", $year, $mn2m{$monthname}, $day);
 
-    my $obj = "$resultsdir/$date/test.obj.tgz";
+    my $obj = "$resultdir/$date/test.obj.tgz";
     my @pax = ("pax", "-zrf", $obj,
 	"-s,.*\.core\$,,",
 	"-s,.*\.c\$,,",
