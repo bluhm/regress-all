@@ -81,7 +81,7 @@ foreach my $date (@dates) {
     chdir($dir)
 	or die "Change directory to '$dir' failed: $!";
 
-    my @cvsdates = grep { -d $_ } glob("*T*");
+    my @cvsdates = grep { -d $_ } (glob("*T*"), glob("patch-*"));
     $D{$date}{cvsdates} = [ @cvsdates ];
 
     foreach my $cvsdate ("", @cvsdates) {
