@@ -31,7 +31,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('D:h:k:v', \%opts) or do {
+getopts('d:D:h:k:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-d date] [-D cvsdate] -h host [-k kernel] [test ...]
     -d date	set date string and change to sub directory, may be current
