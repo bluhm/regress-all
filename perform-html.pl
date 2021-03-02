@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # convert all performance results to a html table
 
-# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2018-2019 Moritz Buhl <mbuhl@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -66,9 +66,20 @@ if ($date && $date eq "current") {
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
+if ($date eq "current") {
+    my $current = readlink("$resultdir/$date")
+	or die "Read link '$resultdir/$date' failed: $!";
+    -d "$resultdir/$current"
+	or die "Test directory '$resultdir/$current' failed: $!";
+    $date = $current;
+}
 
+# create the html and gnuplot files only for a single date
+my $dateglob = ($opts{n} && $date) ? $date : "*";
 # cvs checkout and repeated results
-my @result_files = sort(glob("*/*/test.result"), glob("*/*/*/test.result"));
+my @result_files = sort(glob("$dateglob/*/test.result"),
+    glob("$dateglob/*/*/test.result"));
+
 
 # %T
 # $test					performance test tool command line
@@ -146,7 +157,7 @@ print "parse result files" if $verbose;
 parse_result_files(@result_files);
 
 print "\nwrite data files" if $verbose;
-write_data_files();
+write_data_files($opts{n} && $date);
 print "\ncreate gnuplot files" if $verbose;
 create_gnuplot_files($date);
 print "\ncreate cvslog files" if $verbose;
@@ -229,6 +240,8 @@ foreach my $date (@dates) {
 }
 print "\n" if $verbose;
 
+exit if $opts{n};
+
 # html with date
 
 # the main page must contain all dates, call without specific date
@@ -285,8 +298,12 @@ sub parse_result_files {
 	print "." if $verbose;
 
 	# parse result file
-	my ($date, $short, $cvsdate, $cvsshort, $repeat) =
-	    $result =~ m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+)/)?test.result,
+	my ($date, $short, $cvsdate, $cvsshort, $repeat);
+	($date, $short, $cvsdate, $cvsshort, $repeat) = $result =~
+	    m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+)/)?test.result,
+	    or
+	($date, $short, $cvsdate, $cvsshort, $repeat) = $result =~
+	    m,(([^/]+)T[^/]+)/(patch-([^/)]+)\.\d+)/(?:(\d+)/)?test.result,
 	    or next;
 	$D{$date}{short} ||= $short;
 	push @{$D{$date}{cvsdates} ||= []}, $cvsdate unless $D{$date}{$cvsdate};
@@ -298,6 +315,7 @@ sub parse_result_files {
 	    $D{$date}{$cvsdate}{result} = $result;
 	}
 	$D{$date}{log} ||= "step.log" if -f "$date/step.log";
+	$D{$date}{$cvsdate}{log} ||= "once.log" if -f "$date/$cvsdate/once.log";
 	unless ($D{$date}{stepconf}) {
 	    my $stepfile = "$date/stepconf.txt";
 	    if (open (my $fh, '<', $stepfile)) {
@@ -391,6 +409,8 @@ sub parse_result_files {
 	    $D{$date}{$cvsdate}{version} = $version;
 	    (my $quirks = $version) =~ s,/version-,/quirks-,;
 	    $D{$date}{$cvsdate}{quirks} ||= $quirks if -f $quirks;
+	    (my $diff = $version) =~ s,/version-,/diff-,;
+	    $D{$date}{$cvsdate}{diff} ||= $diff if -f $diff;
 
 	    open($fh, '<', $version)
 		or die "Open '$version' for reading failed: $!";
@@ -420,9 +440,15 @@ sub list_plots {
 
 # write test results into gnuplot data file
 sub write_data_files {
+    my @dates = shift || sort keys %V;
     -d "gnuplot" || mkdir "gnuplot"
 	or die "Make directory 'gnuplot' failed: $!";
     my $testdata = "gnuplot/test";
+    if ($opts{n} && @dates == 1) {
+	$testdata = "$dates[0]/$testdata";
+    } else {
+	unlink map { glob("$_/$testdata-*.data") } @dates;
+    }
     my %plotfh;
     @plotfh{values %TESTPLOT} = ();
     foreach my $plot (keys %plotfh) {
@@ -431,18 +457,22 @@ sub write_data_files {
 	print {$plotfh{$plot}}
 	    "# test subtest run checkout repeat value unit host\n";
     }
-    open(my $fh, '>', "test.data.new")
-	or die "Open 'test.data.new' for writing failed: $!";
-    print $fh "# test subtest run checkout repeat value unit host\n";
-    foreach my $date (sort keys %V) {
+    my $fh;
+    unless ($opts{n}) {
+	open($fh, '>', "test.data.new")
+	    or die "Open 'test.data.new' for writing failed: $!";
+	print $fh "# test subtest run checkout repeat value unit host\n";
+    }
+    foreach my $date (@dates) {
 	print "." if $verbose;
 	my $vd = $V{$date};
 	my $run = str2time($date);
 	foreach my $test (sort keys %$vd) {
 	    my $vt = $vd->{$test};
+	    my $checkout;
 	    foreach my $cvsdate (sort keys %$vt) {
 		my $vc = $vt->{$cvsdate};
-		my $checkout = str2time($cvsdate);
+		$checkout = str2time($cvsdate) || $checkout + 1;
 		$vc = { 0 => $vc } if ref $vc ne 'HASH';
 		foreach my $repeat (sort keys %$vc) {
 		    my $vr = $vc->{$repeat};
@@ -452,7 +482,8 @@ sub write_data_files {
 			my $subtest = $value->{name} || "unknown";
 			my $hostname = $D{$date}{host};
 			print $fh "$test $subtest ".
-			    "$run $checkout $repeat $number $unit $hostname\n";
+			    "$run $checkout $repeat $number $unit $hostname\n"
+			    if $fh;
 			print {$plotfh{$TESTPLOT{$test}}} "$test $subtest ".
 			    "$run $checkout $repeat $number $unit $hostname\n"
 			    if $TESTPLOT{$test};
@@ -461,14 +492,16 @@ sub write_data_files {
 	    }
 	}
     }
-    close($fh)
-	or die "Close 'test.data.new' after writing failed: $!";
-    rename("test.data.new", "test.data")
-	or die "Rename 'test.data.new' to 'test.data' failed: $!";
-    system("gzip -f -c test.data >test.data.gz.new")
-	and die "Gzip test.data failed: $?";
-    rename("test.data.gz.new", "test.data.gz")
-	or die "Rename 'test.data.gz.new' to 'test.data.gz' failed: $!";
+    if ($fh) {
+	close($fh)
+	    or die "Close 'test.data.new' after writing failed: $!";
+	rename("test.data.new", "test.data")
+	    or die "Rename 'test.data.new' to 'test.data' failed: $!";
+	system("gzip -f -c test.data >test.data.gz.new")
+	    and die "Gzip test.data failed: $?";
+	rename("test.data.gz.new", "test.data.gz")
+	    or die "Rename 'test.data.gz.new' to 'test.data.gz' failed: $!";
+    }
     foreach my $plot (keys %plotfh) {
 	my $datafile = "$testdata-$plot.data";
 	close($plotfh{$plot})
@@ -539,13 +572,15 @@ sub create_cvslog_files {
 	my %cvsdates;
 	@cvsdates{@{$dd->{cvsdates}}} = ();
 	@{$dd->{cvsdates}} = sort keys %cvsdates;
-	my $cvsprev;
+	my $prevcvsdate;
 	foreach my $cvsdate (@{$dd->{cvsdates}}) {
-	    if ($cvsprev) {
-		my $cvslog = "cvslog/src/sys/$cvsprev--$cvsdate";
+	    # patch tests have no cvs checkout
+	    str2time($cvsdate) or next;
+	    if ($prevcvsdate) {
+		my $cvslog = "cvslog/src/sys/$prevcvsdate--$cvsdate";
 		unless (-f "$cvslog.txt" && -f "$cvslog.html") {
 		    my @cmd = ("$performdir/bin/cvslog.pl",
-			"-B", $cvsprev, "-E", $cvsdate, "-P", "src/sys");
+			"-B", $prevcvsdate, "-E", $cvsdate, "-P", "src/sys");
 		    system(@cmd)
 			and die "Command '@cmd' failed: $?";
 		}
@@ -568,7 +603,7 @@ sub create_cvslog_files {
 		    $dd->{$cvsdate}{cvslog} = "$cvslog.html";
 		}
 	    }
-	    $cvsprev = $cvsdate;
+	    $prevcvsdate = $cvsdate;
 	}
     }
 }
@@ -657,7 +692,6 @@ sub html_cvsdate_zoom {
 
 sub html_repeat_top {
     my ($html, $date, $cvsdate, @repeats) = @_;
-    my $hostcore = "$D{$date}{host}/$D{$date}{core}";
     print $html <<"HEADER";
 <table>
   <tr>
@@ -668,15 +702,22 @@ sub html_repeat_top {
     <th>run at</th>
     <td>$date</td>
   </tr>
-  <tr>
-    <th>test host with cpu cores</th>
-    <td>$hostcore</td>
-  </tr>
-  <tr>
-    <th>cvs checkout at</th>
-    <td>$cvsdate</td>
-  </tr>
 HEADER
+    print $html "  <tr>\n    <th>run</th>\n";
+    my $log = $D{$date}{$cvsdate}{log};
+    my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
+    my $href = $log ? "<a href=\"$link\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "    <td>${href}log$enda</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
+    my $hostname = $D{$date}{host};
+    my $core = $D{$date}{core};
+    print $html "    <td>$hostname/$core</td>\n";
+    print $html "  </tr>\n";
+    print $html "  <tr>\n    <th>cvs checkout at</th>\n";
+    print $html "    <td>$cvsdate</td>\n";
+    print $html "  </tr>\n";
     print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
     my $kerneltext = @repeats;
     my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
@@ -688,9 +729,9 @@ HEADER
     $kerneltext =~ s/\s//g;
     my $build = $D{$date}{$cvsdate}{build};
     $build =~ s,[^/]+/[^/]+/,, if $build;
-    my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
-    my $href = $build ? "<a href=\"$link\">" : "";
-    my $enda = $href ? " info</a>" : "";
+    $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
+    $href = $build ? "<a href=\"$link\">" : "";
+    $enda = $href ? " info</a>" : "";
     print $html "    <td>$href$kerneltext$enda</td>\n";
     print $html "  </tr>\n";
     print $html "</table>\n";
@@ -907,6 +948,20 @@ sub html_cvsdate_test_head {
     print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
+    print $html "  <tr>\n    <td></td>\n";
+    print $html "    <th>kernel patches</th>\n";
+    foreach my $cvsdate (@cvsdates) {
+	my $diff = $D{$date}{$cvsdate}{diff};
+	unless ($diff) {
+	    print $html "    <th></th>\n";
+	    next;
+	}
+	my $link = uri_escape($diff, "^A-Za-z0-9\-\._~/");
+	print $html "    <th><a href=\"../$link\">diff</a></th>\n";
+    }
+    print $html "    <th></th><th></th><th></th><th></th><th></th>".
+	"<th></th>\n";  # dummy for unit and stats below
+    print $html "  </tr>\n";
     if (($D{$date}{stepconf}{kernelmodes} || "") eq "align") {
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>kernel name list</th>\n";
@@ -930,6 +985,10 @@ sub html_cvsdate_test_head {
     my $prevcvsdate;
     my $index = keys %{{quirks(undef, $cvsdates[0])}};
     foreach my $cvsdate (@cvsdates) {
+	unless (str2time($cvsdate)) {
+	    print $html "    <th></th>\n";
+	    next;
+	}
 	my $quirks = $D{$date}{$cvsdate}{quirks};
 	print $html "    <th>";
 	if ($quirks) {
@@ -969,6 +1028,10 @@ sub html_cvsdate_test_head {
     print $html "    <th>zoom</th>\n";
     $prevcvsdate = undef;
     foreach my $cvsdate (@cvsdates) {
+	unless (str2time($cvsdate)) {
+	    print $html "    <th></th>\n";
+	    next;
+	}
 	print $html "    <th>";
 	html_cvsdate_zoom($html, $prevcvsdate, $cvsdate) if $prevcvsdate;
 	print $html "</th>\n";
@@ -1010,7 +1073,7 @@ sub html_cvsdate_test_row {
 	my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>$name0</th>\n";
-	my @numbers = map { $rp0 ?
+	my @numbers = map { ref($vt->{$_}) eq 'HASH' ?
 	    $vt->{$_}{summary}[$i] : $vt->{$_}[$i]{number} }
 	    grep { $td->{$_} && $td->{$_}{status} eq 'PASS' } @cvsdates;
 	my ($sum, $mean, $maximum, $minimum, $deviation, $relative,
