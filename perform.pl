@@ -167,6 +167,13 @@ if ($linux_ssh) {
     my @sshcmd = ('ssh', $linux_ssh, 'pkill', 'iperf3');
     system(@sshcmd);
 }
+if ($linux_other_ssh) {
+    my @sshcmd = ('ssh', $linux_other_ssh, 'pkill', 'iperf3');
+    system(@sshcmd);
+    @sshcmd = ('ssh', $linux_other_ssh, 'iperf3', '-sD');
+    system(@sshcmd)
+	and die "Start linux iperf3 server with '@sshcmd' failed: $?";
+}
 
 # tcpbench tests
 
