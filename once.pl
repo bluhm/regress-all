@@ -102,7 +102,7 @@ if ($date && $date eq "current") {
 	or die "Test directory '$resultdir/$current' failed: $!";
     $date = $current;
 }
-$resultdir = "$resultdir/$date";
+$resultdir = "$resultdir/$date" if $date;
 if ($patch) {
     my $patchdir = "patch-". basename($patch);
     $patchdir =~ s/\..*//;
