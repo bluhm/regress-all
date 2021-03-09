@@ -157,7 +157,7 @@ sub collect_result {
 	open(my $tr, '<', "test.result")
 	    or die "Open 'test.result' for reading failed: $!";
 	my $logdir = "logs";
-	mkdir $logdir
+	-d $logdir || mkdir $logdir
 	    or die "Make directory '$logdir' failed: $!";
 	chdir($logdir)
 	    or die "Change directory to '$logdir' failed: $!";
