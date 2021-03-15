@@ -305,6 +305,7 @@ sub parse_result_files {
 	($date, $short, $cvsdate, $cvsshort, $repeat) = $result =~
 	    m,(([^/]+)T[^/]+)/(patch-([^/)]+)\.\d+)/(?:(\d+)/)?test.result,
 	    or next;
+	next if ! $opts{n} && $cvsdate =~ /^patch-/;
 	$D{$date}{short} ||= $short;
 	push @{$D{$date}{cvsdates} ||= []}, $cvsdate unless $D{$date}{$cvsdate};
 	$D{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
