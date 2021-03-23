@@ -116,6 +116,7 @@ sub logcmd {
     open(my $fh, '>', $outfile)
 	or croak "Open file '$outfile' for writing failed: $!"
 	if $outfile;
+    logmsg "Writing output to '$outfile'.\n" if $outfile;
     defined(my $pid = open(my $out, '-|'))
 	or croak "Open pipe from '@cmd' failed: $!";
     if ($pid == 0) {

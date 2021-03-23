@@ -90,6 +90,7 @@ $resultdir .= "/$cvsdate" if $date && $cvsdate;
 $resultdir .= "/$repeat" if $date && $cvsdate && $repeat;
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
+logmsg("Result directory is '$resultdir'.\n");
 
 createhost($user, $host);
 
