@@ -17,6 +17,7 @@
 /etc/rc.local
 /etc/relayd.conf
 /etc/resolv.conf
+/etc/soii.key
 /etc/ssh/ssh_host_dsa_key
 /etc/ssh/ssh_host_dsa_key.pub
 /etc/ssh/ssh_host_ecdsa_key
