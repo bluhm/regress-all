@@ -168,7 +168,16 @@ foreach my $date (@dates) {
     my $enda = $href ? "</a>" : "";
     print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
 }
-print $html "  <tr>\n    <th>host architecture</th>\n";
+print $html "  <tr>\n    <th>architecture</th>\n";
+foreach my $date (@dates) {
+    my $arch = $D{$date}{arch};
+    my $dmesg = $D{$date}{dmesg};
+    my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
+    my $href = $dmesg ? "<a href=\"$link\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "    <th>$href$arch$enda</th>\n";
+}
+print $html "  <tr>\n    <th>host</th>\n";
 foreach my $date (@dates) {
     my $hostname = $D{$date}{host};
     my $hostlink;
@@ -176,14 +185,9 @@ foreach my $date (@dates) {
 	$hostlink = "regress-$hostname.html";
 	undef $hostlink unless -f $hostlink;
     }
-    my $hhref = $hostlink ? "<a href=\"$hostlink\">" : "";
-    my $henda = $hhref ? "</a>" : "";
-    my $arch = $D{$date}{arch};
-    my $dmesg = $D{$date}{dmesg};
-    my $alink = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
-    my $ahref = $dmesg ? "<a href=\"$alink\">" : "";
-    my $aenda = $ahref ? "</a>" : "";
-    print $html "    <th>$hhref$hostname$henda/$ahref$arch$aenda</th>\n";
+    my $href = $hostlink ? "<a href=\"$hostlink\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "    <th>$href$hostname$enda</th>\n";
 }
 print $html "  </tr>\n";
 
