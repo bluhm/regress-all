@@ -237,6 +237,8 @@ sub run_commands {
 	    $run =~ s/^\s*/$prev /;
 	    undef $prev;
 	}
+	# ignore empty lines
+	next if $run =~ /^\s*$/;
 	# comment starts in first column
 	next if $run =~ /^#/;
 	# long lines can be split with backslash
