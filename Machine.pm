@@ -201,7 +201,8 @@ sub make_kernel {
 	if loggrep(qr/you must run "make clean"/);
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && if [ -s CVS/Tag ]".
 	"; then echo -n 'cvs : '; cat CVS/Tag; fi >obj/version");
-    logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && nice make$jflag");
+    logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && ".
+	"time nice make$jflag");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make install");
     # disable kernel relinking, load after reboot may change perform result
     logcmd('ssh', "$user\@$host", "rm /var/db/kernel.SHA256");
@@ -210,7 +211,7 @@ sub make_kernel {
 sub make_build {
     my $ncpu = $sysctl{'hw.ncpu'};
     my $jflag = $ncpu > 1 ? " -j ".($ncpu+1) : "";
-    logcmd('ssh', "$user\@$host", "cd /usr/src && nice make$jflag build");
+    logcmd('ssh', "$user\@$host", "cd /usr/src && time nice make$jflag build");
 }
 
 # make relink kernel
