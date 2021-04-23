@@ -27,7 +27,6 @@ p5-NetPacket
 p5-YAML
 p5-ldap
 posixtestsuite
-py3-scapy
 py3-tlsfuzzer
 rsync--
 rsyslog
