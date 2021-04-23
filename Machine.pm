@@ -202,7 +202,7 @@ sub make_kernel {
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && if [ -s CVS/Tag ]".
 	"; then echo -n 'cvs : '; cat CVS/Tag; fi >obj/version");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && ".
-	"time nice make$jflag");
+	"time nice make$jflag bsd");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make install");
     # disable kernel relinking, load after reboot may change perform result
     logcmd('ssh', "$user\@$host", "rm /var/db/kernel.SHA256");
