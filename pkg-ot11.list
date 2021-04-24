@@ -11,6 +11,7 @@ net-snmp
 openldap-client--
 openssl%1.0.2
 openssl%1.1
+os-test
 p5-AnyEvent
 p5-BSD-Resource
 p5-BSD-Socket-Splice
@@ -24,11 +25,13 @@ p5-Net-Pcap
 p5-NetPacket
 p5-YAML
 p5-ldap
+posixtestsuite
 py3-tlsfuzzer
 raspberrypi-firmware
 rsync--
 rsyslog
 scapy
+sudo--
 sysclean
 u-boot-aarch64
 ucspi-tcp
