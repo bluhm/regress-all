@@ -1,6 +1,7 @@
 #!/usr/bin/perl
+# make build and release on machine
 
-# Copyright (c) 2016-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -28,13 +29,14 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('h:v', \%opts) or do {
+getopts('d:h:r:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -h host mode ...
-    -h host	user and host for make test, user defaults to root
+    -h host	user and host for make release, user defaults to root
     -v		verbose
-    commands	run commands needed for ports tests
-    ports	cvs update /usr/ports
+    build	build system from source /usr/src
+    cvs		clean cvs update /usr/src and make obj
+    kernel	build kernel from source /usr/src/sys
     keep	keep installed host as is, skip setup
 EOF
     exit(2);
@@ -42,7 +44,7 @@ EOF
 $opts{h} or die "No -h specified";
 
 my %allmodes;
-@allmodes{qw(commands keep ports)} = ();
+@allmodes{qw(build cvs kernel keep)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
@@ -58,11 +60,11 @@ $SIG{PIPE} = 'IGNORE';
 # create directory for this test run with timestamp 2016-07-13T12:30:42Z
 my $date = strftime("%FT%TZ", gmtime);
 
-my $regressdir = dirname($0). "/..";
-chdir($regressdir)
-    or die "Change directory to '$regressdir' failed: $!";
-$regressdir = getcwd();
-my $resultdir = "$regressdir/results/$date";
+my $releasedir = dirname($0). "/..";
+chdir($releasedir)
+    or die "Change directory to '$releasedir' failed: $!";
+$releasedir = getcwd();
+my $resultdir = "$releasedir/results/$date";
 mkdir $resultdir
     or die "Make directory '$resultdir' failed: $!";
 unlink("results/current");
@@ -71,11 +73,11 @@ symlink($date, "results/current")
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
-createlog(file => "test.log", verbose => $opts{v});
+createlog(file => "make.log", verbose => $opts{v});
 logmsg("Script '$scriptname' started at $date.\n");
 
-open(my $fh, '>', "testconf.txt")
-    or die "Open 'testconf.txt' for writing failed: $!";
+open(my $fh, '>', "makeconf.txt")
+    or die "Open 'makeconf.txt' for writing failed: $!";
 print $fh "ARGUMENTS @ARGV\n";
 print $fh "HOST $opts{h}\n";
 print $fh "MODE ", join(" ", sort keys %mode), "\n";
@@ -83,7 +85,7 @@ close($fh);
 
 # setup remote machines
 
-usehosts(bindir => "$regressdir/bin", date => $date,
+usehosts(bindir => "$releasedir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 
 # do not run end block until initialized, date may change later
@@ -92,7 +94,7 @@ END {
     if ($odate) {
 	my @cmd = ("$releasedir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
 	system(@cmd);
-	my @cmd = ("$regressdir/bin/setup-html.pl");
+	@cmd = ("$releasedir/bin/setup-html.pl");
 	system(@cmd);
     }
 };
@@ -100,13 +102,13 @@ setup_hosts(mode => \%mode) unless $mode{keep};
 collect_version();
 setup_html();
 
-# run port tests remotely
+# run make release remotely
 
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
 (my $host = $opts{h}) =~ s/.*\@//;
-my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/portstest/portstest.pl',
+my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/release/release.pl',
     '-e', "/root/portstest/env-$host.sh", '-v');
 logcmd(@sshcmd);
 
@@ -114,28 +116,18 @@ logcmd(@sshcmd);
 
 my @scpcmd = ('scp');
 push @scpcmd, '-q' unless $opts{v};
-push @scpcmd, ("$opts{h}:/root/portstest/test.*", $resultdir);
+push @scpcmd, ("$opts{h}:/root/release/test.*", $resultdir);
 runcmd(@scpcmd);
 
-open(my $tr, '<', "test.result")
-    or die "Open 'test.result' for reading failed: $!";
 my $logdir = "$resultdir/logs";
 mkdir $logdir
     or die "Make directory '$logdir' failed: $!";
 chdir($logdir)
     or die "Change directory to '$logdir' failed: $!";
-my @paxcmd = ('pax', '-rzf', "../test.log.tgz");
-open(my $pax, '|-', @paxcmd)
-    or die "Open pipe to '@paxcmd' failed: $!";
-while (<$tr>) {
-    my ($status, $test, $message) = split(" ", $_, 3);
-    print $pax "$test/make.log" unless $test =~ m,[^\w/],;
-}
-close($pax) or die $! ?
-    "Close pipe to '@paxcmd' failed: $!" :
-    "Command '@paxcmd' failed: $?";
-close($tr)
-    or die "Close 'test.result' after reading failed: $!";
+@scpcmd = ('scp');
+push @scpcmd, '-q' unless $opts{v};
+push @scpcmd, ("$opts{h}:/usr/src/make.log", $logdir);
+runcmd(@scpcmd);
 
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
@@ -145,20 +137,10 @@ setup_html();
 
 # create html output
 
-chdir($regressdir)
-    or die "Change directory to '$regressdir' failed: $!";
+chdir($releasedir)
+    or die "Change directory to '$releasedir' failed: $!";
 
 setup_html(date => 1);
-runcmd("bin/regress-html.pl", "-h", $host, "ports");
-runcmd("bin/regress-html.pl", "ports");
-
-unlink("results/latest-$host");
-symlink($date, "results/latest-$host")
-    or die "Make symlink 'results/latest-$host' failed: $!";
-unlink("results/latest");
-symlink($date, "results/latest")
-    or die "Make symlink 'results/latest' failed: $!";
-runcmd("bin/regress-html.pl", "-l", "ports");
 
 $date = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $date.\n");
