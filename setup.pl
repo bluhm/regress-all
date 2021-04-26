@@ -122,7 +122,7 @@ sub copy_scripts {
     chdir($bindir)
 	or die "Change directory to '$bindir' failed: $!";
 
-    my @mkdirs = map { "/root/$_" } qw(regress perform portstest);
+    my @mkdirs = map { "/root/$_" } qw(regress perform portstest release);
     runcmd('ssh', "$user\@$host", 'mkdir', '-p', @mkdirs);
 
     my @copy = grep { -f $_ }
@@ -145,6 +145,13 @@ sub copy_scripts {
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$user\@$host:/root/portstest");
+    runcmd(@scpcmd);
+
+    @copy = grep { -f $_ }
+	("release.pl", "env-$host.sh");
+    @scpcmd = ('scp');
+    push @scpcmd, '-q' unless $opts{v};
+    push @scpcmd, (@copy, "$user\@$host:/root/release");
     runcmd(@scpcmd);
 
     chdir($resultdir)
