@@ -60,11 +60,11 @@ $SIG{PIPE} = 'IGNORE';
 # create directory for this test run with timestamp 2016-07-13T12:30:42Z
 my $date = strftime("%FT%TZ", gmtime);
 
-my $releasedir = dirname($0). "/..";
-chdir($releasedir)
-    or die "Change directory to '$releasedir' failed: $!";
-$releasedir = getcwd();
-my $resultdir = "$releasedir/results/$date";
+my $regressdir = dirname($0). "/..";
+chdir($regressdir)
+    or die "Change directory to '$regressdir' failed: $!";
+$regressdir = getcwd();
+my $resultdir = "$regressdir/results/$date";
 mkdir $resultdir
     or die "Make directory '$resultdir' failed: $!";
 unlink("results/current");
@@ -85,16 +85,16 @@ close($fh);
 
 # setup remote machines
 
-usehosts(bindir => "$releasedir/bin", date => $date,
+usehosts(bindir => "$regressdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
 
 # do not run end block until initialized, date may change later
 my $odate = $date;
 END {
     if ($odate) {
-	my @cmd = ("$releasedir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
+	my @cmd = ("$regressdir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
 	system(@cmd);
-	@cmd = ("$releasedir/bin/setup-html.pl");
+	@cmd = ("$regressdir/bin/setup-html.pl");
 	system(@cmd);
     }
 };
@@ -137,8 +137,8 @@ setup_html();
 
 # create html output
 
-chdir($releasedir)
-    or die "Change directory to '$releasedir' failed: $!";
+chdir($regressdir)
+    or die "Change directory to '$regressdir' failed: $!";
 
 setup_html(date => 1);
 

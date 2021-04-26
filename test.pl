@@ -90,9 +90,9 @@ usehosts(bindir => "$regressdir/bin", date => $date,
 my $odate = $date;
 END {
     if ($odate) {
-	my @cmd = ("$releasedir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
+	my @cmd = ("$regressdir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
 	system(@cmd);
-	my @cmd = ("$regressdir/bin/setup-html.pl");
+	@cmd = ("$regressdir/bin/setup-html.pl");
 	system(@cmd);
     }
 };
