@@ -64,7 +64,8 @@ my @dates;
 if ($opts{a}) {
     @dates =
 	map { dirname($_) }
-	(glob("*T*/run.log"), glob("*T*/step.log"), glob("*T*/test.log"));
+	(glob("*T*/run.log"), glob("*T*/step.log"), glob("*T*/test.log"),
+	glob("*T*/make.log"));
 } elsif ($opts{d}) {
     @dates = $date;
 } else {
@@ -72,7 +73,8 @@ if ($opts{a}) {
 	# run times older than two weeks are irrelevant
 	grep { str2time($now) - str2time($_) <= 60*60*24*14 }
 	map { dirname($_) }
-	(glob("*T*/run.log"), glob("*T*/step.log"), glob("*T*/test.log"));
+	(glob("*T*/run.log"), glob("*T*/step.log"), glob("*T*/test.log"),
+	glob("*T*/make.log"));
 }
 
 my (%D, %M);
@@ -163,6 +165,9 @@ foreach my $date (@dates) {
     } elsif (-f "test.log") {
 	$D{$date}{log} = "test.log";
 	$typename = "Ports";
+    } elsif (-f "make.log") {
+	$D{$date}{log} = "make.log";
+	$typename = "Release";
     }
     if (-f "test.log.tgz") {
 	$D{$date}{logtgz} = "test.log.tgz";

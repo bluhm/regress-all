@@ -109,7 +109,7 @@ chdir($resultdir)
 
 (my $host = $opts{h}) =~ s/.*\@//;
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/release/release.pl',
-    '-e', "/root/portstest/env-$host.sh", '-v');
+    '-e', "/root/release/env-$host.sh", '-v');
 logcmd(@sshcmd);
 
 # get result and logs
