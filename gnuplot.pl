@@ -188,7 +188,6 @@ sub create_html_file {
     $htmltitle .= ", run $date" if $date;
 
     my ($html, $htmlfile) = html_open($prefix);
-    my $plusstar = " + *" x (2 * @descs); # XXX: fixme
     print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
@@ -214,7 +213,7 @@ sub create_html_file {
       width: 24px;
       height: 16px;
     }
-    input[type="checkbox"]:not(:checked)$plusstar + img {
+    input[type="checkbox"]:not(:checked) + img {
       display: none;
     }
     body :nth-child(6n) {
@@ -242,60 +241,49 @@ sub create_html_file {
 </head>
 <body>
 HEADER
+    my $PLOT = uc($plot);
 
-    print $html "<table>\n";
-    print $html "<tbody>\n";
-    print $html "<tr>";
-    print $html "<th></th><th></th><th>Description</th><th>Command</th>";
-    print $html "</tr>\n";
+    print $html <<"TABLE_HEAD";
+  <table>
+    <tbody>
+      <tr>
+        <th></th>
+        <th></th>
+        <th>Description</th>
+        <th>Command</th>
+    </tr>
+TABLE_HEAD
 
     my $i = 1;
-    my $td_begin = "<td><label for=\"checkbox-$i\">";
-    my $td_end = "</label></td>\n";
     foreach (@descs) {
 	my ($desc, $test, $sub) = split;
-	my $lbl = "<label for=\"checkbox-$i\">";
-
-	print $html "<tr>\n";
-
-	print $html "<td>";
-	print $html "<input id=\"checkbox-$i\" checked type=checkbox>";
-	print $html "</td>\n";
-
-	print $html $td_begin;
-	print $html "<img class=\"key\" src=\"key_$i.png\" alt=\"Key $i\">";
-	print $html $td_end;
-
-	print $html $td_begin;
-	print $html "$desc $sub";
-	print $html $td_end;
-
-	print $html $td_begin;
-	print $html "$test";
-	print $html $td_end;
-
-	print $html "</tr>\n";
+	print $html <<"TABLE_ROW";
+      <tr>
+	<td>
+	  <input id="checkbox-$i" checked type=checkbox>
+	  <img src="$prefix\_$i.png" alt="$PLOT $desc $sub">
+	</td>
+        <td>
+          <label for="checkbox-$i">
+	    <img class="key" src="key_$i.png" alt="Key $i">
+          </label>
+        </td>
+        <td>
+          <label for="checkbox-$i">$desc $sub</label>
+        </td>
+        <td>
+          <label for="checkbox-$i">$test</label>
+        </td>
+      </tr>
+TABLE_ROW
 	$i++;
     }
-    print $html "</tbody>\n";
-    print $html "</table>\n";
-
-    print $html " <img id=\"frame\" src=\"$prefix\_0.png\" ";
-    print $html "alt=\"". uc($plot). " Grid\">";
-    print $html "\n";
-
-    $i = 1;
-    foreach (@descs) {
-	my ($desc, $test, $sub) = split;
-	print $html "  <img src=\"$prefix\_$i.png\" ";
-	print $html "alt=\"". uc($plot). " $desc $sub\">";
-	print $html "<span></span>\n";
-	$i++;
-    }
-
-    print $html "  <img id=\"combined\" src=\"$prefix.png\" ";
-    print $html "alt=\"". uc($plot). " Performance\">";
-    print $html "\n";
+    print $html <<"END";
+    </tbody>
+  </table>
+  <img id="frame" src="$prefix\_0.png" alt="$PLOT Grid">
+  <img id="combined" src="$prefix.png" " alt="$PLOT Performance">
+END
 
     html_footer($html);
     html_close($html, $htmlfile, "nozip");
