@@ -135,7 +135,7 @@ sub parse_data_file {
 	next if $run && $run != $create;
 	next if $begin && $checkout < $begin;
 	next if $end && $end < $checkout;
-	$SUBTESTS{"$TESTDESC{$test} $sub"} = "$test $sub";
+	$SUBTESTS{"$TESTDESC{$test} $test $sub"} = "$test $sub";
     }
 }
 
@@ -188,7 +188,7 @@ sub create_html_file {
     $htmltitle .= ", run $date" if $date;
 
     my ($html, $htmlfile) = html_open($prefix);
-    my $plusstar = " + *" x (2 * @descs);
+    my $plusstar = " + *" x (2 * @descs); # XXX: fixme
     print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
@@ -243,26 +243,52 @@ sub create_html_file {
 <body>
 HEADER
 
+    print $html "<table>\n";
+    print $html "<tbody>\n";
+    print $html "<tr>";
+    print $html "<th></th><th></th><th>Description</th><th>Command</th>";
+    print $html "</tr>\n";
+
     my $i = 1;
-    foreach my $cmd (@descs) {
-	print $html <<"INPUT";
-  <input id="checkbox-$i" checked type=checkbox>
-    <label for="checkbox-$i">
-      <img class="key" src="key_$i.png" alt="Key $i">
-      $cmd
-    </label>
-INPUT
+    my $td_begin = "<td><label for=\"checkbox-$i\">";
+    my $td_end = "</label></td>\n";
+    foreach (@descs) {
+	my ($desc, $test, $sub) = split;
+	my $lbl = "<label for=\"checkbox-$i\">";
+
+	print $html "<tr>\n";
+
+	print $html "<td>";
+	print $html "<input id=\"checkbox-$i\" checked type=checkbox>";
+	print $html "</td>\n";
+
+	print $html $td_begin;
+	print $html "<img class=\"key\" src=\"key_$i.png\" alt=\"Key $i\">";
+	print $html $td_end;
+
+	print $html $td_begin;
+	print $html "$desc $sub";
+	print $html $td_end;
+
+	print $html $td_begin;
+	print $html "$test";
+	print $html $td_end;
+
+	print $html "</tr>\n";
 	$i++;
     }
+    print $html "</tbody>\n";
+    print $html "</table>\n";
 
-    print $html "  <img id=\"frame\" src=\"$prefix\_0.png\" ";
+    print $html " <img id=\"frame\" src=\"$prefix\_0.png\" ";
     print $html "alt=\"". uc($plot). " Grid\">";
     print $html "\n";
 
     $i = 1;
-    foreach my $cmd (@descs) {
+    foreach (@descs) {
+	my ($desc, $test, $sub) = split;
 	print $html "  <img src=\"$prefix\_$i.png\" ";
-	print $html "alt=\"". uc($plot). " $cmd\">";
+	print $html "alt=\"". uc($plot). " $desc $sub\">";
 	print $html "<span></span>\n";
 	$i++;
     }
