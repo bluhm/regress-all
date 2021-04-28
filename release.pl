@@ -101,6 +101,8 @@ chown 0, $gid, "/usr/release"
 chmod 0775, "/usr/release"
     or bad $prev, $test, 'NORUN', "Chmod '/usr/release' to 775 failed: $!";
 
+$ENV{DESTDIR}="/build/dest";
+$ENV{RELEASEDIR}="/usr/release";
 system("cd /usr/src/etc && time make release")
     and bad $prev, $test, 'NOEXIT', "Make release failed: $?";
 system("cd /usr/src/distrib/sets && sh checkflist")
