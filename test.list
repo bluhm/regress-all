@@ -240,6 +240,7 @@ sys/kern/fchdir
 sys/kern/fchown
 sys/kern/fcntl_dup
 sys/kern/flock
+sys/kern/fork-exit
 sys/kern/ftruncate
 sys/kern/futex
 sys/kern/getpeereid
