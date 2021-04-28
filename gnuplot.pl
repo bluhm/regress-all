@@ -277,7 +277,7 @@ TABLE_ROW
     </tbody>
   </table>
   <img id="frame" src="$prefix\_0.png" alt="$PLOT Grid">
-  <img id="combined" src="$prefix.png" " alt="$PLOT Performance">
+  <img id="combined" src="$prefix.png" alt="$PLOT Performance">
 END
 
     html_footer($html);
