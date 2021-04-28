@@ -135,7 +135,7 @@ sub parse_data_file {
 	next if $run && $run != $create;
 	next if $begin && $checkout < $begin;
 	next if $end && $end < $checkout;
-	$SUBTESTS{"$TESTDESC{$test} $sub"} = "$test $sub";
+	$SUBTESTS{"$TESTDESC{$test} $test $sub"} = "$test $sub";
     }
 }
 
@@ -188,7 +188,6 @@ sub create_html_file {
     $htmltitle .= ", run $date" if $date;
 
     my ($html, $htmlfile) = html_open($prefix);
-    my $plusstar = " + *" x (2 * @descs);
     print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
@@ -214,16 +213,11 @@ sub create_html_file {
       width: 24px;
       height: 16px;
     }
-    input[type="checkbox"]:not(:checked)$plusstar + img {
+    input[type="checkbox"]:not(:checked) + img {
       display: none;
     }
     body :nth-child(6n) {
       page-break-after: always;
-    }
-    label {
-      display: inherit;
-      width: calc(33vw - 30px);
-      align-items: center;
     }
     .key {
       position: unset;
@@ -238,38 +232,58 @@ sub create_html_file {
       z-index: 2;
       opacity: 0;
     }
+    #back {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      z-index: 4;
+    }
   </style>
 </head>
 <body>
 HEADER
+    my $PLOT = uc($plot);
+
+    print $html <<"TABLE_HEAD";
+  <table>
+    <tr>
+      <th></th>
+      <th></th>
+      <th>Description</th>
+      <th>Command</th>
+    </tr>
+TABLE_HEAD
 
     my $i = 1;
-    foreach my $cmd (@descs) {
-	print $html <<"INPUT";
-  <input id="checkbox-$i" checked type=checkbox>
-    <label for="checkbox-$i">
-      <img class="key" src="key_$i.png" alt="Key $i">
-      $cmd
-    </label>
-INPUT
+    foreach (@descs) {
+	my ($desc, $test, $sub) = split;
+	print $html <<"TABLE_ROW";
+    <tr>
+      <td>
+        <input id="checkbox-$i" checked type=checkbox>
+        <img src="$prefix\_$i.png" alt="$PLOT $desc $sub">
+      </td>
+      <td>
+        <label for="checkbox-$i">
+          <img class="key" src="key_$i.png" alt="Key $i">
+        </label>
+      </td>
+      <td>
+        <label for="checkbox-$i">$desc $sub</label>
+      </td>
+      <td>
+        <label for="checkbox-$i"><code>$test</code></label>
+      </td>
+    </tr>
+TABLE_ROW
 	$i++;
     }
-
-    print $html "  <img id=\"frame\" src=\"$prefix\_0.png\" ";
-    print $html "alt=\"". uc($plot). " Grid\">";
-    print $html "\n";
-
-    $i = 1;
-    foreach my $cmd (@descs) {
-	print $html "  <img src=\"$prefix\_$i.png\" ";
-	print $html "alt=\"". uc($plot). " $cmd\">";
-	print $html "<span></span>\n";
-	$i++;
-    }
-
-    print $html "  <img id=\"combined\" src=\"$prefix.png\" ";
-    print $html "alt=\"". uc($plot). " Performance\">";
-    print $html "\n";
+    print $html <<"END";
+  </table>
+  <img id="frame" src="$prefix\_0.png" alt="$PLOT Grid">
+  <img id="combined" src="$prefix.png" alt="$PLOT Performance">
+  <a id="back" href="../perform.html">Back</a>
+END
 
     html_footer($html);
     html_close($html, $htmlfile, "nozip");
