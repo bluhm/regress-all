@@ -115,6 +115,8 @@ close($log)
 close($tr)
     or die "Close 'test.result' after writing failed: $!";
 
+exit;
+
 # parse shell script that is setting environment for some tests
 # FOO=bar
 # FOO="bar"
