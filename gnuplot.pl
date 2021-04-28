@@ -232,6 +232,12 @@ sub create_html_file {
       z-index: 2;
       opacity: 0;
     }
+    #back {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      z-index: 4;
+    }
   </style>
 </head>
 <body>
@@ -276,6 +282,7 @@ TABLE_ROW
   </table>
   <img id="frame" src="$prefix\_0.png" alt="$PLOT Grid">
   <img id="combined" src="$prefix.png" alt="$PLOT Performance">
+  <a id="back" href="../perform.html">Back</a>
 END
 
     html_footer($html);
