@@ -219,11 +219,6 @@ sub create_html_file {
     body :nth-child(6n) {
       page-break-after: always;
     }
-    label {
-      display: inherit;
-      width: calc(33vw - 30px);
-      align-items: center;
-    }
     .key {
       position: unset;
       margin: 0 2px;
@@ -272,7 +267,7 @@ TABLE_HEAD
           <label for="checkbox-$i">$desc $sub</label>
         </td>
         <td>
-          <label for="checkbox-$i">$test</label>
+          <label for="checkbox-$i"><code>$test</code></label>
         </td>
       </tr>
 TABLE_ROW
