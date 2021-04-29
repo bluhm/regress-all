@@ -35,7 +35,7 @@ my $dir = dirname($0);
 chdir($dir)
     or die "Change directory to '$dir' failed: $!";
 $dir = getcwd();
-my $logdir = "$dir/log";
+my $logdir = "$dir/logs";
 -d $logdir && remove_tree($logdir);
 mkdir $logdir
     or die "Make directory '$logdir' failed: $!";
@@ -69,6 +69,13 @@ sub good {
     print $tr "PASS\t$test\tDuration $duration\n";
     $log->sync() if $log;
     $tr->sync();
+}
+
+sub logmsg {
+    my ($prev, $message, $log) = @_;
+    print $log "$message\n" if $log;
+    print "$message\n" if $opts{v};
+    $$prev = $message;
 }
 
 my $ncpu = `sysctl -n hw.ncpu`;
@@ -105,9 +112,12 @@ foreach (@tests) {
     $log->sync();
 
     if (ref $cmd eq 'CODE') {
+	logmsg \$prev, "Function '$cmd' started.", $log;
 	eval { $cmd->() };
 	bad $prev, $test, 'FAIL', $@, $log if $@;
+	logmsg \$prev, "Function '$cmd' finished.", $log;
     } else {
+	logmsg \$prev, "Command '$cmd' started.", $log;
 	my $pid = open(my $out, '-|', $cmd)
 	    or bad $prev, $test, 'NORUN', "Open pipe from '$cmd' failed: $!",
 	    $log;
@@ -131,6 +141,7 @@ foreach (@tests) {
 	    or bad $prev, $test, 'NOEXIT', $! ?
 	    "Close pipe from '$cmd' failed: $!" :
 	    "Command '$cmd' failed: $?", $log;
+	logmsg \$prev, "Command '$cmd' finished.", $log;
     }
 
     my $end = Time::HiRes::time();
