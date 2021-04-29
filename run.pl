@@ -1,6 +1,7 @@
 #!/usr/bin/perl
+# run regression tests on machine
 
-# Copyright (c) 2016-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -33,11 +34,11 @@ getopts('h:v', \%opts) or do {
 usage: $0 [-v] -h host mode ...
     -h host	user and host for make regress, user defaults to root
     -v		verbose
-    build	build system from source /usr/src
+    build	build system from source /usr/src and reboot
     cvs		cvs update /usr/src and make obj
     install	install from snapshot
     keep	keep installed host as is, skip setup
-    kernel	build kernel from source /usr/src/sys
+    kernel	build kernel from source /usr/src/sys and reboot
     reboot	before running tests
     upgrade	upgrade with snapshot
 EOF

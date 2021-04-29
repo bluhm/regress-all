@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # setup machine for regress test
 
-# Copyright (c) 2016-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -38,12 +38,12 @@ usage: $0 [-v] [-d date] -h host [-r release] mode ...
     -h host	root\@openbsd-test-machine, login per ssh
     -r release	use release for install and cvs checkout, X.Y or current
     -v		verbose
-    build	build system from source /usr/src
+    build	build system from source /usr/src and reboot
     commands	run commands needed for some tests
     cvs		clean cvs update /usr/src and make obj
     install	install from snapshot
-    kernel	build kernel from source /usr/src/sys
     keep	only copy version and scripts
+    kernel	build kernel from source /usr/src/sys and reboot
     ports	cvs update /usr/ports
     tools	build and install tools needed for some tests
     upgrade	upgrade with snapshot

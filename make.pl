@@ -34,9 +34,9 @@ getopts('d:h:r:v', \%opts) or do {
 usage: $0 [-v] -h host mode ...
     -h host	user and host for make release, user defaults to root
     -v		verbose
-    cvs		clean cvs update /usr/src and make obj
-    kernel	build kernel from source /usr/src/sys and reboot
+    cvs		cvs update /usr/src and make obj
     keep	keep installed host as is, skip setup
+    kernel	build kernel from source /usr/src/sys and reboot
 EOF
     exit(2);
 };
