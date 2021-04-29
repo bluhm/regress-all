@@ -30,6 +30,7 @@ getopts('e:t:v', \%opts) or do {
 };
 my $timeout = $opts{t} || 12*60*60;
 environment($opts{e}) if $opts{e};
+@ARGV and die "No arguments allowed";
 
 my $dir = dirname($0);
 chdir($dir)
@@ -150,6 +151,11 @@ foreach (@tests) {
     close($log)
 	or die "Close '$logfile' after writing failed: $!";
 }
+
+my @paxcmd = ('pax', '-wzf', "$dir/test.log.tgz", '-s,^logs/,,',
+    '-s,^logs,,', 'logs');
+system(@paxcmd)
+    and die "Command '@paxcmd' failed: $?";
 
 close($tr)
     or die "Close 'test.result' after writing failed: $!";
