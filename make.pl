@@ -34,9 +34,8 @@ getopts('d:h:r:v', \%opts) or do {
 usage: $0 [-v] -h host mode ...
     -h host	user and host for make release, user defaults to root
     -v		verbose
-    build	build system from source /usr/src
     cvs		clean cvs update /usr/src and make obj
-    kernel	build kernel from source /usr/src/sys
+    kernel	build kernel from source /usr/src/sys and reboot
     keep	keep installed host as is, skip setup
 EOF
     exit(2);
@@ -44,7 +43,7 @@ EOF
 $opts{h} or die "No -h specified";
 
 my %allmodes;
-@allmodes{qw(build cvs kernel keep)} = ();
+@allmodes{qw(cvs kernel keep)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
