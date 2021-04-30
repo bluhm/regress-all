@@ -128,6 +128,7 @@ sub html_status_table {
     ($topic, $tool) = ("make regress", "make") if $type eq "regress";
     ($topic, $tool) = ("performance test", "test") if $type eq "perform";
     ($topic, $tool) = ("make test", "make") if $type eq "portstest";
+    ($topic, $tool) = ("make release", "make") if $type eq "release";
     print $html <<"TABLE";
 <table>
   <tr>
@@ -173,7 +174,7 @@ TABLE
     <td>make build failed, cannot test</td>
   </tr>
 TABLE
-    print $html <<"TABLE" if $type eq "regress" || $type eq "perform";
+    print $html <<"TABLE" if $type =~ /^(regress|perform|release)$/;
   <tr>
     <td class="status NOEXIT">NOEXIT</td>
     <td>$topic did not exit with code 0, $tool failed</td>

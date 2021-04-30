@@ -35,19 +35,19 @@ getopts('h:l', \%opts) or do {
 usage: $0 [-l] [-h host] mode
     -h host	user and host for version information, user defaults to root
     -l		create latest.html with one column of the latest results
-    mode	src ports
+    mode	src ports release
 EOF
     exit(2);
 };
 
 my %allmodes;
-@allmodes{qw(src ports)} = ();
+@allmodes{qw(src ports release)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
-foreach (qw(src ports)) {
+foreach (qw(src ports release)) {
     die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
 
@@ -114,7 +114,8 @@ my ($html, $htmlfile) = html_open($file);
 my $topic = $host ? ($opts{l} ? "latest $host" : $host) :
     ($opts{l} ? "latest" : "all");
 
-my $typename = $mode{src} ? "Regress" : $mode{ports} ? "Ports" : "";
+my $typename = $mode{src} ? "Regress" : $mode{ports} ? "Ports" :
+    $mode{release} ? "Release" : "";
 html_header($html, "OpenBSD $typename Results",
     "OpenBSD ". lc($typename). " $topic test results");
 
@@ -194,10 +195,13 @@ print $html "  </tr>\n";
 my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/";
 $cvsweb .= "src/regress/" if $mode{src};
 $cvsweb .= "ports/" if $mode{ports};
+undef $cvsweb if $mode{release};
 my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
     keys %T;
 foreach my $test (@tests) {
-    print $html "  <tr>\n    <th><a href=\"$cvsweb$test/\">$test</a></th>\n";
+    my $href = $cvsweb ? "<a href=\"$cvsweb$test\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "  <tr>\n    <th>$href$test$enda</th>\n";
     foreach my $date (@dates) {
 	my $status = $T{$test}{$date}{status} || "";
 	my $class = " class=\"status $status\"";
@@ -213,7 +217,8 @@ foreach my $test (@tests) {
 }
 print $html "</table>\n";
 
-my $type = $mode{src} ? "regress" : $mode{ports} ? "portstest" : "";
+my $type = $mode{src} ? "regress" : $mode{ports} ? "portstest" :
+    $mode{release} ? "release" : "";
 html_status_table($html, $type);
 html_footer($html);
 html_close($html, $htmlfile);
