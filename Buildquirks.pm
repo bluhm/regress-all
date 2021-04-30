@@ -508,6 +508,26 @@ my %quirks = (
 	comment => "OpenBSD/amd64 6.8 release",
 	release => 6.8,
     },
+    '2021/04/28 13:07:33' => {
+	comment => "clang, libc++, and libc++abi update LLVM to 11.1.0",
+	updatedirs => [
+	    "gnu/llvm",
+	    "gnu/usr.bin/clang",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [
+	    "gnu/usr.bin/clang",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	],
+    },
 );
 
 #### Patches ####
