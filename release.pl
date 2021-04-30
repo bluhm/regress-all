@@ -89,7 +89,7 @@ my @tests = (
     [ sysmerge	=> "sysmerge -b"				],
     [ dev	=> "cd /dev && ./MAKEDEV all"			],
     [ destdir	=> \&destdir					],
-    [ reledir	=> \&releasedir					],
+    [ reldir	=> \&releasedir					],
     [ release	=> "cd /usr/src/etc && time make release"	],
     [ chkflist	=> "cd /usr/src/distrib/sets && sh checkflist"	],
 );
@@ -113,10 +113,10 @@ foreach (@tests) {
     $log->sync();
 
     if (ref $cmd eq 'CODE') {
-	logmsg \$prev, "Function '$cmd' started.", $log;
+	logmsg \$prev, "Function '$test' started.", $log;
 	eval { $cmd->() };
 	bad $prev, $test, 'FAIL', $@, $log if $@;
-	logmsg \$prev, "Function '$cmd' finished.", $log;
+	logmsg \$prev, "Function '$test' finished.", $log;
     } else {
 	logmsg \$prev, "Command '$cmd' started.", $log;
 	my $pid = open(my $out, '-|', $cmd)
