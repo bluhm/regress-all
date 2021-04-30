@@ -503,6 +503,11 @@ my %quirks = (
 	    "cvs -qR up -C -r1.1 sys/dev/softraid_raid1c.c",
 	],
     },
+# OpenBSD 6.9, 2021/04/18Z
+    '2021-04-19T16:48:56Z' => {
+	comment => "OpenBSD/amd64 6.8 release",
+	release => 6.8,
+    },
 );
 
 #### Patches ####
