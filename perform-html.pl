@@ -442,14 +442,15 @@ sub list_plots {
 # write test results into gnuplot data file
 sub write_data_files {
     my @dates = shift || sort keys %V;
-    -d "gnuplot" || mkdir "gnuplot"
-	or die "Make directory 'gnuplot' failed: $!";
     my $testdata = "gnuplot/test";
     if ($opts{n} && @dates == 1) {
 	$testdata = "$dates[0]/$testdata";
     } else {
 	unlink map { glob("$_/$testdata-*.data") } @dates;
     }
+    my $gnuplotdir = dirname($testdata);
+    -d $gnuplotdir || mkdir $gnuplotdir
+	or die "Make directory '$gnuplotdir' failed: $!";
     my %plotfh;
     @plotfh{values %TESTPLOT} = ();
     foreach my $plot (keys %plotfh) {
