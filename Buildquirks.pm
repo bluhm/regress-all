@@ -505,8 +505,8 @@ my %quirks = (
     },
 # OpenBSD 6.9, 2021/04/18Z
     '2021-04-19T16:48:56Z' => {
-	comment => "OpenBSD/amd64 6.8 release",
-	release => 6.8,
+	comment => "OpenBSD/amd64 6.9 release",
+	release => 6.9,
     },
     '2021/04/28 13:07:33' => {
 	comment => "clang, libc++, and libc++abi update LLVM to 11.1.0",
