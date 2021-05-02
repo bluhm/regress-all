@@ -115,7 +115,10 @@ foreach (@tests) {
     if (ref $cmd eq 'CODE') {
 	logmsg \$prev, "Function '$test' started.", $log;
 	eval { $cmd->() };
-	bad $prev, $test, 'FAIL', $@, $log if $@;
+	if ($@) {
+	    chomp($@);
+	    bad $prev, $test, 'FAIL', $@, $log;
+	}
 	logmsg \$prev, "Function '$test' finished.", $log;
     } else {
 	logmsg \$prev, "Command '$cmd' started.", $log;
