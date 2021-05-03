@@ -772,8 +772,8 @@ sub html_repeat_test_head {
 sub html_repeat_test_row {
     my ($html, $date, $cvsdate, $test, $td, @repeats) = @_;
     (my $testcmd = $test) =~ s/_/ /g;
-    print $html "  <tr>\n    <th class=\"test\">$testcmd</th>\n";
-    print $html "    <td class=\"desc\">$TESTDESC{$test}</td>\n";
+    print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
+    print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $repeat (@repeats) {
 	html_status_data($html, "$date/$cvsdate", $repeat, $test,
 	    $td->{$repeat});
@@ -1046,8 +1046,8 @@ sub html_cvsdate_test_head {
 sub html_cvsdate_test_row {
     my ($html, $date, $test, $td, @cvsdates) = @_;
     (my $testcmd = $test) =~ s/_/ /g;
-    print $html "  <tr>\n    <th class=\"test\">$testcmd</th>\n";
-    print $html "    <td class=\"desc\">$TESTDESC{$test}</td>\n";
+    print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
+    print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $cvsdate (@cvsdates) {
 	html_status_data($html, $date, $cvsdate, $test, $td->{$cvsdate});
     }
@@ -1245,8 +1245,8 @@ sub html_date_test_head {
 sub html_date_test_row {
     my ($html, $test, $td, @dates) = @_;
     (my $testcmd = $test) =~ s/_/ /g;
-    print $html "  <tr>\n    <th class=\"test\">$testcmd</th>\n";
-    print $html "    <td class=\"desc\">$TESTDESC{$test}</td>\n";
+    print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
+    print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $date (@dates) {
 	html_status_data($html, ".", $date, $test, $td->{$date});
     }
