@@ -68,8 +68,8 @@ sub html_header {
   <title>$title</title>
   <style>
     th { text-align: left; white-space: nowrap; }
-    th.test { text-align: left; white-space: nowrap; }
-    td.desc { text-align: left; white-space: nowrap; }
+    th.desc { text-align: left; white-space: nowrap; }
+    td.test { text-align: left; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0;}
     tr.IMG {background-color: #ffffff;}
     td.PASS {background-color: #80ff80;}
