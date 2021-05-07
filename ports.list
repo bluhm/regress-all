@@ -177,6 +177,7 @@ net/p5-NetAddr-IP
 net/p5-OSPF-LSDB
 net/p5-PlRPC
 net/p5-Socket6
+security/botan2
 security/p5-Authen-SASL
 security/p5-Crypt-DES
 security/p5-Crypt-OpenSSL-Bignum
@@ -196,6 +197,8 @@ sysutils/p5-Capture-Tiny
 sysutils/p5-File-Which
 sysutils/p5-Filesys-Df
 telephony/p5-Net-SIP
+textproc/libxml
+textproc/libxslt
 textproc/p5-Encode-Locale
 textproc/p5-PDF-API2
 textproc/p5-PDF-Table
