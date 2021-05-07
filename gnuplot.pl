@@ -257,6 +257,7 @@ TABLE_HEAD
     my $i = 1;
     foreach (@descs) {
 	my ($desc, $test, $sub) = split;
+	(my $testcmd = $test) =~ s/_/ /g;
 	print $html <<"TABLE_ROW";
     <tr>
       <td>
@@ -272,7 +273,7 @@ TABLE_HEAD
         <label for="checkbox-$i">$desc $sub</label>
       </td>
       <td>
-        <label for="checkbox-$i"><code>$test</code></label>
+        <label for="checkbox-$i"><code>$testcmd</code></label>
       </td>
     </tr>
 TABLE_ROW
