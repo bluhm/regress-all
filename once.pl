@@ -177,7 +177,13 @@ if ($date) {
     my @cmd = ("bin/perform-html.pl", "-d", $date, "-n");
     push @cmd, "-v" if $opts{v};
     runcmd(@cmd);
+
+    unlink("results/latest");
+    symlink($date, "results/latest")
+	or die "Make symlink 'results/latest' failed: $!";
 }
 
 $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $now.\n");
+
+exit;
