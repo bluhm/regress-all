@@ -83,15 +83,15 @@ my $ncpu = `sysctl -n hw.ncpu`;
 chomp($ncpu);
 
 my @tests = (
-    [ clean	=> "rm -rf /usr/obj/*"				],
-    [ obj	=> "cd /usr/src && make obj"			],
-    [ build	=> "cd /usr/src && make -j$ncpu build"		],
-    [ sysmerge	=> "sysmerge -b"				],
-    [ dev	=> "cd /dev && ./MAKEDEV all"			],
-    [ destdir	=> \&destdir					],
-    [ reldir	=> \&releasedir					],
-    [ release	=> "cd /usr/src/etc && time make release"	],
-    [ chkflist	=> "cd /usr/src/distrib/sets && sh checkflist"	],
+    [ clean	=> "rm -rf /usr/obj/*"					],
+    [ obj	=> "cd /usr/src && make obj"				],
+    [ build	=> "cd /usr/src && make -j$ncpu build"			],
+    [ sysmerge	=> "sysmerge -b"					],
+    [ dev	=> "cd /dev && ./MAKEDEV all"				],
+    [ destdir	=> \&destdir						],
+    [ reldir	=> \&releasedir						],
+    [ release	=> "cd /usr/src/etc && time make -j$ncpu release"	],
+    [ chkflist	=> "cd /usr/src/distrib/sets && sh checkflist"		],
 );
 
 # run release steps as tests
