@@ -23,6 +23,7 @@ devel/p5-B-Hooks-EndOfScope
 devel/p5-BSD-Resource
 devel/p5-BSD-arc4random
 devel/p5-BSD-stat
+devel/p5-CLI-Osprey
 devel/p5-Carp-Clan
 devel/p5-Check-ISA
 devel/p5-Class-Accessor
@@ -104,6 +105,7 @@ devel/p5-Test-Exit
 devel/p5-Test-File
 devel/p5-Test-Inline
 devel/p5-Test-LectroTest
+devel/p5-Test-Lib
 devel/p5-Test-Manifest
 devel/p5-Test-MockRandom
 devel/p5-Test-Most
