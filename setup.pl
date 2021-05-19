@@ -103,6 +103,7 @@ diff_cvs("sys") if $mode{kernel} && !$mode{build};
 diff_cvs() if $mode{build};
 reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
+update_packages($release) if $mode{upgrade};
 install_packages($release) if $mode{install} || $mode{upgrade};
 build_tools() if $mode{install} || $mode{upgrade} || $mode{tools};
 run_commands() if $mode{install} || $mode{upgrade} || $mode{commands} ||
@@ -190,7 +191,7 @@ sub copy_scripts {
     }
 }
 
-# install packages
+# install or update packages
 
 sub install_packages {
     my ($release) = @_;
@@ -198,8 +199,16 @@ sub install_packages {
 
     logeval {
 	logcmd('ssh', "$user\@$host", 'pkg_add',
-	    '-l', "regress/pkg-$host.list",
-	    '-Ivx', $release ? () : '-Dsnap')
+	    '-l', "regress/pkg-$host.list", '-Ivx', $release ? () : '-Dsnap');
+    };
+}
+
+sub update_packages {
+    my ($release) = @_;
+
+    logeval {
+	logcmd('ssh', "$user\@$host", 'pkg_add',
+	    '-u', '-Ivx', $release ? () : '-Dsnap');
     };
 }
 
