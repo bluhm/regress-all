@@ -103,11 +103,11 @@ diff_cvs("sys") if $mode{kernel} && !$mode{build};
 diff_cvs() if $mode{build};
 reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
-update_packages($release) if $mode{upgrade};
-install_packages($release) if $mode{install} || $mode{upgrade};
+update_packages($release) if $mode{upgrade} || $mode{ports};
+install_packages($release) if $mode{install} || $mode{upgrade} || $mode{ports};
 build_tools() if $mode{install} || $mode{upgrade} || $mode{tools};
-run_commands() if $mode{install} || $mode{upgrade} || $mode{commands} ||
-    $mode{ports};
+run_commands() if $mode{install} || $mode{upgrade} || $mode{ports} ||
+    $mode{commands};
 get_bsdcons();
 
 # finish setup log
