@@ -528,6 +528,11 @@ my %quirks = (
 	    "gnu/lib/libcxxabi",
 	],
     },
+    '2021-05-21T16:52:42Z' => {
+	comment => "futex ABI change in libc and librthread",
+	updatedirs => [ "lib/libc", "lib/librthread" ],
+	builddirs => [ "lib/libc", "lib/librthread" ],
+    },
 );
 
 #### Patches ####
