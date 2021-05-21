@@ -1,5 +1,1 @@
 -useradd -m ftp
-
-rm -f /usr/ports/pobj/locks/*
-[ ! -f /usr/ports/infrastructure/mk/bsd.port.subdir.mk ] || \
-    make -C /usr/ports fix-permissions
