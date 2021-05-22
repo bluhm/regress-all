@@ -185,7 +185,7 @@ sub patch_cvs {
 
 sub update_ports {
     cvs_update("ports", @_);
-    logcmd('ssh', "$user\@$host", "rm -f /usr/ports/pobj");
+    logcmd('ssh', "$user\@$host", "rm -rf /usr/ports/pobj");
     logcmd('ssh', "$user\@$host",
 	"[ ! -f /usr/ports/infrastructure/mk/bsd.port.subdir.mk ] || ".
 	"make -C /usr/ports fix-permissions");
