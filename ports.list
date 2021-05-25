@@ -61,6 +61,7 @@ devel/p5-File-Slurp
 devel/p5-Forest
 devel/p5-Hash-Util-FieldHash-Compat
 devel/p5-IO-BufferedSelect
+devel/p5-IO-Interactive
 devel/p5-IO-KQueue
 devel/p5-IO-Tty
 devel/p5-IO-stringy
@@ -143,6 +144,7 @@ graphics/p5-Graphics-Primitive-Driver-Cairo
 graphics/p5-Layout-Manager
 mail/p5-MIME-Types
 mail/p5-MIME-tools
+mail/p5-Mail-AuthenticationResults
 mail/p5-Mail-DKIM
 mail/p5-Mail-DKIM-Iterator
 mail/p5-Mail-DMARC-Iterator
@@ -224,9 +226,11 @@ www/p5-CGI
 www/p5-Gravatar-URL
 www/p5-HTML-Display
 www/p5-HTML-Form
+www/p5-HTML-FormHandler
 www/p5-HTML-Mason
 www/p5-HTML-Parser
 www/p5-HTML-Tagset
+www/p5-HTTP-CookieJar
 www/p5-HTTP-Cookies
 www/p5-HTTP-Daemon
 www/p5-HTTP-Date
