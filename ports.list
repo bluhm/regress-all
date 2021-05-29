@@ -18,6 +18,7 @@ databases/p5-DBD-SQLite
 databases/p5-DBI
 databases/p5-ldap
 devel/p5-Algorithm-Diff
+devel/p5-Alien-Base
 devel/p5-AnyEvent
 devel/p5-B-Hooks-EndOfScope
 devel/p5-BSD-Resource
@@ -43,6 +44,7 @@ devel/p5-Data-Visitor
 devel/p5-DateTime-Set
 devel/p5-Devel-CheckBin
 devel/p5-Devel-CheckOS
+devel/p5-Devel-FindPerl
 devel/p5-Devel-GlobalDestruction
 devel/p5-Devel-NYTProf
 devel/p5-Devel-OverloadInfo
@@ -67,6 +69,7 @@ devel/p5-IO-Tty
 devel/p5-IO-stringy
 devel/p5-Importer
 devel/p5-Lchown
+devel/p5-List-Compare
 devel/p5-List-MoreUtils
 devel/p5-List-MoreUtils-XS
 devel/p5-Locale-Codes
@@ -181,10 +184,12 @@ net/p5-NetAddr-IP
 net/p5-OSPF-LSDB
 net/p5-PlRPC
 net/p5-Socket6
+productivity/p5-iCal-Parser
 security/botan2
 security/p5-Authen-SASL
 security/p5-Crypt-DES
 security/p5-Crypt-OpenSSL-Bignum
+security/p5-Crypt-OpenSSL-Guess
 security/p5-Crypt-OpenSSL-RSA
 security/p5-Crypt-OpenSSL-Random
 security/p5-Crypt-RC4
