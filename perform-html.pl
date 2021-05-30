@@ -295,8 +295,6 @@ exit;
 # fill global hashes %T %D %V %Z @Z
 sub parse_result_files {
     foreach my $result (@_) {
-	print "." if $verbose;
-
 	# parse result file
 	my ($date, $short, $cvsdate, $cvsshort, $repeat);
 	($date, $short, $cvsdate, $cvsshort, $repeat) = $result =~
@@ -306,6 +304,7 @@ sub parse_result_files {
 	    m,(([^/]+)T[^/]+)/(patch-([^/)]+)\.\d+)/(?:(\d+)/)?test.result,
 	    or next;
 	next if ! $opts{n} && $cvsdate =~ /^patch-/;
+	print "." if $verbose;
 	$D{$date}{short} ||= $short;
 	push @{$D{$date}{cvsdates} ||= []}, $cvsdate unless $D{$date}{$cvsdate};
 	$D{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
@@ -466,10 +465,10 @@ sub write_data_files {
 	print $fh "# test subtest run checkout repeat value unit host\n";
     }
     foreach my $date (@dates) {
-	print "." if $verbose;
 	my $vd = $V{$date};
 	my $run = str2time($date);
 	foreach my $test (sort keys %$vd) {
+	    print "." if $verbose;
 	    my $vt = $vd->{$test};
 	    my $checkout;
 	    foreach my $cvsdate (sort keys %$vt) {
@@ -495,6 +494,7 @@ sub write_data_files {
 	}
     }
     if ($fh) {
+	print "." if $verbose;
 	close($fh)
 	    or die "Close 'test.data.new' after writing failed: $!";
 	rename("test.data.new", "test.data")
@@ -547,6 +547,7 @@ sub create_gnuplot_files {
 	    my $v = $releases{$rel};
 	    next if $first && $v->{end} && $first gt $v->{end};
 	    next if $last && $v->{begin} && $last lt $v->{begin};
+	    print "." if $verbose;
 	    @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot", "-r", $rel);
 	    push @cmd, "-B", $v->{begin} if $v->{begin};
 	    push @cmd, "-E", $v->{end} if $v->{end};
@@ -555,9 +556,9 @@ sub create_gnuplot_files {
 	}
     }
     foreach my $date (@dates) {
-	print "." if $verbose;
 	foreach my $plot (list_plots()) {
 	    next if !$opts{d} && !$opts{g} && -f "$date/gnuplot/$plot.png";
+	    print "." if $verbose;
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
 		"-d", $date);
 	    system(@cmd)
@@ -570,7 +571,6 @@ sub create_gnuplot_files {
 sub create_cvslog_files {
     my @dates = shift || reverse sort keys %D;
     foreach my $dd (@D{@dates}) {
-	print "." if $verbose;
 	my %cvsdates;
 	@cvsdates{@{$dd->{cvsdates}}} = ();
 	@{$dd->{cvsdates}} = sort keys %cvsdates;
@@ -581,6 +581,7 @@ sub create_cvslog_files {
 	    if ($prevcvsdate) {
 		my $cvslog = "cvslog/src/sys/$prevcvsdate--$cvsdate";
 		unless (-f "$cvslog.txt" && -f "$cvslog.html") {
+		    print "." if $verbose;
 		    my @cmd = ("$performdir/bin/cvslog.pl",
 			"-B", $prevcvsdate, "-E", $cvsdate, "-P", "src/sys");
 		    system(@cmd)
@@ -613,7 +614,6 @@ sub create_cvslog_files {
 sub create_nmbsd_files {
     my @dates = shift || reverse sort keys %D;
     foreach my $date (@dates) {
-	print "." if $verbose;
 	my $dv = $D{$date};
 	next if ($dv->{stepconf}{kernelmodes} || "") ne "align";
 	my $hostname = $dv->{host};
@@ -623,6 +623,7 @@ sub create_nmbsd_files {
 	    my $nmfile = "$date/$cvsdate/nm-bsd-$hostname.txt";
 	    next unless -r $nmfile;
 	    if ($prevnmfile) {
+		print "." if $verbose;
 		my $difffile = "$date/$cvsdate/nm-bsd-diff.txt";
 		my %stat;
 		diff_stat_file($prevnmfile, $nmfile, $difffile, \%stat);
