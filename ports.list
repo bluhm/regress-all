@@ -189,9 +189,14 @@ security/botan2
 security/p5-Authen-SASL
 security/p5-Crypt-DES
 security/p5-Crypt-OpenSSL-Bignum
+security/p5-Crypt-OpenSSL-DSA
+security/p5-Crypt-OpenSSL-EC
+security/p5-Crypt-OpenSSL-ECDSA
 security/p5-Crypt-OpenSSL-Guess
+security/p5-Crypt-OpenSSL-PKCS10
 security/p5-Crypt-OpenSSL-RSA
 security/p5-Crypt-OpenSSL-Random
+security/p5-Crypt-OpenSSL-X509
 security/p5-Crypt-RC4
 security/p5-Crypt-Rijndael
 security/p5-Crypt-SSLeay
