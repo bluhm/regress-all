@@ -162,6 +162,7 @@ lib/libssl/dtls
 lib/libssl/handshake
 lib/libssl/interop
 lib/libssl/key_schedule
+lib/libssl/openssl-ruby
 lib/libssl/pqueue
 lib/libssl/record
 lib/libssl/record_layer
