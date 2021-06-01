@@ -305,6 +305,7 @@ sys/kern/sysvshm
 sys/kern/unalign
 sys/kern/unfdpass
 sys/kern/unfdpassfail
+sys/kern/ungc
 sys/kern/unixsock
 sys/kern/unveil
 sys/kern/unveil-unmount
