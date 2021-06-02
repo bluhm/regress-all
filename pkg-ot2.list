@@ -11,6 +11,7 @@ net-snmp
 openldap-client--
 openssl%1.0.2
 openssl%1.1
+openssl-ruby-tests
 os-test
 p5-AnyEvent
 p5-BSD-Resource
