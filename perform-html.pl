@@ -182,8 +182,14 @@ foreach my $date (@dates) {
 	    or next;
 
 	my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
+	my @nav = (
+	    Top    => "../../../../test.html",
+	    All    => "../../perform.html",
+	    Date   => "../perform.html",
+	    Run    => "../../run.html");
 	html_header($html, "OpenBSD Perform Repeat",
-	    "OpenBSD perform $short cvs $cvsshort repeat test results");
+	    "OpenBSD perform $short cvs $cvsshort repeat test results",
+	    @nav);
 	html_repeat_top($html, $date, $cvsdate, @repeats);
 
 	print $html "<table>\n";
@@ -211,8 +217,14 @@ foreach my $date (@dates) {
     my @cvsdates = @{$D{$date}{cvsdates}};
 
     my ($html, $htmlfile) = html_open("$date/perform");
+    my @nav = (
+	Top    => "../../../test.html",
+	All    => "../perform.html",
+	Date   => undef,
+	Run    => "../run.html");
     html_header($html, "OpenBSD Perform CVS",
-	"OpenBSD perform $short cvs test results");
+	"OpenBSD perform $short cvs test results",
+	@nav);
     html_cvsdate_top($html, $date, @cvsdates);
 
     print $html "<table>\n";
@@ -249,8 +261,14 @@ exit if $opts{n};
 
 print "create html per cvsdate files" if $verbose;
 my ($html, $htmlfile) = html_open("perform");
+my @nav = (
+    Top    => "../../test.html",
+    All    => undef,
+    Latest => "latest/perform.html",
+    Run    => "run.html");
 html_header($html, "OpenBSD Perform Results",
-    "OpenBSD perform all test results");
+    "OpenBSD perform all test results",
+    @nav);
 html_date_top($html);
 
 print $html "<table>\n";
@@ -1157,10 +1175,6 @@ sub html_date_top {
   <tr>
     <th>created at</th>
     <td>$now</td>
-  </tr>
-  <tr>
-    <th>test</th>
-    <td><a href=\"run.html\">run info</a></td>
   </tr>
 </table>
 HEADER
