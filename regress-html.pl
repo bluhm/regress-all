@@ -116,9 +116,11 @@ my $topic = $host ? ($opts{l} ? "latest $host" : $host) :
 
 my $typename = $mode{src} ? "Regress" : $mode{ports} ? "Ports" :
     $mode{release} ? "Release" : "";
-my @nav = (Top => "../../test.html");
-push @nav, (All => "regress.html") if $opts{l} || $host;
-push @nav, (Latest => "latest.html") if ! $opts{l};
+my @nav = (
+    Top    => "../../test.html",
+    All    => ($opts{l} || $host ? "regress.html" : undef), 
+    Latest => (! $opts{l} ? "latest.html" : undef),
+    Run    => "run.html");
 html_header($html, "OpenBSD $typename Results",
     "OpenBSD ". lc($typename). " $topic test results",
     @nav);
@@ -129,10 +131,6 @@ print $html <<"HEADER";
     <th>created at</th>
     <td>$now</td>
   </tr>
-  <tr>
-    <th>test</th>
-    <td><a href=\"run.html\">run info</a></td>
-</tr>
 </table>
 HEADER
 

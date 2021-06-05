@@ -106,13 +106,11 @@ FOOTER
 sub html_navigate {
     my ($html, @nav) = @_;
     while (my $text = shift @nav) {
-	my $link = shift @nav
-	    or croak "Navigation has more text than links";
 	my $id = lc($text);
-	print $html "  <a id=\"$id\" href=\"$link\">$text</a>\n";
+	my $link = shift @nav;
+	my $href = $link ? " href=\"$link\"" : "";
+	print $html "  <a id=\"$id\"$href>$text</a>\n";
     }
-    @nav
-	and croak "Navigation has more links than text";
 }
 
 my %badstatus;
