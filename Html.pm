@@ -60,7 +60,7 @@ sub html_close {
 }
 # open html page, print head, open body
 sub html_header {
-    my ($html, $title, $headline) = @_;
+    my ($html, $title, $headline, @nav) = @_;
     print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
@@ -88,8 +88,9 @@ sub html_header {
 </head>
 
 <body>
-<h1>$headline</h1>
 HEADER
+    html_navigate($html, @nav) if @nav;
+    print $html "<h1>$headline</h1>\n";
 }
 
 # close html body and page
@@ -101,17 +102,16 @@ sub html_footer {
 FOOTER
 }
 
+# insert navigation links
 sub html_navigate {
-    my ($html, @text_link) = @_;
-    while (my $text = shift @text_link) {
-	my $link = shift @text_link
+    my ($html, @nav) = @_;
+    while (my $text = shift @nav) {
+	my $link = shift @nav
 	    or croak "Navigation has more text than links";
 	my $id = lc($text);
-    print $html <<"NAV";
-  <a id="$id" href="$link">$text</a>
-NAV
+	print $html "  <a id=\"$id\" href=\"$link\">$text</a>\n";
     }
-    @text_link
+    @nav
 	and croak "Navigation has more links than text";
 }
 
