@@ -77,7 +77,7 @@ if ($opts{a}) {
 	glob("*T*/make.log"));
 }
 
-my (%D, %M);
+my (%D, %M, %H);
 foreach my $date (@dates) {
     my $dir = "$regressdir/results/$date";
     chdir($dir)
@@ -210,6 +210,12 @@ if ($opts{a} || $opts{d}) {
 
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
+foreach my $result (qw(regress perform latest run)) {
+    $H{$result} = "$result.html" if -f "$result.html";
+}
+foreach my $result (qw(current latest)) {
+    $H{$result} = "$result/perform.html" if -f "$result/perform.html";
+}
 
 unless ($opts{d}) {
     create_html_run();
@@ -590,8 +596,14 @@ sub create_html_reboot {
 
 sub create_html_run {
     my ($html, $htmlfile) = html_open("run");
+    my @nav = (
+	Top     => "../../test.html",
+	All     => $H{regress} || $H{perform},
+	Latest  => $H{latest},
+	Run     => undef);
     html_header($html, "OpenBSD $typename Run",
-	"OpenBSD ". lc($typename). " test run");
+	"OpenBSD ". lc($typename). " test run",
+	@nav);
     print $html <<"HEADER";
 <table>
   <tr>
