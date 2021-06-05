@@ -29,6 +29,7 @@ our @EXPORT= qw(
     html_close
     html_header
     html_footer
+    html_navigate
     html_status_table
     html_quirks_table
     status2severity
@@ -98,6 +99,20 @@ sub html_footer {
 </body>
 </html>
 FOOTER
+}
+
+sub html_navigate {
+    my ($html, @text_link) = @_;
+    while (my $text = shift @text_link) {
+	my $link = shift @text_link
+	    or croak "Navigation has more text than links";
+	my $id = lc($text);
+    print $html <<"NAV";
+  <a id="$id" href="$link">$text</a>
+NAV
+    }
+    @text_link
+	and croak "Navigation has more links than text";
 }
 
 my %badstatus;
