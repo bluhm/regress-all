@@ -66,7 +66,7 @@ if ($date && $date eq "current") {
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
-if ($date eq "current") {
+if ($date && $date eq "current") {
     my $current = readlink("$resultdir/$date")
 	or die "Read link '$resultdir/$date' failed: $!";
     -d "$resultdir/$current"
