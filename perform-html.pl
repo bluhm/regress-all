@@ -657,34 +657,43 @@ sub create_nmbsd_files {
 }
 
 sub diff_stat_file {
-    my ($prev, $cur, $out, $stat) = @_;
+    my ($prev, $cur, $difffile, $stat) = @_;
 
-    my @cmd = ('diff', '-up', $prev, $cur);
-    open(my $diff, '-|', @cmd)
-	or die "Open pipe from '@cmd' failed: $!";
-    open(my $fh, '>', "$out.new")
-	or die "Open '$out.new' for writing failed: $!";
+    my (@cmd, $diff, $fh);
+    if (-f $difffile) {
+	# if diff file has already been created, reading is faster
+	open($diff, '<', "$difffile")
+	    or die "Open '$difffile' for reading failed: $!";
+    } else {
+	@cmd = ('diff', '-up', $prev, $cur);
+	open($diff, '-|', @cmd)
+	    or die "Open pipe from '@cmd' failed: $!";
+	open($fh, '>', "$difffile.new")
+	    or die "Open '$difffile.new' for writing failed: $!";
+    }
 
     # diff header
-    print $fh $_ if defined($_ = <$diff>);
-    print $fh $_ if defined($_ = <$diff>);
+    print $fh $_ if defined($_ = <$diff>) && $fh;
+    print $fh $_ if defined($_ = <$diff>) && $fh;
     my ($plus, $minus) = (0, 0);
     while (<$diff>) {
 	$plus++ if /^\+/;
 	$minus++ if /^-/;
-	print $fh $_;
+	print $fh $_ if $fh;
     }
     $stat->{plus} = $plus;
     $stat->{minus} = $minus;
 
-    unless (close($diff)) {
-	die "Close pipe from '@cmd' failed: $!" if $!;
-	die "Command '@cmd' failed: $?" if $? != 0 && $? != 256;
+    if ($fh) {
+	unless (close($diff)) {
+	    die "Close pipe from '@cmd' failed: $!" if $!;
+	    die "Command '@cmd' failed: $?" if $? != 0 && $? != 256;
+	}
+	close($fh)
+	    or die "Close '$difffile.new' after writing failed: $!";
+	rename("$difffile.new", $difffile)
+	    or die "Rename '$difffile.new' to '$difffile' failed: $!";
     }
-    close($fh)
-	or die "Close '$out.new' after writing failed: $!";
-    rename("$out.new", $out)
-	or die "Rename '$out.new' to '$out' failed: $!";
 }
 
 sub html_cvsdate_zoom {
