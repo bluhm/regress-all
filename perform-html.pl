@@ -186,6 +186,7 @@ foreach my $date (@dates) {
 	    Top    => "../../../../test.html",
 	    All    => "../../perform.html",
 	    Date   => "../perform.html",
+	    Repeat => undef,
 	    Run    => "../../run.html");
 	html_header($html, "OpenBSD Perform Repeat",
 	    "OpenBSD perform $short cvs $cvsshort repeat test results",
@@ -221,6 +222,7 @@ foreach my $date (@dates) {
 	Top    => "../../../test.html",
 	All    => "../perform.html",
 	Date   => undef,
+	Repeat => undef,
 	Run    => "../run.html");
     html_header($html, "OpenBSD Perform CVS",
 	"OpenBSD perform $short cvs test results",
@@ -262,10 +264,11 @@ exit if $opts{n};
 print "create html per cvsdate files" if $verbose;
 my ($html, $htmlfile) = html_open("perform");
 my @nav = (
-    Top    => "../../test.html",
-    All    => undef,
-    Latest => "latest/perform.html",
-    Run    => "run.html");
+    Top     => "../../test.html",
+    All     => undef,
+    Current => (-f "current/perform.html" ? "current/perform.html" : undef),
+    Latest  => (-f "latest/perform.html" ? "latest/perform.html" : undef),
+    Run     => "run.html");
 html_header($html, "OpenBSD Perform Results",
     "OpenBSD perform all test results",
     @nav);
