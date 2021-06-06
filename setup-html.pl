@@ -40,6 +40,8 @@ usage: $0 [-a] [-d date]
 EOF
     exit(2);
 };
+$opts{a} && $opts{d}
+    and die "Options -a and -d cannot be used together";
 !$opts{d} || $opts{d} eq "current" || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
@@ -61,20 +63,22 @@ chdir($resultdir)
 
 my $typename = "";
 my @dates;
-if ($opts{a}) {
-    @dates =
-	map { dirname($_) }
-	(glob("*T*/run.log"), glob("*T*/step.log"), glob("*T*/test.log"),
-	glob("*T*/make.log"));
-} elsif ($opts{d}) {
+if ($opts{d}) {
     @dates = $date;
 } else {
     @dates =
-	# run times older than two weeks are irrelevant
-	grep { str2time($now) - str2time($_) <= 60*60*24*14 }
 	map { dirname($_) }
 	(glob("*T*/run.log"), glob("*T*/step.log"), glob("*T*/test.log"),
 	glob("*T*/make.log"));
+    $date = $dates[-1];
+    if (!$opts{a}) {
+	@dates =
+	    # run times older than two weeks are irrelevant
+	    grep { str2time($now) - str2time($_) <= 60*60*24*14 }
+	    @dates;
+	# keep at least the newest date
+	@dates = $date unless @dates;
+    }
 }
 
 my (%D, %M, %H);
