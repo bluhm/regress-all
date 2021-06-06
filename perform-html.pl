@@ -183,13 +183,13 @@ foreach my $date (@dates) {
 
 	my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
 	my @nav = (
-	    Top    => "../../../../test.html",
-	    All    => "../../perform.html",
-	    Date   => "../perform.html",
-	    Repeat => undef,
-	    Run    => "../../run.html");
+	    Top      => "../../../../test.html",
+	    All      => "../../perform.html",
+	    Checkout => "../perform.html",
+	    Repeat   => undef,
+	    Run      => "../../run.html");
 	html_header($html, "OpenBSD Perform Repeat",
-	    "OpenBSD perform $short cvs $cvsshort repeat test results",
+	    "OpenBSD perform $short checkout $cvsshort repeat test results",
 	    @nav);
 	html_repeat_top($html, $date, $cvsdate, @repeats);
 
@@ -219,13 +219,13 @@ foreach my $date (@dates) {
 
     my ($html, $htmlfile) = html_open("$date/perform");
     my @nav = (
-	Top    => "../../../test.html",
-	All    => "../perform.html",
-	Date   => undef,
-	Repeat => undef,
-	Run    => "../run.html");
+	Top      => "../../../test.html",
+	All      => "../perform.html",
+	Checkout => undef,
+	Repeat   => undef,
+	Run      => "../run.html");
     html_header($html, "OpenBSD Perform CVS",
-	"OpenBSD perform $short cvs test results",
+	"OpenBSD perform $short checkout test results",
 	@nav);
     html_cvsdate_top($html, $date, @cvsdates);
 
