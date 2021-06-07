@@ -118,7 +118,7 @@ my $typename = $mode{src} ? "Regress" : $mode{ports} ? "Ports" :
     $mode{release} ? "Release" : "";
 my @nav = (
     Top    => "../../test.html",
-    All    => ($opts{l} || $host ? "regress.html" : undef), 
+    All    => ($opts{l} || $host ? "regress.html" : undef),
     Latest => (! $opts{l} ? "latest.html" : undef),
     Run    => "run.html");
 html_header($html, "OpenBSD $typename Results",
@@ -197,7 +197,16 @@ print $html "  </tr>\n";
 my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/";
 $cvsweb .= "src/regress/" if $mode{src};
 $cvsweb .= "ports/" if $mode{ports};
-undef $cvsweb if $mode{release};
+if ($mode{release}) {
+    undef $cvsweb if $mode{release};
+    my $i = 1;
+    my %release2severity =
+	map { $_ => $i++ }
+	(qw(clean obj build sysmerge dev destdir reldir release chkflist));
+    while (my($k, $v) = each %T) {
+	$v->{severity} = $release2severity{$k} || 0;
+    }
+}
 my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
     keys %T;
 foreach my $test (@tests) {
