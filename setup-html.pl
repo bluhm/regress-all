@@ -603,7 +603,7 @@ sub create_html_run {
     my @nav = (
 	Top     => "../../test.html",
 	All     => $H{regress} || $H{perform},
-	Current => $H{current},
+	$H{current} ? (Current => $H{current}) : (),
 	Latest  => $H{latest},
 	Run     => undef);
     html_header($html, "OpenBSD $typename Run",
