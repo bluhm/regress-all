@@ -605,7 +605,7 @@ sub create_html_run {
 	All     => $H{regress} || $H{perform},
 	$H{current} ? (Current => $H{current}) : (),
 	Latest  => $H{latest},
-	Run     => undef);
+	Running => undef);
     html_header($html, "OpenBSD $typename Run",
 	"OpenBSD ". lc($typename). " test run",
 	@nav);

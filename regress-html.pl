@@ -117,10 +117,10 @@ my $topic = $host ? ($opts{l} ? "latest $host" : $host) :
 my $typename = $mode{src} ? "Regress" : $mode{ports} ? "Ports" :
     $mode{release} ? "Release" : "";
 my @nav = (
-    Top    => "../../test.html",
-    All    => ($opts{l} || $host ? "regress.html" : undef),
-    Latest => (! $opts{l} ? "latest.html" : undef),
-    Run    => "run.html");
+    Top     => "../../test.html",
+    All     => ($opts{l} || $host ? "regress.html" : undef),
+    Latest  => (! $opts{l} ? "latest.html" : undef),
+    Running => "run.html");
 html_header($html, "OpenBSD $typename Results",
     "OpenBSD ". lc($typename). " $topic test results",
     @nav);

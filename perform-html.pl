@@ -187,7 +187,7 @@ foreach my $date (@dates) {
 	    All      => "../../perform.html",
 	    Checkout => "../perform.html",
 	    Repeat   => undef,
-	    Run      => "../../run.html");
+	    Running  => "../../run.html");
 	html_header($html, "OpenBSD Perform Repeat",
 	    "OpenBSD perform $short checkout $cvsshort repeat test results",
 	    @nav);
@@ -223,7 +223,7 @@ foreach my $date (@dates) {
 	All      => "../perform.html",
 	Checkout => undef,
 	Repeat   => undef,
-	Run      => "../run.html");
+	Running  => "../run.html");
     html_header($html, "OpenBSD Perform CVS",
 	"OpenBSD perform $short checkout test results",
 	@nav);
@@ -268,7 +268,7 @@ my @nav = (
     All     => undef,
     Current => (-f "current/perform.html" ? "current/perform.html" : undef),
     Latest  => (-f "latest/perform.html" ? "latest/perform.html" : undef),
-    Run     => "run.html");
+    Running => "run.html");
 html_header($html, "OpenBSD Perform Results",
     "OpenBSD perform all test results",
     @nav);
