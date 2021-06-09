@@ -133,6 +133,7 @@ lib/libcrypto/x509
 lib/libcsi
 lib/libedit
 lib/libevent
+lib/libexecinfo
 lib/libexpat
 lib/libfuse
 lib/libm/cephes
