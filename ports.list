@@ -233,6 +233,7 @@ textproc/p5-XML-SAX-ExpatXS
 textproc/p5-XML-SAX-Writer
 textproc/p5-XML-Simple
 www/p5-CGI
+www/p5-Dancer2
 www/p5-Gravatar-URL
 www/p5-HTML-Display
 www/p5-HTML-Form
