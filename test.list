@@ -12,6 +12,7 @@ bin/test
 etc
 gnu/egcs/gcc-bounds
 gnu/egcs/gcc-builtins
+gnu/lib/libexecinfo
 include
 lib/csu
 lib/libagentx
@@ -133,7 +134,6 @@ lib/libcrypto/x509
 lib/libcsi
 lib/libedit
 lib/libevent
-lib/libexecinfo
 lib/libexpat
 lib/libfuse
 lib/libm/cephes
