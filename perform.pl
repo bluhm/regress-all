@@ -24,11 +24,12 @@ use POSIX;
 use Time::HiRes;
 
 my %opts;
-getopts('e:t:v', \%opts) or do {
+getopts('b:e:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-e environment] [-t timeout] [test ...]
-    -t timeout	timeout for a single test, default 1 hour
+usage: $0 [-v] [-b kstack] [-e environment] [-t timeout] [test ...]
+    -b kstack	measure with btrace and create kernel stack map
     -e environ	parse environment for tests from shell script
+    -t timeout	timeout for a single test, default 1 hour
     -v		verbose
     test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
 		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
@@ -40,6 +41,9 @@ usage: $0 [-v] [-e environment] [-t timeout] [test ...]
 EOF
     exit(2);
 };
+my $btrace = $opts{b};
+$btrace && $btrace ne "kstack"
+    and die "Btrace '$btrace' currently not supported, use 'kstack'";
 my $timeout = $opts{t} || 60*60;
 environment($opts{e}) if $opts{e};
 
@@ -685,6 +689,15 @@ foreach my $t (@tests) {
     my @runcmd = @{$t->{testcmd}};
     (my $test = join("_", @runcmd)) =~ s,/.*/,,;
 
+    # reap zombies, might happen it there were some btrace errors
+    1 while waitpid(-1, WNOHANG) > 0;
+
+    if ($btrace) {
+	# run the test for 80 seconds to measure btrace during 1 minute
+	next unless grep { /^-t10$/ } @runcmd;
+	s/^-t10$/-t80/ foreach @runcmd;
+    }
+
     my $begin = Time::HiRes::time();
     my $date = strftime("%FT%TZ", gmtime($begin));
     print "\nSTART\t$test\t$date\n\n" if $opts{v};
@@ -703,7 +716,7 @@ foreach my $t (@tests) {
 
     eval { $t->{startup}($log) if $t->{startup}; };
     if ($@) {
-	bad $test, 'NOEXIST', "Could not startup", $log
+	bad $test, 'NOEXIST', "Could not startup", $log;
     }
 
     # XXX temporarily disabled
@@ -712,6 +725,7 @@ foreach my $t (@tests) {
     defined(my $pid = open(my $out, '-|'))
 	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
     if ($pid == 0) {
+	# child process
 	close($out);
 	open(STDIN, '<', "/dev/null")
 	    or warn "Redirect stdin to /dev/null failed: $!";
@@ -723,6 +737,53 @@ foreach my $t (@tests) {
 	warn "Exec '@runcmd' failed: $!";
 	_exit(126);
     }
+
+    my $btpid;
+    if ($btrace) {
+	my @btcmd = ('btrace', '-e', "profile:hz:97{\@[$btrace]=count()}");
+	my $btfile = "$test.$btrace";
+	open(my $bt, '>', $btfile)
+	    or bad $test, 'NOLOG',
+	    "Open btrace '$btfile' for writing failed: $!";
+	defined($btpid = fork())
+	    or bad $test, 'XPASS', "Fork btrace failed: $!", $log;
+	if ($btpid == 0) {
+	    # child process
+
+	    # allow test to spin up
+	    sleep 10;
+
+	    defined(my $btracepid = fork())
+		or warn "Fork btrace '@btcmd' failed: $!";
+	    if ($btracepid == 0) {
+		# child process
+		open(STDOUT, '>&', $bt)
+		    or warn "Redirect stdout to btrace failed: $!";
+		exec(@btcmd);
+		warn "Exec '@btcmd' failed: $!";
+		_exit(126);
+	    }
+	    print $log "Btrace '@btcmd' started\n";
+	    print "Btrace '@btcmd' started\n" if $opts{v};
+
+	    # gather samples during 1 minute
+	    sleep 60;
+	    kill 'INT', $btracepid
+		or warn "Interrupt btrace failed: $!";
+
+	    print $log "Btrace '@btcmd' stopped\n";
+	    print "Btrace '@btcmd' stopped\n" if $opts{v};
+	    undef $!;
+	    waitpid($btracepid, 0) == $btracepid && $? == 0
+		and _exit(0);
+	    warn $! ?
+		"Wait for btrace '@btcmd' failed: $!" :
+		"Btrace '@btcmd' failed: $?";
+	    _exit(126);
+	}
+	close($bt);
+    }
+
     eval {
 	local $SIG{ALRM} = sub { die "Test running too long, aborted.\n" };
 	alarm($timeout);
@@ -734,7 +795,7 @@ foreach my $t (@tests) {
 	    if ($t->{parser}) {
 		local $_ = $_;
 		$t->{parser}($_, $log)
-		    or bad $test, 'FAIL', "Could not parse value", $log
+		    or bad $test, 'FAIL', "Could not parse value", $log;
 	    }
 	    s/[^\s[:print:]]/_/g;
 	    print if $opts{v};
@@ -749,6 +810,14 @@ foreach my $t (@tests) {
 	chomp($@);
 	bad $test, 'NOTERM', $@, $log;
     }
+
+    if ($btpid) {
+	waitpid($btpid, 0) == $btpid
+	    or bad $test, 'XPASS', "Wait for btrace failed: $!", $log;
+	$? == 0
+	    or bad $test, 'XFAIL', "Btrace failed: $?", $log;
+    }
+
     close($out)
 	or bad $test, 'NOEXIT', $! ?
 	"Close pipe from '@runcmd' failed: $!" :
@@ -759,7 +828,7 @@ foreach my $t (@tests) {
 
     eval { $t->{shutdown}($log) if $t->{shutdown}; };
     if ($@) {
-	bad $test, 'NOCLEAN', "Could not shutdown", $log
+	bad $test, 'NOCLEAN', "Could not shutdown", $log;
     }
 
     my $end = Time::HiRes::time();
@@ -831,7 +900,8 @@ sub statistics {
 	    open(STDERR, ">&", $fh)
 		or die "Redirect stderr to '$name' failed: $!";
 	    exec(@statcmd);
-	    die "Exec failed: $!";
+	    warn "Exec '@statcmd' failed: $!";
+	    _exit(126);
 	}
 	waitpid($pid, 0)
 	    or die "Wait for pid '$pid' failed: $!";
