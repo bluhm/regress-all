@@ -43,7 +43,7 @@ EOF
 };
 my $btrace = $opts{b};
 $btrace && $btrace ne "kstack"
-    and die "Btrace '$btrace' currently not supported, use 'kstack'";
+    and die "Btrace -b '$btrace' not supported, use 'kstack'";
 my $timeout = $opts{t} || 60*60;
 environment($opts{e}) if $opts{e};
 

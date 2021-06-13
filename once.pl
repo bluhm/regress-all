@@ -31,10 +31,11 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:k:N:P:v', \%opts) or do {
+getopts('b:d:D:h:k:N:P:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] [-D cvsdate] -h host [-k kernel] [-N repeat]
-    [-P patch] [test ...]
+usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
+    [-N repeat] [-P patch] [test ...]
+    -b kstack	measure with btrace and create kernel stack map
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for performance test, user defaults to root
@@ -54,6 +55,9 @@ usage: $0 [-v] [-d date] [-D cvsdate] -h host [-k kernel] [-N repeat]
 EOF
     exit(2);
 };
+my $btrace = $opts{b};
+$btrace && $btrace ne "kstack" 
+    and die "Btrace -b '$btrace' not supported, use 'kstack'";
 $opts{h} or die "No -h specified";
 !$opts{d} || $opts{d} eq "current" || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
@@ -145,8 +149,9 @@ for (my $n = 0; $n < $repeat; $n++) {
 
     # run performance tests remotely
 
-    my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
-	'-e', "/root/perform/env-$host.sh", '-v', keys %testmode);
+    my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl');
+    push @sshcmd, '-b', $btrace if $btrace;
+    push @sshcmd, '-e', "/root/perform/env-$host.sh", '-v', keys %testmode;
     logcmd(@sshcmd);
 
     # get result and logs
