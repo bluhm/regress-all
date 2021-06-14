@@ -1237,7 +1237,10 @@ sub html_cvsdate_test_row {
 	print $html "  <tr>\n    <th></th>\n";
 	print $html "    <th>btrace</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    html_btrace_link($html, $date, $cvsdate, $test, @btraces);
+	    html_btrace_link($html, $date, $cvsdate, $test,
+		$td->{$cvsdate} ?
+		map { ref eq 'HASH' && $_->{btrace} ? $_->{btrace} : () }
+		values %{$td->{$cvsdate}} : ());
 	}
 	print $html "    <td></td><td></td><td></td><td></td><td></td>".
 	    "<td></td>\n";  # dummy for unit and stats above
