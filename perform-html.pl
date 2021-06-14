@@ -916,6 +916,9 @@ sub html_repeat_test_row {
 	    print $html "    <td>$deviation</td>\n";
 	    my $class = $outlier ? ' class="outlier"' : "";
 	    print $html "    <td$class>$relative</td>\n";
+	} else {
+	    print $html "    <td></td><td></td><td></td><td></td><td></td>".
+		"<td></td>\n";  # dummy for unit and stats above
 	}
 	print $html "  </tr>\n";
     }
@@ -1230,6 +1233,9 @@ sub html_cvsdate_test_row {
 	    print $html "    <td>$deviation</td>\n";
 	    my $class = $outlier ? ' class="outlier"' : "";
 	    print $html "    <td$class>$relative</td>\n";
+	} else {
+	    print $html "    <td></td><td></td><td></td><td></td><td></td>".
+		"<td></td>\n";  # dummy for unit and stats above
 	}
 	print $html "  </tr>\n";
     }
