@@ -36,10 +36,11 @@ use Testvars qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('d:gnv', \%opts) or do {
+getopts('d:Ggnv', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-g] [-d date]
+usage: $0 [-Gg] [-d date]
     -d date	run date of performance test, may be current
+    -G		do not regenerate any gnuplot files, allows faster debugging
     -g		generate all gnuplot files, even if they already exist
     -n		do not generate gnuplot files on main release page
     -v		verbose
@@ -158,8 +159,10 @@ parse_result_files(@result_files);
 
 print "\nwrite data files" if $verbose;
 write_data_files($opts{n} && $date);
-print "\ncreate gnuplot files" if $verbose;
-create_gnuplot_files($date);
+unless ($opts{G}) {
+    print "\ncreate gnuplot files" if $verbose;
+    create_gnuplot_files($date);
+}
 print "\ncreate cvslog files" if $verbose;
 create_cvslog_files($date);
 print "\ncreate nmbsd files" if $verbose;
