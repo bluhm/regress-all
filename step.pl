@@ -31,10 +31,11 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('B:E:h:k:N:r:S:s:v', \%opts) or do {
+getopts('b:B:E:h:k:N:r:S:s:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -B date [-E date] -h host [-k kernel] [-N repeat] -r release
-    [-S interval] [-s setup] test ...
+usage: $0 [-v] [-b kstack] -B date [-E date] -h host [-k kernel] [-N repeat]
+    -r release [-S interval] [-s setup] test ...
+    -b kstack	measure with btrace and create kernel stack map
     -B date	begin date, inclusive
     -E date	end date, inclusive
     -h host	user and host for performance test, user defaults to root
@@ -55,6 +56,9 @@ usage: $0 [-v] -B date [-E date] -h host [-k kernel] [-N repeat] -r release
 EOF
     exit(2);
 };
+my $btrace = $opts{b};
+$btrace && $btrace ne "kstack"
+    and die "Btrace -b '$btrace' not supported, use 'kstack'";
 $opts{h} or die "No -h specified";
 $opts{r} or die "No -r specified";
 my $release;
@@ -214,9 +218,12 @@ foreach my $current (@steps) {
 
     # run repetitions if requested
 
-    for (my $n = 0; $n < $repeat; $n++) {
-	my $repeatdir = sprintf("%03d", $n);
-	if ($repeat > 1) {
+    my @repeats = map { sprintf("%03d", $_) } (0 .. $repeat - 1);
+    # after all regular repeats we make one with btrace turned on
+    push @repeats, $btrace if $btrace;
+
+    foreach my $repeatdir (@repeats) {
+	if (@repeats) {
 	    mkdir $repeatdir
 		or die "Make directory '$repeatdir' failed: $!";
 	    chdir($repeatdir)
@@ -225,16 +232,17 @@ foreach my $current (@steps) {
 
 	# run performance tests remotely
 
-	my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl',
-	    '-e', "/root/perform/env-$host.sh", '-v', keys %testmode);
+	my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl');
+	push @sshcmd, '-b', $btrace if $btrace && $repeatdir eq $btrace;
+	push @sshcmd, '-e', "/root/perform/env-$host.sh", '-v', keys %testmode;
 	logcmd(@sshcmd);
 
 	# get result and logs
 
 	collect_result("$opts{h}:/root/perform");
 
-	if ($repeat > 1) {
-	    unless ($kernelmode{keep} || $n + 1 == $repeat) {
+	if (@repeats) {
+	    unless ($kernelmode{keep} || $repeatdir eq $repeats[-1]) {
 		reboot_hosts(cvsdate => $cvsdate, repeat => $repeatdir,
 		    mode => \%kernelmode);
 		collect_version();

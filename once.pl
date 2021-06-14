@@ -56,7 +56,7 @@ EOF
     exit(2);
 };
 my $btrace = $opts{b};
-$btrace && $btrace ne "kstack" 
+$btrace && $btrace ne "kstack"
     and die "Btrace -b '$btrace' not supported, use 'kstack'";
 $opts{h} or die "No -h specified";
 !$opts{d} || $opts{d} eq "current" || str2time($opts{d})
