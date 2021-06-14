@@ -101,7 +101,7 @@ my @result_files = sort(glob("$dateglob/*/test.result"),
 # $T{$test}{$date}{$cvsdate}{$repeat}
 # $T{$test}{$date}{$cvsdate}{$repeat}{status}	result of this test
 # $T{$test}{$date}{$cvsdate}{$repeat}{message}	test printed a summary
-# $T{$test}{$date}{$cvsdate}{kstack}{btrace}	flame graph kstack svg file
+# $T{$test}{$date}{$cvsdate}{kstack}{btrace}	flame graph svg stack
 # %D
 # $date					date when test was executed as string
 # $D{$date}{short}			date without time
@@ -152,6 +152,7 @@ my @result_files = sort(glob("$dateglob/*/test.result"),
 # [$value]{name}			name of subtest
 # [$value]{unit}			unit of number
 # [$value]{number}			numeric value
+# $V{$date}{$test}{$cvsdate}{summary}[$value]	array of numbers
 # %Z @Z
 # $Z{$cvsdate}				index in @Z
 # $Z[$index]				hash of dates containing cvs checkout
@@ -730,8 +731,7 @@ sub create_btrace_files {
 		foreach my $stack (sort keys %{$tv}) {
 		    my $btfile = $tv->{$stack};
 		    my $svgfile = "$btdir/$test-$stack.svg";
-		    $T{$test}{$date}{$cvsdate}{$stack}{btrace} =
-			"btrace/$test-$stack.svg";
+		    $T{$test}{$date}{$cvsdate}{$stack}{btrace} = $stack;
 		    next if -f $svgfile;
 		    print "." if $verbose;
 		    my $fgcmd = "$fgdir/stackcollapse-bpftrace.pl <$btfile | ".
@@ -865,7 +865,10 @@ sub html_repeat_test_row {
     }
     print $html "  </tr>\n";
     my $vt = $V{$date}{$test}{$cvsdate};
-    my @repeats_nobtrace = grep { /\d+/ } @repeats;
+    my @repeats_nobtrace = grep { /^\d+$/ } @repeats;
+    my @btraces;
+    @btraces = map { ref eq 'HASH' && $_->{btrace} ? $_->{btrace} : () }
+	values %$td if @repeats_nobtrace != @repeats;
     my $maxval = max map { scalar @{$vt->{$_} || []} } @repeats_nobtrace;
     for (my $i = 0; $i < $maxval; $i++) {
 	my $value0 = first { $_ } map { $vt->{$_}[$i] } @repeats_nobtrace;
@@ -914,6 +917,17 @@ sub html_repeat_test_row {
 	    my $class = $outlier ? ' class="outlier"' : "";
 	    print $html "    <td$class>$relative</td>\n";
 	}
+	print $html "  </tr>\n";
+    }
+    if (@btraces) {
+	print $html "  <tr>\n    <th></th>\n";
+	print $html "    <th>btrace</th>\n";
+	foreach my $repeat (@repeats) {
+	    html_btrace_link($html, "$date/$cvsdate", "", $test,
+		$td->{$repeat}{btrace} || ());
+	}
+	print $html "    <td></td><td></td><td></td><td></td><td></td>".
+	    "<td></td>\n";  # dummy for unit and stats above
 	print $html "  </tr>\n";
     }
 }
@@ -1139,7 +1153,7 @@ sub html_cvsdate_test_row {
     }
     print $html "  </tr>\n";
     my $vt = $V{$date}{$test};
-    my @vals;
+    my (@vals, @btraces);
     foreach my $cvsdate (@cvsdates) {
 	if ($D{$date}{$cvsdate}{repeats}) {
 	    push @vals, map { $vt->{$cvsdate}{$_} }
@@ -1147,6 +1161,9 @@ sub html_cvsdate_test_row {
 	} else {
 	    push @vals, $vt->{$cvsdate};
 	}
+	push @btraces,
+	    map { ref eq 'HASH' && $_->{btrace} ? $_->{btrace} : () }
+	    values %{$td->{$cvsdate}} if $td->{$cvsdate};
     }
     my $maxval = max map { scalar @{$_ || []} } @vals;
     for (my $i = 0; $i < $maxval; $i++) {
@@ -1202,6 +1219,16 @@ sub html_cvsdate_test_row {
 	}
 	print $html "  </tr>\n";
     }
+    if (@btraces) {
+	print $html "  <tr>\n    <th></th>\n";
+	print $html "    <th>btrace</th>\n";
+	foreach my $cvsdate (@cvsdates) {
+	    html_btrace_link($html, $date, $cvsdate, $test, @btraces);
+	}
+	print $html "    <td></td><td></td><td></td><td></td><td></td>".
+	    "<td></td>\n";  # dummy for unit and stats above
+	print $html "  </tr>\n";
+    }
 }
 
 sub html_value_data {
@@ -1228,11 +1255,7 @@ sub html_value_data {
 	    $class = ' class="outlier"' if abs($reldev) >= 0.1;
 	}
     }
-    my $btrace = $tv->{btrace};
-    my $svg = uri_escape($btrace, "^A-Za-z0-9\-\._~/");
-    my $href = $btrace ? "<a href=\"$svg\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <td$title$class>${href}$number${enda}</td>\n";
+    print $html "    <td$title$class>$number</td>\n";
 }
 
 sub html_date_top {
@@ -1359,6 +1382,24 @@ sub html_status_data {
     }
     my $enda = $href ? "</a>" : "";
     print $html "    <td$class$title>$href$status$enda</td>\n";
+}
+
+sub html_btrace_link {
+    my ($html, $dir, $subdir, $test, @stacks) = @_;
+    unless (@stacks) {
+	print $html "    <td></td>\n";
+	return;
+    }
+    my @svgs;
+    foreach my $stack (@stacks) {
+	my $svgfile = "btrace/$test-$stack.svg";
+	$svgfile = "$subdir/$svgfile" if $subdir;
+	my $link = uri_escape($svgfile, "^A-Za-z0-9\-\._~/");
+	my $href = -f "$dir/$svgfile" ? "<a href=\"$link\">" : "";
+	my $enda = $href ? "</a>" : "";
+	push @svgs, "$href$stack$enda";
+    }
+    print $html "    <td>", join(",", @svgs), "</td>\n";
 }
 
 sub html_plot_data {
