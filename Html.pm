@@ -63,9 +63,10 @@ sub html_header {
     my ($html, $title, $headline, @nav) = @_;
     print $html <<"HEADER";
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8">
   <title>$title</title>
   <style>
     th { text-align: left; white-space: nowrap; }
