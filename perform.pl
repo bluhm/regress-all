@@ -740,8 +740,8 @@ foreach my $t (@tests) {
 
     my $btpid;
     if ($btrace) {
-	my @btcmd = ('btrace', '-e', "profile:hz:97{\@[$btrace]=count()}");
-	my $btfile = "$test.$btrace";
+	my @btcmd = ('btrace', '-e', "profile:hz:100{\@[$btrace]=count()}");
+	my $btfile = "$test-$btrace.btrace";
 	open(my $bt, '>', $btfile)
 	    or bad $test, 'NOLOG',
 	    "Open btrace '$btfile' for writing failed: $!";

@@ -331,7 +331,12 @@ sub parse_result_files {
 	    m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+|kstack)/)?test.result,
 	    or
 	($date, $short, $cvsdate, $cvsshort, $repeat) = $result =~
-	m,(([^/]+)T[^/]+)/(patch-([^/)]+)\.\d+)/(?:(\d+|kstack)/)?test.result,
+	    m,
+		(([^/]+)T[^/]+)/	# date
+		(patch-([^/]+)\.\d+)/	# cvsdate or patch
+		(?:(\d+|kstack)/)?	# repeat or btrace
+		test.result
+	    ,x
 	    or next;
 	next if ! $opts{n} && $cvsdate =~ /^patch-/;
 	print "." if $verbose;
@@ -396,10 +401,10 @@ sub parse_result_files {
 		    status => $status,
 		    message => $message,
 		};
-		if ($repeat eq "kstack") {
-		    $B{$date}{$cvsdate}{$test}{$repeat} =
-			"$date/$cvsdate/$repeat/logs/$test.$repeat"
-			if -f "$date/$cvsdate/$repeat/logs/$test.$repeat";
+		if ($repeat eq "kstack" &&
+		    -f "$date/$cvsdate/$repeat/logs/$test-$repeat.btrace") {
+			$B{$date}{$cvsdate}{$test}{$repeat} =
+			    "$date/$cvsdate/$repeat/logs/$test-$repeat.btrace"
 		}
 		if (($T{$test}{$date}{$cvsdate}{severity} || 0) < $severity) {
 		    $T{$test}{$date}{$cvsdate}{status} = $status;
