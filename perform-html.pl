@@ -33,6 +33,8 @@ use Buildquirks;
 use Html;
 use Testvars qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
 
+my $fgdir = "/home/bluhm/github/FlameGraph";  # XXX
+
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
@@ -99,6 +101,7 @@ my @result_files = sort(glob("$dateglob/*/test.result"),
 # $T{$test}{$date}{$cvsdate}{$repeat}
 # $T{$test}{$date}{$cvsdate}{$repeat}{status}	result of this test
 # $T{$test}{$date}{$cvsdate}{$repeat}{message}	test printed a summary
+# $T{$test}{$date}{$cvsdate}{kstack}{btrace}	flame graph kstack svg file
 # %D
 # $date					date when test was executed as string
 # $D{$date}{short}			date without time
@@ -152,8 +155,9 @@ my @result_files = sort(glob("$dateglob/*/test.result"),
 # %Z @Z
 # $Z{$cvsdate}				index in @Z
 # $Z[$index]				hash of dates containing cvs checkout
+# $B{$date}{$cvsdate}{$test}{kstack}	btrace kstack output file
 
-my (%T, %D, %V, %Z, @Z);
+my (%T, %D, %V, %Z, @Z, %B);
 print "parse result files" if $verbose;
 parse_result_files(@result_files);
 
@@ -167,6 +171,8 @@ print "\ncreate cvslog files" if $verbose;
 create_cvslog_files($date);
 print "\ncreate nmbsd files" if $verbose;
 create_nmbsd_files($date);
+print "\ncreate btrace files" if $verbose;
+create_btrace_files($date);
 print "\n" if $verbose;
 
 my @plots = list_plots();
@@ -322,10 +328,10 @@ sub parse_result_files {
 	# parse result file
 	my ($date, $short, $cvsdate, $cvsshort, $repeat);
 	($date, $short, $cvsdate, $cvsshort, $repeat) = $result =~
-	    m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+)/)?test.result,
+	    m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+|kstack)/)?test.result,
 	    or
 	($date, $short, $cvsdate, $cvsshort, $repeat) = $result =~
-	    m,(([^/]+)T[^/]+)/(patch-([^/)]+)\.\d+)/(?:(\d+)/)?test.result,
+	m,(([^/]+)T[^/]+)/(patch-([^/)]+)\.\d+)/(?:(\d+|kstack)/)?test.result,
 	    or next;
 	next if ! $opts{n} && $cvsdate =~ /^patch-/;
 	print "." if $verbose;
@@ -390,6 +396,11 @@ sub parse_result_files {
 		    status => $status,
 		    message => $message,
 		};
+		if ($repeat eq "kstack") {
+		    $B{$date}{$cvsdate}{$test}{$repeat} =
+			"$date/$cvsdate/$repeat/logs/$test.$repeat"
+			if -f "$date/$cvsdate/$repeat/logs/$test.$repeat";
+		}
 		if (($T{$test}{$date}{$cvsdate}{severity} || 0) < $severity) {
 		    $T{$test}{$date}{$cvsdate}{status} = $status;
 		    $T{$test}{$date}{$cvsdate}{severity} = $severity;
@@ -699,6 +710,37 @@ sub diff_stat_file {
     }
 }
 
+sub create_btrace_files {
+    my @dates = shift || reverse sort keys %B;
+    foreach my $date (@dates) {
+	my $dv = $B{$date}
+	    or next;
+	foreach my $cvsdate (sort keys %{$dv}) {
+	    my $cv = $dv->{$cvsdate};
+	    my $btdir = "$date/$cvsdate/btrace";
+	    -d $btdir || mkdir $btdir
+		or die "Make directory '$btdir' failed: $!";
+	    foreach my $test (sort keys %{$cv}) {
+		my $tv = $cv->{$test};
+		foreach my $stack (sort keys %{$tv}) {
+		    my $btfile = $tv->{$stack};
+		    my $svgfile = "$btdir/$test-$stack.svg";
+		    $T{$test}{$date}{$cvsdate}{$stack}{btrace} =
+			"btrace/$test-$stack.svg";
+		    next if -f $svgfile;
+		    print "." if $verbose;
+		    my $fgcmd = "$fgdir/stackcollapse-bpftrace.pl <$btfile | ".
+			"$fgdir/flamegraph.pl >$svgfile.new";
+		    system($fgcmd)
+			and die "Command '$fgcmd' failed: $?";
+		    rename("$svgfile.new", $svgfile)
+			or die "Rename '$svgfile.new' to '$svgfile' failed: $!";
+		}
+	    }
+	}
+    }
+}
+
 sub html_cvsdate_zoom {
     my ($html, $before, $after) = @_;
     my ($start, $stop) = @Z{$before, $after};
@@ -818,14 +860,15 @@ sub html_repeat_test_row {
     }
     print $html "  </tr>\n";
     my $vt = $V{$date}{$test}{$cvsdate};
-    my $maxval = max map { scalar @{$vt->{$_} || []} } @repeats;
+    my @repeats_nobtrace = grep { /\d+/ } @repeats;
+    my $maxval = max map { scalar @{$vt->{$_} || []} } @repeats_nobtrace;
     for (my $i = 0; $i < $maxval; $i++) {
-	my $value0 = first { $_ } map { $vt->{$_}[$i] } @repeats;
+	my $value0 = first { $_ } map { $vt->{$_}[$i] } @repeats_nobtrace;
 	my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>$name0</th>\n";
 	my @numbers = map { $vt->{$_}[$i]{number} }
-	    grep { $td->{$_} && $td->{$_}{status} eq 'PASS' } @repeats;
+	    grep { $td->{$_} && $td->{$_}{status} eq 'PASS' } @repeats_nobtrace;
 	my ($sum, $mean, $maximum, $minimum, $deviation, $relative,
 	    $summary, $outlier);
 	if (@numbers) {
@@ -1180,7 +1223,11 @@ sub html_value_data {
 	    $class = ' class="outlier"' if abs($reldev) >= 0.1;
 	}
     }
-    print $html "    <td$title$class>$number</td>\n";
+    my $btrace = $tv->{btrace};
+    my $svg = uri_escape($btrace, "^A-Za-z0-9\-\._~/");
+    my $href = $btrace ? "<a href=\"$svg\">" : "";
+    my $enda = $href ? "</a>" : "";
+    print $html "    <td$title$class>${href}$number${enda}</td>\n";
 }
 
 sub html_date_top {
