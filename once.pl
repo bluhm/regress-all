@@ -67,8 +67,8 @@ my $date = $opts{d};
 my $cvsdate = $opts{D};
 my $patch = $opts{P};
 
-my $repeat = $opts{N} || 1;
-$repeat >= 1
+my $repeat = $opts{N};
+!$repeat || $repeat >= 1
     or die "Repeat '$opts{N}' must be positive integer";
 my %allmodes;
 @allmodes{qw(align gap sort reorder reboot keep)} = ();
@@ -76,8 +76,6 @@ my %allmodes;
     or die "Unknown kernel mode '$opts{k}'";
 my %kernelmode;
 $kernelmode{$opts{k}} = 1 if $opts{k};
-$patch && $kernelmode{keep}
-    and die "Cannot patch with kernel mode keep";
 
 @allmodes{qw(
     all net tcp udp make fs iperf tcpbench udpbench iperftcp
@@ -107,7 +105,13 @@ if ($date && $date eq "current") {
     $date = $current;
 }
 $resultdir = "$resultdir/$date" if $date;
-$resultdir = mkdir_num("$resultdir/patch-". basename($patch)) if $patch;
+if ($patch) {
+    if ($kernelmode{keep}) {
+	$resultdir = chdir_num("$resultdir/patch-". basename($patch));
+    } else {
+	$resultdir = mkdir_num("$resultdir/patch-". basename($patch));
+    }
+}
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
@@ -131,7 +135,7 @@ push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1) if $repeat;
 # after all regular repeats, make one with btrace turned on
 push @repeats, "btrace-$btrace" if $btrace;
 
-foreach my $repeatdir (@repeats) {
+foreach my $repeatdir (@repeats ? @repeats : ".") {
     if (@repeats) {
 	if ($repeatdir =~ /^btrace-/) {
 	    $repeatdir = mkdir_num($repeatdir);
@@ -204,4 +208,21 @@ sub mkdir_num {
 	}
     }
     die "Make directory '$dir' failed: $!";
+}
+
+sub chdir_num {
+    my ($path) = @_;
+
+    $path =~ s/\..*//;
+    my $dir;
+    for (my $suffix = 9; $suffix >= 0; $suffix--) {
+	$dir = "$path.$suffix";
+	if (chdir($dir)) {
+	    return $dir;
+	} else {
+	    $!{ENOENT}
+		or die "Change directory '$dir' failed: $!";
+	}
+    }
+    die "Change directory '$dir' failed: $!";
 }
