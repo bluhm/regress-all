@@ -66,10 +66,12 @@ my $date = $opts{d};
     or die "Invalid -D cvsdate '$opts{D}'";
 my $cvsdate = $opts{D};
 my $patch = $opts{P};
+$cvsdate && $patch
+    and die "Cannot combine -D cvsdate and -P patch";
 
 my $repeat = $opts{N};
-!$repeat || $repeat >= 1
-    or die "Repeat '$opts{N}' must be positive integer";
+!$repeat || $repeat >= 1 || $repeat =~ /^\d{3}$/
+    or die "Repeat -N repeat must be positive integer or three digit subdir";
 my %allmodes;
 @allmodes{qw(align gap sort reorder reboot keep)} = ();
 !$opts{k} || exists $allmodes{$opts{k}}
@@ -105,6 +107,7 @@ if ($date && $date eq "current") {
     $date = $current;
 }
 $resultdir = "$resultdir/$date" if $date;
+$resultdir = "$resultdir/$cvsdate" if $date && $cvsdate;
 if ($patch) {
     if ($kernelmode{keep}) {
 	$resultdir = chdir_num("$resultdir/patch-". basename($patch));
@@ -130,8 +133,14 @@ collect_version();
 setup_html();
 
 my @repeats;
-# use repeats subdirs only if there are any
-push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1) if $repeat;
+if ($repeat) {
+    # use repeats subdirs only if there are any
+    if ($repeat =~ /^\d{3}$/) {
+	push @repeats, $repeat;
+    } else {
+	push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1);
+    }
+}
 # after all regular repeats, make one with btrace turned on
 push @repeats, "btrace-$btrace" if $btrace;
 
