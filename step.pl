@@ -218,8 +218,10 @@ foreach my $current (@steps) {
 
     # run repetitions if requested
 
-    my @repeats = map { sprintf("%03d", $_) } (0 .. $repeat - 1);
-    # after all regular repeats we make one with btrace turned on
+    my @repeats;
+    # use repeats subdirs only if there are any
+    push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1) if $repeat;
+    # after all regular repeats, make one with btrace turned on
     push @repeats, $btrace if $btrace;
 
     foreach my $repeatdir (@repeats) {
