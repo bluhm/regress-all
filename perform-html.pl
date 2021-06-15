@@ -55,6 +55,7 @@ my $date = $opts{d};
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 
+print "\nglob result files" if $verbose;
 my $performdir = dirname($0). "/..";
 chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
@@ -80,9 +81,9 @@ if ($date && $date eq "current") {
 # create the html and gnuplot files only for a single date
 my $dateglob = ($opts{n} && $date) ? $date : "*";
 # cvs checkout and repeated results
+print "." if $verbose;
 my @result_files = sort(glob("$dateglob/*/test.result"),
     glob("$dateglob/*/*/test.result"));
-
 
 # %T
 # $test					performance test tool command line
@@ -159,9 +160,8 @@ my @result_files = sort(glob("$dateglob/*/test.result"),
 # $B{$date}{$cvsdate}{$test}{kstack}	btrace kstack output file
 
 my (%T, %D, %V, %Z, @Z, %B);
-print "parse result files" if $verbose;
+print "\nparse result files" if $verbose;
 parse_result_files(@result_files);
-
 print "\nwrite data files" if $verbose;
 write_data_files($opts{n} && $date);
 unless ($opts{G}) {
@@ -327,25 +327,25 @@ exit;
 sub parse_result_files {
     foreach my $result (@_) {
 	# parse result file
-	my ($date, $short, $cvsdate, $cvsshort, $repeat);
-	($date, $short, $cvsdate, $cvsshort, $repeat) = $result =~
-	    m,(([^/]+)T[^/]+)/(([^/]+)T[^/]+)/(?:(\d+|kstack)/)?test.result,
-	    or
-	($date, $short, $cvsdate, $cvsshort, $repeat) = $result =~
+	my ($date, $short, $cvsdate, $repeat) = $result =~
 	    m,
-		(([^/]+)T[^/]+)/	# date
-		(patch-([^/]+)\.\d+)/	# cvsdate or patch
-		(?:(\d+|kstack)/)?	# repeat or btrace
-		test.result
-	    ,x
-	    or next;
+		(([^/]+)T[^/]+Z)/			# date
+		([^/]+T[^/]+Z|patch-[^/]+\.\d+)/	# cvsdate or patch
+		(?:(\d+|btrace-[^/]+\.\d+)/)?		# repeat or btrace
+		test.result				# result file
+	    ,x or next;
 	next if ! $opts{n} && $cvsdate =~ /^patch-/;
+	my ($cvsshort, $repshort) = ($cvsdate, $repeat);
+	$cvsshort =~ s/T.+Z$//;
+	$cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
+	$repshort =~ s/^btrace-(.*)\.\d+$/$1/;
 	print "." if $verbose;
 	$D{$date}{short} ||= $short;
 	push @{$D{$date}{cvsdates} ||= []}, $cvsdate unless $D{$date}{$cvsdate};
 	$D{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
 	if (defined $repeat) {
 	    push @{$D{$date}{$cvsdate}{repeats} ||= []}, $repeat;
+	    $D{$date}{$cvsdate}{$repeat}{repshort} ||= $repshort;
 	    $D{$date}{$cvsdate}{$repeat}{result} = $result;
 	} else {
 	    $D{$date}{$cvsdate}{result} = $result;
@@ -402,10 +402,10 @@ sub parse_result_files {
 		    status => $status,
 		    message => $message,
 		};
-		if ($repeat eq "kstack" &&
-		    -f "$date/$cvsdate/$repeat/logs/$test-$repeat.btrace") {
+		if ($repeat =~ /^btrace-/ &&
+		    -f "$date/$cvsdate/$repeat/logs/$test-$repshort.btrace") {
 			$B{$date}{$cvsdate}{$test}{$repeat} =
-			    "$date/$cvsdate/$repeat/logs/$test-$repeat.btrace"
+			    "$date/$cvsdate/$repeat/logs/$test-$repshort.btrace"
 		}
 		if (($T{$test}{$date}{$cvsdate}{severity} || 0) < $severity) {
 		    $T{$test}{$date}{$cvsdate}{status} = $status;
@@ -825,7 +825,9 @@ sub html_repeat_test_head {
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>repeat</th>\n";
     foreach my $repeat (@repeats) {
-	print $html "    <th>$repeat</th>\n";
+	my $repshort = $D{$date}{$cvsdate}{$repeat}{repshort};
+	my $rep_btrace = encode_entities($repeat);
+	print $html "    <th title=\"$rep_btrace\">$repshort</th>\n";
     }
     print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	"<th></th>\n";  # dummy for unit and stats below
@@ -986,12 +988,12 @@ sub html_cvsdate_test_head {
     print $html "    <th>cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
-	my $time = encode_entities($cvsdate);
+	my $cvs_patch = encode_entities($cvsdate);
 	my $cvsdatehtml = "$cvsdate/perform.html";
 	my $link = uri_escape($cvsdatehtml, "^A-Za-z0-9\-\._~/");
 	my $href = -f "$date/$cvsdatehtml" ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
-	print $html "    <th title=\"$time\">$href$cvsshort$enda</th>\n";
+	print $html "    <th title=\"$cvs_patch\">$href$cvsshort$enda</th>\n";
     }
     print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	"<th></th>\n";  # dummy for unit and stats below
@@ -1329,8 +1331,8 @@ sub html_date_test_head {
     foreach my $date (@dates) {
 	my $cvsdate = $D{$date}{cvsdates}[0];
 	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
-	my $time = encode_entities($cvsdate);
-	print $html "    <th title=\"$time\">$cvsshort</th>\n";
+	my $cvs_patch = encode_entities($cvsdate);
+	print $html "    <th title=\"$cvs_patch\">$cvsshort</th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <td></td>\n";
@@ -1338,8 +1340,8 @@ sub html_date_test_head {
     foreach my $date (@dates) {
 	my $cvsdate = $D{$date}{cvsdates}[-1];
 	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
-	my $time = encode_entities($cvsdate);
-	print $html "    <th title=\"$time\">$cvsshort</th>\n";
+	my $cvs_patch = encode_entities($cvsdate);
+	print $html "    <th title=\"$cvs_patch\">$cvsshort</th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <td></td>\n";
@@ -1420,9 +1422,10 @@ sub html_btrace_link {
 	my $link = uri_escape($svgfile, "^A-Za-z0-9\-\._~/");
 	my $href = -f "$dir/$svgfile" ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
+	$stack =~ s/^btrace-//;
 	push @svgs, "$href$stack$enda";
     }
-    print $html "    <td>", join(",", @svgs), "</td>\n";
+    print $html "    <td>", join(" ", sort @svgs), "</td>\n";
 }
 
 sub html_plot_data {
