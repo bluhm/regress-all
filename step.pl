@@ -90,8 +90,8 @@ $end >= $begin
 $end == $begin || $unit eq "commit" || $step > 0
     or die "Step '$opts{S}' cannot reach end date";
 
-$repeat = $opts{N} || 1;
-$repeat >= 1
+$repeat = $opts{N};
+!$repeat || $repeat >= 1
     or die "Repeat '$opts{N}' must be positive integer";
 my %allmodes;
 @allmodes{qw(align gap sort reorder reboot keep)} = ();
@@ -222,9 +222,9 @@ foreach my $current (@steps) {
     # use repeats subdirs only if there are any
     push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1) if $repeat;
     # after all regular repeats, make one with btrace turned on
-    push @repeats, $btrace if $btrace;
+    push @repeats, "btrace-$btrace.0" if $btrace;
 
-    foreach my $repeatdir (@repeats) {
+    foreach my $repeatdir (@repeats ? @repeats : ".") {
 	if (@repeats) {
 	    mkdir $repeatdir
 		or die "Make directory '$repeatdir' failed: $!";
@@ -235,7 +235,7 @@ foreach my $current (@steps) {
 	# run performance tests remotely
 
 	my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl');
-	push @sshcmd, '-b', $btrace if $btrace && $repeatdir eq $btrace;
+	push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
 	push @sshcmd, '-e', "/root/perform/env-$host.sh", '-v', keys %testmode;
 	logcmd(@sshcmd);
 
