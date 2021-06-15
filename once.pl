@@ -107,20 +107,7 @@ if ($date && $date eq "current") {
     $date = $current;
 }
 $resultdir = "$resultdir/$date" if $date;
-if ($patch) {
-    my $patchdir = "patch-". basename($patch);
-    $patchdir =~ s/\..*//;
-    for (my $suffix = 0; $suffix < 10; $suffix++) {
-	my $dir = "$resultdir/$patchdir.$suffix";
-	if (mkdir($dir)) {
-	    $resultdir = $dir;
-	    last;
-	} else {
-	    $!{EEXIST} && $suffix < 9
-		or die "Make directory '$dir' failed: $!";
-	}
-    }
-}
+$resultdir = mkdir_num("$resultdir/patch-". basename($patch)) if $patch;
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
@@ -142,12 +129,16 @@ my @repeats;
 # use repeats subdirs only if there are any
 push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1) if $repeat;
 # after all regular repeats, make one with btrace turned on
-push @repeats, $btrace if $btrace;
+push @repeats, "btrace-$btrace" if $btrace;
 
 foreach my $repeatdir (@repeats) {
     if (@repeats) {
-	mkdir $repeatdir
-	    or die "Make directory '$repeatdir' failed: $!";
+	if ($repeatdir =~ /^btrace-/) {
+	    $repeatdir = mkdir_num($repeatdir);
+	} else {
+	    mkdir $repeatdir
+		or die "Make directory '$repeatdir' failed: $!";
+	}
 	chdir($repeatdir)
 	    or die "Change directory to '$repeatdir' failed: $!";
     }
@@ -155,7 +146,7 @@ foreach my $repeatdir (@repeats) {
     # run performance tests remotely
 
     my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl');
-    push @sshcmd, '-b', $btrace if $btrace && $repeatdir eq $btrace;
+    push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
     push @sshcmd, '-e', "/root/perform/env-$host.sh", '-v', keys %testmode;
     logcmd(@sshcmd);
 
@@ -197,3 +188,20 @@ $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $now.\n");
 
 exit;
+
+sub mkdir_num {
+    my ($path) = @_;
+
+    $path =~ s/\..*//;
+    my $dir;
+    for (my $suffix = 0; $suffix < 10; $suffix++) {
+	$dir = "$path.$suffix";
+	if (mkdir($dir)) {
+	    return $dir;
+	} else {
+	    $!{EEXIST}
+		or die "Make directory '$dir' failed: $!";
+	}
+    }
+    die "Make directory '$dir' failed: $!";
+}
