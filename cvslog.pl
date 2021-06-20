@@ -181,7 +181,8 @@ print "Pipe from command '@cvscmd' finished.\n" if $verbose;
 
 chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
-my $cvslogdir = "results/cvslog/$module/$path";
+my $year = 1900 + (gmtime($begin))[5];
+my $cvslogdir = "results/cvslog/$year/$module/$path";
 -d $cvslogdir || make_path $cvslogdir
     or die "Make cvslog path '$cvslogdir' failed: $!";
 
