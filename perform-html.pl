@@ -513,10 +513,12 @@ sub write_data_files {
 	    my $vt = $vd->{$test};
 	    my $checkout;
 	    foreach my $cvsdate (sort keys %$vt) {
+		next if $testdata =~ /^gnuplot/ && $cvsdate =~ /^patch-/;
 		my $vc = $vt->{$cvsdate};
 		$checkout = str2time($cvsdate) || $checkout + 1;
 		$vc = { 0 => $vc } if ref $vc ne 'HASH';
 		foreach my $repeat (sort keys %$vc) {
+		    next if $testdata =~ /^gnuplot/ && $repeat =~ /^btrace-/;
 		    my $vr = $vc->{$repeat};
 		    foreach my $value (@{$vr || []}) {
 			my $number = $value->{number};
