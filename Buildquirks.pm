@@ -533,6 +533,12 @@ my %quirks = (
 	updatedirs => [ "lib/libc", "lib/librthread" ],
 	builddirs => [ "lib/libc", "lib/librthread" ],
     },
+    '2021-06-13T21:11:54Z' => {
+	comment => "futex full syscall stub and save errno",
+	cleandirs => [ "lib/libc" ],
+	updatedirs => [ "lib/libc", "lib/librthread" ],
+	builddirs => [ "lib/libc", "lib/librthread" ],
+    },
 );
 
 #### Patches ####
