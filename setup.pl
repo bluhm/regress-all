@@ -88,6 +88,9 @@ logmsg("Script '$scriptname' started at $date.\n");
 
 createhost($user, $host);
 
+my $cvspath;
+$cvspath = "sys" if $mode{kernel} && !$mode{build};
+
 # execute commands
 
 install_pxe($release) if $mode{install} && !$mode{keep};
@@ -95,12 +98,11 @@ upgrade_pxe() if $mode{upgrade} && !$mode{keep};
 get_version();
 copy_scripts();
 checkout_cvs($release) if $mode{install} || $mode{upgrade};
-update_cvs($release) if $mode{cvs};
+update_cvs($release, undef, $cvspath) if $mode{cvs};
 update_ports($release) if $mode{ports};
 make_kernel() if $mode{kernel} || $mode{build};
 make_build() if $mode{build};
-diff_cvs("sys") if $mode{kernel} && !$mode{build};
-diff_cvs() if $mode{build};
+diff_cvs($cvspath) if $mode{kernel} || $mode{build};
 reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
 update_packages($release) if $mode{upgrade} || $mode{ports};
