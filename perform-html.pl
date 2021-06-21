@@ -55,7 +55,7 @@ my $date = $opts{d};
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 
-print "\nglob result files" if $verbose;
+print "glob result files" if $verbose;
 my $performdir = dirname($0). "/..";
 chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
@@ -84,6 +84,7 @@ my $dateglob = ($opts{n} && $date) ? $date : "*";
 print "." if $verbose;
 my @result_files = sort(glob("$dateglob/*/test.result"),
     glob("$dateglob/*/*/test.result"));
+print "\n" if $verbose;
 
 # %T
 # $test					performance test tool command line
@@ -160,7 +161,7 @@ my @result_files = sort(glob("$dateglob/*/test.result"),
 # $B{$date}{$cvsdate}{$test}{kstack}	btrace kstack output file
 
 my (%T, %D, %V, %Z, @Z, %B);
-print "\nparse result files" if $verbose;
+print "parse result files" if $verbose;
 parse_result_files(@result_files);
 print "\nwrite data files" if $verbose;
 write_data_files($opts{n} && $date);
