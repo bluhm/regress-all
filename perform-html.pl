@@ -624,12 +624,6 @@ sub create_cvslog_files {
 	    if ($prevcvsdate) {
 		(my $year = $prevcvsdate) =~ s/-.*//;
 		my $cvslog = "cvslog/$year/src/sys/$prevcvsdate--$cvsdate";
-		my $oldcvslog = "cvslog/src/sys/$prevcvsdate--$cvsdate";
-		if (!(-f "$cvslog.txt" && -f "$cvslog.html") &&
-		    -f "$oldcvslog.txt" && -f "$oldcvslog.html") {
-			# backwards compatibility
-			$cvslog = $oldcvslog;
-		}
 		unless (-f "$cvslog.txt" && -f "$cvslog.html") {
 		    print "." if $verbose;
 		    my @cmd = ("$performdir/bin/cvslog.pl",
