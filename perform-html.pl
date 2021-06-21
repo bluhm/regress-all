@@ -519,7 +519,7 @@ sub write_data_files {
 		$checkout = str2time($cvsdate) || $checkout + 1;
 		$vc = { 0 => $vc } if ref $vc ne 'HASH';
 		foreach my $repeat (sort keys %$vc) {
-		    next if $testdata =~ /^gnuplot/ && $repeat =~ /^btrace-/;
+		    next if $repeat =~ /^btrace-/;
 		    my $vr = $vc->{$repeat};
 		    foreach my $value (@{$vr || []}) {
 			my $number = $value->{number};
