@@ -67,6 +67,7 @@ sub usehosts {
 
 sub setup_hosts {
     my %args = @_;
+    my $patch = delete $args{patch};
     my $release = delete $args{release};
     my %mode = %{delete $args{mode}};
     my @unknown = keys %args;
@@ -84,6 +85,7 @@ sub setup_hosts {
 	my @setupcmd = ("$bindir/setup.pl", '-h', "$user\@$host");
 	push @setupcmd, '-d', $date if $date;
 	push @setupcmd, '-v' if $verbose;
+	push @setupcmd, '-P', $patch if $patch;
 	push @setupcmd, '-r', $release if $release;
 	push @setupcmd, keys %mode;
 	push @pidcmds, forkcmd(@setupcmd);
