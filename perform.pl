@@ -780,7 +780,8 @@ foreach my $t (@tests) {
 		or warn "Interrupt btrace failed: $!";
 
 	    print $log "Btrace '@btcmd' stopped after $sampletime seconds\n";
-	    print "Btrace '@btcmd' stopped\n" if $opts{v};
+	    print "Btrace '@btcmd' stopped after $sampletime seconds\n"
+		if $opts{v};
 	    undef $!;
 	    waitpid($btracepid, 0) == $btracepid && $? == 0
 		and _exit(0);
