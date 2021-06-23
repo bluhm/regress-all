@@ -31,11 +31,12 @@ use Buildquirks;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:h:r:v', \%opts) or do {
+getopts('d:h:r:P:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] -h host [-r release] mode ...
+usage: $0 [-v] [-d date] -h host [-P patch] [-r release] mode ...
     -d date	set date string and change to sub directory
     -h host	root\@openbsd-test-machine, login per ssh
+    -P patch	apply patch to clean kernel source
     -r release	use release for install and cvs checkout, X.Y or current
     -v		verbose
     build	build system from source /usr/src and reboot
@@ -54,6 +55,7 @@ $opts{h} or die "No -h specified";
 !$opts{d} || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
+my $patch = $opts{P};
 
 my %allmodes;
 @allmodes{qw(build commands cvs install kernel keep ports tools upgrade)} = ();
@@ -99,10 +101,12 @@ get_version();
 copy_scripts();
 checkout_cvs($release) if $mode{install} || $mode{upgrade};
 update_cvs($release, undef, $cvspath) if $mode{cvs};
+clean_cvs($cvspath) if $patch;
+patch_cvs($patch, $cvspath) if $patch;
 update_ports($release) if $mode{ports};
 make_kernel() if $mode{kernel} || $mode{build};
 make_build() if $mode{build};
-diff_cvs($cvspath) if $mode{kernel} || $mode{build};
+diff_cvs($cvspath) if $mode{kernel} || $mode{build} || $patch;
 reboot() if $mode{kernel} || $mode{build};
 get_version() if $mode{kernel} || $mode{build};
 update_packages($release) if $mode{upgrade} || $mode{ports};
