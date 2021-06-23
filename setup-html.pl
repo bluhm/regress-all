@@ -94,7 +94,8 @@ foreach my $date (@dates) {
 	chdir("$dir/$cvsdate")
 	    or die "Change directory to '$dir/$cvsdate' failed: $!";
 
-	my @repeats = grep { -d $_ } glob("[0-9][0-9][0-9]");
+	my @repeats = grep { -d $_ }
+	    (glob("[0-9][0-9][0-9]"), glob("btrace-*"));
 	$D{$date}{$cvsdate}{repeats} = [ @repeats ] if $cvsdate;
 
 	foreach my $repeat ("", @repeats) {
