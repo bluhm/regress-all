@@ -692,10 +692,18 @@ foreach my $t (@tests) {
     # reap zombies, might happen it there were some btrace errors
     1 while waitpid(-1, WNOHANG) > 0;
 
+    my $sampletime;
     if ($btrace) {
 	# run the test for 80 seconds to measure btrace during 1 minute
-	next unless grep { /^-t10$/ } @runcmd;
-	s/^-t10$/-t80/ foreach @runcmd;
+	if (grep { /^-t10$/ } @runcmd) {
+	    s/^-t10$/-t80/ foreach @runcmd;
+	    $sampletime = 60;
+	} elsif (grep { /^make$/ } @runcmd) {
+	    # kernel build usually takes longer than 5 minutes
+	    $sampletime = 300;
+	} else {
+	    next;
+	}
     }
 
     my $begin = Time::HiRes::time();
@@ -766,12 +774,12 @@ foreach my $t (@tests) {
 	    print $log "Btrace '@btcmd' started\n";
 	    print "Btrace '@btcmd' started\n" if $opts{v};
 
-	    # gather samples during 1 minute
-	    sleep 60;
+	    # gather samples during 1 minute or 5 minutes
+	    sleep $sampletime;
 	    kill 'INT', $btracepid
 		or warn "Interrupt btrace failed: $!";
 
-	    print $log "Btrace '@btcmd' stopped\n";
+	    print $log "Btrace '@btcmd' stopped after $sampletime seconds\n";
 	    print "Btrace '@btcmd' stopped\n" if $opts{v};
 	    undef $!;
 	    waitpid($btracepid, 0) == $btracepid && $? == 0
