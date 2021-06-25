@@ -20,6 +20,7 @@ use warnings;
 use Cwd;
 use Fcntl qw(SEEK_SET SEEK_CUR SEEK_END);
 use File::Basename;
+use File::Glob qw(:bsd_glob);
 use HTML::Entities;
 use Getopt::Std;
 use Date::Parse;
@@ -67,9 +68,11 @@ if ($opts{d}) {
     @dates = $date;
 } else {
     @dates =
-	map { dirname($_) }
-	(glob("*T*/run.log"), glob("*T*/step.log"), glob("*T*/test.log"),
-	glob("*T*/make.log"));
+	map { dirname($_) } (
+	bsd_glob("*T*/run.log", GLOB_NOSORT),
+	bsd_glob("*T*/step.log", GLOB_NOSORT),
+	bsd_glob("*T*/test.log", GLOB_NOSORT),
+	bsd_glob("*T*/make.log", GLOB_NOSORT));
     $date = $dates[-1];
     if (!$opts{a}) {
 	@dates =
@@ -87,15 +90,18 @@ foreach my $date (@dates) {
     chdir($dir)
 	or die "Change directory to '$dir' failed: $!";
 
-    my @cvsdates = grep { -d $_ } (glob("*T*"), glob("patch-*"));
+    my @cvsdates = grep { -d $_ } (
+	bsd_glob("*T*", GLOB_NOSORT),
+	bsd_glob("patch-*", GLOB_NOSORT));
     $D{$date}{cvsdates} = [ @cvsdates ];
 
     foreach my $cvsdate ("", @cvsdates) {
 	chdir("$dir/$cvsdate")
 	    or die "Change directory to '$dir/$cvsdate' failed: $!";
 
-	my @repeats = grep { -d $_ }
-	    (glob("[0-9][0-9][0-9]"), glob("btrace-*"));
+	my @repeats = grep { -d $_ } (
+	    bsd_glob("[0-9][0-9][0-9]", GLOB_NOSORT),
+	    bsd_glob("btrace-*", GLOB_NOSORT));
 	$D{$date}{$cvsdate}{repeats} = [ @repeats ] if $cvsdate;
 
 	foreach my $repeat ("", @repeats) {
