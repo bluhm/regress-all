@@ -107,5 +107,7 @@ get_version();
 
 # finish reboot log
 
-$date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $date.\n");
+my $now = strftime("%FT%TZ", gmtime);
+logmsg("Script '$scriptname' finished at $now.\n");
+
+exit;
