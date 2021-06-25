@@ -261,19 +261,19 @@ TABLE_HEAD
 	print $html <<"TABLE_ROW";
     <tr>
       <td>
-        <input id="checkbox-$i" checked type=checkbox>
-        <img src="$prefix\_$i.png" alt="$PLOT $desc $sub">
+	<input id="checkbox-$i" checked type=checkbox>
+	<img src="$prefix\_$i.png" alt="$PLOT $desc $sub">
       </td>
       <td>
-        <label for="checkbox-$i">
-          <img class="key" src="key_$i.png" alt="Key $i">
-        </label>
+	<label for="checkbox-$i">
+	  <img class="key" src="key_$i.png" alt="Key $i">
+	</label>
       </td>
       <td>
-        <label for="checkbox-$i">$desc $sub</label>
+	<label for="checkbox-$i">$desc $sub</label>
       </td>
       <td>
-        <label for="checkbox-$i"><code>$testcmd</code></label>
+	<label for="checkbox-$i"><code>$testcmd</code></label>
       </td>
     </tr>
 TABLE_ROW
