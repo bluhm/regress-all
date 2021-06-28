@@ -787,7 +787,7 @@ sub html_repeat_top {
   </tr>
   <tr>
     <th>run at</th>
-    <td>$date</td>
+    <td><a href="../../$date/$cvsdate/perform.html">$date</a></td>
   </tr>
 HEADER
     print $html "  <tr>\n    <th>run</th>\n";
@@ -951,7 +951,7 @@ sub html_cvsdate_top {
   </tr>
   <tr>
     <th>run at</th>
-    <td>$date</td>
+    <td><a href="../$date/perform.html">$date</a></td>
   </tr>
 HEADER
     print $html "  <tr>\n    <th>run</th>\n";
