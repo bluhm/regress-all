@@ -539,6 +539,11 @@ my %quirks = (
 	updatedirs => [ "lib/libc", "lib/librthread" ],
 	builddirs => [ "lib/libc", "lib/librthread" ],
     },
+    '2021-06-28T08:55:06Z' => {
+	comment => "btrace includes userland in kstack",
+	updatedirs => [ "usr.sbin/btrace" ],
+	builddirs => [ "usr.sbin/btrace" ],
+    },
 );
 
 #### Patches ####
