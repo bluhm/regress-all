@@ -339,7 +339,7 @@ sub parse_result_files {
 	my ($cvsshort, $repshort) = ($cvsdate, $repeat);
 	$cvsshort =~ s/T.+Z$//;
 	$cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
-	$repshort =~ s/^btrace-(.*)\.\d+$/$1/;
+	$repshort =~ s/^btrace-(.*)\.\d+$/$1/ if $repeat;
 	print "." if $verbose;
 	$D{$date}{short} ||= $short;
 	push @{$D{$date}{cvsdates} ||= []}, $cvsdate unless $D{$date}{$cvsdate};
