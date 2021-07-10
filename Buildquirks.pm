@@ -544,6 +544,10 @@ my %quirks = (
 	updatedirs => [ "usr.sbin/btrace" ],
 	builddirs => [ "usr.sbin/btrace" ],
     },
+    '2021-07-07T02:38:38Z' => {
+	comment => "update drm moves kernel source files",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 );
 
 #### Patches ####
