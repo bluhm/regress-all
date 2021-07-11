@@ -67,7 +67,7 @@ my %mode = map {
 my $release;
 if ($opts{r} && $opts{r} ne "current") {
     die "Upgrade to release not supported" if $mode{upgrade};
-    ($release = $opts{r}) =~ /^\d+\.\d+$/
+    ($release = $opts{r}) =~ /^\d+\.\d$/
 	or die "Release '$release' must be major.minor format";
 }
 

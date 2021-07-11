@@ -48,7 +48,7 @@ my $verbose = $opts{v};
 my $dry = $opts{n};
 my $release;
 if ($opts{r} && $opts{r} ne "current") {
-    ($release = $opts{r}) =~ /^\d+\.\d+$/
+    ($release = $opts{r}) =~ /^\d+\.\d$/
 	or die "Release '$release' must be major.minor format";
 }
 my ($run, $date);

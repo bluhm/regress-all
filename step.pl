@@ -63,7 +63,7 @@ $opts{h} or die "No -h specified";
 $opts{r} or die "No -r specified";
 my $release;
 if ($opts{r} ne "current") {
-    ($release = $opts{r}) =~ /^\d+\.\d+$/
+    ($release = $opts{r}) =~ /^\d+\.\d$/
 	or die "Release '$opts{r}' must be major.minor format";
 }
 $opts{B} or die "No -B begin date";
