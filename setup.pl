@@ -76,6 +76,7 @@ chdir($regressdir)
     or die "Change directory to '$regressdir' failed: $!";
 $regressdir = getcwd();
 my $resultdir = "$regressdir/results";
+$resultdir .= "/$release" if $release;
 $resultdir .= "/$date" if $date;
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";

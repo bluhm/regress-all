@@ -131,11 +131,16 @@ $performdir = getcwd();
 my $resultdir = "$performdir/results";
 -d $resultdir || mkdir $resultdir
     or die "Make directory '$resultdir' failed: $!";
+if ($release) {
+    $resultdir .= "/$release";
+    -d $resultdir || mkdir $resultdir
+	or die "Make directory '$resultdir' failed: $!";
+}
 $resultdir .= "/$date";
 mkdir $resultdir
     or die "Make directory '$resultdir' failed: $!";
 unlink("results/current");
-symlink($date, "results/current")
+symlink($release ? "$release/$date" : $date, "results/current")
     or die "Make symlink 'results/current' failed: $!";
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
@@ -201,7 +206,9 @@ foreach my $current (@steps) {
 	or die "Change directory to '$performdir' failed: $!";
 
     my $cvsdate = strftime("%FT%TZ", gmtime($current));
-    my $cvsdir = "results/$date/$cvsdate";
+    my $cvsdir = "results";
+    $cvsdir .= "/$release" if $release;
+    $cvsdir .= "/$date/$cvsdate";
     mkdir $cvsdir
 	or die "Make directory '$cvsdir' failed: $!";
     chdir($cvsdir)
