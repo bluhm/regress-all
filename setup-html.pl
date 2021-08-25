@@ -63,30 +63,46 @@ chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
 my $typename = "";
-my @dates;
+my @reldates;
 if ($opts{d}) {
-    @dates = $date;
+    @reldates = (
+	bsd_glob("$date", GLOB_NOSORT),
+	bsd_glob("[0-9]*.[0-9]/$date", GLOB_NOSORT));
 } else {
-    @dates =
+    my @dates =
 	map { dirname($_) } (
 	bsd_glob("*T*/run.log", GLOB_NOSORT),
 	bsd_glob("*T*/step.log", GLOB_NOSORT),
 	bsd_glob("*T*/test.log", GLOB_NOSORT),
 	bsd_glob("*T*/make.log", GLOB_NOSORT));
-    $date = $dates[-1];
+    @reldates =
+	map { dirname($_) } (
+	bsd_glob("[0-9]*.[0-9]/*T*/step.log", GLOB_NOSORT));
+    $date = $reldates[-1];
     if (!$opts{a}) {
+	# run times older than two weeks are irrelevant
 	@dates =
-	    # run times older than two weeks are irrelevant
 	    grep { str2time($now) - str2time($_) <= 60*60*24*14 }
-	    @dates;
+	    splice(@dates);
+	@reldates =
+	    grep { str2time($now) - str2time(basename($_)) <= 60*60*24*14 }
+	    splice(@reldates);
 	# keep at least the newest date
-	@dates = $date unless @dates;
+	@dates = $date unless @dates || @reldates;
+    }
+    if (@reldates) {
+	@reldates = sort { basename($a) cmp basename($b) } (
+	    splice(@dates), splice(@reldates));
+    } else {
+	@reldates = splice(@dates);
     }
 }
 
 my (%D, %M, %H);
-foreach my $date (@dates) {
-    my $dir = "$regressdir/results/$date";
+foreach my $reldate (@reldates) {
+    $date = basename($reldate);
+    $D{$date}{reldate} = $reldate;
+    my $dir = "$regressdir/results/$reldate";
     chdir($dir)
 	or die "Change directory to '$dir' failed: $!";
 
@@ -189,8 +205,9 @@ foreach my $date (@dates) {
 }
 
 if ($opts{a} || $opts{d}) {
-    foreach my $date (@dates) {
-	my $dir = "$regressdir/results/$date";
+    foreach my $reldate (@reldates) {
+	$date = basename($reldate);
+	my $dir = "$regressdir/results/$reldate";
 	chdir($dir)
 	    or die "Change directory to '$dir' failed: $!";
 
@@ -639,6 +656,7 @@ HEADER
     print $html "  </tr>\n";
 
     foreach my $date (reverse sort keys %D) {
+	my $reldate = $D{$date}{reldate};
 	my @cvsdates = @{$D{$date}{cvsdates}};
 	foreach my $cvsdate (reverse "", @cvsdates) {
 	    my @repeats = $cvsdate ? @{$D{$date}{$cvsdate}{repeats}} : ();
@@ -652,7 +670,7 @@ HEADER
 		    $h = $D{$date}{$cvsdate}{host};
 		} else {
 		    my $log = $D{$date}{log} || "";
-		    my $logfile = "$date/$log";
+		    my $logfile = "$reldate/$log";
 		    my $status = $log ? log_status($logfile) : "";
 		    my $mtime = $log ? (stat($logfile))[9] : 0;
 		    my $class = $status ? " class=\"status $status\"" : "";
@@ -667,7 +685,7 @@ HEADER
 			my $bsdcons = $h->{$host}{bsdcons}
 			    or next;
 			print $html "<br>console" unless $console++;
-			$logfile = "$date/$bsdcons";
+			$logfile = "$reldate/$bsdcons";
 			$link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 			print $html " <a href=\"$link\">$host</a>";
 		    }
@@ -693,7 +711,7 @@ HEADER
 		    my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
 			$h->{$host}{reboot} || "";
 		    $time ||= "log" if $setup;
-		    my $logfile = "$date/$setup";
+		    my $logfile = "$reldate/$setup";
 		    my $status = $setup ? log_status($logfile) : "";
 		    my $class = $status ? " class=\"status $status\"" : "";
 		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
