@@ -151,7 +151,7 @@ print $fh "RELEASE $opts{r}\n";
 print $fh strftime("BEGIN %FT%TZ\n", gmtime($begin));
 print $fh strftime("END %FT%TZ\n", gmtime($end));
 print $fh "STEP ", $unit eq "commit" ? $unit : "$step $unit", "\n";
-print $fh "REPEAT $repeat\n";
+print $fh "REPEAT ", $repeat || "", "\n";
 print $fh "KERNELMODES ", join(" ", sort keys %kernelmode), "\n";
 print $fh "SETUPMODES ", join(" ", sort keys %setupmode), "\n";
 print $fh "TESTMODES ", join(" ", sort keys %testmode), "\n";
