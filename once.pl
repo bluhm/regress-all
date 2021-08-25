@@ -34,7 +34,7 @@ my %opts;
 getopts('b:d:D:h:k:N:P:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
-    [-N repeat] [-P patch] [test ...]
+    [-N repeat] [-P patch] [-r release] [test ...]
     -b kstack	measure with btrace and create kernel stack map
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
@@ -42,6 +42,7 @@ usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
     -N repeat	number of build, reboot, test repetitions per step
     -P patch	apply patch to clean kernel source
+    -r release	change to release sub directory
     -v		verbose
     test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
 		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
@@ -68,6 +69,11 @@ my $cvsdate = $opts{D};
 my $patch = $opts{P};
 $cvsdate && $patch
     and die "Cannot combine -D cvsdate and -P patch";
+my $release;
+if ($opts{r} ne "current") {
+    ($release = $opts{r}) =~ /^\d+\.\d$/
+	or die "Release '$opts{r}' must be major.minor format";
+}
 
 my $repeat = $opts{N};
 !$repeat || $repeat >= 1 || $repeat =~ /^\d{3}$/
@@ -99,6 +105,11 @@ chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
 my $resultdir = "$performdir/results";
+if ($release) {
+    $resultdir .= "/$release";
+    -d $resultdir
+	or die "Test directory '$resultdir' failed: $!";
+}
 if ($date && $date eq "current") {
     my $current = readlink("$resultdir/$date")
 	or die "Read link '$resultdir/$date' failed: $!";
