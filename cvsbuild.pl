@@ -62,7 +62,7 @@ my $patch = $opts{P};
 my $release;
 if ($opts{r} ne "current") {
     ($release = $opts{r}) =~ /^\d+\.\d$/
-        or die "Release '$opts{r}' must be major.minor format";
+	or die "Release '$opts{r}' must be major.minor format";
 }
 
 my %allmodes;

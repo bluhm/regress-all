@@ -189,6 +189,7 @@ sub cvsbuild_hosts {
     my %args = @_;
     my $cvsdate = delete $args{cvsdate};
     my $patch = delete $args{patch};
+    my $release = delete $args{release};
     my %mode = %{delete $args{mode}};
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
@@ -199,6 +200,7 @@ sub cvsbuild_hosts {
 	push @cvscmd, '-d', $date if $date;
 	push @cvscmd, '-D', $cvsdate if $cvsdate;
 	push @cvscmd, '-P', $patch if $patch;
+	push @cvscmd, '-r', $release if $release;
 	push @cvscmd, '-v' if $verbose;
 	push @cvscmd, keys %mode;
 	push @pidcmds, forkcmd(@cvscmd);

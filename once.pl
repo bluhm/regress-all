@@ -148,8 +148,8 @@ END {
 	system(@cmd);
     }
 };
-cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch, mode => \%kernelmode)
-    unless $kernelmode{keep};
+cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch, release => $release,
+    mode => \%kernelmode) unless $kernelmode{keep};
 collect_version();
 setup_html();
 

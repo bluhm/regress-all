@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -219,7 +219,8 @@ foreach my $current (@steps) {
 	delete $cvsmode{keep};
 	$cvsmode{reboot} = 1;
     }
-    cvsbuild_hosts(cvsdate => $cvsdate, mode => \%cvsmode);
+    cvsbuild_hosts(cvsdate => $cvsdate, release => $release,
+	mode => \%cvsmode);
     collect_version();
     setup_html();
 
