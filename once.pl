@@ -31,7 +31,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('b:d:D:h:k:N:P:v', \%opts) or do {
+getopts('b:d:D:h:k:N:P:r:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
     [-N repeat] [-P patch] [-r release] [test ...]
@@ -70,7 +70,7 @@ my $patch = $opts{P};
 $cvsdate && $patch
     and die "Cannot combine -D cvsdate and -P patch";
 my $release;
-if ($opts{r} ne "current") {
+if ($opts{r} && $opts{r} ne "current") {
     ($release = $opts{r}) =~ /^\d+\.\d$/
 	or die "Release '$opts{r}' must be major.minor format";
 }

@@ -33,7 +33,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:P:v', \%opts) or do {
+getopts('d:D:h:P:r:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-d date] [-D cvsdate] -h host [-P patch] [-r release]
     [kernel ...]
@@ -60,7 +60,7 @@ my $date = $opts{d};
 my $cvsdate = $opts{D};
 my $patch = $opts{P};
 my $release;
-if ($opts{r} ne "current") {
+if ($opts{r} && $opts{r} ne "current") {
     ($release = $opts{r}) =~ /^\d+\.\d$/
 	or die "Release '$opts{r}' must be major.minor format";
 }
