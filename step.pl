@@ -254,7 +254,7 @@ foreach my $current (@steps) {
 	if (@repeats) {
 	    unless ($kernelmode{keep} || $repeatdir eq $repeats[-1]) {
 		reboot_hosts(cvsdate => $cvsdate, repeat => $repeatdir,
-		    mode => \%kernelmode);
+		    release => $release, mode => \%kernelmode);
 	    }
 	    collect_version();
 	    setup_html();

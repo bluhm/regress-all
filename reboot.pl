@@ -30,13 +30,15 @@ use Machine;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:R:v', \%opts) or do {
+getopts('d:D:h:R:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] [-D cvsdate] -h host [-R repeat] [kernel ...]
+usage: $0 [-v] [-d date] [-D cvsdate] -h host [-R repeat] [-r release]
+    [kernel ...]
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
     -R repeat	repetition number
+    -r release	change to release sub directory
     -v		verbose
     align	relink kernel aligning all object at page size, no randomness
     gap		relink kernel sorting object files, but use random gap
@@ -56,6 +58,11 @@ my $cvsdate = $opts{D};
 !$opts{R} || $opts{R} =~ /^\d{3}$/
     or die "Invalid -R repeat '$opts{R}'";
 my $repeat = $opts{R};
+my $release;
+if ($opts{r} && $opts{r} ne "current") {
+    ($release = $opts{r}) =~ /^\d+\.\d$/
+	or die "Release '$opts{r}' must be major.minor format";
+}
 
 my %allmodes;
 @allmodes{qw(align gap sort reorder reboot)} = ();

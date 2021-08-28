@@ -218,6 +218,7 @@ sub reboot_hosts {
     my %args = @_;
     my $cvsdate = delete $args{cvsdate};
     my $repeat = delete $args{repeat};
+    my $release = delete $args{release};
     my %mode = %{delete $args{mode}};
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
@@ -228,6 +229,7 @@ sub reboot_hosts {
 	push @rebootcmd, '-d', $date if $date;
 	push @rebootcmd, '-D', $cvsdate if $cvsdate;
 	push @rebootcmd, '-R', $repeat if $repeat;
+	push @rebootcmd, '-r', $release if $release;
 	push @rebootcmd, '-v' if $verbose;
 	push @rebootcmd, keys %mode;
 	push @pidcmds, forkcmd(@rebootcmd);
