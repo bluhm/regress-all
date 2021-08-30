@@ -277,7 +277,7 @@ push @cmd, "-v" if $opts{v};
 runcmd(@cmd);
 
 unlink("results/latest");
-symlink($date, "results/latest")
+symlink($release ? "$release/$date" : $date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
 
 my $now = strftime("%FT%TZ", gmtime);
