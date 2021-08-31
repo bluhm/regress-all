@@ -38,13 +38,14 @@ my $fgdir = "/home/bluhm/github/FlameGraph";  # XXX
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('d:Ggnv', \%opts) or do {
+getopts('d:Ggnr:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-Gg] [-d date]
+usage: $0 [-Ggnv] [-d date] [-r release]
     -d date	run date of performance test, may be current
     -G		do not regenerate any gnuplot files, allows faster debugging
     -g		generate all gnuplot files, even if they already exist
     -n		do not generate gnuplot files on main release page
+    -r release	change to release sub directory
     -v		verbose
 EOF
     exit(2);
@@ -52,6 +53,11 @@ EOF
 !$opts{d} || $opts{d} eq "current" || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
+my $release;
+if ($opts{r} && $opts{r} ne "current") {
+    ($release = $opts{r}) =~ /^\d+\.\d$/
+	or die "Release '$opts{r}' must be major.minor format";
+}
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 
@@ -66,25 +72,24 @@ if ($date && $date eq "current") {
 	or die "Read link '$resultdir/$date' failed: $!";
     -d "$resultdir/$current"
 	or die "Test directory '$resultdir/$current' failed: $!";
-    $date = $current;
+    $date = basename($current);
+    $release ||= dirname($current) if $date ne $current;
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
-if ($date && $date eq "current") {
-    my $current = readlink("$resultdir/$date")
-	or die "Read link '$resultdir/$date' failed: $!";
-    -d "$resultdir/$current"
-	or die "Test directory '$resultdir/$current' failed: $!";
-    $date = $current;
-}
 
 # create the html and gnuplot files only for a single date
 my $dateglob = ($opts{n} && $date) ? $date : "*";
+$dateglob = "$release/$dateglob" if $release;
 # cvs checkout and repeated results
 print "." if $verbose;
 my @result_files = sort(glob("$dateglob/*/test.result"),
     glob("$dateglob/*/*/test.result"));
+push @result_files, sort(glob("[0-9]*.[0-9]/*/*/test.result"),
+    glob("[0-9]*.[0-9]/*/*/*/test.result")) if !$release && !$date;
 print "\n" if $verbose;
+
+@result_files or die "No result files for '$dateglob' in '$resultdir' found";
 
 # %T
 # $test					performance test tool command line
@@ -195,8 +200,9 @@ exit;
 sub parse_result_files {
     foreach my $result (@_) {
 	# parse result file
-	my ($date, $short, $cvsdate, $repeat) = $result =~
+	my ($release, $date, $short, $cvsdate, $repeat) = $result =~
 	    m,
+		(?:(\d+\.\d)/)?				# release
 		(([^/]+)T[^/]+Z)/			# date
 		([^/]+T[^/]+Z|patch-[^/]+\.\d+)/	# cvsdate or patch
 		(?:(\d+|btrace-[^/]+\.\d+)/)?		# repeat or btrace
@@ -207,6 +213,8 @@ sub parse_result_files {
 	$cvsshort =~ s/T.+Z$//;
 	$cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
 	$repshort =~ s/^btrace-(.*)\.\d+$/$1/ if $repeat;
+	my $reldate = "$date";
+	$reldate = "$release/$reldate" if $release;
 	print "." if $verbose;
 	$D{$date}{short} ||= $short;
 	push @{$D{$date}{cvsdates} ||= []}, $cvsdate unless $D{$date}{$cvsdate};
@@ -218,10 +226,11 @@ sub parse_result_files {
 	} else {
 	    $D{$date}{$cvsdate}{result} = $result;
 	}
-	$D{$date}{log} ||= "step.log" if -f "$date/step.log";
-	$D{$date}{$cvsdate}{log} ||= "once.log" if -f "$date/$cvsdate/once.log";
+	$D{$date}{log} ||= "step.log" if -f "$reldate/step.log";
+	$D{$date}{$cvsdate}{log} ||= "once.log"
+	    if -f "$reldate/$cvsdate/once.log";
 	unless ($D{$date}{stepconf}) {
-	    my $stepfile = "$date/stepconf.txt";
+	    my $stepfile = "$reldate/stepconf.txt";
 	    if (open (my $fh, '<', $stepfile)) {
 		while (<$fh>) {
 		    chomp;
@@ -233,13 +242,13 @@ sub parse_result_files {
 		    or die "Open '$stepfile' for reading failed: $!";
 	    }
 	}
-	$D{$date}{setup} ||= "$date/setup.html" if -f "$date/setup.html";
-	$D{$date}{$cvsdate}{build} ||= "$date/$cvsdate/build.html"
-	    if -f "$date/$cvsdate/build.html";
+	$D{$date}{setup} ||= "$reldate/setup.html" if -f "$reldate/setup.html";
+	$D{$date}{$cvsdate}{build} ||= "$reldate/$cvsdate/build.html"
+	    if -f "$reldate/$cvsdate/build.html";
 	if (defined $repeat) {
 	    $D{$date}{$cvsdate}{$repeat}{reboot} ||=
-		"$date/$cvsdate/$repeat/reboot.html"
-		if -f "$date/$cvsdate/$repeat/reboot.html";
+		"$reldate/$cvsdate/$repeat/reboot.html"
+		if -f "$reldate/$cvsdate/$repeat/reboot.html";
 	}
 	$_->{severity} *= .5 foreach values %T;
 	open(my $fh, '<', $result)
@@ -271,9 +280,11 @@ sub parse_result_files {
 		    message => $message,
 		};
 		if ($repeat =~ /^btrace-/ &&
-		    -f "$date/$cvsdate/$repeat/logs/$test-$repshort.btrace") {
+		    -f "$reldate/$cvsdate/$repeat/logs/".
+		    "$test-$repshort.btrace") {
 			$B{$date}{$cvsdate}{$test}{$repeat} =
-			    "$date/$cvsdate/$repeat/logs/$test-$repshort.btrace"
+			    "$reldate/$cvsdate/$repeat/logs/".
+			    "$test-$repshort.btrace"
 		}
 		if (($T{$test}{$date}{$cvsdate}{severity} || 0) < $severity) {
 		    $T{$test}{$date}{$cvsdate}{status} = $status;
@@ -301,7 +312,7 @@ sub parse_result_files {
 	    or die "Close '$result' after reading failed: $!";
 
 	# parse version file
-	foreach my $version (sort glob("$date/$cvsdate/version-*.txt")) {
+	foreach my $version (sort glob("$reldate/$cvsdate/version-*.txt")) {
 	    $version =~ m,/version-(.+)\.txt$,;
 	    my $hostname = $1;
 
@@ -368,7 +379,7 @@ sub write_data_files {
 	    "# test subtest run checkout repeat value unit host\n";
     }
     my $fh;
-    unless ($opts{n}) {
+    if (!$opts{d} && !$opts{n} && !$opts{r}) {
 	open($fh, '>', "test.data.new")
 	    or die "Open 'test.data.new' for writing failed: $!";
 	print $fh "# test subtest run checkout repeat value unit host\n";
