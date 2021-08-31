@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # collect kernel output from console to regress or perform dir
 
-# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -32,14 +32,15 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:lR:v', \%opts) or do {
+getopts('d:D:h:lR:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-lv] [-d date] [-D cvsdate] -h host [-R repeat]
+usage: $0 [-lv] [-d date] [-D cvsdate] -h host [-R repeat] [-r release]
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
     -l		update bsdcons in latest directory with this host
     -R repeat	repetition number
+    -r release	change to release sub directory
     -v		verbose
 EOF
     exit(2);
@@ -54,6 +55,11 @@ my $cvsdate = $opts{D};
 !$opts{R} || $opts{R} =~ /^\d{3}$/
     or die "Invalid -R repeat '$opts{R}'";
 my $repeat = $opts{R};
+my $release;
+if ($opts{r} && $opts{r} ne "current") {
+    ($release = $opts{r}) =~ /^\d+\.\d$/
+	or die "Release '$opts{r}' must be major.minor format";
+}
 $opts{d} && $opts{l}
     and die "Use either specific date or latest date";
 
@@ -85,6 +91,7 @@ if ($opts{l}) {
     $date = dirname($bsdcons[-1]);
 }
 
+$resultdir .= "/$release" if $release;
 $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $date && $cvsdate;
 $resultdir .= "/$repeat" if $date && $cvsdate && $repeat;
