@@ -654,6 +654,7 @@ HEADER
 		    my $log = $D{$date}{log} || "";
 		    my $logfile = "$date/$log";
 		    my $status = $log ? log_status($logfile) : "";
+		    my $mtime = $log ? (stat($logfile))[9] : 0;
 		    my $class = $status ? " class=\"status $status\"" : "";
 		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 		    my $href = $log ? "<a href=\"$link\">" : "";
@@ -669,6 +670,9 @@ HEADER
 			$logfile = "$date/$bsdcons";
 			$link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 			print $html " <a href=\"$link\">$host</a>";
+		    }
+		    if ($mtime && $status !~ /^(NOEXIT|NOTERM)$/) {
+			print $html "<br>", strftime("%FT%TZ", gmtime($mtime));
 		    }
 		    print $html "</td>\n";
 		}
