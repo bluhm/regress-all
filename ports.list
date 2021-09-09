@@ -60,6 +60,7 @@ devel/p5-File-Find-Rule
 devel/p5-File-Listing
 devel/p5-File-Modified
 devel/p5-File-Slurp
+devel/p5-File-TreeCreate
 devel/p5-Forest
 devel/p5-Hash-Util-FieldHash-Compat
 devel/p5-IO-BufferedSelect
@@ -67,6 +68,7 @@ devel/p5-IO-Interactive
 devel/p5-IO-KQueue
 devel/p5-IO-Tty
 devel/p5-IO-stringy
+devel/p5-IPC-Run
 devel/p5-Importer
 devel/p5-Lchown
 devel/p5-List-Compare
@@ -104,6 +106,7 @@ devel/p5-Term-Size-Any
 devel/p5-Term-Size-Perl
 devel/p5-Term-Table
 devel/p5-Test-Class
+devel/p5-Test-Compile
 devel/p5-Test-EOL
 devel/p5-Test-Exit
 devel/p5-Test-File
@@ -111,9 +114,11 @@ devel/p5-Test-Inline
 devel/p5-Test-LectroTest
 devel/p5-Test-Lib
 devel/p5-Test-Manifest
+devel/p5-Test-MockModule
 devel/p5-Test-MockRandom
 devel/p5-Test-Most
 devel/p5-Test-Needs
+devel/p5-Test-NoWarnings
 devel/p5-Test-Output
 devel/p5-Test-Portability-Files
 devel/p5-Test-Regexp
@@ -188,6 +193,7 @@ productivity/p5-iCal-Parser
 security/botan2
 security/p5-Authen-SASL
 security/p5-Crypt-DES
+security/p5-Crypt-Ed25519
 security/p5-Crypt-OpenSSL-Bignum
 security/p5-Crypt-OpenSSL-DSA
 security/p5-Crypt-OpenSSL-EC
@@ -208,6 +214,7 @@ security/p5-Module-Signature
 security/p5-Net-SSLGlue
 security/p5-Net-SSLeay
 sysutils/p5-Capture-Tiny
+sysutils/p5-File-Rename
 sysutils/p5-File-Which
 sysutils/p5-Filesys-Df
 telephony/p5-Net-SIP
