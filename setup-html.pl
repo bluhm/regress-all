@@ -672,7 +672,12 @@ HEADER
 			print $html " <a href=\"$link\">$host</a>";
 		    }
 		    if ($mtime && $status !~ /^(NOEXIT|NOTERM)$/) {
-			print $html "<br>", strftime("%FT%TZ", gmtime($mtime));
+			my $start = str2time($date);
+			my $duration = $mtime - $start;
+			print $html "<br>duration ";
+			print $html $duration >= 24*60*60 ?
+			    ($duration / 24*60*60). " days" :
+			    strftime("%T", gmtime($duration));
 		    }
 		    print $html "</td>\n";
 		}
