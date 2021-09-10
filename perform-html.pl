@@ -189,8 +189,9 @@ foreach my $date (@dates) {
     my $short = $dv->{short};
     foreach my $cvsdate (@{$dv->{cvsdates}}) {
 	print "." if $verbose;
-	my $cvsshort = $dv->{$cvsdate}{cvsshort};
-	my @repeats = sort @{$dv->{$cvsdate}{repeats} || []}
+	my $cv = $dv->{$cvsdate};
+	my $cvsshort = $cv->{cvsshort};
+	my @repeats = sort @{$cv->{repeats} || []}
 	    or next;
 
 	my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
@@ -624,6 +625,7 @@ sub create_cvslog_files {
 	foreach my $cvsdate (@{$dv->{cvsdates}}) {
 	    # patch tests have no cvs checkout
 	    str2time($cvsdate) or next;
+	    my $cv = $dv->{$cvsdate};
 	    if ($prevcvsdate) {
 		(my $year = $prevcvsdate) =~ s/-.*//;
 		my $cvslog = "cvslog/$year/src/sys/$prevcvsdate--$cvsdate";
@@ -635,14 +637,14 @@ sub create_cvslog_files {
 			and die "Command '@cmd' failed: $?";
 		}
 		if (open (my $fh, '<', "$cvslog.txt")) {
-		    $dv->{$cvsdate}{cvslog} = "$cvslog.txt";
-		    $dv->{$cvsdate}{cvscommits} = 0;
+		    $cv->{cvslog} = "$cvslog.txt";
+		    $cv->{cvscommits} = 0;
 		    while (<$fh>) {
 			chomp;
 			my ($k, @v) = split(/\s+/)
 			    or next;
-			$dv->{$cvsdate}{cvscommits}++ if $k eq 'DATE';
-			push @{$dv->{$cvsdate}{cvsfiles}}, @v if $k eq 'FILES';
+			$cv->{cvscommits}++ if $k eq 'DATE';
+			push @{$cv->{cvsfiles}}, @v if $k eq 'FILES';
 		    }
 		} else {
 		    $!{ENOENT}
@@ -650,7 +652,7 @@ sub create_cvslog_files {
 		}
 		if (-f "$cvslog.html") {
 		    # If html is available, use its nicer display in link.
-		    $dv->{$cvsdate}{cvslog} = "$cvslog.html";
+		    $cv->{cvslog} = "$cvslog.html";
 		}
 	    }
 	    $prevcvsdate = $cvsdate;
@@ -831,10 +833,11 @@ HEADER
 sub html_repeat_test_head {
     my ($html, $date, $cvsdate, @repeats) = @_;
     my $dv = $D{$date};
+    my $cv = $dv->{$cvsdate};
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>repeat</th>\n";
     foreach my $repeat (@repeats) {
-	my $repshort = $dv->{$cvsdate}{$repeat}{repshort};
+	my $repshort = $cv->{$repeat}{repshort};
 	my $rep_btrace = encode_entities($repeat);
 	print $html "    <th title=\"$rep_btrace\">$repshort</th>\n";
     }
@@ -850,7 +853,7 @@ sub html_repeat_test_head {
 	    print $html "    <th></th>\n";
 	    next;
 	}
-	my $reboot = $dv->{$cvsdate}{$repeat}{reboot};
+	my $reboot = $cv->{$repeat}{reboot};
 	$reboot =~ s,[^/]+/[^/]+/,, if $reboot;
 	my $link = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
 	my $href = $reboot ? "<a href=\"$link\">" : "";
@@ -1026,12 +1029,13 @@ sub html_cvsdate_test_head {
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>kernel build</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    my $version = $dv->{$cvsdate}{version};
+	    my $cv = $dv->{$cvsdate};
+	    my $version = $cv->{version};
 	    unless ($version) {
 		print $html "    <th></th>\n";
 		next;
 	    }
-	    my $kernel = encode_entities($dv->{$cvsdate}{kernel});
+	    my $kernel = encode_entities($cv->{kernel});
 	    $version =~ s,[^/]+/,,;
 	    my $link = uri_escape($version, "^A-Za-z0-9\-\._~/");
 	    print $html "    <th title=\"$kernel\">".
@@ -1045,20 +1049,21 @@ sub html_cvsdate_test_head {
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>kernel commits</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    my $cvslog = $dv->{$cvsdate}{cvslog};
+	    my $cv = $dv->{$cvsdate};
+	    my $cvslog = $cv->{cvslog};
 	    unless ($cvslog) {
 		print $html "    <th></th>\n";
 		next;
 	    }
 	    my $title = "";
-	    if ($dv->{$cvsdate}{cvsfiles}) {
+	    if ($cv->{cvsfiles}) {
 		my %files;
-		@files{@{$dv->{$cvsdate}{cvsfiles}}} = ();
+		@files{@{$cv->{cvsfiles}}} = ();
 		my $files = encode_entities(join(" ", sort keys %files));
 		$title = " title=\"$files\"";
 	    }
 	    my $link = uri_escape($cvslog, "^A-Za-z0-9\-\._~/");
-	    my $cvscommits = $dv->{$cvsdate}{cvscommits};
+	    my $cvscommits = $cv->{cvscommits};
 	    my $num = defined($cvscommits) ? "/$cvscommits" : "";
 	    print $html
 		"    <th$title><a href=\"../$link\">cvslog</a>$num</th>\n";
@@ -1087,12 +1092,13 @@ sub html_cvsdate_test_head {
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>kernel name list</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    my $nmstat = $dv->{$cvsdate}{nmstat};
+	    my $cv = $dv->{$cvsdate};
+	    my $nmstat = $cv->{nmstat};
 	    unless ($nmstat) {
 		print $html "    <th></th>\n";
 		next;
 	    }
-	    my $difffile = $dv->{$cvsdate}{nmdiff};
+	    my $difffile = $cv->{nmdiff};
 	    my $link = uri_escape($difffile, "^A-Za-z0-9\-\._~/");
 	    my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
 	    print $html "    <th><a href=\"../$link\">$diffstat</a></th>\n";
