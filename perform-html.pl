@@ -45,7 +45,7 @@ usage: $0 [-Ggnv] [-d date] [-r release]
     -G		do not regenerate any gnuplot files, allows faster debugging
     -g		generate all gnuplot files, even if they already exist
     -n		do not generate gnuplot files on main release page
-    -r release	change to release sub directory
+    -r release	fill only release sub directory
     -v		verbose
 EOF
     exit(2);
@@ -217,6 +217,7 @@ sub parse_result_files {
 	$reldate = "$release/$reldate" if $release;
 	print "." if $verbose;
 	$D{$date}{short} ||= $short;
+	$D{$date}{reldate} = $reldate;
 	push @{$D{$date}{cvsdates} ||= []}, $cvsdate unless $D{$date}{$cvsdate};
 	$D{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
 	if (defined $repeat) {
@@ -541,14 +542,15 @@ sub create_nmbsd_files {
 	my $dv = $D{$date};
 	next if ($dv->{stepconf}{kernelmodes} || "") ne "align";
 	my $hostname = $dv->{host};
+	my $reldate = $dv->{reldate};
 	my $prevnmfile;
 	foreach my $cvsdate (sort @{$dv->{cvsdates}}) {
 	    my $cv = $dv->{$cvsdate};
-	    my $nmfile = "$date/$cvsdate/nm-bsd-$hostname.txt";
+	    my $nmfile = "$reldate/$cvsdate/nm-bsd-$hostname.txt";
 	    next unless -r $nmfile;
 	    if ($prevnmfile) {
 		print "." if $verbose;
-		my $difffile = "$date/$cvsdate/nm-bsd-diff.txt";
+		my $difffile = "$reldate/$cvsdate/nm-bsd-diff.txt";
 		my %stat;
 		diff_stat_file($prevnmfile, $nmfile, $difffile, \%stat);
 		$cv->{nmdiff} = $difffile;
@@ -604,9 +606,10 @@ sub create_btrace_files {
     foreach my $date (@dates) {
 	my $dv = $B{$date}
 	    or next;
+	my $reldate = $dv->{reldate};
 	foreach my $cvsdate (sort keys %{$dv}) {
 	    my $cv = $dv->{$cvsdate};
-	    my $btdir = "$date/$cvsdate/btrace";
+	    my $btdir = "$reldate/$cvsdate/btrace";
 	    -d $btdir || mkdir $btdir
 		or die "Make directory '$btdir' failed: $!";
 	    foreach my $test (sort keys %{$cv}) {
@@ -642,12 +645,13 @@ sub html_cvsdate_zoom {
     foreach my $date (reverse sort keys %dates) {
 	my $dv = $D{$date};
 	my $short = $dv->{short};
+	my $reldate = $dv->{reldate};
 	my $interval = $dv->{stepconf}{step};
 	my $zoomtext = $short && $interval ?
 	    "$short / $interval" : $short || $interval;
 	$zoomtext =~ s/\s//g;
 	my $time = encode_entities($date);
-	my $datehtml = "$date/perform.html";
+	my $datehtml = "$reldate/perform.html";
 	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
 	my $href = -f $datehtml ? "<a href=\"../$link\">" : "";
 	my $enda = $href ? "</a>" : "";
@@ -1352,6 +1356,7 @@ sub write_html_repeat_files {
     foreach my $date (@dates) {
 	my $dv = $D{$date};
 	my $short = $dv->{short};
+	my $reldate = $dv->{reldate};
 	foreach my $cvsdate (@{$dv->{cvsdates}}) {
 	    print "." if $verbose;
 	    my $cv = $dv->{$cvsdate};
@@ -1359,7 +1364,7 @@ sub write_html_repeat_files {
 	    my @repeats = sort @{$cv->{repeats} || []}
 		or next;
 
-	    my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
+	    my ($html, $htmlfile) = html_open("$reldate/$cvsdate/perform");
 	    my @nav = (
 		Top      => "../../../../test.html",
 		All      => "../../perform.html",
@@ -1397,9 +1402,10 @@ sub write_html_cvsdate_files {
 	print "." if $verbose;
 	my $dv = $D{$date};
 	my $short = $dv->{short};
+	my $reldate = $dv->{reldate};
 	my @cvsdates = @{$dv->{cvsdates}};
 
-	my ($html, $htmlfile) = html_open("$date/perform");
+	my ($html, $htmlfile) = html_open("$reldate/perform");
 	my @nav = (
 	    Top      => "../../../test.html",
 	    All      => "../perform.html",
