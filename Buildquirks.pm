@@ -1,6 +1,6 @@
 # get build over incompatible source changes with minimal effort
 
-# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -547,6 +547,12 @@ my %quirks = (
     '2021-07-07T02:38:38Z' => {
 	comment => "update drm moves kernel source files",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
+    '2021-09-01T13:37:14Z' => {
+	comment => "clang lfence after ret in retpoline",
+	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	builddirs => [ "gnu/usr.bin/clang" ],
     },
 );
 
