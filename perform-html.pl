@@ -185,11 +185,12 @@ my @dates = list_dates($date);
 
 print "create html per repeat files" if $verbose;
 foreach my $date (@dates) {
-    my $short = $D{$date}{short};
-    foreach my $cvsdate (@{$D{$date}{cvsdates}}) {
+    my $dv = $D{$date};
+    my $short = $dv->{short};
+    foreach my $cvsdate (@{$dv->{cvsdates}}) {
 	print "." if $verbose;
-	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
-	my @repeats = sort @{$D{$date}{$cvsdate}{repeats} || []}
+	my $cvsshort = $dv->{$cvsdate}{cvsshort};
+	my @repeats = sort @{$dv->{$cvsdate}{repeats} || []}
 	    or next;
 
 	my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
@@ -225,8 +226,9 @@ print "\n" if $verbose;
 print "create html per cvsdate files" if $verbose;
 foreach my $date (@dates) {
     print "." if $verbose;
-    my $short = $D{$date}{short};
-    my @cvsdates = @{$D{$date}{cvsdates}};
+    my $dv = $D{$date};
+    my $short = $dv->{short};
+    my @cvsdates = @{$dv->{cvsdates}};
 
     my ($html, $htmlfile) = html_open("$date/perform");
     my @nav = (
@@ -761,8 +763,9 @@ sub html_cvsdate_zoom {
     return unless keys %dates;
     print $html "<table>\n";
     foreach my $date (reverse sort keys %dates) {
-	my $short = $D{$date}{short};
-	my $interval = $D{$date}{stepconf}{step};
+	my $dv = $D{$date};
+	my $short = $dv->{short};
+	my $interval = $dv->{stepconf}{step};
 	my $zoomtext = $short && $interval ?
 	    "$short / $interval" : $short || $interval;
 	$zoomtext =~ s/\s//g;
@@ -779,6 +782,7 @@ sub html_cvsdate_zoom {
 
 sub html_repeat_top {
     my ($html, $date, $cvsdate, @repeats) = @_;
+    my $dv = $D{$date};
     print $html <<"HEADER";
 <table>
   <tr>
@@ -791,15 +795,15 @@ sub html_repeat_top {
   </tr>
 HEADER
     print $html "  <tr>\n    <th>run</th>\n";
-    my $log = $D{$date}{$cvsdate}{log};
+    my $log = $dv->{$cvsdate}{log};
     my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
     my $href = $log ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <td>${href}log$enda</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
-    my $hostname = $D{$date}{host};
-    my $core = $D{$date}{core};
+    my $hostname = $dv->{host};
+    my $core = $dv->{core};
     print $html "    <td>$hostname/$core</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>cvs checkout at</th>\n";
@@ -807,14 +811,14 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>repetitions kernel mode</th>\n";
     my $kerneltext = @repeats;
-    my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
-	$D{$date}{stepconf}{repmodes};
+    my $kernelmode = $dv->{stepconf}{kernelmodes} ||
+	$dv->{stepconf}{repmodes};
     if ($kernelmode) {
 	$kerneltext = @repeats && @repeats > 1 ?
 	    @repeats. " / $kernelmode" : $kernelmode;
     }
     $kerneltext =~ s/\s//g;
-    my $build = $D{$date}{$cvsdate}{build};
+    my $build = $dv->{$cvsdate}{build};
     $build =~ s,[^/]+/[^/]+/,, if $build;
     $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
     $href = $build ? "<a href=\"$link\">" : "";
@@ -826,10 +830,11 @@ HEADER
 
 sub html_repeat_test_head {
     my ($html, $date, $cvsdate, @repeats) = @_;
+    my $dv = $D{$date};
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>repeat</th>\n";
     foreach my $repeat (@repeats) {
-	my $repshort = $D{$date}{$cvsdate}{$repeat}{repshort};
+	my $repshort = $dv->{$cvsdate}{$repeat}{repshort};
 	my $rep_btrace = encode_entities($repeat);
 	print $html "    <th title=\"$rep_btrace\">$repshort</th>\n";
     }
@@ -838,14 +843,14 @@ sub html_repeat_test_head {
     print $html "  </tr>\n";
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>machine</th>\n";
-    my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
-	$D{$date}{stepconf}{repmodes};
+    my $kernelmode = $dv->{stepconf}{kernelmodes} ||
+	$dv->{stepconf}{repmodes};
     foreach my $repeat (@repeats) {
 	unless ($kernelmode) {
 	    print $html "    <th></th>\n";
 	    next;
 	}
-	my $reboot = $D{$date}{$cvsdate}{$repeat}{reboot};
+	my $reboot = $dv->{$cvsdate}{$repeat}{reboot};
 	$reboot =~ s,[^/]+/[^/]+/,, if $reboot;
 	my $link = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
 	my $href = $reboot ? "<a href=\"$link\">" : "";
@@ -943,6 +948,7 @@ sub html_repeat_test_row {
 
 sub html_cvsdate_top {
     my ($html, $date, @cvsdates) = @_;
+    my $dv = $D{$date};
     print $html <<"HEADER";
 <table>
   <tr>
@@ -955,29 +961,29 @@ sub html_cvsdate_top {
   </tr>
 HEADER
     print $html "  <tr>\n    <th>run</th>\n";
-    my $log = $D{$date}{log};
+    my $log = $dv->{log};
     my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
     my $href = $log ? "<a href=\"$link\">" : "";
     my $enda = $href ? "</a>" : "";
     print $html "    <td>${href}log$enda</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
-    my $hostname = $D{$date}{host};
-    my $core = $D{$date}{core};
+    my $hostname = $dv->{host};
+    my $core = $dv->{core};
     print $html "    <td>$hostname/$core</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>machine release setup</th>\n";
-    my $setup = $D{$date}{setup};
-    my $release = $D{$date}{stepconf}{release};
-    my $setupmodes = $D{$date}{stepconf}{setupmodes} ||
-	$D{$date}{stepconf}{modes};
+    my $setup = $dv->{setup};
+    my $release = $dv->{stepconf}{release};
+    my $setupmodes = $dv->{stepconf}{setupmodes} ||
+	$dv->{stepconf}{modes};
     $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
     $href = $setup ? "<a href=\"../$link\">" : "";
     $enda = $href ? " info</a>" : "";
     print $html "    <td>$href$release/$setupmodes$enda</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";
-    my $interval = $D{$date}{stepconf}{step};
+    my $interval = $dv->{stepconf}{step};
     my $steptext = @cvsdates && $interval && @cvsdates > 1 ?
 	@cvsdates. " / $interval" : @cvsdates || $interval;
     $steptext =~ s/\s//g;
@@ -988,10 +994,11 @@ HEADER
 
 sub html_cvsdate_test_head {
     my ($html, $date, @cvsdates) = @_;
+    my $dv = $D{$date};
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
-	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
+	my $cvsshort = $dv->{$cvsdate}{cvsshort};
 	my $cvs_patch = encode_entities($cvsdate);
 	my $cvsdatehtml = "$cvsdate/perform.html";
 	my $link = uri_escape($cvsdatehtml, "^A-Za-z0-9\-\._~/");
@@ -1005,7 +1012,7 @@ sub html_cvsdate_test_head {
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>machine</th>\n";
     foreach my $cvsdate (@cvsdates) {
-	my $build = $D{$date}{$cvsdate}{build};
+	my $build = $dv->{$cvsdate}{build};
 	$build =~ s,[^/]+/,, if $build;
 	my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
 	my $href = $build ? "<a href=\"$link\">" : "";
@@ -1015,16 +1022,16 @@ sub html_cvsdate_test_head {
     print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	"<th></th>\n";  # dummy for unit and stats below
     print $html "  </tr>\n";
-    if (grep { ref eq 'HASH' && $_->{version} } values %{$D{$date}} ) {
+    if (grep { ref eq 'HASH' && $_->{version} } values %{$dv} ) {
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>kernel build</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    my $version = $D{$date}{$cvsdate}{version};
+	    my $version = $dv->{$cvsdate}{version};
 	    unless ($version) {
 		print $html "    <th></th>\n";
 		next;
 	    }
-	    my $kernel = encode_entities($D{$date}{$cvsdate}{kernel});
+	    my $kernel = encode_entities($dv->{$cvsdate}{kernel});
 	    $version =~ s,[^/]+/,,;
 	    my $link = uri_escape($version, "^A-Za-z0-9\-\._~/");
 	    print $html "    <th title=\"$kernel\">".
@@ -1034,24 +1041,24 @@ sub html_cvsdate_test_head {
 	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
     }
-    if (grep { ref eq 'HASH' && $_->{cvslog} } values %{$D{$date}} ) {
+    if (grep { ref eq 'HASH' && $_->{cvslog} } values %{$dv} ) {
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>kernel commits</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    my $cvslog = $D{$date}{$cvsdate}{cvslog};
+	    my $cvslog = $dv->{$cvsdate}{cvslog};
 	    unless ($cvslog) {
 		print $html "    <th></th>\n";
 		next;
 	    }
 	    my $title = "";
-	    if ($D{$date}{$cvsdate}{cvsfiles}) {
+	    if ($dv->{$cvsdate}{cvsfiles}) {
 		my %files;
-		@files{@{$D{$date}{$cvsdate}{cvsfiles}}} = ();
+		@files{@{$dv->{$cvsdate}{cvsfiles}}} = ();
 		my $files = encode_entities(join(" ", sort keys %files));
 		$title = " title=\"$files\"";
 	    }
 	    my $link = uri_escape($cvslog, "^A-Za-z0-9\-\._~/");
-	    my $cvscommits = $D{$date}{$cvsdate}{cvscommits};
+	    my $cvscommits = $dv->{$cvsdate}{cvscommits};
 	    my $num = defined($cvscommits) ? "/$cvscommits" : "";
 	    print $html
 		"    <th$title><a href=\"../$link\">cvslog</a>$num</th>\n";
@@ -1060,11 +1067,11 @@ sub html_cvsdate_test_head {
 	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
     }
-    if (grep { ref eq 'HASH' && $_->{diff} } values %{$D{$date}} ) {
+    if (grep { ref eq 'HASH' && $_->{diff} } values %{$dv} ) {
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>kernel patches</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    my $diff = $D{$date}{$cvsdate}{diff};
+	    my $diff = $dv->{$cvsdate}{diff};
 	    unless ($diff) {
 		print $html "    <th></th>\n";
 		next;
@@ -1076,16 +1083,16 @@ sub html_cvsdate_test_head {
 	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
     }
-    if (grep { ref eq 'HASH' && $_->{nmstat} } values %{$D{$date}} ) {
+    if (grep { ref eq 'HASH' && $_->{nmstat} } values %{$dv} ) {
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>kernel name list</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    my $nmstat = $D{$date}{$cvsdate}{nmstat};
+	    my $nmstat = $dv->{$cvsdate}{nmstat};
 	    unless ($nmstat) {
 		print $html "    <th></th>\n";
 		next;
 	    }
-	    my $difffile = $D{$date}{$cvsdate}{nmdiff};
+	    my $difffile = $dv->{$cvsdate}{nmdiff};
 	    my $link = uri_escape($difffile, "^A-Za-z0-9\-\._~/");
 	    my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
 	    print $html "    <th><a href=\"../$link\">$diffstat</a></th>\n";
@@ -1094,7 +1101,7 @@ sub html_cvsdate_test_head {
 	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
     }
-    if (grep { ref eq 'HASH' && $_->{quirks} } values %{$D{$date}} ) {
+    if (grep { ref eq 'HASH' && $_->{quirks} } values %{$dv} ) {
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>build quirks</th>\n";
 	my $prevcvsdate;
@@ -1104,7 +1111,7 @@ sub html_cvsdate_test_head {
 		print $html "    <th></th>\n";
 		next;
 	    }
-	    my $quirks = $D{$date}{$cvsdate}{quirks};
+	    my $quirks = $dv->{$cvsdate}{quirks};
 	    print $html "    <th>";
 	    if ($quirks) {
 		$quirks =~ s,[^/]+/,,;
@@ -1124,13 +1131,13 @@ sub html_cvsdate_test_head {
 	    "<th></th>\n";  # dummy for unit and stats below
 	print $html "  </tr>\n";
     }
-    if (grep { ref eq 'HASH' && $_->{repeats} } values %{$D{$date}} ) {
+    if (grep { ref eq 'HASH' && $_->{repeats} } values %{$dv} ) {
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>repetitions kernel mode</th>\n";
-	my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
-	    $D{$date}{stepconf}{repmodes};
+	my $kernelmode = $dv->{stepconf}{kernelmodes} ||
+	    $dv->{stepconf}{repmodes};
 	foreach my $cvsdate (@cvsdates) {
-	    my $repeats = @{$D{$date}{$cvsdate}{repeats} || []} || "";
+	    my $repeats = @{$dv->{$cvsdate}{repeats} || []} || "";
 	    my $kerneltext = $repeats;
 	    if ($kernelmode) {
 		$kerneltext = $repeats && $repeats > 1 ?
@@ -1165,6 +1172,7 @@ sub html_cvsdate_test_head {
 
 sub html_cvsdate_test_row {
     my ($html, $date, $test, $td, @cvsdates) = @_;
+    my $dv = $D{$date};
     (my $testcmd = $test) =~ s/_/ /g;
     print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
@@ -1178,9 +1186,9 @@ sub html_cvsdate_test_row {
     my $vt = $V{$date}{$test};
     my (@vals, @btraces);
     foreach my $cvsdate (@cvsdates) {
-	if ($D{$date}{$cvsdate}{repeats}) {
+	if ($dv->{$cvsdate}{repeats}) {
 	    push @vals, map { $vt->{$cvsdate}{$_} }
-		@{$D{$date}{$cvsdate}{repeats}}
+		@{$dv->{$cvsdate}{repeats}}
 	} else {
 	    push @vals, $vt->{$cvsdate};
 	}
@@ -1190,7 +1198,7 @@ sub html_cvsdate_test_row {
     }
     my $maxval = max map { scalar @{$_ || []} } @vals;
     for (my $i = 0; $i < $maxval; $i++) {
-	my $rp0 = $D{$date}{$cvsdates[0]}{repeats};
+	my $rp0 = $dv->{$cvsdates[0]}{repeats};
 	my $value0 = $rp0 ?
 	    first { $_ } map { $vt->{$cvsdates[0]}{$_}[$i] } @$rp0 :
 	    first { $_ } map { $vt->{$_}[$i] } @cvsdates;
@@ -1304,7 +1312,8 @@ sub html_date_test_head {
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>run</th>\n";
     foreach my $date (@dates) {
-	my $short = $D{$date}{short};
+	my $dv = $D{$date};
+	my $short = $dv->{short};
 	my $time = encode_entities($date);
 	my $datehtml = "$date/perform.html";
 	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
@@ -1316,25 +1325,28 @@ sub html_date_test_head {
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>host cores</th>\n";
     foreach my $date (@dates) {
-	my $hostname = $D{$date}{host};
-	my $core = $D{$date}{core};
+	my $dv = $D{$date};
+	my $hostname = $dv->{host};
+	my $core = $dv->{core};
 	print $html "    <th>$hostname/$core</th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>release setup</th>\n";
     foreach my $date (@dates) {
-	my $release = $D{$date}{stepconf}{release};
-	my $setupmodes = $D{$date}{stepconf}{setupmodes} ||
-	    $D{$date}{stepconf}{modes};
+	my $dv = $D{$date};
+	my $release = $dv->{stepconf}{release};
+	my $setupmodes = $dv->{stepconf}{setupmodes} ||
+	    $dv->{stepconf}{modes};
 	print $html "    <th>$release/$setupmodes</th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>first cvs checkout</th>\n";
     foreach my $date (@dates) {
-	my $cvsdate = $D{$date}{cvsdates}[0];
-	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
+	my $dv = $D{$date};
+	my $cvsdate = $dv->{cvsdates}[0];
+	my $cvsshort = $dv->{$cvsdate}{cvsshort};
 	my $cvs_patch = encode_entities($cvsdate);
 	print $html "    <th title=\"$cvs_patch\">$cvsshort</th>\n";
     }
@@ -1342,8 +1354,9 @@ sub html_date_test_head {
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>last cvs checkout</th>\n";
     foreach my $date (@dates) {
-	my $cvsdate = $D{$date}{cvsdates}[-1];
-	my $cvsshort = $D{$date}{$cvsdate}{cvsshort};
+	my $dv = $D{$date};
+	my $cvsdate = $dv->{cvsdates}[-1];
+	my $cvsshort = $dv->{$cvsdate}{cvsshort};
 	my $cvs_patch = encode_entities($cvsdate);
 	print $html "    <th title=\"$cvs_patch\">$cvsshort</th>\n";
     }
@@ -1351,8 +1364,9 @@ sub html_date_test_head {
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>steps</th>\n";
     foreach my $date (@dates) {
-	my $steps = @{$D{$date}{cvsdates}};
-	my $interval = $D{$date}{stepconf}{step};
+	my $dv = $D{$date};
+	my $steps = @{$dv->{cvsdates}};
+	my $interval = $dv->{stepconf}{step};
 	my $steptext = $steps && $interval && $steps > 1 ?
 	    "$steps / $interval" : $steps || $interval;
 	$steptext =~ s/\s//g;
@@ -1362,10 +1376,11 @@ sub html_date_test_head {
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>repetitions kernel mode</th>\n";
     foreach my $date (@dates) {
-	my $cvsdate0 = $D{$date}{cvsdates}[0];
-	my $repeats = @{$D{$date}{$cvsdate0}{repeats} || []} || "";
-	my $kernelmode = $D{$date}{stepconf}{kernelmodes} ||
-	    $D{$date}{stepconf}{repmodes};
+	my $dv = $D{$date};
+	my $cvsdate0 = $dv->{cvsdates}[0];
+	my $repeats = @{$dv->{$cvsdate0}{repeats} || []} || "";
+	my $kernelmode = $dv->{stepconf}{kernelmodes} ||
+	    $dv->{stepconf}{repmodes};
 	my $kerneltext = $repeats;
 	if ($kernelmode) {
 	    $kerneltext = $repeats && $repeats > 1 ?
