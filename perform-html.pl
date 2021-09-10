@@ -606,7 +606,7 @@ sub create_btrace_files {
     foreach my $date (@dates) {
 	my $dv = $B{$date}
 	    or next;
-	my $reldate = $dv->{reldate};
+	my $reldate = $D{$date}{reldate};
 	foreach my $cvsdate (sort keys %{$dv}) {
 	    my $cv = $dv->{$cvsdate};
 	    my $btdir = "$reldate/$cvsdate/btrace";
