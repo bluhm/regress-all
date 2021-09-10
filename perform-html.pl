@@ -616,12 +616,12 @@ sub create_gnuplot_files {
 # create cvs log file with commits after previous cvsdates
 sub create_cvslog_files {
     my @dates = shift || reverse sort keys %D;
-    foreach my $dd (@D{@dates}) {
+    foreach my $dv (@D{@dates}) {
 	my %cvsdates;
-	@cvsdates{@{$dd->{cvsdates}}} = ();
-	@{$dd->{cvsdates}} = sort keys %cvsdates;
+	@cvsdates{@{$dv->{cvsdates}}} = ();
+	@{$dv->{cvsdates}} = sort keys %cvsdates;
 	my $prevcvsdate;
-	foreach my $cvsdate (@{$dd->{cvsdates}}) {
+	foreach my $cvsdate (@{$dv->{cvsdates}}) {
 	    # patch tests have no cvs checkout
 	    str2time($cvsdate) or next;
 	    if ($prevcvsdate) {
@@ -635,14 +635,14 @@ sub create_cvslog_files {
 			and die "Command '@cmd' failed: $?";
 		}
 		if (open (my $fh, '<', "$cvslog.txt")) {
-		    $dd->{$cvsdate}{cvslog} = "$cvslog.txt";
-		    $dd->{$cvsdate}{cvscommits} = 0;
+		    $dv->{$cvsdate}{cvslog} = "$cvslog.txt";
+		    $dv->{$cvsdate}{cvscommits} = 0;
 		    while (<$fh>) {
 			chomp;
 			my ($k, @v) = split(/\s+/)
 			    or next;
-			$dd->{$cvsdate}{cvscommits}++ if $k eq 'DATE';
-			push @{$dd->{$cvsdate}{cvsfiles}}, @v if $k eq 'FILES';
+			$dv->{$cvsdate}{cvscommits}++ if $k eq 'DATE';
+			push @{$dv->{$cvsdate}{cvsfiles}}, @v if $k eq 'FILES';
 		    }
 		} else {
 		    $!{ENOENT}
@@ -650,7 +650,7 @@ sub create_cvslog_files {
 		}
 		if (-f "$cvslog.html") {
 		    # If html is available, use its nicer display in link.
-		    $dd->{$cvsdate}{cvslog} = "$cvslog.html";
+		    $dv->{$cvsdate}{cvslog} = "$cvslog.html";
 		}
 	    }
 	    $prevcvsdate = $cvsdate;
