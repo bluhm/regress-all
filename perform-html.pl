@@ -668,6 +668,7 @@ sub html_cvsdate_zoom {
 sub html_repeat_top {
     my ($html, $date, $cvsdate, @repeats) = @_;
     my $dv = $D{$date};
+    my $reldate = $dv->{reldate};
     print $html <<"HEADER";
 <table>
   <tr>
@@ -676,7 +677,7 @@ sub html_repeat_top {
   </tr>
   <tr>
     <th>run at</th>
-    <td><a href="../../$date/$cvsdate/perform.html">$date</a></td>
+    <td><a href="../../$reldate/$cvsdate/perform.html">$date</a></td>
   </tr>
 HEADER
     print $html "  <tr>\n    <th>run</th>\n";
@@ -837,6 +838,7 @@ sub html_repeat_test_row {
 sub html_cvsdate_top {
     my ($html, $date, @cvsdates) = @_;
     my $dv = $D{$date};
+    my $reldate = $dv->{reldate};
     print $html <<"HEADER";
 <table>
   <tr>
@@ -845,7 +847,7 @@ sub html_cvsdate_top {
   </tr>
   <tr>
     <th>run at</th>
-    <td><a href="../$date/perform.html">$date</a></td>
+    <td><a href="../$reldate/perform.html">$date</a></td>
   </tr>
 HEADER
     print $html "  <tr>\n    <th>run</th>\n";
@@ -1376,9 +1378,11 @@ sub write_html_repeat_files {
 		or next;
 
 	    my ($html, $htmlfile) = html_open("$reldate/$cvsdate/perform");
+	    (my $reldots = $reldate) =~ s,[^/]+,..,g;
 	    my @nav = (
-		Top      => "../../../../test.html",
-		All      => "../../perform.html",
+		Top      => "$reldots/../../../test.html",
+		All      => "$reldots/../perform.html",
+		Release  => $reldots =~ m,/, ? "../../perform.html" : undef,
 		Checkout => "../perform.html",
 		Repeat   => undef,
 		Running  => "../../run.html");
@@ -1417,9 +1421,11 @@ sub write_html_cvsdate_files {
 	my @cvsdates = @{$dv->{cvsdates}};
 
 	my ($html, $htmlfile) = html_open("$reldate/perform");
+	(my $reldots = $reldate) =~ s,[^/]+,..,g;
 	my @nav = (
-	    Top      => "../../../test.html",
-	    All      => "../perform.html",
+	    Top      => "$reldots/../../test.html",
+	    All      => "$reldots/perform.html",
+	    Release  => $reldots =~ m,/, ? "../perform.html" : undef,
 	    Checkout => undef,
 	    Repeat   => undef,
 	    Running  => "../run.html");
