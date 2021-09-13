@@ -79,14 +79,14 @@ chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
 # create the html and gnuplot files only for a single date
-my $dateglob = ($opts{n} && $date) ? $date : "*";
-$dateglob = "$release/$dateglob" if $release;
+my $dateglob = ($opts{n} && $date) ? $date : "*T*Z";
+my $relglob = $release ? "$release" : "[0-9]*.[0-9]";
 # cvs checkout and repeated results
 print "." if $verbose;
 my @result_files = sort(glob("$dateglob/*/test.result"),
     glob("$dateglob/*/*/test.result"));
-push @result_files, sort(glob("[0-9]*.[0-9]/*/*/test.result"),
-    glob("[0-9]*.[0-9]/*/*/*/test.result")) if !$release && !$date;
+push @result_files, sort(glob("$relglob/$dateglob/*/test.result"),
+    glob("$relglob/$dateglob/*/*/test.result"));
 print "\n" if $verbose;
 
 @result_files or die "No result files for '$dateglob' in '$resultdir' found";
