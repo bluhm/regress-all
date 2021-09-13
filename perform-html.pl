@@ -364,9 +364,11 @@ sub write_data_files {
     my @dates = shift || sort keys %V;
     my $testdata = "gnuplot/test";
     if ($opts{n} && @dates == 1) {
-	$testdata = "$dates[0]/$testdata";
+	my $reldate = $D{$dates[0]}{reldate};
+	$testdata = "$reldate/$testdata";
     } else {
-	unlink map { glob("$_/$testdata-*.data") } @dates;
+	unlink map { glob("$_/$testdata-*.data") }
+	    map { $D{$_}{reldate} } @dates;
     }
     my $gnuplotdir = dirname($testdata);
     -d $gnuplotdir || mkdir $gnuplotdir
