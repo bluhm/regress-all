@@ -1430,7 +1430,6 @@ sub write_html_date_file {
     my @tests = list_tests();
     my @plots = list_plots();
 
-    print "." if $verbose;
     my ($html, $htmlfile) = html_open("perform");
     my @nav = (
 	Top     => "../../test.html",
@@ -1443,6 +1442,7 @@ sub write_html_date_file {
 	@nav);
     html_date_top($html);
 
+    print "." if $verbose;
     print $html "<table>\n";
     html_date_test_head($html, @dates);
     foreach my $test (@tests) {
