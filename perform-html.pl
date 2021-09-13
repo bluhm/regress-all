@@ -80,16 +80,19 @@ chdir($resultdir)
 
 # create the html and gnuplot files only for a single date
 my $dateglob = ($opts{n} && $date) ? $date : "*T*Z";
-my $relglob = $release ? "$release" : "[0-9]*.[0-9]";
+my $relglob = ($opts{n} && $release) ? "$release" : "[0-9]*.[0-9]";
 # cvs checkout and repeated results
 print "." if $verbose;
-my @result_files = sort(glob("$dateglob/*/test.result"),
-    glob("$dateglob/*/*/test.result"));
+my @result_files;
+push @result_files, sort(glob("$dateglob/*/test.result"),
+    glob("$dateglob/*/*/test.result"))
+    unless $opts{n} && $release;
 push @result_files, sort(glob("$relglob/$dateglob/*/test.result"),
     glob("$relglob/$dateglob/*/*/test.result"));
 print "\n" if $verbose;
 
-@result_files or die "No result files for '$dateglob' in '$resultdir' found";
+@result_files or
+    die "No result files for '$relglob' and '$dateglob' in '$resultdir' found";
 
 # %T
 # $test					performance test tool command line
@@ -112,6 +115,7 @@ print "\n" if $verbose;
 # %D
 # $date					date when test was executed as string
 # $D{$date}{short}			date without time
+# $D{$date}{reldate}			path to optional release and date
 # $D{$date}{setup}			path to setup.html
 # $D{$date}{host}			hostname of the machine running perform
 # $D{$date}{arch}			sysctl hardware machine architecture
@@ -164,12 +168,14 @@ print "\n" if $verbose;
 # $Z{$cvsdate}				index in @Z
 # $Z[$index]				hash of dates containing cvs checkout
 # $B{$date}{$cvsdate}{$test}{kstack}	btrace kstack output file
+# $R{$release}{dates}{$date}		dates in release
+# $R{$release}{tests}{$test}		tests in release
 
-my (%T, %D, %V, %Z, @Z, %B);
+my (%T, %D, %V, %Z, @Z, %B, %R);
 print "parse result files" if $verbose;
 parse_result_files(@result_files);
 print "\nwrite data files" if $verbose;
-write_data_files($opts{n} && $date);
+write_data_files($opts{n} && $date, $opts{n} && $release);
 unless ($opts{G}) {
     print "\ncreate gnuplot files" if $verbose;
     create_gnuplot_files($date);
@@ -185,6 +191,8 @@ print "\ncreate html repeat files" if $verbose;
 write_html_repeat_files($date);
 print "\ncreate html cvsdate files" if $verbose;
 write_html_cvsdate_files($date);
+print "\ncreate html release files" if $verbose;
+write_html_release_files($release);
 print "\n" if $verbose;
 
 exit if $opts{n};
@@ -196,7 +204,7 @@ print "\n" if $verbose;
 
 exit;
 
-# fill global hashes %T %D %V %Z @Z
+# fill global hashes %T %D %V %Z @Z %B %R
 sub parse_result_files {
     foreach my $result (@_) {
 	# parse result file
@@ -215,6 +223,7 @@ sub parse_result_files {
 	$repshort =~ s/^btrace-(.*)\.\d+$/$1/ if $repeat;
 	my $reldate = "$date";
 	$reldate = "$release/$reldate" if $release;
+	$R{$release}{dates}{$date} = 1 if $release;
 	print "." if $verbose;
 	$D{$date}{short} ||= $short;
 	$D{$date}{reldate} = $reldate;
@@ -270,6 +279,7 @@ sub parse_result_files {
 		};
 		next;
 	    }
+	    $R{$release}{tests}{$test} = 1 if $release;
 	    my $severity = status2severity($status);
 	    if (defined $repeat) {
 		$V{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
@@ -1203,7 +1213,7 @@ HEADER
 }
 
 sub html_date_test_head {
-    my ($html, @dates) = @_;
+    my ($html, $release, @dates) = @_;
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>run</th>\n";
     foreach my $date (@dates) {
@@ -1211,9 +1221,10 @@ sub html_date_test_head {
 	my $short = $dv->{short};
 	my $reldate = $dv->{reldate};
 	my $time = encode_entities($date);
-	my $datehtml = "$reldate/perform.html";
+	my $datehtml = $release ?
+	    "$date/perform.html" : "$reldate/perform.html";
 	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
-	my $href = -f $datehtml ? "<a href=\"$link\">" : "";
+	my $href = -f "$reldate/perform.html" ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$time\">$href$short$enda</th>\n";
     }
@@ -1289,14 +1300,18 @@ sub html_date_test_head {
 }
 
 sub html_date_test_row {
-    my ($html, $test, $td, @dates) = @_;
+    my ($html, $test, $td, $release, @dates) = @_;
     (my $testcmd = $test) =~ s/_/ /g;
     print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $date (@dates) {
-	my $dv = $D{$date};
-	my $reldate = $dv->{reldate};
-	html_status_data($html, ".", $reldate, $test, $td->{$date});
+	if ($release) {
+	    html_status_data($html, $release, $date, $test, $td->{$date});
+	} else {
+	    my $dv = $D{$date};
+	    my $reldate = $dv->{reldate};
+	    html_status_data($html, ".", $reldate, $test, $td->{$date});
+	}
     }
     print $html "  </tr>\n";
 }
@@ -1385,10 +1400,11 @@ sub write_html_repeat_files {
 		Release  => $reldots =~ m,/, ? "../../perform.html" : undef,
 		Checkout => "../perform.html",
 		Repeat   => undef,
-		Running  => "../../run.html");
+		Running  => "$reldots/../run.html");
+	    my $relname = $reldate =~ m,(.*)/, ? "$1 release " : "";
 	    html_header($html, "OpenBSD Perform Repeat",
-		"OpenBSD perform $short checkout $cvsshort repeat test results",
-		@nav);
+		"OpenBSD perform $relname$short checkout $cvsshort repeat ".
+		    "test results", @nav);
 	    html_repeat_top($html, $date, $cvsdate, @repeats);
 
 	    print $html "<table>\n";
@@ -1428,9 +1444,10 @@ sub write_html_cvsdate_files {
 	    Release  => $reldots =~ m,/, ? "../perform.html" : undef,
 	    Checkout => undef,
 	    Repeat   => undef,
-	    Running  => "../run.html");
+	    Running  => "$reldots/run.html");
+	my $relname = $reldate =~ m,(.*)/, ? "$1 release " : "";
 	html_header($html, "OpenBSD Perform CVS",
-	    "OpenBSD perform $short checkout test results",
+	    "OpenBSD perform $relname$short checkout test results",
 	    @nav);
 	html_cvsdate_top($html, $date, @cvsdates);
 
@@ -1459,6 +1476,51 @@ sub write_html_cvsdate_files {
     }
 }
 
+sub write_html_release_files {
+    my @releases = shift || reverse sort keys %R;
+    my @plots = list_plots();
+
+    foreach my $release (@releases) {
+	my $rv = $R{$release};
+	my @dates = sort reverse keys %{$rv->{dates}};
+	my @tests = reverse sort { $TESTORDER{$b} <=> $TESTORDER{$a} }
+	    keys %{$rv->{tests}};
+	print "." if $verbose;
+
+	my ($html, $htmlfile) = html_open("$release/perform");
+	my @nav = (
+	    Top     => "../../../test.html",
+	    All     => "../perform.html",
+	    Running => "../run.html");
+	html_header($html, "OpenBSD Perform Release",
+	    "OpenBSD perform $release release test results",
+	    @nav);
+	html_date_top($html);
+
+	print $html "<table>\n";
+	html_date_test_head($html, $release, @dates);
+	foreach my $test (@tests) {
+	    my $td = $T{$test};
+	    html_date_test_row($html, $test, $td, $release, @dates);
+	}
+	print $html "</table>\n";
+
+	print $html "<table>\n";
+	foreach my $plot (@plots) {
+	    next unless -f "$release/gnuplot/$plot.png";
+	    print $html "  <tr class=\"IMG\">\n";
+	    html_plot_data($html, $plot);
+	    print $html "  </tr>\n";
+	}
+	print $html "</table>\n";
+
+	html_quirks_table($html);
+	html_status_table($html, "perform");
+	html_footer($html);
+	html_close($html, $htmlfile);
+    }
+}
+
 sub write_html_date_file {
     my @dates = list_dates();
     my @tests = list_tests();
@@ -1478,10 +1540,10 @@ sub write_html_date_file {
 
     print "." if $verbose;
     print $html "<table>\n";
-    html_date_test_head($html, @dates);
+    html_date_test_head($html, undef, @dates);
     foreach my $test (@tests) {
 	my $td = $T{$test};
-	html_date_test_row($html, $test, $td, @dates);
+	html_date_test_row($html, $test, $td, undef, @dates);
     }
     print $html "</table>\n";
 
