@@ -687,7 +687,7 @@ sub html_repeat_top {
   </tr>
   <tr>
     <th>run at</th>
-    <td><a href="../../$reldate/$cvsdate/perform.html">$date</a></td>
+    <td><a href="/perform/results/$reldate/$cvsdate/perform.html">$date</a></td>
   </tr>
 HEADER
     print $html "  <tr>\n    <th>run</th>\n";
@@ -857,7 +857,7 @@ sub html_cvsdate_top {
   </tr>
   <tr>
     <th>run at</th>
-    <td><a href="../$reldate/perform.html">$date</a></td>
+    <td><a href="/perform/results/$reldate/perform.html">$date</a></td>
   </tr>
 HEADER
     print $html "  <tr>\n    <th>run</th>\n";
@@ -1393,14 +1393,13 @@ sub write_html_repeat_files {
 		or next;
 
 	    my ($html, $htmlfile) = html_open("$reldate/$cvsdate/perform");
-	    (my $reldots = $reldate) =~ s,[^/]+,..,g;
 	    my @nav = (
-		Top      => "$reldots/../../../test.html",
-		All      => "$reldots/../perform.html",
-		Release  => $reldots =~ m,/, ? "../../perform.html" : undef,
+		Top      => "/test.html",
+		All      => "/perform/results/perform.html",
+		Release  => $reldate =~ m,/, ? "../../perform.html" : undef,
 		Checkout => "../perform.html",
 		Repeat   => undef,
-		Running  => "$reldots/../run.html");
+		Running  => "/perform/results/run.html");
 	    my $relname = $reldate =~ m,(.*)/, ? "$1 release " : "";
 	    html_header($html, "OpenBSD Perform Repeat",
 		"OpenBSD perform $relname$short checkout $cvsshort repeat ".
@@ -1437,14 +1436,13 @@ sub write_html_cvsdate_files {
 	my @cvsdates = @{$dv->{cvsdates}};
 
 	my ($html, $htmlfile) = html_open("$reldate/perform");
-	(my $reldots = $reldate) =~ s,[^/]+,..,g;
 	my @nav = (
-	    Top      => "$reldots/../../test.html",
-	    All      => "$reldots/perform.html",
-	    Release  => $reldots =~ m,/, ? "../perform.html" : undef,
+	    Top      => "/test.html",
+	    All      => "/perform/results/perform.html",
+	    Release  => $reldate =~ m,/, ? "../perform.html" : undef,
 	    Checkout => undef,
 	    Repeat   => undef,
-	    Running  => "$reldots/run.html");
+	    Running  => "/perform/results/run.html");
 	my $relname = $reldate =~ m,(.*)/, ? "$1 release " : "";
 	html_header($html, "OpenBSD Perform CVS",
 	    "OpenBSD perform $relname$short checkout test results",
@@ -1489,9 +1487,12 @@ sub write_html_release_files {
 
 	my ($html, $htmlfile) = html_open("$release/perform");
 	my @nav = (
-	    Top     => "../../../test.html",
-	    All     => "../perform.html",
-	    Running => "../run.html");
+	    Top      => "/test.html",
+	    All      => "/perform/results/perform.html",
+	    Release  => undef,
+	    Checkout => undef,
+	    Repeat   => undef,
+	    Running  => "/perform/results/run.html");
 	html_header($html, "OpenBSD Perform Release",
 	    "OpenBSD perform $release release test results",
 	    @nav);
@@ -1528,11 +1529,11 @@ sub write_html_date_file {
 
     my ($html, $htmlfile) = html_open("perform");
     my @nav = (
-	Top     => "../../test.html",
+	Top     => "/test.html",
 	All     => undef,
 	Current => (-f "current/perform.html" ? "current/perform.html" : undef),
 	Latest  => (-f "latest/perform.html" ? "latest/perform.html" : undef),
-	Running => "run.html");
+	Running => "/perform/results/run.html");
     html_header($html, "OpenBSD Perform Results",
 	"OpenBSD perform all test results",
 	@nav);
