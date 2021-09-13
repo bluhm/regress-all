@@ -175,154 +175,18 @@ print "\ncreate nmbsd files" if $verbose;
 create_nmbsd_files($date);
 print "\ncreate btrace files" if $verbose;
 create_btrace_files($date);
-print "\n" if $verbose;
 
-my @plots = list_plots();
-my @tests = list_tests();
-my @dates = list_dates($date);
-
-# html per date per cvsdate with repetitions
-
-print "create html per repeat files" if $verbose;
-foreach my $date (@dates) {
-    my $dv = $D{$date};
-    my $short = $dv->{short};
-    foreach my $cvsdate (@{$dv->{cvsdates}}) {
-	print "." if $verbose;
-	my $cv = $dv->{$cvsdate};
-	my $cvsshort = $cv->{cvsshort};
-	my @repeats = sort @{$cv->{repeats} || []}
-	    or next;
-
-	my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
-	my @nav = (
-	    Top      => "../../../../test.html",
-	    All      => "../../perform.html",
-	    Checkout => "../perform.html",
-	    Repeat   => undef,
-	    Running  => "../../run.html");
-	html_header($html, "OpenBSD Perform Repeat",
-	    "OpenBSD perform $short checkout $cvsshort repeat test results",
-	    @nav);
-	html_repeat_top($html, $date, $cvsdate, @repeats);
-
-	print $html "<table>\n";
-	html_repeat_test_head($html, $date, $cvsdate, @repeats);
-	foreach my $test (@tests) {
-	    my $td = $T{$test}{$date} && $T{$test}{$date}{$cvsdate}
-		or next;
-	    html_repeat_test_row($html, $date, $cvsdate, $test, $td, @repeats);
-	}
-	print $html "</table>\n";
-
-	html_status_table($html, "perform");
-	html_footer($html);
-	html_close($html, $htmlfile);
-    }
-}
-print "\n" if $verbose;
-
-# html per date with cvsdate
-
-print "create html per cvsdate files" if $verbose;
-foreach my $date (@dates) {
-    print "." if $verbose;
-    my $dv = $D{$date};
-    my $short = $dv->{short};
-    my @cvsdates = @{$dv->{cvsdates}};
-
-    my ($html, $htmlfile) = html_open("$date/perform");
-    my @nav = (
-	Top      => "../../../test.html",
-	All      => "../perform.html",
-	Checkout => undef,
-	Repeat   => undef,
-	Running  => "../run.html");
-    html_header($html, "OpenBSD Perform CVS",
-	"OpenBSD perform $short checkout test results",
-	@nav);
-    html_cvsdate_top($html, $date, @cvsdates);
-
-    print $html "<table>\n";
-    html_cvsdate_test_head($html, $date, @cvsdates);
-    foreach my $test (@tests) {
-	my $td = $T{$test}{$date}
-	    or next;
-	html_cvsdate_test_row($html, $date, $test, $td, @cvsdates);
-    }
-    print $html "</table>\n";
-
-    print $html "<table>\n";
-    foreach my $plot (@plots) {
-	next unless -f "$date/gnuplot/$plot.png";
-	print $html "  <tr class=\"IMG\">\n";
-	html_plot_data($html, $plot);
-	print $html "  </tr>\n";
-    }
-    print $html "</table>\n";
-
-    html_quirks_table($html, $html);
-    html_status_table($html, "perform");
-    html_footer($html);
-    html_close($html, $htmlfile);
-}
+print "\ncreate html repeat files" if $verbose;
+write_html_repeat_files($date);
+print "\ncreate html cvsdate files" if $verbose;
+write_html_cvsdate_files($date);
 print "\n" if $verbose;
 
 exit if $opts{n};
 
-# html with date
-
 # the main page must contain all dates, call without specific date
-@dates = list_dates();
-
-print "create html per cvsdate files" if $verbose;
-my ($html, $htmlfile) = html_open("perform");
-my @nav = (
-    Top     => "../../test.html",
-    All     => undef,
-    Current => (-f "current/perform.html" ? "current/perform.html" : undef),
-    Latest  => (-f "latest/perform.html" ? "latest/perform.html" : undef),
-    Running => "run.html");
-html_header($html, "OpenBSD Perform Results",
-    "OpenBSD perform all test results",
-    @nav);
-html_date_top($html);
-
-print $html "<table>\n";
-html_date_test_head($html, @dates);
-foreach my $test (@tests) {
-    my $td = $T{$test};
-    html_date_test_row($html, $test, $td, @dates);
-}
-print $html "</table>\n";
-print "." if $verbose;
-
-print $html "<table>\n";
-foreach my $plot (@plots) {
-    print $html "  <tr>\n";
-    print $html "    <th></th>\n";
-    print $html "    <th>all</th>\n";
-    my @releases = sort keys %{{quirk_releases()}};
-    for (my $i = 0; $i <= $#releases; $i++) {
-	my $prev = $releases[$i];
-	my $next = $releases[$i+1] || "";
-	print $html "    <th>release $prev -> $next</th>\n";
-    }
-    print $html "  </tr>\n";
-    print $html "  <tr class=\"IMG\">\n";
-    print $html "    <th>". uc($plot). "</th>\n";
-    html_plot_data($html, $plot);
-    foreach my $release (@releases) {
-	html_plot_data($html, $plot, $release);
-    }
-    print $html "  </tr>\n";
-}
-print $html "</table>\n";
-
-html_quirks_table($html);
-html_status_table($html, "perform");
-html_footer($html);
-html_close($html, $htmlfile);
+print "create html date files" if $verbose;
+write_html_date_file();
 print "\n" if $verbose;
 
 exit;
@@ -1468,4 +1332,151 @@ sub html_plot_data {
       </a>
     </td>
 IMAGE
+}
+
+sub write_html_repeat_files {
+    my @dates = list_dates(shift);
+    my @tests = list_tests();
+
+    foreach my $date (@dates) {
+	my $dv = $D{$date};
+	my $short = $dv->{short};
+	foreach my $cvsdate (@{$dv->{cvsdates}}) {
+	    print "." if $verbose;
+	    my $cv = $dv->{$cvsdate};
+	    my $cvsshort = $cv->{cvsshort};
+	    my @repeats = sort @{$cv->{repeats} || []}
+		or next;
+
+	    my ($html, $htmlfile) = html_open("$date/$cvsdate/perform");
+	    my @nav = (
+		Top      => "../../../../test.html",
+		All      => "../../perform.html",
+		Checkout => "../perform.html",
+		Repeat   => undef,
+		Running  => "../../run.html");
+	    html_header($html, "OpenBSD Perform Repeat",
+		"OpenBSD perform $short checkout $cvsshort repeat test results",
+		@nav);
+	    html_repeat_top($html, $date, $cvsdate, @repeats);
+
+	    print $html "<table>\n";
+	    html_repeat_test_head($html, $date, $cvsdate, @repeats);
+	    foreach my $test (@tests) {
+		my $td = $T{$test}{$date} && $T{$test}{$date}{$cvsdate}
+		    or next;
+		html_repeat_test_row($html, $date, $cvsdate, $test, $td,
+		    @repeats);
+	    }
+	    print $html "</table>\n";
+
+	    html_status_table($html, "perform");
+	    html_footer($html);
+	    html_close($html, $htmlfile);
+	}
+    }
+}
+
+sub write_html_cvsdate_files {
+    my @dates = list_dates(shift);
+    my @tests = list_tests();
+    my @plots = list_plots();
+
+    foreach my $date (@dates) {
+	print "." if $verbose;
+	my $dv = $D{$date};
+	my $short = $dv->{short};
+	my @cvsdates = @{$dv->{cvsdates}};
+
+	my ($html, $htmlfile) = html_open("$date/perform");
+	my @nav = (
+	    Top      => "../../../test.html",
+	    All      => "../perform.html",
+	    Checkout => undef,
+	    Repeat   => undef,
+	    Running  => "../run.html");
+	html_header($html, "OpenBSD Perform CVS",
+	    "OpenBSD perform $short checkout test results",
+	    @nav);
+	html_cvsdate_top($html, $date, @cvsdates);
+
+	print $html "<table>\n";
+	html_cvsdate_test_head($html, $date, @cvsdates);
+	foreach my $test (@tests) {
+	    my $td = $T{$test}{$date}
+		or next;
+	    html_cvsdate_test_row($html, $date, $test, $td, @cvsdates);
+	}
+	print $html "</table>\n";
+
+	print $html "<table>\n";
+	foreach my $plot (@plots) {
+	    next unless -f "$date/gnuplot/$plot.png";
+	    print $html "  <tr class=\"IMG\">\n";
+	    html_plot_data($html, $plot);
+	    print $html "  </tr>\n";
+	}
+	print $html "</table>\n";
+
+	html_quirks_table($html, $html);
+	html_status_table($html, "perform");
+	html_footer($html);
+	html_close($html, $htmlfile);
+    }
+}
+
+sub write_html_date_file {
+    my @dates = list_dates();
+    my @tests = list_tests();
+    my @plots = list_plots();
+
+    print "." if $verbose;
+    my ($html, $htmlfile) = html_open("perform");
+    my @nav = (
+	Top     => "../../test.html",
+	All     => undef,
+	Current => (-f "current/perform.html" ? "current/perform.html" : undef),
+	Latest  => (-f "latest/perform.html" ? "latest/perform.html" : undef),
+	Running => "run.html");
+    html_header($html, "OpenBSD Perform Results",
+	"OpenBSD perform all test results",
+	@nav);
+    html_date_top($html);
+
+    print $html "<table>\n";
+    html_date_test_head($html, @dates);
+    foreach my $test (@tests) {
+	my $td = $T{$test};
+	html_date_test_row($html, $test, $td, @dates);
+    }
+    print $html "</table>\n";
+
+    print "." if $verbose;
+    print $html "<table>\n";
+    foreach my $plot (@plots) {
+	print $html "  <tr>\n";
+	print $html "    <th></th>\n";
+	print $html "    <th>all</th>\n";
+	my @releases = sort keys %{{quirk_releases()}};
+	for (my $i = 0; $i <= $#releases; $i++) {
+	    my $prev = $releases[$i];
+	    my $next = $releases[$i+1] || "";
+	    print $html "    <th>release $prev -> $next</th>\n";
+	}
+	print $html "  </tr>\n";
+	print $html "  <tr class=\"IMG\">\n";
+	print $html "    <th>". uc($plot). "</th>\n";
+	html_plot_data($html, $plot);
+	foreach my $release (@releases) {
+	    html_plot_data($html, $plot, $release);
+	}
+	print $html "  </tr>\n";
+    }
+    print $html "</table>\n";
+
+    print "." if $verbose;
+    html_quirks_table($html);
+    html_status_table($html, "perform");
+    html_footer($html);
+    html_close($html, $htmlfile);
 }
