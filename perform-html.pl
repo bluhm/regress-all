@@ -750,11 +750,13 @@ sub html_repeat_test_head {
 
 sub html_repeat_test_row {
     my ($html, $date, $cvsdate, $test, $td, @repeats) = @_;
+    my $dv = $D{$date};
+    my $reldate = $dv->{reldate};
     (my $testcmd = $test) =~ s/_/ /g;
     print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $repeat (@repeats) {
-	html_status_data($html, "$date/$cvsdate", $repeat, $test,
+	html_status_data($html, "$reldate/$cvsdate", $repeat, $test,
 	    $td->{$repeat});
     }
     foreach my $stat (qw(unit mean minimum maximum deviation relative)) {
@@ -823,7 +825,7 @@ sub html_repeat_test_row {
 	print $html "  <tr>\n    <th></th>\n";
 	print $html "    <th>btrace</th>\n";
 	foreach my $repeat (@repeats) {
-	    html_btrace_link($html, "$date/$cvsdate", "", $test,
+	    html_btrace_link($html, "$reldate/$cvsdate", "", $test,
 		$td->{$repeat}{btrace} || ());
 	}
 	print $html "    <td></td><td></td><td></td><td></td><td></td>".
@@ -881,6 +883,7 @@ HEADER
 sub html_cvsdate_test_head {
     my ($html, $date, @cvsdates) = @_;
     my $dv = $D{$date};
+    my $reldate = $dv->{reldate};
     print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>cvs checkout</th>\n";
     foreach my $cvsdate (@cvsdates) {
@@ -888,7 +891,7 @@ sub html_cvsdate_test_head {
 	my $cvs_patch = encode_entities($cvsdate);
 	my $cvsdatehtml = "$cvsdate/perform.html";
 	my $link = uri_escape($cvsdatehtml, "^A-Za-z0-9\-\._~/");
-	my $href = -f "$date/$cvsdatehtml" ? "<a href=\"$link\">" : "";
+	my $href = -f "$reldate/$cvsdatehtml" ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$cvs_patch\">$href$cvsshort$enda</th>\n";
     }
@@ -1062,11 +1065,12 @@ sub html_cvsdate_test_head {
 sub html_cvsdate_test_row {
     my ($html, $date, $test, $td, @cvsdates) = @_;
     my $dv = $D{$date};
+    my $reldate = $dv->{reldate};
     (my $testcmd = $test) =~ s/_/ /g;
     print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $cvsdate (@cvsdates) {
-	html_status_data($html, $date, $cvsdate, $test, $td->{$cvsdate});
+	html_status_data($html, $reldate, $cvsdate, $test, $td->{$cvsdate});
     }
     foreach my $stat (qw(unit mean minimum maximum deviation relative)) {
 	print $html "    <th>$stat</th>\n";
@@ -1146,7 +1150,7 @@ sub html_cvsdate_test_row {
 	print $html "  <tr>\n    <th></th>\n";
 	print $html "    <th>btrace</th>\n";
 	foreach my $cvsdate (@cvsdates) {
-	    html_btrace_link($html, $date, $cvsdate, $test,
+	    html_btrace_link($html, $reldate, $cvsdate, $test,
 		$td->{$cvsdate} ?
 		map { ref eq 'HASH' && $_->{btrace} ? $_->{btrace} : () }
 		values %{$td->{$cvsdate}} : ());
@@ -1203,8 +1207,9 @@ sub html_date_test_head {
     foreach my $date (@dates) {
 	my $dv = $D{$date};
 	my $short = $dv->{short};
+	my $reldate = $dv->{reldate};
 	my $time = encode_entities($date);
-	my $datehtml = "$date/perform.html";
+	my $datehtml = "$reldate/perform.html";
 	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
 	my $href = -f $datehtml ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
@@ -1287,7 +1292,9 @@ sub html_date_test_row {
     print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $date (@dates) {
-	html_status_data($html, ".", $date, $test, $td->{$date});
+	my $dv = $D{$date};
+	my $reldate = $dv->{reldate};
+	html_status_data($html, ".", $reldate, $test, $td->{$date});
     }
     print $html "  </tr>\n";
 }
