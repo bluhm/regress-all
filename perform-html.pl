@@ -481,11 +481,13 @@ sub create_gnuplot_files {
 	}
     }
     foreach my $date (@dates) {
+	my $reldate = $D{$date}{reldate};
 	foreach my $plot (list_plots()) {
-	    next if !$opts{d} && !$opts{g} && -f "$date/gnuplot/$plot.png";
+	    next if !$opts{d} && !$opts{g} && -f "$reldate/gnuplot/$plot.png";
 	    print "." if $verbose;
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
 		"-d", $date);
+	    push @cmd, '-r', $release if $release;  # XXX not release directory
 	    system(@cmd)
 		and die "Command '@cmd' failed: $?";
 	}
@@ -1430,7 +1432,7 @@ sub write_html_cvsdate_files {
 
 	print $html "<table>\n";
 	foreach my $plot (@plots) {
-	    next unless -f "$date/gnuplot/$plot.png";
+	    next unless -f "$reldate/gnuplot/$plot.png";
 	    print $html "  <tr class=\"IMG\">\n";
 	    html_plot_data($html, $plot);
 	    print $html "  </tr>\n";

@@ -86,7 +86,9 @@ my $gplotfile = "$performdir/bin/plot.gp";
     or die "No gnuplot file '$gplotfile'";
 my $datafile = "$gnuplotdir/test-$plot.data";
 if ($date) {
-    $gnuplotdir = "$performdir/results/$date/gnuplot";
+    my $reldate = "$date";
+    $reldate = "$release/$reldate" if $release;
+    $gnuplotdir = "$performdir/results/$reldate/gnuplot";
     -d $gnuplotdir || mkdir $gnuplotdir
 	or die "Make directory '$gnuplotdir' failed: $!";
     chdir($gnuplotdir)
@@ -99,7 +101,7 @@ if ($date) {
     or die "No test data file '$datafile' in $gnuplotdir";
 
 my $prefix = "";
-$prefix .= "$release-" if $release;
+$prefix .= "$release-" if $release && ! $date;
 $prefix .= "$plot";
 
 my ($UNIT, %SUBTESTS);
