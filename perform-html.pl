@@ -487,7 +487,7 @@ sub create_gnuplot_files {
 	    print "." if $verbose;
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
 		"-d", $date);
-	    push @cmd, '-r', $release if $release;  # XXX not release directory
+	    push @cmd, '-r', $1 if $reldate =~ m,(.*)/,;
 	    system(@cmd)
 		and die "Command '@cmd' failed: $?";
 	}

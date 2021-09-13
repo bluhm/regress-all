@@ -101,7 +101,7 @@ if ($date) {
     or die "No test data file '$datafile' in $gnuplotdir";
 
 my $prefix = "";
-$prefix .= "$release-" if $release && ! $date;
+$prefix .= "$release-" if $release && ($begin || $end);
 $prefix .= "$plot";
 
 my ($UNIT, %SUBTESTS);
