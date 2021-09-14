@@ -273,7 +273,7 @@ chdir($performdir)
 
 setup_html(date => 1);
 my @cmd = ("bin/perform-html.pl", "-d", $date);
-push @cmd, "-r" $release if $release;
+push @cmd, "-r", $release if $release;
 push @cmd, "-v" if $opts{v};
 runcmd(@cmd);
 
