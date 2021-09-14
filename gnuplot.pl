@@ -76,34 +76,24 @@ my $performdir = dirname($0). "/..";
 chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
-my $gnuplotdir = "results/gnuplot";
-chdir($gnuplotdir)
-    or die "Change directory to '$gnuplotdir' failed: $!";
-$gnuplotdir = getcwd();
 
 my $gplotfile = "$performdir/bin/plot.gp";
 -f $gplotfile
     or die "No gnuplot file '$gplotfile'";
-my $datafile = "$gnuplotdir/test-$plot.data";
+
+my $gnuplotdir = "results/gnuplot";
 if ($date) {
     my $reldate = "$date";
     $reldate = "$release/$reldate" if $release;
-    $gnuplotdir = "$performdir/results/$reldate/gnuplot";
-    -d $gnuplotdir || mkdir $gnuplotdir
-	or die "Make directory '$gnuplotdir' failed: $!";
-    chdir($gnuplotdir)
-	or die "Change directory to '$gnuplotdir' failed: $!";
-    $gnuplotdir = getcwd();
-    $datafile = "$gnuplotdir/test-$plot.data";
+    $gnuplotdir = "results/$reldate/gnuplot";
 } elsif ($release && !($begin || $end)) {
-    $gnuplotdir = "$performdir/results/$release/gnuplot";
-    -d $gnuplotdir || mkdir $gnuplotdir
-	or die "Make directory '$gnuplotdir' failed: $!";
-    chdir($gnuplotdir)
-	or die "Change directory to '$gnuplotdir' failed: $!";
-    $gnuplotdir = getcwd();
-    $datafile = "$gnuplotdir/test-$plot.data";
+    $gnuplotdir = "results/$release/gnuplot";
 }
+chdir($gnuplotdir)
+    or die "Change directory to '$gnuplotdir' failed: $!";
+$gnuplotdir = getcwd();
+
+my $datafile = "$plot.data";
 -f $datafile
     or die "No test data file '$datafile' in $gnuplotdir";
 
