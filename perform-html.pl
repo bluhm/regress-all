@@ -61,7 +61,6 @@ if ($opts{r} && $opts{r} ne "current") {
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 
-print "glob result files" if $verbose;
 my $performdir = dirname($0). "/..";
 chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
@@ -78,22 +77,6 @@ if ($date && $date eq "current") {
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 my $absresult = "/perform/results";
-
-# create the html and gnuplot files only for a single date
-my $dateglob = ($opts{n} && $date) ? $date : "*T*Z";
-my $relglob = ($opts{n} && $release) ? "$release" : "[0-9]*.[0-9]";
-# cvs checkout and repeated results
-print "." if $verbose;
-my @result_files;
-push @result_files, sort(glob("$dateglob/*/test.result"),
-    glob("$dateglob/*/*/test.result"))
-    unless $opts{n} && $release;
-push @result_files, sort(glob("$relglob/$dateglob/*/test.result"),
-    glob("$relglob/$dateglob/*/*/test.result"));
-print "\n" if $verbose;
-
-@result_files or
-    die "No result files for '$relglob' and '$dateglob' in '$resultdir' found";
 
 # %T
 # $test					performance test tool command line
@@ -173,7 +156,10 @@ print "\n" if $verbose;
 # $R{$release}{tests}{$test}		tests in release
 
 my (%T, %D, %V, %Z, @Z, %B, %R);
-print "parse result files" if $verbose;
+
+print "glob result files" if $verbose;
+my @result_files = get_result_files($opts{n} && $date, $opts{n} && $release);
+print "\nparse result files" if $verbose;
 parse_result_files(@result_files);
 print "\nwrite data files" if $verbose;
 write_data_files($opts{n} && $date, $opts{n} && $release);
@@ -204,6 +190,30 @@ write_html_date_file();
 print "\n" if $verbose;
 
 exit;
+
+sub get_result_files {
+    my ($date, $release) = @_;
+
+    # create the html and gnuplot files only for a single date and release
+    my $dateglob = ($opts{n} && $date) ? $date : "*T*Z";
+    my $relglob = ($opts{n} && $release) ? $release : "[0-9]*.[0-9]";
+
+    # cvs checkout and repeated results optionally in release
+    my @files;
+    print "." if $verbose;
+    push @files, glob("$dateglob/*/test.result")
+	unless $opts{n} && $release;
+    print "." if $verbose;
+    push @files, glob("$dateglob/*/*/test.result")
+	unless $opts{n} && $release;
+    print "." if $verbose;
+    push @files, glob("$relglob/$dateglob/*/test.result");
+    print "." if $verbose;
+    push @files, glob("$relglob/$dateglob/*/*/test.result");
+
+    @files or die "No result files for '$relglob' and '$dateglob' found";
+    return sort @files;
+}
 
 # fill global hashes %T %D %V %Z @Z %B %R
 sub parse_result_files {
