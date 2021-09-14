@@ -165,10 +165,6 @@ print "\nparse result files" if $verbose;
 parse_result_files(@result_files);
 print "\nwrite data files" if $verbose;
 write_data_files($opts{n} && $date);
-unless ($opts{G}) {
-    print "\ncreate gnuplot files" if $verbose;
-    create_gnuplot_files($date);
-}
 print "\ncreate cvslog files" if $verbose;
 create_cvslog_files($date);
 print "\ncreate nmbsd files" if $verbose;
@@ -178,19 +174,39 @@ create_btrace_files($date);
 
 print "\ncreate html repeat files" if $verbose;
 write_html_repeat_files($date);
+unless ($opts{G}) {
+    print "\ncreate gnuplot date files" if $verbose;
+    create_gnuplot_date_files($date);
+}
 print "\ncreate html cvsdate files" if $verbose;
 write_html_cvsdate_files($date);
+
+if ($opts{n} && $opts{d}) {
+    print "\n" if $verbose;
+    exit;
+}
+
+unless ($opts{G}) {
+    print "\ncreate gnuplot release files" if $verbose;
+    create_gnuplot_release_files($release);
+}
 print "\ncreate html release files" if $verbose;
 write_html_release_files($release);
-print "\n" if $verbose;
 
-exit if $opts{n};
+if ($opts{n}) {
+    print "\n" if $verbose;
+    exit;
+}
 
+unless ($opts{G}) {
+    print "\ncreate gnuplot all files" if $verbose;
+    create_gnuplot_all_files($date);
+}
 # the main page must contain all dates, call without specific date
-print "create html date files" if $verbose;
+print "\ncreate html date files" if $verbose;
 write_html_date_file();
-print "\n" if $verbose;
 
+print "\n" if $verbose;
 exit;
 
 sub get_result_files {
@@ -472,7 +488,7 @@ sub write_data_files {
 	    my $plot = $TESTPLOT{$test};
 
 	    my @fhs;
-	    if (!$opts{n} || (!$opts{d} || !$opts{r})) {
+	    if (!$opts{n} || (!$opts{d} && !$opts{r})) {
 		# nothing specified, write global data
 		push @fhs, get_data_fh();
 		push @fhs, get_data_fh($plot);
@@ -525,8 +541,43 @@ sub list_dates {
     return @dates;
 }
 
+# create gnuplot graphs for date
+sub create_gnuplot_date_files {
+    my @dates = shift || reverse sort keys %V;
+
+    foreach my $date (@dates) {
+	my $reldate = $D{$date}{reldate};
+	foreach my $plot (list_plots()) {
+	    next if !$opts{d} && !$opts{g} && -f "$reldate/gnuplot/$plot.png";
+	    print "." if $verbose;
+	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
+		"-d", $date);
+	    push @cmd, '-r', $1 if $reldate =~ m,(.*)/,;
+	    system(@cmd)
+		and die "Command '@cmd' failed: $?";
+	}
+    }
+}
+
+# create gnuplot graphs for release
+sub create_gnuplot_release_files {
+    my @releases = shift || reverse sort keys %R;
+
+    foreach my $release (@releases) {
+	print "." if $verbose;
+	foreach my $plot (list_plots()) {
+	    next if !$opts{r} && !$opts{g} && -f "$release/gnuplot/$plot.png";
+	    print "." if $verbose;
+	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
+		'-r', $release);
+	    system(@cmd)
+		and die "Command '@cmd' failed: $?";
+	}
+    }
+}
+
 # create gnuplot graphs for all runs
-sub create_gnuplot_files {
+sub create_gnuplot_all_files {
     my @dates = shift || reverse sort keys %V;
     my ($first, $last);
     if (@dates == 1) {
@@ -534,9 +585,9 @@ sub create_gnuplot_files {
 	$first = $cvsdates[0];
 	$last = $cvsdates[-1];
     }
+
     my %releases = quirk_releases();
     foreach my $plot (list_plots()) {
-	next if $opts{n};
 	print "." if $verbose;
 	my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot");
 	system(@cmd)
@@ -549,18 +600,6 @@ sub create_gnuplot_files {
 	    @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot", "-r", $rel);
 	    push @cmd, "-B", $v->{begin} if $v->{begin};
 	    push @cmd, "-E", $v->{end} if $v->{end};
-	    system(@cmd)
-		and die "Command '@cmd' failed: $?";
-	}
-    }
-    foreach my $date (@dates) {
-	my $reldate = $D{$date}{reldate};
-	foreach my $plot (list_plots()) {
-	    next if !$opts{d} && !$opts{g} && -f "$reldate/gnuplot/$plot.png";
-	    print "." if $verbose;
-	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
-		"-d", $date);
-	    push @cmd, '-r', $1 if $reldate =~ m,(.*)/,;
 	    system(@cmd)
 		and die "Command '@cmd' failed: $?";
 	}
