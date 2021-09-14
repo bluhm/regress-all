@@ -94,8 +94,15 @@ if ($date) {
     chdir($gnuplotdir)
 	or die "Change directory to '$gnuplotdir' failed: $!";
     $gnuplotdir = getcwd();
-    $datafile = "$gnuplotdir/test-$plot.data"
-	if -f "$gnuplotdir/test-$plot.data";
+    $datafile = "$gnuplotdir/test-$plot.data";
+} elsif ($release && !($begin || $end)) {
+    $gnuplotdir = "$performdir/results/$release/gnuplot";
+    -d $gnuplotdir || mkdir $gnuplotdir
+	or die "Make directory '$gnuplotdir' failed: $!";
+    chdir($gnuplotdir)
+	or die "Change directory to '$gnuplotdir' failed: $!";
+    $gnuplotdir = getcwd();
+    $datafile = "$gnuplotdir/test-$plot.data";
 }
 -f $datafile
     or die "No test data file '$datafile' in $gnuplotdir";
