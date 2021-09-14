@@ -1593,9 +1593,11 @@ sub write_html_date_file {
     my @plots = list_plots();
 
     my ($html, $htmlfile) = html_open("perform");
+    my @releases = glob("[0-9]*.[0-9]/perform.html");
     my @nav = (
 	Top     => "/test.html",
 	All     => undef,
+	Release => (@releases ? $releases[-1] : undef),
 	Current => (-f "current/perform.html" ? "current/perform.html" : undef),
 	Latest  => (-f "latest/perform.html" ? "latest/perform.html" : undef),
 	Running => "$absresult/run.html");

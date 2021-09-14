@@ -244,6 +244,9 @@ foreach my $result (qw(regress perform latest run)) {
 foreach my $result (qw(current latest)) {
     $H{$result} = "$result/perform.html" if -f "$result/perform.html";
 }
+if (my @releases = glob("[0-9]*.[0-9]/perform.html")) {
+    $H{release} = $releases[-1];
+}
 
 unless ($opts{d}) {
     create_html_run();
@@ -633,6 +636,7 @@ sub create_html_run {
     my @nav = (
 	Top     => "../../test.html",
 	All     => $H{regress} || $H{perform},
+	$H{release} ? (Release => $H{release}) : (),
 	$H{current} ? (Current => $H{current}) : (),
 	Latest  => $H{latest},
 	Running => undef);
