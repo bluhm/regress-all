@@ -432,7 +432,14 @@ sub get_data_fh {
 
 # close and rename all data files
 sub close_data {
-    my @fds = values %F;
+    my ($reldate) = @_;
+    my @fds;
+    if ($reldate) {
+	@fds = values %{delete $F{$reldate}};
+    } else {
+	@fds = values %F;
+	undef %F;
+    }
 
     while (my $fd = shift @fds) {
 	if (ref($fd) eq 'ARRAY') {
@@ -447,7 +454,6 @@ sub close_data {
 	    die "File descriptor hash '$fd' is not a reference";
 	}
     }
-    undef %F;
 }
 
 # write test results into gnuplot data file
@@ -499,6 +505,7 @@ sub write_data_files {
 		}
 	    }
 	}
+	close_data($reldate);
     }
     print "." if $verbose;
     close_data();
