@@ -549,6 +549,7 @@ sub create_gnuplot_date_files {
 	my $reldate = $D{$date}{reldate};
 	foreach my $plot (list_plots()) {
 	    next if !$opts{d} && !$opts{g} && -f "$reldate/gnuplot/$plot.png";
+	    next unless -r "$reldate/gnuplot/test-$plot.data";
 	    print "." if $verbose;
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
 		"-d", $date);
@@ -567,6 +568,7 @@ sub create_gnuplot_release_files {
 	print "." if $verbose;
 	foreach my $plot (list_plots()) {
 	    next if !$opts{r} && !$opts{g} && -f "$release/gnuplot/$plot.png";
+	    next unless -r "$release/gnuplot/test-$plot.data";
 	    print "." if $verbose;
 	    my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot",
 		'-r', $release);
