@@ -22,6 +22,7 @@ use Cwd;
 use Date::Parse;
 use Errno;
 use File::Basename;
+use File::Glob qw(:bsd_glob);
 use HTML::Entities;
 use Getopt::Std;
 use List::Util qw(first max min sum);
@@ -201,15 +202,15 @@ sub get_result_files {
     # cvs checkout and repeated results optionally in release
     my @files;
     print "." if $verbose;
-    push @files, glob("$dateglob/*/test.result")
+    push @files, bsd_glob("$dateglob/*/test.result", GLOB_NOSORT)
 	unless $opts{n} && $release;
     print "." if $verbose;
-    push @files, glob("$dateglob/*/*/test.result")
+    push @files, bsd_glob("$dateglob/*/*/test.result", GLOB_NOSORT)
 	unless $opts{n} && $release;
     print "." if $verbose;
-    push @files, glob("$relglob/$dateglob/*/test.result");
+    push @files, bsd_glob("$relglob/$dateglob/*/test.result", GLOB_NOSORT);
     print "." if $verbose;
-    push @files, glob("$relglob/$dateglob/*/*/test.result");
+    push @files, bsd_glob("$relglob/$dateglob/*/*/test.result", GLOB_NOSORT);
 
     @files or die "No result files for '$relglob' and '$dateglob' found";
     return sort @files;
