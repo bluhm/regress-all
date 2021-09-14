@@ -1479,7 +1479,7 @@ sub write_html_release_files {
 
     foreach my $release (@releases) {
 	my $rv = $R{$release};
-	my @dates = sort reverse keys %{$rv->{dates}};
+	my @dates = reverse sort keys %{$rv->{dates}};
 	my @tests = reverse sort { $TESTORDER{$b} <=> $TESTORDER{$a} }
 	    keys %{$rv->{tests}};
 	print "." if $verbose;
