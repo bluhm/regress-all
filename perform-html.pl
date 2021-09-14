@@ -1303,12 +1303,17 @@ sub html_value_data {
 }
 
 sub html_date_top {
-    my ($html) = @_;
+    my ($html, @dates) = @_;
+    my $count = @dates;
     print $html <<"HEADER";
 <table>
   <tr>
     <th>created at</th>
     <td>$now</td>
+  </tr>
+  <tr>
+    <th>dates</th>
+    <td>$count</td>
   </tr>
 </table>
 HEADER
@@ -1602,7 +1607,7 @@ sub write_html_release_files {
 	html_header($html, "OpenBSD Perform Release",
 	    "OpenBSD perform $release release test results",
 	    @nav);
-	html_date_top($html);
+	html_date_top($html, @dates);
 
 	print $html "<table>\n";
 	html_date_test_head($html, $release, @dates);
@@ -1645,7 +1650,7 @@ sub write_html_date_file {
     html_header($html, "OpenBSD Perform Results",
 	"OpenBSD perform all test results",
 	@nav);
-    html_date_top($html);
+    html_date_top($html, @dates);
 
     print "." if $verbose;
     print $html "<table>\n";
