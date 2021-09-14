@@ -77,6 +77,7 @@ if ($date && $date eq "current") {
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
+# absolute patch relative to web server
 my $absresult = "/perform/results";
 
 # %T
@@ -163,7 +164,7 @@ my @result_files = get_result_files($opts{n} && $date, $opts{n} && $release);
 print "\nparse result files" if $verbose;
 parse_result_files(@result_files);
 print "\nwrite data files" if $verbose;
-write_data_files($opts{n} && $date, $opts{n} && $release);
+write_data_files($opts{n} && $date);
 unless ($opts{G}) {
     print "\ncreate gnuplot files" if $verbose;
     create_gnuplot_files($date);
@@ -229,6 +230,7 @@ sub parse_result_files {
 		test.result				# result file
 	    ,x or next;
 	next if ! $opts{n} && $cvsdate =~ /^patch-/;
+	print "." if $verbose;
 	my ($cvsshort, $repshort) = ($cvsdate, $repeat);
 	$cvsshort =~ s/T.+Z$//;
 	$cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
@@ -236,7 +238,6 @@ sub parse_result_files {
 	my $reldate = "$date";
 	$reldate = "$release/$reldate" if $release;
 	$R{$release}{dates}{$date} = 1 if $release;
-	print "." if $verbose;
 	$D{$date}{short} ||= $short;
 	$D{$date}{reldate} = $reldate;
 	push @{$D{$date}{cvsdates} ||= []}, $cvsdate unless $D{$date}{$cvsdate};
@@ -381,43 +382,105 @@ sub list_plots {
     return @PLOTORDER;
 }
 
+# open files and names by categories
+# $F{all}[$handle, $path]		# array with file handle and path
+# $F{$plot}[$handle, $path]
+# $F{$release}{$plot}[$handle, $path]
+# $F{$reldate}{$plot}[$handle, $path]
+
+my %F;
+
+# open data file for writing and cache file descriptor
+sub get_data_fh {
+    my ($plot, $reldate) = @_;
+
+    my ($fd, $dir);
+    if ($reldate) {
+	if ($plot) {
+	    $fd = $F{$reldate}{$plot} ||= [];
+	} else {
+	    $fd = $F{$reldate}{all} ||= [];
+	}
+	$dir = $reldate;
+    } else {
+	if ($plot) {
+	    $fd = $F{$plot} ||= [];
+	} else {
+	    $fd = $F{all} ||= [];
+	}
+	$dir = ".";
+    }
+    my $fh = $fd->[0];
+    return $fh if $fh;
+
+    my $path;
+    if ($plot) {
+	$dir .= "/gnuplot";
+	-d $dir || mkdir $dir
+	    or die "Make directory '$dir' failed: $!";
+	$path = "$dir/test-$plot.data";
+    } else {
+	$path = "$dir/test.data";
+    }
+
+    open($fh, '>', "$path.new")
+	or die "Open '$path.new' for writing failed: $!";
+    print $fh "# test subtest run checkout repeat value unit host\n";
+    @$fd = ($fh, $path);
+    return $fh;
+}
+
+# close and rename all data files
+sub close_data {
+    my @fds = values %F;
+
+    while (my $fd = shift @fds) {
+	if (ref($fd) eq 'ARRAY') {
+	    my ($fh, $path) = @$fd;
+	    close($fh)
+		or die "Close '$path.new' after writing failed: $!";
+	    rename("$path.new", "$path")
+		or die "Rename '$path.new' to '$path' failed: $!";
+	} elsif (ref($fd) eq 'HASH') {
+	    push @fds, values %$fd;
+	} else {
+	    die "File descriptor hash '$fd' is not a reference";
+	}
+    }
+    undef %F;
+}
+
 # write test results into gnuplot data file
 sub write_data_files {
     my @dates = shift || sort keys %V;
-    my $testdata = "gnuplot/test";
-    if ($opts{n} && @dates == 1) {
-	my $reldate = $D{$dates[0]}{reldate};
-	$testdata = "$reldate/$testdata";
-    } else {
-	unlink map { glob("$_/$testdata-*.data") }
-	    map { $D{$_}{reldate} } @dates;
-    }
-    my $gnuplotdir = dirname($testdata);
-    -d $gnuplotdir || mkdir $gnuplotdir
-	or die "Make directory '$gnuplotdir' failed: $!";
-    my %plotfh;
-    @plotfh{values %TESTPLOT} = ();
-    foreach my $plot (keys %plotfh) {
-	open($plotfh{$plot}, '>', "$testdata-$plot.data.new")
-	    or die "Open '$testdata-$plot.data.new' for writing failed: $!";
-	print {$plotfh{$plot}}
-	    "# test subtest run checkout repeat value unit host\n";
-    }
-    my $fh;
-    if (!$opts{d} && !$opts{n} && !$opts{r}) {
-	open($fh, '>', "test.data.new")
-	    or die "Open 'test.data.new' for writing failed: $!";
-	print $fh "# test subtest run checkout repeat value unit host\n";
-    }
+
     foreach my $date (@dates) {
+	my $dv = $D{$date};
 	my $vd = $V{$date};
 	my $run = str2time($date);
+	my $reldate = $dv->{reldate};
+
 	foreach my $test (sort keys %$vd) {
 	    print "." if $verbose;
 	    my $vt = $vd->{$test};
+	    my $plot = $TESTPLOT{$test};
+
+	    my @fhs;
+	    if (!$opts{n} || (!$opts{d} || !$opts{r})) {
+		# nothing specified, write global data
+		push @fhs, get_data_fh();
+		push @fhs, get_data_fh($plot);
+	    }
+	    if ((!$opts{n} || !$opts{d}) && $reldate =~ m,(.*)/,) {
+		# no specific date, contained in release
+		push @fhs, get_data_fh($plot, $1);
+	    }
+	    # always create the date file
+	    push @fhs, get_data_fh($plot, $reldate);
+
 	    my $checkout;
 	    foreach my $cvsdate (sort keys %$vt) {
-		next if $testdata =~ /^gnuplot/ && $cvsdate =~ /^patch-/;
+		next if $cvsdate =~ /^patch-/;
 		my $vc = $vt->{$cvsdate};
 		$checkout = str2time($cvsdate) || $checkout + 1;
 		$vc = { 0 => $vc } if ref $vc ne 'HASH';
@@ -428,36 +491,17 @@ sub write_data_files {
 			my $number = $value->{number};
 			my $unit = $value->{unit};
 			my $subtest = $value->{name} || "unknown";
-			my $hostname = $D{$date}{host};
-			print $fh "$test $subtest ".
+			my $hostname = $dv->{host};
+			print $_ "$test $subtest ".
 			    "$run $checkout $repeat $number $unit $hostname\n"
-			    if $fh;
-			print {$plotfh{$TESTPLOT{$test}}} "$test $subtest ".
-			    "$run $checkout $repeat $number $unit $hostname\n"
-			    if $TESTPLOT{$test};
+			    foreach @fhs;
 		    }
 		}
 	    }
 	}
     }
-    if ($fh) {
-	print "." if $verbose;
-	close($fh)
-	    or die "Close 'test.data.new' after writing failed: $!";
-	rename("test.data.new", "test.data")
-	    or die "Rename 'test.data.new' to 'test.data' failed: $!";
-	system("gzip -f -c test.data >test.data.gz.new")
-	    and die "Gzip test.data failed: $?";
-	rename("test.data.gz.new", "test.data.gz")
-	    or die "Rename 'test.data.gz.new' to 'test.data.gz' failed: $!";
-    }
-    foreach my $plot (keys %plotfh) {
-	my $datafile = "$testdata-$plot.data";
-	close($plotfh{$plot})
-	    or die "Close '$datafile.new' after writing failed: $!";
-	rename("$datafile.new", $datafile)
-	    or die "Rename '$datafile.new' to '$datafile' failed: $!";
-    }
+    print "." if $verbose;
+    close_data();
 }
 
 sub list_tests {
@@ -1477,7 +1521,7 @@ sub write_html_cvsdate_files {
 	}
 	print $html "</table>\n";
 
-	html_quirks_table($html, $html);
+	html_quirks_table($html);
 	html_status_table($html, "perform");
 	html_footer($html);
 	html_close($html, $htmlfile);
@@ -1489,11 +1533,11 @@ sub write_html_release_files {
     my @plots = list_plots();
 
     foreach my $release (@releases) {
+	print "." if $verbose;
 	my $rv = $R{$release};
 	my @dates = reverse sort keys %{$rv->{dates}};
 	my @tests = reverse sort { $TESTORDER{$b} <=> $TESTORDER{$a} }
 	    keys %{$rv->{tests}};
-	print "." if $verbose;
 
 	my ($html, $htmlfile) = html_open("$release/perform");
 	my @nav = (
