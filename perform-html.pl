@@ -1296,10 +1296,14 @@ sub html_date_test_head {
     print $html "    <th>release setup</th>\n";
     foreach my $date (@dates) {
 	my $dv = $D{$date};
+	my $setup = $dv->{setup};
 	my $release = $dv->{stepconf}{release};
 	my $setupmodes = $dv->{stepconf}{setupmodes} ||
 	    $dv->{stepconf}{modes};
-	print $html "    <th>$release/$setupmodes</th>\n";
+	my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
+	my $href = $setup ? "<a href=\"$absresult/$link\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <th>$href$release/$setupmodes$enda</th>\n";
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <td></td>\n";
