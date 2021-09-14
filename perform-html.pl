@@ -77,6 +77,7 @@ if ($date && $date eq "current") {
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
+my $absresult = "/perform/results";
 
 # create the html and gnuplot files only for a single date
 my $dateglob = ($opts{n} && $date) ? $date : "*T*Z";
@@ -667,7 +668,7 @@ sub html_cvsdate_zoom {
 	my $time = encode_entities($date);
 	my $datehtml = "$reldate/perform.html";
 	my $link = uri_escape($datehtml, "^A-Za-z0-9\-\._~/");
-	my $href = -f $datehtml ? "<a href=\"../$link\">" : "";
+	my $href = -f $datehtml ? "<a href=\"$absresult/$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html
 	    "      <tr><td title=\"$time\">$href$zoomtext$enda</td></tr>\n";
@@ -687,7 +688,7 @@ sub html_repeat_top {
   </tr>
   <tr>
     <th>run at</th>
-    <td><a href="/perform/results/$reldate/$cvsdate/perform.html">$date</a></td>
+    <td><a href="$absresult/$reldate/$cvsdate/perform.html">$date</a></td>
   </tr>
 HEADER
     print $html "  <tr>\n    <th>run</th>\n";
@@ -715,9 +716,8 @@ HEADER
     }
     $kerneltext =~ s/\s//g;
     my $build = $dv->{$cvsdate}{build};
-    $build =~ s,[^/]+/[^/]+/,, if $build;
     $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
-    $href = $build ? "<a href=\"$link\">" : "";
+    $href = $build ? "<a href=\"$absresult/$link\">" : "";
     $enda = $href ? " info</a>" : "";
     print $html "    <td>$href$kerneltext$enda</td>\n";
     print $html "  </tr>\n";
@@ -748,9 +748,8 @@ sub html_repeat_test_head {
 	    next;
 	}
 	my $reboot = $cv->{$repeat}{reboot};
-	$reboot =~ s,[^/]+/[^/]+/,, if $reboot;
 	my $link = uri_escape($reboot, "^A-Za-z0-9\-\._~/");
-	my $href = $reboot ? "<a href=\"$link\">" : "";
+	my $href = $reboot ? "<a href=\"$absresult/$link\">" : "";
 	my $enda = $href ? " info</a>" : "";
 	print $html "    <th>$href$kernelmode$enda</th>\n";
     }
@@ -857,7 +856,7 @@ sub html_cvsdate_top {
   </tr>
   <tr>
     <th>run at</th>
-    <td><a href="/perform/results/$reldate/perform.html">$date</a></td>
+    <td><a href="$absresult/$reldate/perform.html">$date</a></td>
   </tr>
 HEADER
     print $html "  <tr>\n    <th>run</th>\n";
@@ -878,7 +877,7 @@ HEADER
     my $setupmodes = $dv->{stepconf}{setupmodes} ||
 	$dv->{stepconf}{modes};
     $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
-    $href = $setup ? "<a href=\"../$link\">" : "";
+    $href = $setup ? "<a href=\"$absresult/$link\">" : "";
     $enda = $href ? " info</a>" : "";
     print $html "    <td>$href$release/$setupmodes$enda</td>\n";
     print $html "  </tr>\n";
@@ -914,9 +913,8 @@ sub html_cvsdate_test_head {
     print $html "    <th>machine</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	my $build = $dv->{$cvsdate}{build};
-	$build =~ s,[^/]+/,, if $build;
 	my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
-	my $href = $build ? "<a href=\"$link\">" : "";
+	my $href = $build ? "<a href=\"$absresult/$link\">" : "";
 	my $enda = $href ? " info</a>" : "";
 	print $html "    <th>${href}build$enda</th>\n";
     }
@@ -934,10 +932,9 @@ sub html_cvsdate_test_head {
 		next;
 	    }
 	    my $kernel = encode_entities($cv->{kernel});
-	    $version =~ s,[^/]+/,,;
 	    my $link = uri_escape($version, "^A-Za-z0-9\-\._~/");
 	    print $html "    <th title=\"$kernel\">".
-		"<a href=\"$link\">version</a></th>\n";
+		"<a href=\"$absresult/$link\">version</a></th>\n";
 	}
 	print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	    "<th></th>\n";  # dummy for unit and stats below
@@ -964,7 +961,8 @@ sub html_cvsdate_test_head {
 	    my $cvscommits = $cv->{cvscommits};
 	    my $num = defined($cvscommits) ? "/$cvscommits" : "";
 	    print $html
-		"    <th$title><a href=\"../$link\">cvslog</a>$num</th>\n";
+		"    <th$title><a href=\"$absresult/$link\">cvslog</a>".
+		"$num</th>\n";
 	}
 	print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	    "<th></th>\n";  # dummy for unit and stats below
@@ -980,7 +978,8 @@ sub html_cvsdate_test_head {
 		next;
 	    }
 	    my $link = uri_escape($diff, "^A-Za-z0-9\-\._~/");
-	    print $html "    <th><a href=\"../$link\">diff</a></th>\n";
+	    print $html
+		"    <th><a href=\"$absresult/$link\">diff</a></th>\n";
 	}
 	print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	    "<th></th>\n";  # dummy for unit and stats below
@@ -999,7 +998,8 @@ sub html_cvsdate_test_head {
 	    my $difffile = $cv->{nmdiff};
 	    my $link = uri_escape($difffile, "^A-Za-z0-9\-\._~/");
 	    my $diffstat = "+$nmstat->{plus} -$nmstat->{minus}";
-	    print $html "    <th><a href=\"../$link\">$diffstat</a></th>\n";
+	    print $html
+		"    <th><a href=\"$absresult/$link\">$diffstat</a></th>\n";
 	}
 	print $html "    <th></th><th></th><th></th><th></th><th></th>".
 	    "<th></th>\n";  # dummy for unit and stats below
@@ -1018,9 +1018,8 @@ sub html_cvsdate_test_head {
 	    my $quirks = $dv->{$cvsdate}{quirks};
 	    print $html "    <th>";
 	    if ($quirks) {
-		$quirks =~ s,[^/]+/,,;
 		my $link = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
-		print $html "<a href=\"$link\">quirks</a>";
+		print $html "<a href=\"$absresult/$link\">quirks</a>";
 	    }
 	    if ($prevcvsdate) {
 		my @quirks = keys %{{quirks($prevcvsdate, $cvsdate)}};
@@ -1395,11 +1394,11 @@ sub write_html_repeat_files {
 	    my ($html, $htmlfile) = html_open("$reldate/$cvsdate/perform");
 	    my @nav = (
 		Top      => "/test.html",
-		All      => "/perform/results/perform.html",
+		All      => "$absresult/perform.html",
 		Release  => $reldate =~ m,/, ? "../../perform.html" : undef,
 		Checkout => "../perform.html",
 		Repeat   => undef,
-		Running  => "/perform/results/run.html");
+		Running  => "$absresult/run.html");
 	    my $relname = $reldate =~ m,(.*)/, ? "$1 release " : "";
 	    html_header($html, "OpenBSD Perform Repeat",
 		"OpenBSD perform $relname$short checkout $cvsshort repeat ".
@@ -1438,11 +1437,11 @@ sub write_html_cvsdate_files {
 	my ($html, $htmlfile) = html_open("$reldate/perform");
 	my @nav = (
 	    Top      => "/test.html",
-	    All      => "/perform/results/perform.html",
+	    All      => "$absresult/perform.html",
 	    Release  => $reldate =~ m,/, ? "../perform.html" : undef,
 	    Checkout => undef,
 	    Repeat   => undef,
-	    Running  => "/perform/results/run.html");
+	    Running  => "$absresult/run.html");
 	my $relname = $reldate =~ m,(.*)/, ? "$1 release " : "";
 	html_header($html, "OpenBSD Perform CVS",
 	    "OpenBSD perform $relname$short checkout test results",
@@ -1488,11 +1487,11 @@ sub write_html_release_files {
 	my ($html, $htmlfile) = html_open("$release/perform");
 	my @nav = (
 	    Top      => "/test.html",
-	    All      => "/perform/results/perform.html",
+	    All      => "$absresult/perform.html",
 	    Release  => undef,
 	    Checkout => undef,
 	    Repeat   => undef,
-	    Running  => "/perform/results/run.html");
+	    Running  => "$absresult/run.html");
 	html_header($html, "OpenBSD Perform Release",
 	    "OpenBSD perform $release release test results",
 	    @nav);
@@ -1533,7 +1532,7 @@ sub write_html_date_file {
 	All     => undef,
 	Current => (-f "current/perform.html" ? "current/perform.html" : undef),
 	Latest  => (-f "latest/perform.html" ? "latest/perform.html" : undef),
-	Running => "/perform/results/run.html");
+	Running => "$absresult/run.html");
     html_header($html, "OpenBSD Perform Results",
 	"OpenBSD perform all test results",
 	@nav);
