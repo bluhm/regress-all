@@ -1632,8 +1632,61 @@ sub write_html_release_files {
     }
 }
 
+# merge dates of one release
+sub list_reldates {
+    my @dates = shift || reverse sort keys %D;
+
+    my @reldates;
+    foreach my $date (@dates) {
+	my $dv = $D{$date};
+	my $reldate = $dv->{reldate};
+	unless ($reldate =~ m,(.*)/,) {
+	    push @reldates, $date;
+	    next;
+	}
+	my $release = $1;
+	if (my $rv = $D{$release}) {
+	    my @repeats = (@{$rv->{$rv->{cvsdates}[0]}{repeats} || []}, $date);
+	    my @cvsdates = sort(@{$rv->{cvsdates}}, @{$dv->{cvsdates}});
+	    $rv->{cvsdates} = \@cvsdates;
+	    my $first = $cvsdates[0];
+	    my $last = $cvsdates[-1];
+	    $rv->{$first}{cvsshort} ||= $dv->{$first}{cvsshort};
+	    $rv->{$first}{repeats} = \@repeats;
+	    $rv->{$last}{cvsshort} ||= $dv->{$last}{cvsshort};
+	    next;
+	}
+	my $first = $dv->{cvsdates}[0];
+	my $last = $dv->{cvsdates}[-1];
+	my %rv = (
+	    short    => $release,
+	    reldate  => $release,
+	    host     => "",
+	    core     => "",
+	    setup    => undef,
+	    stepconf => {
+		release     => $release,
+		modes       => "install",
+		step	    => "cvs date",
+		kernelmodes => undef,
+		repmodes    => "date",
+	    },
+	    cvsdates => $dv->{cvsdates},
+	    $first   => {
+		cvsshort => $dv->{$first}{cvsshort},
+		repeats => [ $date ],
+	    },
+	    $last    => { cvsshort => $dv->{$last}{cvsshort} },
+	);
+	# use the date hash to store releases to iterate over both
+	$D{$release} = \%rv;
+	push @reldates, $release;
+    }
+    return @reldates;
+}
+
 sub write_html_date_file {
-    my @dates = list_dates();
+    my @dates = list_reldates();
     my @tests = list_tests();
     my @plots = list_plots();
 
