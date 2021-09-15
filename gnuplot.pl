@@ -107,7 +107,7 @@ parse_data_file();
 my @files = (glob("$prefix.png"), glob("${prefix}_*.png"),
     glob("$prefix.html"));
 unlink(@files) if @files;
-exit if !keys %SUBTESTS && $date;
+exit if !keys %SUBTESTS && ($date || $release);
 
 create_plot_files();
 
