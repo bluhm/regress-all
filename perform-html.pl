@@ -565,7 +565,6 @@ sub create_gnuplot_release_files {
     my @releases = shift || reverse sort keys %R;
 
     foreach my $release (@releases) {
-	print "." if $verbose;
 	foreach my $plot (list_plots()) {
 	    next if !$opts{r} && !$opts{g} && -f "$release/gnuplot/$plot.png";
 	    next unless -r "$release/gnuplot/$plot.data";
