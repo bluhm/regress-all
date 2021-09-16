@@ -1336,15 +1336,6 @@ sub html_date_test_head {
     }
     print $html "  </tr>\n";
     print $html "  <tr>\n    <td></td>\n";
-    print $html "    <th>host cores</th>\n";
-    foreach my $date (@dates) {
-	my $dv = $D{$date};
-	my $hostname = $dv->{host};
-	my $core = $dv->{core};
-	print $html "    <th>$hostname/$core</th>\n";
-    }
-    print $html "  </tr>\n";
-    print $html "  <tr>\n    <td></td>\n";
     print $html "    <th>release setup</th>\n";
     foreach my $date (@dates) {
 	my $dv = $D{$date};
