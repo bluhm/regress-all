@@ -111,7 +111,8 @@ if ($date && $date eq "current") {
 	or die "Read link '$resultdir/$date' failed: $!";
     -d "$resultdir/$current"
 	or die "Test directory '$resultdir/$current' failed: $!";
-    $date = $current;
+    $date = basename($current);
+    $release ||= dirname($current) if $date ne $current;
 }
 $resultdir = "$resultdir/$date" if $date;
 $resultdir = "$resultdir/$cvsdate" if $date && $cvsdate;
@@ -139,6 +140,7 @@ my $odate = $date;
 END {
     if ($odate) {
 	my @cmd = ("$performdir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
+	push @cmd, "-r", $release if $release;
 	system(@cmd);
 	@cmd = ("$performdir/bin/setup-html.pl");
 	system(@cmd);
@@ -206,6 +208,7 @@ chdir($performdir)
 if ($date) {
     setup_html(date => 1);
     my @cmd = ("bin/perform-html.pl", "-d", $date, "-n");
+    push @cmd, "-r", $release if $release;
     push @cmd, "-v" if $opts{v};
     runcmd(@cmd);
 
