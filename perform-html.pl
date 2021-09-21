@@ -502,7 +502,7 @@ sub write_data_files {
 
 	    my $checkout;
 	    foreach my $cvsdate (sort keys %$vt) {
-		next if $cvsdate =~ /^patch-/;
+		my @fhout = $cvsdate =~ /^patch-/ ? $fhs[-1] : @fhs;
 		my $vc = $vt->{$cvsdate};
 		$checkout = str2time($cvsdate) || $checkout + 1;
 		$vc = { 0 => $vc } if ref $vc ne 'HASH';
@@ -516,7 +516,7 @@ sub write_data_files {
 			my $hostname = $dv->{host};
 			print $_ "$test $subtest ".
 			    "$run $checkout $repeat $number $unit $hostname\n"
-			    foreach @fhs;
+			    foreach @fhout;
 		    }
 		}
 	    }
