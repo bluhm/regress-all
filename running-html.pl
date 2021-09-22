@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -T
 # collect all install and running logs into one html table
 
 # Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
@@ -26,7 +26,7 @@ use List::Util qw(uniq);
 use POSIX;
 use URI::Escape;
 
-use lib dirname($0);
+use lib dirname(($0 =~ m{^([/\w.-]+)$})[0]);
 use Html;
 
 my @now = gmtime();
@@ -44,10 +44,10 @@ EOF
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 
-my $testdir = dirname($0). "/../..";
+my $testdir = dirname(($0 =~ m{^([/\w.-]+)$})[0]). "/../..";
 chdir($testdir)
     or die "Change directory to '$testdir' failed: $!";
-$testdir = getcwd();
+$testdir = (getcwd() =~ m{^([/\w]+)$})[0];
 my $resultdir = "$testdir/results";
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
