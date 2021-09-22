@@ -22,6 +22,7 @@ use File::Basename;
 use HTML::Entities;
 use Getopt::Std;
 use Date::Parse;
+use List::Util qw(uniq);
 use POSIX;
 use URI::Escape;
 
@@ -105,27 +106,33 @@ sub find_latest_logs {
     print "." if $verbose;
     foreach my $log (@logs) {
 	my $mtime = (stat($log))[9]
-	    or die "stat '$log' failed: $!";
+	    or die "Stat '$log' failed: $!";
 	my $dir = dirname($log);
-	my @hosts = map { m,/version-(\w+).txt$, }
-	    glob("$dir/version-*.txt");
+	my @hosts = uniq
+	    map { m,/setup-(\w+).log$, } glob("$dir/setup-*.log"),
+	    map { m,/version-(\w+).txt$, } glob("$dir/version-*.txt");
 	next unless @hosts;
 	my $tv = $H{$hosts[0]}{$type};
 	next if $tv->{mtime} && $tv->{mtime} > $mtime;
 	my ($date) = $log =~ m,/([^/]+T[^/]+Z)/,;
-	my %setup;
 	foreach my $host (@hosts) {
-	    my $setup = "$dir/setup-$host.txt";
-	    $setup{$host} = $setup if -f $setup;
 	    $H{$host}{$type} = {
 		date  => $date,
 		log   => $log,
 		mtime => $mtime,
-		hosts => \@hosts,
-		setup => \%setup,
 	    };
-	    next if $H{$host}{mtime} && $H{$host}{mtime} > $mtime;
-	    $H{$host}{mtime} = $mtime;
+	    my $setup = "$dir/setup-$host.log";
+	    if (-f $setup) {
+		if ($host ne $hosts[0]) {
+		    delete $H{$host}{$type}{date};
+		    $H{$host}{$type}{log} = $setup;
+		    $H{$host}{$type}{mtime} = (stat($setup))[9]
+			or die "Stat '$setup' failed: $!";
+		}
+	    }
+	    next if $H{$host}{mtime} &&
+		$H{$host}{mtime} > $H{$host}{$type}{mtime};
+	    $H{$host}{mtime} = $H{$host}{$type}{mtime};
 	}
     }
 }
@@ -169,20 +176,23 @@ HEADER
 		next;
 	    }
 	    my $date = $tv->{date};
+	    my $label = $date || "setup";
 	    my $log = $tv->{log};
-	    my $status = $tv->{status} ||= log2status($log);
+	    my $status = log2status($log);
 	    my $class = $status ? " class=\"status $status\"" : "";
 	    my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
 	    my $href = $log ? "<a href=\"$link\">" : "";
 	    my $enda = $href ? "</a>" : "";
-	    print $html "    <td$class>$href$date$enda";
+	    print $html "    <td$class>$href$label$enda";
 	    my $mtime = $tv->{mtime};
-	    my $start = str2time($date);
-	    my $duration = $mtime - $start;
-	    print $html "<br>duration ";
-	    print $html $duration >= 24*60*60 ?
-		($duration / 24*60*60). " days" :
-		strftime("%T", gmtime($duration));
+	    if ($date) {
+		my $start = str2time($date);
+		my $duration = $mtime - $start;
+		print $html "<br>duration ";
+		print $html $duration >= 24*60*60 ?
+		    ($duration / 24*60*60). " days" :
+		    strftime("%T", gmtime($duration));
+	    }
 	    print $html "</td>\n";
 	}
 	print $html "  </tr>\n";
