@@ -144,6 +144,8 @@ END {
 	system(@cmd);
 	@cmd = ("$performdir/bin/setup-html.pl");
 	system(@cmd);
+	@cmd = ("$performdir/bin/running-html.pl");
+	system(@cmd);
     }
 };
 cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch, release => $release,

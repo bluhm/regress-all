@@ -95,6 +95,8 @@ END {
 	system(@cmd);
 	@cmd = ("$regressdir/bin/setup-html.pl");
 	system(@cmd);
+	@cmd = ("$regressdir/bin/running-html.pl");
+	system(@cmd);
     }
 };
 setup_hosts(mode => \%mode) unless $mode{keep};

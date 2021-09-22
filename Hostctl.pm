@@ -100,6 +100,8 @@ sub setup_hosts {
 	# create new summary with setup log
 	sleep 5;
 	setup_html();
+	my @cmd = ("$bindir/running-html.pl");
+	system(@cmd);
 
 	waitcmd(@pidcmds);
     }
