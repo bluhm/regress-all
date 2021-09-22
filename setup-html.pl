@@ -713,7 +713,7 @@ HEADER
 			$h->{$host}{time}) || "";
 		    my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
 			$h->{$host}{reboot} || "";
-		    $time ||= "log" if $setup;
+		    $time ||= "setup" if $setup;
 		    my $logfile = "$reldate/$setup";
 		    my $status = $setup ? log2status($logfile) : "";
 		    my $class = $status ? " class=\"status $status\"" : "";
