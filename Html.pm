@@ -20,6 +20,7 @@ package Html;
 use strict;
 use warnings;
 use Carp;
+use Fcntl qw(SEEK_SET SEEK_CUR SEEK_END);
 
 use Buildquirks;
 
@@ -33,6 +34,7 @@ our @EXPORT= qw(
     html_status_table
     html_quirks_table
     status2severity
+    log2status
 );
 
 # create new html file, return handle and file name
@@ -242,6 +244,37 @@ sub html_quirks_table {
 ROW
     }
     print $html "</table>\n";
+}
+
+# extract status from log file
+sub log2status {
+    my ($logfile) = @_;
+
+    open(my $fh, '<', $logfile)
+	or return 'NOEXIST';
+
+    defined(my $line = <$fh>)
+	or return 'NOLOG';
+    $line =~ /^Script .* started/i
+	or return 'NORUN';
+
+    # if seek from end fails, file is too short, then read from the beginning
+    seek($fh, 0, SEEK_SET);
+    seek($fh, -1000, SEEK_END);
+    # reread file buffer at current position, ignore error or end of file
+    readline($fh);
+    # find final line
+    while (<$fh>) {
+	$line = $_;
+    }
+
+    $line =~ /^Warning:/
+	and return 'NOTERM';
+    $line =~ /^[A-Z].* failed/
+	and return 'FAIL';
+    $line =~ /^Script .* finished/i
+	and return 'PASS';
+    return 'NOEXIT';
 }
 
 1;

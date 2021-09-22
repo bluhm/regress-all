@@ -18,7 +18,6 @@
 use strict;
 use warnings;
 use Cwd;
-use Fcntl qw(SEEK_SET SEEK_CUR SEEK_END);
 use File::Basename;
 use File::Glob qw(:bsd_glob);
 use HTML::Entities;
@@ -675,7 +674,7 @@ HEADER
 		} else {
 		    my $log = $D{$date}{log} || "";
 		    my $logfile = "$reldate/$log";
-		    my $status = $log ? log_status($logfile) : "";
+		    my $status = $log ? log2status($logfile) : "";
 		    my $mtime = $log ? (stat($logfile))[9] : 0;
 		    my $class = $status ? " class=\"status $status\"" : "";
 		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
@@ -716,7 +715,7 @@ HEADER
 			$h->{$host}{reboot} || "";
 		    $time ||= "log" if $setup;
 		    my $logfile = "$reldate/$setup";
-		    my $status = $setup ? log_status($logfile) : "";
+		    my $status = $setup ? log2status($logfile) : "";
 		    my $class = $status ? " class=\"status $status\"" : "";
 		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 		    my $href = $setup ? "<a href=\"$link\">" : "";
@@ -731,35 +730,4 @@ HEADER
     print $html "</table>\n";
     html_footer($html);
     html_close($html, $htmlfile, "nozip");
-}
-
-# extract status from log file
-sub log_status {
-    my ($logfile) = @_;
-
-    open(my $fh, '<', $logfile)
-	or return 'NOEXIST';
-
-    defined(my $line = <$fh>)
-	or return 'NOLOG';
-    $line =~ /^Script .* started/i
-	or return 'NORUN';
-
-    # if seek from end fails, file is too short, then read from the beginning
-    seek($fh, 0, SEEK_SET);
-    seek($fh, -1000, SEEK_END);
-    # reread file buffer at current position, ignore error or end of file
-    readline($fh);
-    # find final line
-    while (<$fh>) {
-	$line = $_;
-    }
-
-    $line =~ /^Warning:/
-	and return 'NOTERM';
-    $line =~ /^[A-Z].* failed/
-	and return 'FAIL';
-    $line =~ /^Script .* finished/i
-	and return 'PASS';
-    return 'NOEXIT';
 }
