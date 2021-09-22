@@ -37,6 +37,7 @@ regress-html.pl	- convert all regression test results into html table
 regress.pl	- run one openbsd regression test on test machine,
 		  this is started by run.pl
 run.pl		- do regression tests, add this to cron job
+running-html.pl	- create html table with all tests currently running
 setup-html.pl	- convert machine setup logs into html table
 setup.pl	- install one test machine,
 		  this is started by run.pl and step.pl

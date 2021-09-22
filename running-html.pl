@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# convert test setup details to a html table
+# collect all install and running logs into one html table
 
 # Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
 #
@@ -20,7 +20,6 @@ use warnings;
 use Cwd;
 use Fcntl qw(SEEK_SET SEEK_CUR SEEK_END);
 use File::Basename;
-use File::Glob qw(:bsd_glob);
 use HTML::Entities;
 use Getopt::Std;
 use Date::Parse;
@@ -30,51 +29,203 @@ use URI::Escape;
 use lib dirname($0);
 use Html;
 
-my $now = strftime("%FT%TZ", gmtime);
+my @now = gmtime();
+my $now = strftime("%FT%TZ", @now);
 
 my %opts;
-getopts('ad:', \%opts) or do {
+getopts('va', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-a] [-d date]
-    -a		create setup.html for all dates
-    -d date	create setup.html for a specific date, may be current
+    -a		create running.html for all dates
+    -v          verbose
 EOF
     exit(2);
 };
-$opts{a} && $opts{d}
-    and die "Options -a and -d cannot be used together";
-!$opts{d} || $opts{d} eq "current" || str2time($opts{d})
-    or die "Invalid -d date '$opts{d}'";
-my $date = $opts{d};
+my $verbose = $opts{v};
+$| = 1 if $verbose;
 
-my $regressdir = dirname($0). "/..";
-chdir($regressdir)
-    or die "Change directory to '$regressdir' failed: $!";
-$regressdir = getcwd();
-my $resultdir = "$regressdir/results";
-if ($date && $date eq "current") {
-    my $current = readlink("$resultdir/$date")
-	or die "Read link '$resultdir/$date' failed: $!";
-    -d "$resultdir/$current"
-	or die "Test directory '$resultdir/$current' failed: $!";
-    $date = $current;
-}
+my $testdir = dirname($0). "/../..";
+chdir($testdir)
+    or die "Change directory to '$testdir' failed: $!";
+$testdir = getcwd();
+my $resultdir = "$testdir/results";
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
-my $typename = "";
-my @reldates;
-if ($opts{d}) {
-    @reldates = (
-	bsd_glob("$date", GLOB_NOSORT),
-	bsd_glob("[0-9]*.[0-9]/$date", GLOB_NOSORT));
-} else {
-    my @dates =
-	map { dirname($_) } (
-	bsd_glob("*T*/run.log", GLOB_NOSORT),
-	bsd_glob("*T*/step.log", GLOB_NOSORT),
-	bsd_glob("*T*/test.log", GLOB_NOSORT),
-	bsd_glob("*T*/make.log", GLOB_NOSORT));
+my %H;
+
+# $H{$host}{$type}{log}			log file path
+# $H{$host}{$type}{mtime}		modified time of log file
+# $H{$host}{$type}{hosts}[]		host names with version files
+# $H{$host}{$type}{setup}{$host}	setup log file path
+# $H{$host}{{mtime}			latest modified time of log files
+
+my @types = qw(regress perform portstest release);
+
+print "find latest logs" if $verbose;
+foreach my $type (@types) {
+    my @logs = glob_log_files($type);
+    find_latest_logs($type, @logs);
+}
+print "\n" if $verbose;
+
+print "create html running" if $verbose;
+create_html_running();
+print "\n" if $verbose;
+
+exit 0;
+
+sub glob_log_files {
+    my ($type) = @_;
+
+    print "." if $verbose;
+    my $resultdir = "../$type/results";
+    my $mon = $now[4];
+    my $year = $now[5] + 1900;
+    my $dateglob = $opts{a} ? "*" :
+	$mon == 0 ? sprintf("{%04d-%02d,%04d-%02d}-*", $year-1, 12, $year, 1) :
+	sprintf("%04d-{%02d,%02d}-*", $year, $mon, $mon+1);
+    my %logglob = (
+	regress   => "run",
+	perform   => "{step,once}",
+	portstest => "test",
+	release   => "make",
+    );
+
+    my @logs = glob("$resultdir/${dateglob}T*Z/$logglob{$type}.log");
+    if ($type eq "perform") {
+	push @logs, glob(
+	    "$resultdir/[0-9]*.[0-9]/${dateglob}T*Z/$logglob{$type}.log");
+    }
+    return @logs;
+}
+
+sub find_latest_logs {
+    my ($type, @logs) = @_;
+
+    print "." if $verbose;
+    foreach my $log (@logs) {
+	my $mtime = (stat($log))[9]
+	    or die "stat '$log' failed: $!";
+	my $dir = dirname($log);
+	my @hosts = map { m,/version-(\w+).txt$, }
+	    glob("$dir/version-*.txt");
+	next unless @hosts;
+	my $tv = $H{$hosts[0]}{$type};
+	next if $tv->{mtime} && $tv->{mtime} > $mtime;
+	my ($date) = $log =~ m,/([^/]+T[^/]+Z)/,;
+	my %setup;
+	foreach my $host (@hosts) {
+	    my $setup = "$dir/setup-$host.txt";
+	    $setup{$host} = $setup if -f $setup;
+	    $H{$host}{$type} = {
+		date  => $date,
+		log   => $log,
+		mtime => $mtime,
+		hosts => \@hosts,
+		setup => \%setup,
+	    };
+	    next if $H{$host}{mtime} && $H{$host}{mtime} > $mtime;
+	    $H{$host}{mtime} = $mtime;
+	}
+    }
+}
+
+sub create_html_running {
+    my ($html, $htmlfile) = html_open("running");
+    my @nav = (
+	Top     => "../test.html",
+	Regess  => "../regress/results/run.html",
+	Perform => "../perform/results/run.html",
+	Ports   => "../portstest/results/run.html",
+	Release => "../release/results/run.html",
+	Running => undef);
+    html_header($html, "OpenBSD Running",
+	"OpenBSD test running",
+	@nav);
+    print $html <<"HEADER";
+<table>
+  <tr>
+    <th>created at</th>
+    <td>$now</td>
+  </tr>
+</table>
+HEADER
+
+    print $html "<table>\n";
+    print $html "  <tr>\n    <th></th>\n";
+    foreach my $type (@types) {
+	print $html "    <th>$type</th>\n";
+    }
+    print $html "  </tr>\n";
+
+    my @hosts = sort { $H{$b}{mtime} <=> $H{$a}{mtime} || $a cmp $b } keys %H;
+    foreach my $host (@hosts) {
+	print "." if $verbose;
+	print $html "  <tr>\n    <th>$host</th>\n";
+	foreach my $type (@types) {
+	    my $tv = $H{$host}{$type};
+	    unless ($tv) {
+		print $html "    <td></td>\n";
+		next;
+	    }
+	    my $date = $tv->{date};
+	    my $log = $tv->{log};
+	    my $status = $tv->{status} ||= log_status($log);
+	    my $class = $status ? " class=\"status $status\"" : "";
+	    my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
+	    my $href = $log ? "<a href=\"$link\">" : "";
+	    my $enda = $href ? "</a>" : "";
+	    print $html "    <td$class>$href$date$enda";
+	    my $mtime = $tv->{mtime};
+	    my $start = str2time($date);
+	    my $duration = $mtime - $start;
+	    print $html "<br>duration ";
+	    print $html $duration >= 24*60*60 ?
+		($duration / 24*60*60). " days" :
+		strftime("%T", gmtime($duration));
+	    print $html "</td>\n";
+	}
+	print $html "  </tr>\n";
+    }
+
+    print $html "</table>\n";
+    html_footer($html);
+    html_close($html, $htmlfile, "nozip");
+}
+
+# extract status from log file
+sub log_status {
+    my ($logfile) = @_;
+
+    open(my $fh, '<', $logfile)
+	or return 'NOEXIST';
+
+    defined(my $line = <$fh>)
+	or return 'NOLOG';
+    $line =~ /^Script .* started/i
+	or return 'NORUN';
+
+    # if seek from end fails, file is too short, then read from the beginning
+    seek($fh, 0, SEEK_SET);
+    seek($fh, -1000, SEEK_END);
+    # reread file buffer at current position, ignore error or end of file
+    readline($fh);
+    # find final line
+    while (<$fh>) {
+	$line = $_;
+    }
+
+    $line =~ /^Warning:/
+	and return 'NOTERM';
+    $line =~ /^[A-Z].* failed/
+	and return 'FAIL';
+    $line =~ /^Script .* finished/i
+	and return 'PASS';
+    return 'NOEXIT';
+}
+__END__
+
     @reldates =
 	map { dirname($_) } (
 	bsd_glob("[0-9]*.[0-9]/*T*/step.log", GLOB_NOSORT));
@@ -631,135 +782,3 @@ sub create_html_reboot {
     html_close($html, $htmlfile, "nozip");
 }
 
-sub create_html_run {
-    my ($html, $htmlfile) = html_open("run");
-    my @nav = (
-	Top     => "../../test.html",
-	All     => $H{regress} || $H{perform},
-	$H{release} ? (Release => $H{release}) : (),
-	$H{current} ? (Current => $H{current}) : (),
-	Latest  => $H{latest},
-	Running => undef);
-    html_header($html, "OpenBSD $typename Run",
-	"OpenBSD ". lc($typename). " test run",
-	@nav);
-    print $html <<"HEADER";
-<table>
-  <tr>
-    <th>created at</th>
-    <td>$now</td>
-  </tr>
-</table>
-HEADER
-
-    print $html "<table>\n";
-    print $html "  <tr>\n    <th>run log</th>\n";
-    foreach my $host (sort keys %M) {
-	print $html "    <th>$host setup log</th>\n";
-    }
-    print $html "  </tr>\n";
-
-    foreach my $date (reverse sort keys %D) {
-	my $reldate = $D{$date}{reldate};
-	my @cvsdates = @{$D{$date}{cvsdates}};
-	foreach my $cvsdate (reverse "", @cvsdates) {
-	    my @repeats = $cvsdate ? @{$D{$date}{$cvsdate}{repeats}} : ();
-	    foreach my $repeat (reverse "", @repeats) {
-		my $h;
-		if ($repeat) {
-		    print $html "  <tr>\n    <td></td>\n";
-		    $h = $D{$date}{$cvsdate}{$repeat}{host};
-		} elsif ($cvsdate) {
-		    print $html "  <tr>\n    <td></td>\n";
-		    $h = $D{$date}{$cvsdate}{host};
-		} else {
-		    my $log = $D{$date}{log} || "";
-		    my $logfile = "$reldate/$log";
-		    my $status = $log ? log_status($logfile) : "";
-		    my $mtime = $log ? (stat($logfile))[9] : 0;
-		    my $class = $status ? " class=\"status $status\"" : "";
-		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-		    my $href = $log ? "<a href=\"$link\">" : "";
-		    my $enda = $href ? "</a>" : "";
-		    print $html "  <tr>\n";
-		    print $html "    <td$class>$href$date$enda";
-		    $h = $D{$date}{host};
-		    my $console = 0;
-		    foreach my $host (sort keys %M) {
-			my $bsdcons = $h->{$host}{bsdcons}
-			    or next;
-			print $html "<br>console" unless $console++;
-			$logfile = "$reldate/$bsdcons";
-			$link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-			print $html " <a href=\"$link\">$host</a>";
-		    }
-		    if ($mtime && $status !~ /^(NOEXIT|NOTERM)$/) {
-			my $start = str2time($date);
-			my $duration = $mtime - $start;
-			print $html "<br>duration ";
-			print $html $duration >= 24*60*60 ?
-			    ($duration / 24*60*60). " days" :
-			    strftime("%T", gmtime($duration));
-		    }
-		    print $html "</td>\n";
-		}
-		foreach my $host (sort keys %M) {
-		    unless ($D{$date}{host}{$host} ||
-			$D{$date}{$cvsdate}{host}{$host} ||
-			$D{$date}{$cvsdate}{$repeat}{host}{$host}) {
-			print $html "    <td></td>\n";
-			next;
-		    }
-		    my $time = encode_entities($repeat || $cvsdate ||
-			$h->{$host}{time}) || "";
-		    my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
-			$h->{$host}{reboot} || "";
-		    $time ||= "log" if $setup;
-		    my $logfile = "$reldate/$setup";
-		    my $status = $setup ? log_status($logfile) : "";
-		    my $class = $status ? " class=\"status $status\"" : "";
-		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-		    my $href = $setup ? "<a href=\"$link\">" : "";
-		    my $enda = $href ? "</a>" : "";
-		    print $html "    <td$class>$href$time$enda";
-		    print $html "</td>\n";
-		}
-		print $html "  </tr>\n";
-	    }
-	}
-    }
-    print $html "</table>\n";
-    html_footer($html);
-    html_close($html, $htmlfile, "nozip");
-}
-
-# extract status from log file
-sub log_status {
-    my ($logfile) = @_;
-
-    open(my $fh, '<', $logfile)
-	or return 'NOEXIST';
-
-    defined(my $line = <$fh>)
-	or return 'NOLOG';
-    $line =~ /^Script .* started/i
-	or return 'NORUN';
-
-    # if seek from end fails, file is too short, then read from the beginning
-    seek($fh, 0, SEEK_SET);
-    seek($fh, -1000, SEEK_END);
-    # reread file buffer at current position, ignore error or end of file
-    readline($fh);
-    # find final line
-    while (<$fh>) {
-	$line = $_;
-    }
-
-    $line =~ /^Warning:/
-	and return 'NOTERM';
-    $line =~ /^[A-Z].* failed/
-	and return 'FAIL';
-    $line =~ /^Script .* finished/i
-	and return 'PASS';
-    return 'NOEXIT';
-}
