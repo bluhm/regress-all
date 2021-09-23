@@ -141,10 +141,10 @@ sub create_html_running {
     my ($html, $htmlfile) = html_open("running");
     my @nav = (
 	Top     => "../test.html",
-	Regess  => "../regress/results/run.html",
-	Perform => "../perform/results/run.html",
-	Ports   => "../portstest/results/run.html",
-	Release => "../release/results/run.html",
+	Regess  => "../regress/results/latest.html",
+	Perform => "../perform/results/perform.html",
+	Ports   => "../portstest/results/latest.html",
+	Release => "../release/results/latest.html",
 	Running => undef);
     html_header($html, "OpenBSD Running",
 	"OpenBSD test running",
@@ -161,7 +161,9 @@ HEADER
     print $html "<table>\n";
     print $html "  <tr>\n    <th></th>\n";
     foreach my $type (@types) {
-	print $html "    <th>$type</th>\n";
+	my $link = uri_escape("../$type/results/run.html",
+	    "^A-Za-z0-9\-\._~/");
+	print $html "    <th><a href=\"$link\">$type</a></th>\n";
     }
     print $html "  </tr>\n";
 
