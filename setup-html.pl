@@ -64,22 +64,57 @@ if ($date && $date eq "current") {
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
-my (%D, %M, %H);
+my (%D, %M, %N);
 
 # %D
 # %M
-# %H
+# %N
+# $N{regress}		navigation link to regress.html
+# $N{perform}		navigation link to perform.html
+# $N{latest}		navigation link to latest.html
+# $N{run}		navigation link to run.html
+# $N{current}		navigation link to current/perform.html
+# $N{latest}		navigation link to latest/perform.html
+# $N{release}		navigation link to latest release perform.html
 
 print "glob log files" if $verbose;
-my $typename = "";
-my @reldates;
-if ($opts{d}) {
+my @reldates = glob_log_files($date);
+print "\n" if $verbose;
+
+print "parse log files" if $verbose;
+my $typename = parse_log_files(@reldates);
+print "\n" if $verbose;
+
+if ($opts{a} || $opts{d}) {
+    print "create html files" if $verbose;
+    create_html_files(@reldates);
+    print "\n" if $verbose;
+}
+
+exit if $opts{d};
+
+chdir($resultdir)
+    or die "Change directory to '$resultdir' failed: $!";
+
+print "fill navigation links" if $verbose;
+fill_navigation_links();
+print "\n" if $verbose;
+
+print "create html run" if $verbose;
+create_html_run();
+print "\n" if $verbose;
+
+exit;
+
+sub glob_log_files {
+    my ($date) = @_;
+
     print "." if $verbose;
-    @reldates = (
-	bsd_glob("$date", GLOB_NOSORT),
-	bsd_glob("[0-9]*.[0-9]/$date", GLOB_NOSORT));
-} else {
-    print "." if $verbose;
+    if ($date) {
+	return (bsd_glob("$date", GLOB_NOSORT),
+	    bsd_glob("[0-9]*.[0-9]/$date", GLOB_NOSORT));
+    }
+
     my @dates =
 	map { dirname($_) } (
 	bsd_glob("*T*/run.log", GLOB_NOSORT),
@@ -87,7 +122,7 @@ if ($opts{d}) {
 	bsd_glob("*T*/test.log", GLOB_NOSORT),
 	bsd_glob("*T*/make.log", GLOB_NOSORT));
     print "." if $verbose;
-    @reldates =
+    my @reldates =
 	map { dirname($_) } (
 	bsd_glob("[0-9]*.[0-9]/*T*/step.log", GLOB_NOSORT));
     $date = $reldates[-1];
@@ -103,127 +138,132 @@ if ($opts{d}) {
 	@dates = $date unless @dates || @reldates;
     }
     if (@reldates) {
-	@reldates = sort { basename($a) cmp basename($b) } (
+	return sort { basename($a) cmp basename($b) } (
 	    splice(@dates), splice(@reldates));
     } else {
-	@reldates = splice(@dates);
+	return splice(@dates);
     }
 }
-print "\n" if $verbose;
 
-print "parse log files" if $verbose;
-foreach my $reldate (@reldates) {
-    print "." if $verbose;
-    $date = basename($reldate);
-    $D{$date}{reldate} = $reldate;
-    my $dir = "$regressdir/results/$reldate";
-    chdir($dir)
-	or die "Change directory to '$dir' failed: $!";
+sub parse_log_files {
+    my @reldates = @_;
 
-    my @cvsdates = grep { -d $_ } (
-	bsd_glob("*T*", GLOB_NOSORT),
-	bsd_glob("patch-*", GLOB_NOSORT));
-    $D{$date}{cvsdates} = [ @cvsdates ];
-
-    foreach my $cvsdate ("", @cvsdates) {
-	chdir("$dir/$cvsdate")
-	    or die "Change directory to '$dir/$cvsdate' failed: $!";
-
-	my @repeats = grep { -d $_ } (
-	    bsd_glob("[0-9][0-9][0-9]", GLOB_NOSORT),
-	    bsd_glob("btrace-*", GLOB_NOSORT));
-	$D{$date}{$cvsdate}{repeats} = [ @repeats ] if $cvsdate;
-
-	foreach my $repeat ("", @repeats) {
-	    chdir("$dir/$cvsdate/$repeat")
-		or die "Change directory to '$dir/$cvsdate/$repeat' failed: $!";
-
-	    my %h;
-	    foreach my $version (glob("version-*.txt")) {
-		my ($host) = $version =~ m,version-(.*)\.txt,;
-		my %v = parse_version_file($version);
-		$v{kerntime} or next;
-		(my $bsdcons = $version) =~ s,version,bsdcons,;
-		(my $dmesg = $version) =~ s,version,dmesg,;
-		(my $dmesgboot = $version) =~ s,version,dmesg-boot,;
-		(my $diff = $version) =~ s,version,diff,;
-		(my $quirks = $version) =~ s,version,quirks,;
-		(my $nmbsd = $version) =~ s,version,nm-bsd,;
-		my $subdir = "";
-		$subdir .= "$cvsdate/" if $cvsdate;
-		$subdir .= "$repeat/" if $repeat;
-		$h{$host} = {
-		    version   => $subdir.$version,
-		    %v,
-		    bsdcons   => -f $bsdcons ? $subdir.$bsdcons : undef,
-		    dmesg     => -f $dmesg ? $subdir.$dmesg : undef,
-		    dmesgboot => -f $dmesgboot ? $subdir.$dmesgboot : undef,
-		    diff      => -f $diff ? $subdir.$diff : undef,
-		    quirks    => -f $quirks ? $subdir.$quirks : undef,
-		    nmbsd     => -f $nmbsd ? $subdir.$nmbsd : undef,
-		};
-		$M{$host}++;
-	    }
-	    foreach my $setup (glob("setup-*.log")) {
-		my ($host) = $setup =~ m,setup-(.*)\.log,;
-		$h{$host}{setup} = $setup,
-	    }
-	    foreach my $build (glob("cvsbuild-*.log")) {
-		my ($host) = $build =~ m,cvsbuild-(.*)\.log,;
-		$h{$host}{build} = "$cvsdate/$build",
-	    }
-	    foreach my $reboot (glob("reboot-*.log")) {
-		my ($host) = $reboot =~ m,reboot-(.*)\.log,;
-		$h{$host}{reboot} = "$cvsdate/$repeat/$reboot",
-	    }
-	    if ($repeat) {
-		$D{$date}{$cvsdate}{$repeat}{host} = \%h;
-	    } elsif ($cvsdate) {
-		$D{$date}{$cvsdate}{host} = \%h;
-	    } else {
-		$D{$date}{host} = \%h;
-	    }
-	}
-    }
-    chdir($dir)
-	or die "Change directory to '$dir' failed: $!";
-
-    if (-f "run.log") {
-	$D{$date}{log} = "run.log";
-	$typename = "Regress";
-    } elsif (-f "step.log") {
-	$D{$date}{log} = "step.log";
-	$typename = "Perform";
-    } elsif (-f "test.log") {
-	$D{$date}{log} = "test.log";
-	$typename = "Ports";
-    } elsif (-f "make.log") {
-	$D{$date}{log} = "make.log";
-	$typename = "Release";
-    }
-    if (-f "test.log.tgz") {
-	$D{$date}{logtgz} = "test.log.tgz";
-    }
-    if (-f "test.obj.tgz") {
-	$D{$date}{objtgz} = "test.obj.tgz";
-    }
-}
-print "\n" if $verbose;
-
-if ($opts{a} || $opts{d}) {
-    print "create html setup" if $verbose;
+    my $typename;
     foreach my $reldate (@reldates) {
 	print "." if $verbose;
-	$date = basename($reldate);
+	my $date = basename($reldate);
+	$D{$date}{reldate} = $reldate;
 	my $dir = "$regressdir/results/$reldate";
 	chdir($dir)
 	    or die "Change directory to '$dir' failed: $!";
 
+	my @cvsdates = grep { -d $_ } (
+	    bsd_glob("*T*", GLOB_NOSORT),
+	    bsd_glob("patch-*", GLOB_NOSORT));
+	$D{$date}{cvsdates} = [ @cvsdates ];
+
+	foreach my $cvsdate ("", @cvsdates) {
+	    chdir("$dir/$cvsdate")
+		or die "Change directory to '$dir/$cvsdate' failed: $!";
+
+	    my @repeats = grep { -d $_ } (
+		bsd_glob("[0-9][0-9][0-9]", GLOB_NOSORT),
+		bsd_glob("btrace-*", GLOB_NOSORT));
+	    $D{$date}{$cvsdate}{repeats} = [ @repeats ] if $cvsdate;
+
+	    foreach my $repeat ("", @repeats) {
+		chdir("$dir/$cvsdate/$repeat") or die
+		    "Change directory to '$dir/$cvsdate/$repeat' failed: $!";
+
+		my %h;
+		foreach my $version (glob("version-*.txt")) {
+		    my ($host) = $version =~ m,version-(.*)\.txt,;
+		    my %v = parse_version_file($version);
+		    $v{kerntime} or next;
+		    (my $bsdcons = $version) =~ s,version,bsdcons,;
+		    (my $dmesg = $version) =~ s,version,dmesg,;
+		    (my $dmesgboot = $version) =~ s,version,dmesg-boot,;
+		    (my $diff = $version) =~ s,version,diff,;
+		    (my $quirks = $version) =~ s,version,quirks,;
+		    (my $nmbsd = $version) =~ s,version,nm-bsd,;
+		    my $subdir = "";
+		    $subdir .= "$cvsdate/" if $cvsdate;
+		    $subdir .= "$repeat/" if $repeat;
+		    $h{$host} = {
+			version   => $subdir.$version,
+			%v,
+			bsdcons   => -f $bsdcons ? $subdir.$bsdcons : undef,
+			dmesg     => -f $dmesg ? $subdir.$dmesg : undef,
+			dmesgboot => -f $dmesgboot ? $subdir.$dmesgboot : undef,
+			diff      => -f $diff ? $subdir.$diff : undef,
+			quirks    => -f $quirks ? $subdir.$quirks : undef,
+			nmbsd     => -f $nmbsd ? $subdir.$nmbsd : undef,
+		    };
+		    $M{$host}++;
+		}
+		foreach my $setup (glob("setup-*.log")) {
+		    my ($host) = $setup =~ m,setup-(.*)\.log,;
+		    $h{$host}{setup} = $setup,
+		}
+		foreach my $build (glob("cvsbuild-*.log")) {
+		    my ($host) = $build =~ m,cvsbuild-(.*)\.log,;
+		    $h{$host}{build} = "$cvsdate/$build",
+		}
+		foreach my $reboot (glob("reboot-*.log")) {
+		    my ($host) = $reboot =~ m,reboot-(.*)\.log,;
+		    $h{$host}{reboot} = "$cvsdate/$repeat/$reboot",
+		}
+		if ($repeat) {
+		    $D{$date}{$cvsdate}{$repeat}{host} = \%h;
+		} elsif ($cvsdate) {
+		    $D{$date}{$cvsdate}{host} = \%h;
+		} else {
+		    $D{$date}{host} = \%h;
+		}
+	    }
+	}
+	chdir($dir)
+	    or die "Change directory to '$dir' failed: $!";
+
+	if (-f "run.log") {
+	    $D{$date}{log} = "run.log";
+	    $typename = "Regress";
+	} elsif (-f "step.log") {
+	    $D{$date}{log} = "step.log";
+	    $typename = "Perform";
+	} elsif (-f "test.log") {
+	    $D{$date}{log} = "test.log";
+	    $typename = "Ports";
+	} elsif (-f "make.log") {
+	    $D{$date}{log} = "make.log";
+	    $typename = "Release";
+	}
+	if (-f "test.log.tgz") {
+	    $D{$date}{logtgz} = "test.log.tgz";
+	}
+	if (-f "test.obj.tgz") {
+	    $D{$date}{objtgz} = "test.obj.tgz";
+	}
+    }
+    return $typename;
+}
+
+sub create_html_files {
+    my @reldates = @_;
+
+    foreach my $reldate (@reldates) {
+	print "." if $verbose;
+	my $dir = "$regressdir/results/$reldate";
+	chdir($dir)
+	    or die "Change directory to '$dir' failed: $!";
+
+	my $date = basename($reldate);
 	next unless keys %{$D{$date}{host}};
 	my @cvsdates = @{$D{$date}{cvsdates}};
 	create_html_setup($date, @cvsdates);
 
 	foreach my $cvsdate (@cvsdates) {
+	    print "." if $verbose;
 	    my $subdir = "$dir/$cvsdate";
 	    chdir($subdir)
 		or die "Change directory to '$subdir' failed: $!";
@@ -233,6 +273,7 @@ if ($opts{a} || $opts{d}) {
 	    create_html_build($date, $cvsdate, @repeats);
 
 	    foreach my $repeat (@repeats) {
+		print "." if $verbose;
 		my $subdir = "$dir/$cvsdate/$repeat";
 		chdir($subdir)
 		    or die "Change directory to '$subdir' failed: $!";
@@ -242,28 +283,7 @@ if ($opts{a} || $opts{d}) {
 	    }
 	}
     }
-    print "\n" if $verbose;
 }
-
-chdir($resultdir)
-    or die "Change directory to '$resultdir' failed: $!";
-foreach my $result (qw(regress perform latest run)) {
-    $H{$result} = "$result.html" if -f "$result.html";
-}
-foreach my $result (qw(current latest)) {
-    $H{$result} = "$result/perform.html" if -f "$result/perform.html";
-}
-if (my @releases = glob("[0-9]*.[0-9]/perform.html")) {
-    $H{release} = $releases[-1];
-}
-
-unless ($opts{d}) {
-    print "create html run" if $verbose;
-    create_html_run();
-    print "\n" if $verbose;
-}
-
-exit;
 
 sub create_html_setup {
     my ($date, @cvsdates) = @_;
@@ -642,14 +662,26 @@ sub create_html_reboot {
     html_close($html, $htmlfile, "nozip");
 }
 
+sub fill_navigation_links {
+    foreach my $result (qw(regress perform latest run)) {
+	$N{$result} = "$result.html" if -f "$result.html";
+    }
+    foreach my $result (qw(current latest)) {
+	$N{$result} = "$result/perform.html" if -f "$result/perform.html";
+    }
+    if (my @releases = glob("[0-9]*.[0-9]/perform.html")) {
+	$N{release} = $releases[-1];
+    }
+}
+
 sub create_html_run {
     my ($html, $htmlfile) = html_open("run");
     my @nav = (
 	Top     => "../../test.html",
-	All     => $H{regress} || $H{perform},
-	$H{release} ? (Release => $H{release}) : (),
-	$H{current} ? (Current => $H{current}) : (),
-	Latest  => $H{latest},
+	All     => $N{regress} || $N{perform},
+	$N{release} ? (Release => $N{release}) : (),
+	$N{current} ? (Current => $N{current}) : (),
+	Latest  => $N{latest},
 	Running => "../../results/running.html");
     html_header($html, "OpenBSD $typename Run",
 	"OpenBSD ". lc($typename). " test run",

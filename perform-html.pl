@@ -160,7 +160,7 @@ my (%T, %D, %V, %Z, @Z, %B, %R);
 # $R{$release}{tests}{$test}		tests in release
 
 print "glob result files" if $verbose;
-my @result_files = get_result_files($opts{n} && $date, $opts{n} && $release);
+my @result_files = glob_result_files($opts{n} && $date, $opts{n} && $release);
 print "\nparse result files" if $verbose;
 parse_result_files(@result_files);
 print "\nwrite data files" if $verbose;
@@ -209,7 +209,7 @@ write_html_date_file();
 print "\n" if $verbose;
 exit;
 
-sub get_result_files {
+sub glob_result_files {
     my ($date, $release) = @_;
 
     # create the html and gnuplot files only for a single date and release
