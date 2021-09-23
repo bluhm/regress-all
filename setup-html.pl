@@ -32,11 +32,12 @@ use Html;
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('ad:', \%opts) or do {
+getopts('ad:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-a] [-d date]
     -a		create setup.html for all dates
     -d date	create setup.html for a specific date, may be current
+    -v		verbose
 EOF
     exit(2);
 };
@@ -45,6 +46,8 @@ $opts{a} && $opts{d}
 !$opts{d} || $opts{d} eq "current" || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
+my $verbose = $opts{v};
+$| = 1 if $verbose;
 
 my $regressdir = dirname($0). "/..";
 chdir($regressdir)
@@ -61,19 +64,23 @@ if ($date && $date eq "current") {
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
+print "glob log files" if $verbose;
 my $typename = "";
 my @reldates;
 if ($opts{d}) {
+    print "." if $verbose;
     @reldates = (
 	bsd_glob("$date", GLOB_NOSORT),
 	bsd_glob("[0-9]*.[0-9]/$date", GLOB_NOSORT));
 } else {
+    print "." if $verbose;
     my @dates =
 	map { dirname($_) } (
 	bsd_glob("*T*/run.log", GLOB_NOSORT),
 	bsd_glob("*T*/step.log", GLOB_NOSORT),
 	bsd_glob("*T*/test.log", GLOB_NOSORT),
 	bsd_glob("*T*/make.log", GLOB_NOSORT));
+    print "." if $verbose;
     @reldates =
 	map { dirname($_) } (
 	bsd_glob("[0-9]*.[0-9]/*T*/step.log", GLOB_NOSORT));
@@ -96,9 +103,12 @@ if ($opts{d}) {
 	@reldates = splice(@dates);
     }
 }
+print "\n" if $verbose;
 
 my (%D, %M, %H);
+print "parse log files" if $verbose;
 foreach my $reldate (@reldates) {
+    print "." if $verbose;
     $date = basename($reldate);
     $D{$date}{reldate} = $reldate;
     my $dir = "$regressdir/results/$reldate";
@@ -202,9 +212,12 @@ foreach my $reldate (@reldates) {
 	$D{$date}{objtgz} = "test.obj.tgz";
     }
 }
+print "\n" if $verbose;
 
 if ($opts{a} || $opts{d}) {
+    print "create html setup" if $verbose;
     foreach my $reldate (@reldates) {
+	print "." if $verbose;
 	$date = basename($reldate);
 	my $dir = "$regressdir/results/$reldate";
 	chdir($dir)
@@ -233,6 +246,7 @@ if ($opts{a} || $opts{d}) {
 	    }
 	}
     }
+    print "\n" if $verbose;
 }
 
 chdir($resultdir)
@@ -248,7 +262,9 @@ if (my @releases = glob("[0-9]*.[0-9]/perform.html")) {
 }
 
 unless ($opts{d}) {
+    print "create html run" if $verbose;
     create_html_run();
+    print "\n" if $verbose;
 }
 
 exit;
@@ -659,6 +675,7 @@ HEADER
     print $html "  </tr>\n";
 
     foreach my $date (reverse sort keys %D) {
+	print "." if $verbose;
 	my $reldate = $D{$date}{reldate};
 	my @cvsdates = @{$D{$date}{cvsdates}};
 	foreach my $cvsdate (reverse "", @cvsdates) {

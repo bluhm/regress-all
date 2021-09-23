@@ -37,7 +37,7 @@ getopts('va', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-a] [-d date]
     -a		create running.html for all dates
-    -v          verbose
+    -v		verbose
 EOF
     exit(2);
 };
