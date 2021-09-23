@@ -81,6 +81,8 @@ if ($opts{l}) {
     @result_files = sort glob("*/test.result");
 }
 
+my (%T, %D);
+
 # %T
 # $test				test directory relative to /usr/src/regress/
 # $T{$test}{severity}		weighted severity of all failures of this test
@@ -99,13 +101,12 @@ if ($opts{l}) {
 # $D{$date}{dmesg}		path to dmesg.txt of machine running regress
 # $D{$date}{diff}		path to diff.txt custom build kernel cvs diff
 # $D{$date}{kernel}		sysctl kernel version string
-# $D{$date}{time}		build time in kernel version string
+# $D{$date}{kerntime}		build time in kernel version string
 # $D{$date}{location}		user at location of kernel build
 # $D{$date}{build}		snapshot or custom build
 # $D{$date}{arch}		sysctl hardware machine architecture
-# $D{$date}{core}		sysctl hardware ncpu cores
+# $D{$date}{ncpu}		sysctl hardware ncpu cores
 
-my (%T, %D);
 parse_result_files(@result_files);
 
 my $file = $opts{l} ? "latest" : "regress";
@@ -285,22 +286,10 @@ sub parse_result_files {
 	    (my $diff = $version) =~ s,/version-,/diff-,;
 	    $D{$date}{diff} ||= $diff if -f $diff;
 
-	    open($fh, '<', $version)
-		or die "Open '$version' for reading failed: $!";
-	    while (<$fh>) {
-		if (/^kern.version=(.*: (\w+ \w+ +\d+ .*))$/) {
-		    $D{$date}{kernel} = $1;
-		    $D{$date}{time} = $2;
-		    <$fh> =~ /(\S+)/;
-		    $D{$date}{kernel} .= "\n    $1";
-		    $D{$date}{location} = $1;
-		}
-		/^hw.machine=(\w+)$/ and $D{$date}{arch} ||= $1;
-		/^hw.ncpu=(\d+)$/ and $D{$date}{core} ||= $1;
-	    }
-	    $D{$date}{build} =
-		$D{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
-		"snapshot" : "custom";
+	    %{$D{$date}} = (parse_version_file($version), %{$D{$date}});
 	}
+	$D{$date}{build} =
+	    $D{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
+	    "snapshot" : "custom";
     }
 }

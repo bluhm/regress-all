@@ -80,6 +80,8 @@ chdir($resultdir)
 # absolute patch relative to web server
 my $absresult = "/perform/results";
 
+my (%T, %D, %V, %Z, @Z, %B, %R);
+
 # %T
 # $test					performance test tool command line
 # $T{$test}{severity}			weighted severity of all failures
@@ -105,7 +107,7 @@ my $absresult = "/perform/results";
 # $D{$date}{setup}			path to setup.html
 # $D{$date}{host}			hostname of the machine running perform
 # $D{$date}{arch}			sysctl hardware machine architecture
-# $D{$date}{core}			sysctl hardware ncpu cores
+# $D{$date}{ncpu}			sysctl hardware ncpu cores
 # $D{$date}{log}			path to setp.log
 # $D{$date}{stepconf}			config options of step.pl
 # $D{$date}{stepconf}{release}		release version for setup
@@ -122,8 +124,8 @@ my $absresult = "/perform/results";
 # $D{$date}{$cvsdate}{quirks}		quirks.txt of machine running perform
 # $D{$date}{$cvsdate}{build}		path to build.html
 # $D{$date}{$cvsdate}{kernel}		sysctl kernel version string
-# $D{$date}{$cvsdate}{cvs}		cvs checkout date in kernel version
-# $D{$date}{$cvsdate}{time}		build time in kernel version string
+# $D{$date}{$cvsdate}{kerncvs}		cvs checkout date in kernel version
+# $D{$date}{$cvsdate}{kerntime}		build time in kernel version string
 # $D{$date}{$cvsdate}{location}		user at location of kernel build
 # $D{$date}{$cvsdate}{nmdiff}		path to nm-bsd-diff.txt if align
 # $D{$date}{$cvsdate}{nmstat}		diffstat of nm-bsd-diff if align
@@ -156,8 +158,6 @@ my $absresult = "/perform/results";
 # $B{$date}{$cvsdate}{$test}{kstack}	btrace kstack output file
 # $R{$release}{dates}{$date}		dates in release
 # $R{$release}{tests}{$test}		tests in release
-
-my (%T, %D, %V, %Z, @Z, %B, %R);
 
 print "glob result files" if $verbose;
 my @result_files = get_result_files($opts{n} && $date, $opts{n} && $release);
@@ -372,20 +372,10 @@ sub parse_result_files {
 	    (my $diff = $version) =~ s,/version-,/diff-,;
 	    $D{$date}{$cvsdate}{diff} ||= $diff if -f $diff;
 
-	    open($fh, '<', $version)
-		or die "Open '$version' for reading failed: $!";
-	    while (<$fh>) {
-		if (/^kern.version=(.*(?:cvs : (\w+))?: (\w+ \w+ +\d+ .*))$/) {
-		    $D{$date}{$cvsdate}{kernel} = $1;
-		    $D{$date}{$cvsdate}{cvs} = $2;
-		    $D{$date}{$cvsdate}{time} = $3;
-		    <$fh> =~ /(\S+)/;
-		    $D{$date}{$cvsdate}{kernel} .= "\n    $1";
-		    $D{$date}{$cvsdate}{location} = $1;
-		}
-		/^hw.machine=(\w+)$/ and $D{$date}{arch} ||= $1;
-		/^hw.ncpu=(\d+)$/ and $D{$date}{core} ||= $1;
-	    }
+	    my %v = parse_version_file($version);
+	    %{$D{$date}{$cvsdate}} = (%v, %{$D{$date}{$cvsdate}});
+	    $D{$date}{arch} ||= $v{arch};
+	    $D{$date}{ncpu} ||= $v{ncpu};
 	}
     }
     foreach my $cvsdate (sort keys %Z) {
@@ -802,8 +792,8 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
     my $hostname = $dv->{host};
-    my $core = $dv->{core};
-    print $html "    <td>$hostname/$core</td>\n";
+    my $ncpu = $dv->{ncpu};
+    print $html "    <td>$hostname/$ncpu</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>cvs checkout at</th>\n";
     print $html "    <td>$cvsdate</td>\n";
@@ -970,8 +960,8 @@ HEADER
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
     my $hostname = $dv->{host};
-    my $core = $dv->{core};
-    print $html "    <td>$hostname/$core</td>\n";
+    my $ncpu = $dv->{ncpu};
+    print $html "    <td>$hostname/$ncpu</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>machine release setup</th>\n";
     my $setup = $dv->{setup};
@@ -1653,7 +1643,7 @@ sub list_reldates {
 	    short    => $release,
 	    reldate  => $release,
 	    host     => "",
-	    core     => "",
+	    ncpu     => "",
 	    setup    => undef,
 	    stepconf => {
 		release     => $release,

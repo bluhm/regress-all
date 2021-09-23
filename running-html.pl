@@ -54,17 +54,18 @@ chdir($resultdir)
 
 my (%L, %V);
 
+# %L
 # $L{$host}{$type}{log}			log file path
 # $L{$host}{$type}{mtime}		modified time of log file
 # $L{$host}{$type}{hosts}[]		host names with version files
 # $L{$host}{$type}{setup}{$host}	setup log file path
 # $L{$host}{mtime}			latest modified time of log files
-
+# %V
 # $V{$host}{version}			version text file
-# $V{$host}{time}			kernel time from version file
-# $V{$host}{short}			kernel date from version file
-# $V{$host}{arch}			architecture from version file
-# $V{$host}{mtime}			latest modified time of version
+# $V{$host}{kerntime}			kernel time from version file
+# $V{$host}{arch}			sysctl hardware machine architecture
+# $V{$host}{ncpu}			sysctl hardware ncpu cores
+# $V{$host}{mtime}			latest modified time of version file
 
 my @types = qw(regress perform portstest release);
 
@@ -219,7 +220,7 @@ HEADER
 	}
 	if ($V{$host}) {
 	    my %v = parse_version_file($V{$host}{version});
-	    print $html map { "    <td>$v{$_}</td>\n" } qw(arch ncpu time);
+	    print $html map { "    <td>$v{$_}</td>\n" } qw(arch ncpu kerntime);
 	} else {
 	    print $html "    <td></td><td></td><td></td>\n";
 	}

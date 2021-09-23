@@ -288,7 +288,7 @@ sub parse_version_file {
     while (<$fh>) {
 	my @kern = /^kern.version=(.*(?:cvs : (\w+))?: ((\w+ \w+ +\d+) .*))$/;
 	if (@kern) {
-	    @v{qw(kernel cvs time short)} = @kern;
+	    @v{qw(kernel kerncvs kerntime kernshort)} = @kern;
 	    if (<$fh> =~ /(\S+)/) {
 		$v{kernel} .= "\n    $1";
 		$v{location} = $1;

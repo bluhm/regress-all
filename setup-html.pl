@@ -64,6 +64,12 @@ if ($date && $date eq "current") {
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
+my (%D, %M, %H);
+
+# %D
+# %M
+# %H
+
 print "glob log files" if $verbose;
 my $typename = "";
 my @reldates;
@@ -105,7 +111,6 @@ if ($opts{d}) {
 }
 print "\n" if $verbose;
 
-my (%D, %M, %H);
 print "parse log files" if $verbose;
 foreach my $reldate (@reldates) {
     print "." if $verbose;
@@ -136,15 +141,8 @@ foreach my $reldate (@reldates) {
 	    my %h;
 	    foreach my $version (glob("version-*.txt")) {
 		my ($host) = $version =~ m,version-(.*)\.txt,;
-		open(my $fh, '<', $version)
-		    or die "Open '$version' for reading failed: $!";
-		my ($time, $short, $arch);
-		while (<$fh>) {
-		    /^kern.version=.*: ((\w+ \w+ +\d+) .*)$/ and
-			($time, $short) = ($1, $2);
-		    /^hw.machine=(\w+)$/ and $arch = $1;
-		}
-		$time or next;
+		my %v = parse_version_file($version);
+		$v{kerntime} or next;
 		(my $bsdcons = $version) =~ s,version,bsdcons,;
 		(my $dmesg = $version) =~ s,version,dmesg,;
 		(my $dmesgboot = $version) =~ s,version,dmesg-boot,;
@@ -156,9 +154,7 @@ foreach my $reldate (@reldates) {
 		$subdir .= "$repeat/" if $repeat;
 		$h{$host} = {
 		    version   => $subdir.$version,
-		    time      => $time,
-		    short     => $short,
-		    arch      => $arch,
+		    %v,
 		    bsdcons   => -f $bsdcons ? $subdir.$bsdcons : undef,
 		    dmesg     => -f $dmesg ? $subdir.$dmesg : undef,
 		    dmesgboot => -f $dmesgboot ? $subdir.$dmesgboot : undef,
@@ -336,8 +332,8 @@ sub create_html_setup {
 		    print $html "    <td></td>\n";
 		}
 		my $version = $h->{$host}{version};
-		my $time = encode_entities($h->{$host}{time});
-		my $short = $h->{$host}{short};
+		my $time = encode_entities($h->{$host}{kerntime});
+		my $short = $h->{$host}{kernshort};
 		my $arch = encode_entities($h->{$host}{arch}) || "";
 		my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
 		    $h->{$host}{reboot};
@@ -459,8 +455,8 @@ sub create_html_build {
 	    $cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
 	    print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 	    my $version = $h->{$host}{version};
-	    my $time = encode_entities($h->{$host}{time});
-	    my $short = $h->{$host}{short};
+	    my $time = encode_entities($h->{$host}{kerntime});
+	    my $short = $h->{$host}{kernshort};
 	    my $arch = encode_entities($h->{$host}{arch}) || "";
 	    my $build = $h->{$host}{build} || $h->{$host}{reboot};
 	    my $dmesg = $h->{$host}{dmesg};
@@ -577,8 +573,8 @@ sub create_html_reboot {
 	$cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
 	print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 	my $version = $h->{$host}{version};
-	my $time = encode_entities($h->{$host}{time});
-	my $short = $h->{$host}{short};
+	my $time = encode_entities($h->{$host}{kerntime});
+	my $short = $h->{$host}{kernshort};
 	my $arch = encode_entities($h->{$host}{arch}) || "";
 	my $reboot = $h->{$host}{reboot};
 	my $dmesg = $h->{$host}{dmesg};
@@ -727,7 +723,7 @@ HEADER
 			next;
 		    }
 		    my $time = encode_entities($repeat || $cvsdate ||
-			$h->{$host}{time}) || "";
+			$h->{$host}{kerntime}) || "";
 		    my $setup = $h->{$host}{setup} || $h->{$host}{build} ||
 			$h->{$host}{reboot} || "";
 		    $time ||= "setup" if $setup;
