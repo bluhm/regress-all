@@ -33,6 +33,7 @@ our @EXPORT= qw(
     html_navigate
     html_status_table
     html_quirks_table
+    parse_version_file
     status2severity
     log2status
 );
@@ -275,6 +276,28 @@ sub log2status {
     $line =~ /^Script .* finished/i
 	and return 'PASS';
     return 'NOEXIT';
+}
+
+# return hash with kernel cvs time short arch core
+sub parse_version_file {
+    my ($version) = @_;
+
+    open(my $fh, '<', $version)
+	or croak "Open '$version' for reading failed: $!";
+    my %v;
+    while (<$fh>) {
+	my @kern = /^kern.version=(.*(?:cvs : (\w+))?: ((\w+ \w+ +\d+) .*))$/;
+	if (@kern) {
+	    @v{qw(kernel cvs time short)} = @kern;
+	    if (<$fh> =~ /(\S+)/) {
+		$v{kernel} .= "\n    $1";
+		$v{location} = $1;
+	    }
+	}
+	/^hw.machine=(\w+)$/ and $v{arch} = $1;
+	/^hw.ncpu=(\w+)$/ and $v{ncpu} = $1;
+    }
+    return %v;
 }
 
 1;

@@ -52,13 +52,19 @@ my $resultdir = "$testdir/results";
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
-my %H;
+my (%L, %V);
 
-# $H{$host}{$type}{log}			log file path
-# $H{$host}{$type}{mtime}		modified time of log file
-# $H{$host}{$type}{hosts}[]		host names with version files
-# $H{$host}{$type}{setup}{$host}	setup log file path
-# $H{$host}{{mtime}			latest modified time of log files
+# $L{$host}{$type}{log}			log file path
+# $L{$host}{$type}{mtime}		modified time of log file
+# $L{$host}{$type}{hosts}[]		host names with version files
+# $L{$host}{$type}{setup}{$host}	setup log file path
+# $L{$host}{mtime}			latest modified time of log files
+
+# $V{$host}{version}			version text file
+# $V{$host}{time}			kernel time from version file
+# $V{$host}{short}			kernel date from version file
+# $V{$host}{arch}			architecture from version file
+# $V{$host}{mtime}			latest modified time of version
 
 my @types = qw(regress perform portstest release);
 
@@ -105,18 +111,29 @@ sub find_latest_logs {
 
     print "." if $verbose;
     foreach my $log (@logs) {
+	my $dir = dirname($log);
+	my @hosts = map { m,/setup-(\w+).log$, } glob("$dir/setup-*.log");
+	foreach my $version (glob("$dir/version-*.txt")) {
+	    my $mtime = (stat($version))[9]
+		or die "Stat '$version' failed: $!";
+	    my ($host) = $version =~ m,/version-(\w+).txt$,;
+	    push @hosts, $host;
+	    next if $V{$host}{mtime} && $V{$host}{mtime} > $mtime;
+	    $V{$host} = {
+		version => $version,
+		mtime => $mtime,
+	    };
+	}
+	@hosts = uniq @hosts;
+	next unless @hosts;
+
 	my $mtime = (stat($log))[9]
 	    or die "Stat '$log' failed: $!";
-	my $dir = dirname($log);
-	my @hosts = uniq
-	    map { m,/setup-(\w+).log$, } glob("$dir/setup-*.log"),
-	    map { m,/version-(\w+).txt$, } glob("$dir/version-*.txt");
-	next unless @hosts;
-	my $tv = $H{$hosts[0]}{$type};
-	next if $tv->{mtime} && $tv->{mtime} > $mtime;
+	next if $L{$hosts[0]}{$type}{mtime} &&
+	    $L{$hosts[0]}{$type}{mtime} > $mtime;
 	my ($date) = $log =~ m,/([^/]+T[^/]+Z)/,;
 	foreach my $host (@hosts) {
-	    $H{$host}{$type} = {
+	    $L{$host}{$type} = {
 		date  => $date,
 		log   => $log,
 		mtime => $mtime,
@@ -124,15 +141,15 @@ sub find_latest_logs {
 	    my $setup = "$dir/setup-$host.log";
 	    if (-f $setup) {
 		if ($host ne $hosts[0]) {
-		    delete $H{$host}{$type}{date};
-		    $H{$host}{$type}{log} = $setup;
-		    $H{$host}{$type}{mtime} = (stat($setup))[9]
+		    delete $L{$host}{$type}{date};
+		    $L{$host}{$type}{log} = $setup;
+		    $L{$host}{$type}{mtime} = (stat($setup))[9]
 			or die "Stat '$setup' failed: $!";
 		}
 	    }
-	    next if $H{$host}{mtime} &&
-		$H{$host}{mtime} > $H{$host}{$type}{mtime};
-	    $H{$host}{mtime} = $H{$host}{$type}{mtime};
+	    next if $L{$host}{mtime} &&
+		$L{$host}{mtime} > $L{$host}{$type}{mtime};
+	    $L{$host}{mtime} = $L{$host}{$type}{mtime};
 	}
     }
 }
@@ -159,20 +176,23 @@ sub create_html_running {
 HEADER
 
     print $html "<table>\n";
-    print $html "  <tr>\n    <th></th>\n";
+    print $html "  <tr>\n    <th>host</th>\n";
     foreach my $type (@types) {
 	my $link = uri_escape("../$type/results/run.html",
 	    "^A-Za-z0-9\-\._~/");
 	print $html "    <th><a href=\"$link\">$type</a></th>\n";
     }
+    foreach my $label (qw(arch ncpu version)) {
+	print $html "    <th>$label</th>\n";
+    }
     print $html "  </tr>\n";
 
-    my @hosts = sort { $H{$b}{mtime} <=> $H{$a}{mtime} || $a cmp $b } keys %H;
+    my @hosts = sort { $L{$b}{mtime} <=> $L{$a}{mtime} || $a cmp $b } keys %L;
     foreach my $host (@hosts) {
 	print "." if $verbose;
 	print $html "  <tr>\n    <th>$host</th>\n";
 	foreach my $type (@types) {
-	    my $tv = $H{$host}{$type};
+	    my $tv = $L{$host}{$type};
 	    unless ($tv) {
 		print $html "    <td></td>\n";
 		next;
@@ -196,6 +216,12 @@ HEADER
 		    strftime("%T", gmtime($duration));
 	    }
 	    print $html "</td>\n";
+	}
+	if ($V{$host}) {
+	    my %v = parse_version_file($V{$host}{version});
+	    print $html map { "    <td>$v{$_}</td>\n" } qw(arch ncpu time);
+	} else {
+	    print $html "    <td></td><td></td><td></td>\n";
 	}
 	print $html "  </tr>\n";
     }
