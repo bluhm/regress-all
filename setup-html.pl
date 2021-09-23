@@ -654,7 +654,7 @@ sub create_html_run {
 	$H{release} ? (Release => $H{release}) : (),
 	$H{current} ? (Current => $H{current}) : (),
 	Latest  => $H{latest},
-	Running => undef);
+	Running => "../../results/running.html");
     html_header($html, "OpenBSD $typename Run",
 	"OpenBSD ". lc($typename). " test run",
 	@nav);
