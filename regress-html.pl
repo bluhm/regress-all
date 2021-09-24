@@ -30,15 +30,18 @@ use Html;
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('h:l', \%opts) or do {
+getopts('h:lv', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-l] [-h host] mode
     -h host	user and host for version information, user defaults to root
     -l		create latest.html with one column of the latest results
+    -v		verbose
     mode	src ports release
 EOF
     exit(2);
 };
+my $verbose = $opts{v};
+$| = 1 if $verbose;
 
 my %allmodes;
 @allmodes{qw(src ports release)} = ();
@@ -61,25 +64,6 @@ chdir($resultdir)
 
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
-
-my @result_files;
-if ($opts{l}) {
-    my @latest;
-    if ($host) {
-	@latest = "latest-$host/test.result";
-	-f $latest[0]
-	    or die "No latest test.result for $host";
-    } else {
-	@latest = glob("latest-*/test.result");
-    }
-    @result_files = sort map { (readlink(dirname($_))
-	or die "Readlink latest '$_' failed: $!") . "/test.result" } @latest;
-} elsif ($host) {
-    @result_files = sort grep { -f dirname($_). "/version-$host.txt" }
-	glob("*/test.result");
-} else {
-    @result_files = sort glob("*/test.result");
-}
 
 my (%T, %D);
 
@@ -107,26 +91,35 @@ my (%T, %D);
 # $D{$date}{arch}		sysctl hardware machine architecture
 # $D{$date}{ncpu}		sysctl hardware ncpu cores
 
+print "glob_result_files" if $verbose;
+my @result_files = glob_result_files();
+print "\nparse result files" if $verbose;
 parse_result_files(@result_files);
+print "\nwirte html date file" if $verbose;
+wirte_html_date_file();
+print "\n" if $verbose;
 
-my $file = $opts{l} ? "latest" : "regress";
-$file .= "-$host" if $host;
-my ($html, $htmlfile) = html_open($file);
-my $topic = $host ? ($opts{l} ? "latest $host" : $host) :
-    ($opts{l} ? "latest" : "all");
+exit;
 
-my $typename = $mode{src} ? "Regress" : $mode{ports} ? "Ports" :
-    $mode{release} ? "Release" : "";
-my @nav = (
-    Top     => "../../test.html",
-    All     => ($opts{l} || $host ? "regress.html" : undef),
-    Latest  => (! $opts{l} ? "latest.html" : undef),
-    Running => "run.html");
-html_header($html, "OpenBSD $typename Results",
-    "OpenBSD ". lc($typename). " $topic test results",
-    @nav);
+sub wirte_html_date_file {
+    my $file = $opts{l} ? "latest" : "regress";
+    $file .= "-$host" if $host;
+    my ($html, $htmlfile) = html_open($file);
+    my $topic = $host ? ($opts{l} ? "latest $host" : $host) :
+	($opts{l} ? "latest" : "all");
 
-print $html <<"HEADER";
+    my $typename = $mode{src} ? "Regress" : $mode{ports} ? "Ports" :
+	$mode{release} ? "Release" : "";
+    my @nav = (
+	Top     => "../../test.html",
+	All     => ($opts{l} || $host ? "regress.html" : undef),
+	Latest  => (! $opts{l} ? "latest.html" : undef),
+	Running => "run.html");
+    html_header($html, "OpenBSD $typename Results",
+	"OpenBSD ". lc($typename). " $topic test results",
+	@nav);
+
+    print $html <<"HEADER";
 <table>
   <tr>
     <th>created at</th>
@@ -135,111 +128,138 @@ print $html <<"HEADER";
 </table>
 HEADER
 
-my @dates = reverse sort keys %D;
-print $html "<table>\n";
-print $html "  <tr>\n    <th>pass rate</th>\n";
-foreach my $date (@dates) {
-    my $pass = $D{$date}{pass};
-    my $percent = "";
-    $percent = sprintf("%d%%", 100 * $pass) if defined $pass;
-    print $html "    <th>$percent</th>\n";
-}
-print $html "  <tr>\n    <th>run at date</th>\n";
-foreach my $date (@dates) {
-    my $short = $D{$date}{short};
-    my $setup = $D{$date}{setup};
-    my $time = encode_entities($date);
-    my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
-    my $href = $setup ? "<a href=\"$link\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <th title=\"$time\">$href$short$enda</th>\n";
-}
-print $html "  <tr>\n    <th>machine build</th>\n";
-foreach my $date (@dates) {
-    my $version = $D{$date}{version};
-    unless ($version) {
-	print $html "    <th></th>\n";
-	next;
-    }
-    my $kernel = encode_entities($D{$date}{kernel});
-    my $build = $D{$date}{build};
-    my $diff = $D{$date}{diff};
-    my $link;
-    $link = uri_escape($version, "^A-Za-z0-9\-\._~/") if $build eq "snapshot";
-    $link = uri_escape($diff, "^A-Za-z0-9\-\._~/")
-	if $build eq "custom" && $diff;
-    my $href = $link ? "<a href=\"$link\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
-}
-print $html "  <tr>\n    <th>architecture</th>\n";
-foreach my $date (@dates) {
-    my $arch = $D{$date}{arch};
-    my $dmesg = $D{$date}{dmesg};
-    my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
-    my $href = $dmesg ? "<a href=\"$link\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <th>$href$arch$enda</th>\n";
-}
-print $html "  <tr>\n    <th>host</th>\n";
-foreach my $date (@dates) {
-    my $hostname = $D{$date}{host};
-    my $hostlink;
-    if (!$host || $opts{l}) {
-	$hostlink = "regress-$hostname.html";
-	undef $hostlink unless -f $hostlink;
-    }
-    my $href = $hostlink ? "<a href=\"$hostlink\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <th>$href$hostname$enda</th>\n";
-}
-print $html "  </tr>\n";
-
-my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/";
-$cvsweb .= "src/regress/" if $mode{src};
-$cvsweb .= "ports/" if $mode{ports};
-if ($mode{release}) {
-    undef $cvsweb if $mode{release};
-    my $i = 1;
-    my %release2severity =
-	map { $_ => $i++ }
-	(qw(clean obj build sysmerge dev destdir reldir release chkflist));
-    while (my($k, $v) = each %T) {
-	$v->{severity} = $release2severity{$k} || 0;
-    }
-}
-my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
-    keys %T;
-foreach my $test (@tests) {
-    my $href = $cvsweb ? "<a href=\"$cvsweb$test\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "  <tr>\n    <th>$href$test$enda</th>\n";
+    print "." if $verbose;
+    my @dates = reverse sort keys %D;
+    print $html "<table>\n";
+    print $html "  <tr>\n    <th>pass rate</th>\n";
     foreach my $date (@dates) {
-	my $status = $T{$test}{$date}{status} || "";
-	my $class = " class=\"status $status\"";
-	my $message = encode_entities($T{$test}{$date}{message});
-	my $title = $message ? " title=\"$message\"" : "";
-	my $logfile = $T{$test}{$date}{logfile};
-	my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-	my $href = $logfile ? "<a href=\"$link\">" : "";
+	my $pass = $D{$date}{pass};
+	my $percent = "";
+	$percent = sprintf("%d%%", 100 * $pass) if defined $pass;
+	print $html "    <th>$percent</th>\n";
+    }
+    print $html "  <tr>\n    <th>run at date</th>\n";
+    foreach my $date (@dates) {
+	my $short = $D{$date}{short};
+	my $setup = $D{$date}{setup};
+	my $time = encode_entities($date);
+	my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
+	my $href = $setup ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
-	print $html "    <td$class$title>$href$status$enda</td>\n";
+	print $html "    <th title=\"$time\">$href$short$enda</th>\n";
+    }
+    print $html "  <tr>\n    <th>machine build</th>\n";
+    foreach my $date (@dates) {
+	my $version = $D{$date}{version};
+	unless ($version) {
+	    print $html "    <th></th>\n";
+	    next;
+	}
+	my $kernel = encode_entities($D{$date}{kernel});
+	my $build = $D{$date}{build};
+	my $diff = $D{$date}{diff};
+	my $link;
+	$link = uri_escape($version, "^A-Za-z0-9\-\._~/")
+	    if $build eq "snapshot";
+	$link = uri_escape($diff, "^A-Za-z0-9\-\._~/")
+	    if $build eq "custom" && $diff;
+	my $href = $link ? "<a href=\"$link\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
+    }
+    print $html "  <tr>\n    <th>architecture</th>\n";
+    foreach my $date (@dates) {
+	my $arch = $D{$date}{arch};
+	my $dmesg = $D{$date}{dmesg};
+	my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
+	my $href = $dmesg ? "<a href=\"$link\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <th>$href$arch$enda</th>\n";
+    }
+    print $html "  <tr>\n    <th>host</th>\n";
+    foreach my $date (@dates) {
+	my $hostname = $D{$date}{host};
+	my $hostlink;
+	if (!$host || $opts{l}) {
+	    $hostlink = "regress-$hostname.html";
+	    undef $hostlink unless -f $hostlink;
+	}
+	my $href = $hostlink ? "<a href=\"$hostlink\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <th>$href$hostname$enda</th>\n";
     }
     print $html "  </tr>\n";
+
+    my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/";
+    $cvsweb .= "src/regress/" if $mode{src};
+    $cvsweb .= "ports/" if $mode{ports};
+    if ($mode{release}) {
+	undef $cvsweb if $mode{release};
+	my $i = 1;
+	my %release2severity =
+	    map { $_ => $i++ }
+	    (qw(clean obj build sysmerge dev destdir reldir release chkflist));
+	while (my($k, $v) = each %T) {
+	    $v->{severity} = $release2severity{$k} || 0;
+	}
+    }
+    my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
+	keys %T;
+    foreach my $test (@tests) {
+	print "." if $verbose;
+	my $href = $cvsweb ? "<a href=\"$cvsweb$test\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "  <tr>\n    <th>$href$test$enda</th>\n";
+	foreach my $date (@dates) {
+	    my $status = $T{$test}{$date}{status} || "";
+	    my $class = " class=\"status $status\"";
+	    my $message = encode_entities($T{$test}{$date}{message});
+	    my $title = $message ? " title=\"$message\"" : "";
+	    my $logfile = $T{$test}{$date}{logfile};
+	    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+	    my $href = $logfile ? "<a href=\"$link\">" : "";
+	    my $enda = $href ? "</a>" : "";
+	    print $html "    <td$class$title>$href$status$enda</td>\n";
+	}
+	print $html "  </tr>\n";
+    }
+    print $html "</table>\n";
+
+    my $type = $mode{src} ? "regress" : $mode{ports} ? "portstest" :
+	$mode{release} ? "release" : "";
+    html_status_table($html, $type);
+    html_footer($html);
+    html_close($html, $htmlfile);
 }
-print $html "</table>\n";
 
-my $type = $mode{src} ? "regress" : $mode{ports} ? "portstest" :
-    $mode{release} ? "release" : "";
-html_status_table($html, $type);
-html_footer($html);
-html_close($html, $htmlfile);
+sub glob_result_files {
+    print "." if $verbose;
 
-exit;
+    if ($opts{l}) {
+	my @latest;
+	if ($host) {
+	    @latest = "latest-$host/test.result";
+	    -f $latest[0]
+		or die "No latest test.result for $host";
+	} else {
+	    @latest = glob("latest-*/test.result");
+	}
+	return sort map { (readlink(dirname($_)) or die
+	    "Readlink latest '$_' failed: $!") . "/test.result" } @latest;
+    }
+
+    if ($host) {
+	return sort grep { -f dirname($_). "/version-$host.txt" }
+	    glob("*/test.result");
+    } else {
+	return sort glob("*/test.result");
+    }
+}
 
 # fill global hashes %T %D
 sub parse_result_files {
     foreach my $result (@_) {
+	print "." if $verbose;
 
 	# parse result file
 	my ($date, $short) = $result =~ m,((.+)T.+)/test.result,
