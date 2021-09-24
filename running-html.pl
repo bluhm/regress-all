@@ -213,7 +213,7 @@ HEADER
 		my $duration = $mtime - $start;
 		print $html "<br>duration ";
 		print $html $duration >= 24*60*60 ?
-		    ($duration / 24*60*60). " days" :
+		    sprintf("%.2f days", $duration / (24*60*60)) :
 		    strftime("%T", gmtime($duration));
 	    }
 	    print $html "</td>\n";
