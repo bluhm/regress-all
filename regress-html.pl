@@ -95,13 +95,13 @@ print "glob_result_files" if $verbose;
 my @result_files = glob_result_files();
 print "\nparse result files" if $verbose;
 parse_result_files(@result_files);
-print "\nwirte html date file" if $verbose;
-wirte_html_date_file();
+print "\nwrite html date file" if $verbose;
+write_html_date_file();
 print "\n" if $verbose;
 
 exit;
 
-sub wirte_html_date_file {
+sub write_html_date_file {
     my $file = $opts{l} ? "latest" : "regress";
     $file .= "-$host" if $host;
     my ($html, $htmlfile) = html_open($file);
