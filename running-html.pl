@@ -219,8 +219,13 @@ HEADER
 	    print $html "</td>\n";
 	}
 	if ($V{$host}) {
-	    my %v = parse_version_file($V{$host}{version});
-	    print $html map { "    <td>$v{$_}</td>\n" } qw(arch ncpu kerntime);
+	    my $version = $V{$host}{version};
+	    my %v = parse_version_file($version);
+	    print $html map { "    <td>$v{$_}</td>\n" } qw(arch ncpu);
+	    my $link = uri_escape($version, "^A-Za-z0-9\-\._~/");
+	    my $href = $version ? "<a href=\"$link\">" : "";
+	    my $enda = $href ? "</a>" : "";
+	    print $html "    <td>$href$v{kerntime}$enda<td>\n";
 	} else {
 	    print $html "    <td></td><td></td><td></td>\n";
 	}
