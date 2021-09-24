@@ -159,11 +159,14 @@ my (%T, %D, %V, %Z, @Z, %B, %R);
 # $R{$release}{dates}{$date}		dates in release
 # $R{$release}{tests}{$test}		tests in release
 
-print "glob result files" if $verbose;
-my @result_files = glob_result_files($opts{n} && $date, $opts{n} && $release);
-print "\nparse result files" if $verbose;
-parse_result_files(@result_files);
-print "\nwrite data files" if $verbose;
+{
+    print "glob result files" if $verbose;
+    my @results = glob_result_files($opts{n} && $date, $opts{n} && $release);
+    print "\nparse result files" if $verbose;
+    parse_result_files(@results);
+    print "\n" if $verbose;
+}
+print "write data files" if $verbose;
 write_data_files($opts{n} && $date);
 print "\ncreate cvslog files" if $verbose;
 create_cvslog_files($date);

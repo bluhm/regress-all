@@ -77,17 +77,18 @@ my (%D, %M, %N);
 # $N{latest}		navigation link to latest/perform.html
 # $N{release}		navigation link to latest release perform.html
 
-print "glob log files" if $verbose;
-my @reldates = glob_log_files($date);
-print "\n" if $verbose;
-
-print "parse log files" if $verbose;
-my $typename = parse_log_files(@reldates);
-print "\n" if $verbose;
+my $typename;
+{
+    print "glob log files" if $verbose;
+    my @reldates = glob_log_files($date);
+    print "\nparse log files" if $verbose;
+    $typename = parse_log_files(@reldates);
+    print "\n" if $verbose;
+}
 
 if ($opts{a} || $opts{d}) {
     print "create html files" if $verbose;
-    create_html_files(@reldates);
+    create_html_files();
     print "\n" if $verbose;
 }
 
@@ -101,7 +102,7 @@ fill_navigation_links();
 print "\n" if $verbose;
 
 print "create html run" if $verbose;
-create_html_run();
+write_html_run();
 print "\n" if $verbose;
 
 exit;
@@ -249,18 +250,17 @@ sub parse_log_files {
 }
 
 sub create_html_files {
-    my @reldates = @_;
-
-    foreach my $reldate (@reldates) {
+    foreach my $reldate (sort keys %D) {
+	my $dv = $D{$date};
+	my $reldate = $dv->{reldate};
 	print "." if $verbose;
 	my $dir = "$regressdir/results/$reldate";
 	chdir($dir)
 	    or die "Change directory to '$dir' failed: $!";
 
-	my $date = basename($reldate);
-	next unless keys %{$D{$date}{host}};
-	my @cvsdates = @{$D{$date}{cvsdates}};
-	create_html_setup($date, @cvsdates);
+	next unless keys %{$dv->{host}};
+	my @cvsdates = @{$dv->{cvsdates}};
+	write_html_setup($date, @cvsdates);
 
 	foreach my $cvsdate (@cvsdates) {
 	    print "." if $verbose;
@@ -268,9 +268,10 @@ sub create_html_files {
 	    chdir($subdir)
 		or die "Change directory to '$subdir' failed: $!";
 
-	    next unless keys %{$D{$date}{$cvsdate}{host}};
-	    my @repeats = @{$D{$date}{$cvsdate}{repeats}};
-	    create_html_build($date, $cvsdate, @repeats);
+	    my $cv = $dv->{$cvsdate};
+	    next unless keys %{$cv->{host}};
+	    my @repeats = @{$cv->{repeats}};
+	    write_html_build($date, $cvsdate, @repeats);
 
 	    foreach my $repeat (@repeats) {
 		print "." if $verbose;
@@ -278,14 +279,15 @@ sub create_html_files {
 		chdir($subdir)
 		    or die "Change directory to '$subdir' failed: $!";
 
-		next unless keys %{$D{$date}{$cvsdate}{$repeat}{host}};
-		create_html_reboot($date, $cvsdate, $repeat);
+		my $rv = $cv->{$repeat};
+		next unless keys %{$rv->{host}};
+		write_html_reboot($date, $cvsdate, $repeat);
 	    }
 	}
     }
 }
 
-sub create_html_setup {
+sub write_html_setup {
     my ($date, @cvsdates) = @_;
 
     my $h = $D{$date}{host};
@@ -423,7 +425,7 @@ sub create_html_setup {
     html_close($html, $htmlfile, "nozip");
 }
 
-sub create_html_build {
+sub write_html_build {
     my ($date, $cvsdate, @repeats) = @_;
 
     my $h = $D{$date}{$cvsdate}{host};
@@ -544,7 +546,7 @@ sub create_html_build {
     html_close($html, $htmlfile, "nozip");
 }
 
-sub create_html_reboot {
+sub write_html_reboot {
     my ($date, $cvsdate, $repeat) = @_;
 
     my $h = $D{$date}{$cvsdate}{$repeat}{host};
@@ -674,7 +676,7 @@ sub fill_navigation_links {
     }
 }
 
-sub create_html_run {
+sub write_html_run {
     my ($html, $htmlfile) = html_open("run");
     my @nav = (
 	Top     => "../../test.html",
