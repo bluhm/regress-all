@@ -111,11 +111,11 @@ sub checkout_cvs {
     my ($release) = @_;
     foreach (qw(src ports xenocara)) {
 	logcmd('ssh', "$user\@$host",
-	    "cd /usr && cvs -Rd /mount/openbsd/cvs co $_/Makefile")
+	    "cd /usr && cvs -qRd /mount/openbsd/cvs co $_/Makefile")
     }
     my $tag = $release || "";
     $tag =~ s/(\d+)\.(\d+)/ -rOPENBSD_${1}_${2}_BASE/;
-    logcmd('ssh', "$user\@$host", "cd /usr/src && cvs -R up -PdA$tag");
+    logcmd('ssh', "$user\@$host", "cd /usr/src && cvs -qR up -PdA$tag");
     logcmd('ssh', "$user\@$host", "cd /usr/src && make obj");
 }
 
