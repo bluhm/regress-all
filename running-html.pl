@@ -183,6 +183,7 @@ HEADER
 	    "^A-Za-z0-9\-\._~/");
 	print $html "    <th><a href=\"$link\">$type</a></th>\n";
     }
+    print $html "  <th>finished</th>\n";
     foreach my $label (qw(arch ncpu kernel)) {
 	print $html "    <th>$label</th>\n";
     }
@@ -218,6 +219,7 @@ HEADER
 	    }
 	    print $html "</td>\n";
 	}
+	print $html strftime("    <td>T%TZ</td>\n", gmtime($L{$host}{mtime}));
 	if ($V{$host}) {
 	    my $version = $V{$host}{version};
 	    my %v = parse_version_file($version);
