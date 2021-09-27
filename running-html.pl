@@ -183,7 +183,7 @@ HEADER
 	    "^A-Za-z0-9\-\._~/");
 	print $html "    <th><a href=\"$link\">$type</a></th>\n";
     }
-    print $html "  <th>finished</th>\n";
+    print $html "  <th>ended</th>\n";
     foreach my $label (qw(arch ncpu kernel)) {
 	print $html "    <th>$label</th>\n";
     }
