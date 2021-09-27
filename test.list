@@ -9,7 +9,7 @@ bin/md5
 bin/pax
 bin/ps
 bin/test
-etc
+etc/MAKEDEV
 gnu/egcs/gcc-bounds
 gnu/egcs/gcc-builtins
 gnu/lib/libexecinfo
