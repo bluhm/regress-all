@@ -503,7 +503,7 @@ my %quirks = (
 	    "cvs -qR up -C -r1.1 sys/dev/softraid_raid1c.c",
 	],
     },
-# OpenBSD 6.9, 2021/04/18Z
+# OpenBSD 6.9, 2021-04-18Z
     '2021-04-19T16:48:56Z' => {
 	comment => "OpenBSD/amd64 6.9 release",
 	release => 6.9,
@@ -553,6 +553,11 @@ my %quirks = (
 	updatedirs => [ "gnu/llvm", "gnu/usr.bin/clang" ],
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
+    },
+# OpenBSD 7.0, 2021-09-22Z
+    '2021-09-30T20:34:00' => {
+	comment => "OpenBSD/amd64 7.0 release",
+	release => 7.0,
     },
 );
 
