@@ -250,7 +250,7 @@ sub parse_log_files {
 }
 
 sub create_html_files {
-    foreach my $reldate (sort keys %D) {
+    foreach my $date (sort keys %D) {
 	my $dv = $D{$date};
 	my $reldate = $dv->{reldate};
 	print "." if $verbose;
