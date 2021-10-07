@@ -13,7 +13,7 @@ etc/MAKEDEV
 gnu/egcs/gcc-bounds
 gnu/egcs/gcc-builtins
 gnu/lib/libexecinfo
-include
+include/bitstring
 lib/csu
 lib/libagentx
 lib/libc/_setjmp
@@ -63,6 +63,7 @@ lib/libc/sleep
 lib/libc/sprintf
 lib/libc/stdio_threading
 lib/libc/stpncpy
+lib/libc/strchr
 lib/libc/strerror
 lib/libc/strlcat
 lib/libc/strlcpy
@@ -125,6 +126,7 @@ lib/libcrypto/sha1
 lib/libcrypto/sha2
 lib/libcrypto/sha256
 lib/libcrypto/sha512
+lib/libcrypto/sm2
 lib/libcrypto/sm3
 lib/libcrypto/sm4
 lib/libcrypto/symbols
@@ -173,6 +175,7 @@ lib/libssl/tlsext
 lib/libssl/tlsfuzzer
 lib/libssl/tlslegacy
 lib/libssl/unit
+lib/libssl/verify
 lib/libtls/config
 lib/libtls/gotls
 lib/libtls/keypair
@@ -182,7 +185,8 @@ lib/libusbhid
 lib/libutil
 libexec/ftpd
 libexec/ld.so
-misc/X11
+misc/X11/blt
+misc/X11/bltone
 misc/c++abi
 misc/exceptions
 misc/os-test
@@ -218,6 +222,7 @@ sys/crypto/key_wrap
 sys/ddb
 sys/dev/fdesc
 sys/dev/kcov
+sys/dev/softraid
 sys/dev/video
 sys/dev/vnd
 sys/dev/wscons
