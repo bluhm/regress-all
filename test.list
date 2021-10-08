@@ -126,7 +126,6 @@ lib/libcrypto/sha1
 lib/libcrypto/sha2
 lib/libcrypto/sha256
 lib/libcrypto/sha512
-lib/libcrypto/sm2
 lib/libcrypto/sm3
 lib/libcrypto/sm4
 lib/libcrypto/symbols
