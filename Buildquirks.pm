@@ -32,7 +32,7 @@ my %quirks = (
 # OpenBSD 6.2, 2017-10-04Z
     '2017-10-04T03:27:49Z' => {
 	comment => "OpenBSD/amd64 6.2 release",
-	release => 6.2,
+	release => '6.2',
     },
     # cvs has a bug and cannot check out vendor branches between commits
     '2017-10-04T21:45:15Z' => {
@@ -96,7 +96,7 @@ my %quirks = (
 # OpenBSD 6.3, 2018-03-24Z
     '2018-03-24T20:27:40Z' => {
 	comment => "OpenBSD/amd64 6.3 release",
-	release => 6.3,
+	release => '6.3',
     },
     '2018-04-05T03:32:39Z' => {
 	comment => "pfctl remove PF_TRANS_ALTQ",
@@ -206,7 +206,7 @@ my %quirks = (
 # OpenBSD 6.4, 2018-10-11Z
     '2018-10-11T19:37:31Z' => {
 	comment => "OpenBSD/amd64 6.4 release",
-	release => 6.4,
+	release => '6.4',
     },
     '2018-10-16T18:20:58Z' => {
 	comment => "prepare kernel for lld linker",
@@ -311,7 +311,7 @@ my %quirks = (
 # OpenBSD 6.5, 2019-04-13Z
     '2019-04-13T20:56:59Z' => {
 	comment => "OpenBSD/amd64 6.5 release",
-	release => 6.5,
+	release => '6.5',
     },
     '2019-05-08T23:53:40Z' => {
 	comment => "add ucrcom to files",
@@ -379,7 +379,7 @@ my %quirks = (
 # OpenBSD 6.6, 2019-10-12Z
     '2019-10-12T17:05:22Z' => {
 	comment => "OpenBSD/amd64 6.6 release",
-	release => 6.6,
+	release => '6.6',
     },
     '2019-11-03T20:16:01Z' => {
 	comment => "sys_shmctl fix copyin",
@@ -406,7 +406,7 @@ my %quirks = (
 # OpenBSD 6.7, 2020-05-07Z
     '2020-05-07T17:20:22Z' => {
 	comment => "OpenBSD/amd64 6.7 release",
-	release => 6.7,
+	release => '6.7',
     },
     '2020-06-08T04:48:12Z' => {
 	comment => "update drm moves kernel source files",
@@ -487,7 +487,7 @@ my %quirks = (
 # OpenBSD 6.8, 2020-09-27Z
     '2020-10-05T00:22:38Z' => {
 	comment => "OpenBSD/amd64 6.8 release",
-	release => 6.8,
+	release => '6.8',
     },
     '2021-02-08T11:20:04Z' => {
 	comment => "softraid_raid1c.c was not added in commit",
@@ -506,7 +506,7 @@ my %quirks = (
 # OpenBSD 6.9, 2021-04-18Z
     '2021-04-19T16:48:56Z' => {
 	comment => "OpenBSD/amd64 6.9 release",
-	release => 6.9,
+	release => '6.9',
     },
     '2021-04-28T13:07:33Z' => {
 	comment => "clang, libc++, and libc++abi update LLVM to 11.1.0",
@@ -557,7 +557,7 @@ my %quirks = (
 # OpenBSD 7.0, 2021-09-22Z
     '2021-09-30T20:34:00' => {
 	comment => "OpenBSD/amd64 7.0 release",
-	release => 7.0,
+	release => '7.0',
     },
 );
 
