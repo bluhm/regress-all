@@ -1,4 +1,6 @@
+archivers/bzip2
 archivers/p5-Archive-Zip
+archivers/xz
 benchmarks/p5-Dumbbench
 comms/p5-Device-SerialPort
 converters/p5-Convert-ASN1
