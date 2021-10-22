@@ -29,10 +29,11 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:h:r:v', \%opts) or do {
+getopts('h:P:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -h host mode ...
     -h host	user and host for make release, user defaults to root
+    -P patch	apply patch to clean source or kernel source
     -v		verbose
     cvs		cvs update /usr/src and make obj
     keep	keep installed host as is, skip setup
@@ -41,6 +42,7 @@ EOF
     exit(2);
 };
 $opts{h} or die "No -h specified";
+my $patch = $opts{P};
 
 my %allmodes;
 @allmodes{qw(cvs kernel keep)} = ();
@@ -99,7 +101,7 @@ END {
 	system(@cmd);
     }
 };
-setup_hosts(mode => \%mode) unless $mode{keep};
+setup_hosts(patch => $patch, mode => \%mode) if $patch || !$mode{keep};
 collect_version();
 setup_html();
 
