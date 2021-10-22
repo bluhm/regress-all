@@ -304,7 +304,7 @@ sub parse_result_files {
 	    (my $dmesg = $version) =~ s,/version-,/dmesg-,;
 	    $D{$date}{dmesg} ||= $dmesg if -f $dmesg;
 	    (my $diff = $version) =~ s,/version-,/diff-,;
-	    $D{$date}{diff} ||= $diff if -f $diff;
+	    $D{$date}{diff} ||= $diff if -s $diff;
 
 	    %{$D{$date}} = (parse_version_file($version), %{$D{$date}});
 	}
