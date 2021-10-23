@@ -555,10 +555,15 @@ my %quirks = (
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
 # OpenBSD 7.0, 2021-09-22Z
-    '2021-09-30T20:34:00' => {
+    '2021-09-30T20:34:00Z' => {
 	comment => "OpenBSD/amd64 7.0 release",
 	release => '7.0',
     },
+    '2021-10-21T22:59:08Z' => {
+	comment => "remove dangling crypto noqueue, missing part of commit",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-softraid-crypto' => patch_sys_softraid_crypto() },
+    }
 );
 
 #### Patches ####
@@ -1061,6 +1066,29 @@ diff -u -p -r1.357 -r1.358
  		return (EINVAL);
  
  	for (i = 0; i < PFTM_MAX; i++)
+PATCH
+}
+
+# Remove last dangling usage of CRYPTO_F_NOQUEUE.
+sub patch_sys_softraid_crypto {
+	return <<'PATCH';
+Index: /usr/src/sys/dev/softraid_crypto.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/dev/softraid_crypto.c,v
+retrieving revision 1.142
+retrieving revision 1.143
+diff -u -p -r1.142 -r1.143
+--- sys/dev/softraid_crypto.c	13 Oct 2021 22:43:44 -0000	1.142
++++ sys/dev/softraid_crypto.c	22 Oct 2021 05:06:37 -0000	1.143
+@@ -325,7 +325,7 @@ sr_crypto_prepare(struct sr_workunit *wu
+ 	crwu->cr_crp->crp_opaque = crwu;
+ 	crwu->cr_crp->crp_ilen = xs->datalen;
+ 	crwu->cr_crp->crp_alloctype = M_DEVBUF;
+-	crwu->cr_crp->crp_flags = CRYPTO_F_IOV | CRYPTO_F_NOQUEUE;
++	crwu->cr_crp->crp_flags = CRYPTO_F_IOV;
+ 	crwu->cr_crp->crp_buf = &crwu->cr_uio;
+ 	for (i = 0; i < crwu->cr_crp->crp_ndesc; i++, blkno++) {
+ 		crd = &crwu->cr_crp->crp_desc[i];
 PATCH
 }
 
