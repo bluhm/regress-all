@@ -1,6 +1,6 @@
 # put common html printing functions in a module
 
-# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2018-2019 Moritz Buhl <mbuhl@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -36,6 +36,7 @@ our @EXPORT= qw(
     parse_version_file
     status2severity
     log2status
+    html_running_table
 );
 
 # create new html file, return handle and file name
@@ -298,6 +299,27 @@ sub parse_version_file {
 	/^hw.ncpu=(\w+)$/ and $v{ncpu} = $1;
     }
     return %v;
+}
+
+# print html table explaining the running status
+sub html_running_table {
+    my ($html) = @_;
+    print $html <<"TABLE";
+<table>
+  <tr>
+    <td class="status PASS">PASS</td>
+    <td>finished successfully</td>
+  </tr>
+  <tr>
+    <td class="status FAIL">FAIL</td>
+    <td>finished with failure</td>
+  </tr>
+  <tr>
+    <td class="status NOEXIT">NOEXIT</td>
+    <td>in progress</td>
+  </tr>
+</table>
+TABLE
 }
 
 1;

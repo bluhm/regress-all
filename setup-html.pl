@@ -775,6 +775,11 @@ HEADER
 	}
     }
     print $html "</table>\n";
+    print $html "Each row displays one running test setup.\n";
+    print $html "If a row is completely green, the test has finished.\n";
+    print $html "Red means the failure should be examined.\n";
+    print $html "If a row has any yellow, wait for the test to finish.\n";
+    html_running_table($html);
     html_footer($html);
     html_close($html, $htmlfile, "nozip");
 }
