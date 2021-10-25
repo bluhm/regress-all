@@ -63,9 +63,12 @@ $opts{h} or die "No -h specified";
 !$opts{d} || $opts{d} eq "current" || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
-!$opts{D} || str2time($opts{D})
-    or die "Invalid -D cvsdate '$opts{D}'";
-my $cvsdate = $opts{D};
+my $cvsdate;
+if ($opts{D}) {
+    my $cd = str2time($opts{D})
+	or die "Invalid -D cvsdate '$opts{D}'";
+    $cvsdate = strftime("%FT%TZ", gmtime($cd));
+}
 my $patch = $opts{P};
 $cvsdate && $patch
     and die "Cannot combine -D cvsdate and -P patch";
@@ -115,7 +118,11 @@ if ($date && $date eq "current") {
     $release ||= dirname($current) if $date ne $current;
 }
 $resultdir = "$resultdir/$date" if $date;
-$resultdir = "$resultdir/$cvsdate" if $date && $cvsdate;
+if ($date && $cvsdate) {
+    $resultdir = "$resultdir/$cvsdate";
+    -d $resultdir || mkdir $resultdir
+	or die "Make directory '$resultdir' failed: $!";
+}
 if ($patch) {
     if ($kernelmode{keep}) {
 	$resultdir = chdir_num("$resultdir/patch-". basename($patch));
