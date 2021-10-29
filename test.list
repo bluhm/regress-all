@@ -170,6 +170,7 @@ lib/libssl/record
 lib/libssl/record_layer
 lib/libssl/server
 lib/libssl/ssl
+lib/libssl/tls
 lib/libssl/tlsext
 lib/libssl/tlsfuzzer
 lib/libssl/tlslegacy
@@ -267,6 +268,7 @@ sys/kern/noexec
 sys/kern/open
 sys/kern/pipe
 sys/kern/pledge
+sys/kern/poll
 sys/kern/pread
 sys/kern/preadv
 sys/kern/ptmget
