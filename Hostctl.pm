@@ -44,6 +44,7 @@ my %lasthosts = (
     ot18 => "ot18",
     ot27 => "ot27",
     ot29 => "ot29",
+    ot31 => "ot32",
 );
 
 my ($bindir, $user, $firsthost, $lasthost, $date, $verbose);
