@@ -433,6 +433,5 @@ usr.sbin/pkg_add
 usr.sbin/relayd
 usr.sbin/rpki-client
 usr.sbin/snmpd
-usr.sbin/switchd
 usr.sbin/syslogd
 usr.sbin/vmd
