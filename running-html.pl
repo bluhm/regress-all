@@ -159,7 +159,7 @@ sub create_html_running {
     my ($html, $htmlfile) = html_open("running");
     my @nav = (
 	Top     => "../test.html",
-	Regess  => "../regress/results/latest.html",
+	Regress => "../regress/results/latest.html",
 	Perform => "../perform/results/perform.html",
 	Ports   => "../portstest/results/latest.html",
 	Release => "../release/results/latest.html",
