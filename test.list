@@ -185,8 +185,6 @@ lib/libusbhid
 lib/libutil
 libexec/ftpd
 libexec/ld.so
-misc/X11/blt
-misc/X11/bltone
 misc/c++abi
 misc/exceptions
 misc/os-test
