@@ -309,10 +309,12 @@ sys/kern/sysvmsg
 sys/kern/sysvsem
 sys/kern/sysvshm
 sys/kern/unalign
+sys/kern/undgram_conclose
 sys/kern/unfdpass
 sys/kern/unfdpassfail
 sys/kern/ungc
 sys/kern/unixsock
+sys/kern/unsendrecvthr
 sys/kern/unveil
 sys/kern/unveil-unmount
 sys/kern/wait
