@@ -26,7 +26,7 @@ our @EXPORT_OK = qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
 ########################################################################
 
 our @PLOTORDER;
-@PLOTORDER = qw(tcp tcp6 udp udp6 linux linux6 forward forward6 ipsec make fs);
+@PLOTORDER = qw(tcp tcp6 udp udp6 linux linux6 forward forward6 ipsec ipsec-aesni make fs);
 
 our %TESTPLOT;
 my @testplot = (
@@ -154,10 +154,18 @@ my @testplot = (
     'ssh_perform@lt16_iperf3_-c10.6.16.51_-P10_-t10_-R'			=> "forward",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0616::51_-P10_-t10'	=> "forward6",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0616::51_-P10_-t10_-R'	=> "forward6",
-    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10'			=> "ipsec",
-    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10_-R'			=> "ipsec",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10'	=> "ipsec",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10_-R'	=> "ipsec",
+    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10'			=> "ipsec-aesni",
+    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10_-R'			=> "ipsec-aesni",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10'	=> "ipsec-aesni",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10_-R'	=> "ipsec-aesni",
+    'ssh_perform@lt13_iperf3_-c10.8.26.36_-P10_-t10'			=> "ipsec-aesni",
+    'ssh_perform@lt13_iperf3_-c10.8.26.36_-P10_-t10_-R'			=> "ipsec-aesni",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0826::36_-P10_-t10'	=> "ipsec-aesni",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0826::36_-P10_-t10_-R'	=> "ipsec-aesni",
+    'iperf3_-c10.9.12.52_-P10_-t10'					=> "ipsec-aesni",
+    'iperf3_-c10.9.12.52_-P10_-t10_-R'					=> "ipsec-aesni",
+    'iperf3_-6_-cfdd7:e83e:66bc:0912::52_-P10_-t10'			=> "ipsec-aesni",
+    'iperf3_-6_-cfdd7:e83e:66bc:0912::52_-P10_-t10_-R'			=> "ipsec-aesni",
 );
 
 %TESTPLOT = @testplot;
@@ -199,8 +207,9 @@ our %TESTORDER;
 #   xx3xxx network relay splice
 #   xx4xxx network relay splice and remote stack
 #   xx5xxx network relay splice and local stack
-#   xx6xxx network ipsec tunnel4
-#   xx7xxx network ipsec tunnel6
+#   xx7xxx network ipsec tunnel4
+#   xx8xxx network ipsec tunnel6
+#   xx9xxx network ipsec transport
 # - xxx0xx protocol
 #   xxx1xx iperf tcp
 #   xxx2xx tcpbench
@@ -367,10 +376,10 @@ my @testorder = (
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=> 624161,
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=> 625151,
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=> 625161,
-    'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10'			=> 716111,
-    'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10_-R'			=> 716121,
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10'	=> 726111,
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10_-R'	=> 726121,
+    'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10'			=> 717111,
+    'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10_-R'			=> 717121,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10'	=> 727111,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10_-R'	=> 727121,
     'time_-lp_make_-CGENERIC.MP_-j4_-s'					=> 1800040,
     'time_-lp_make_-CGENERIC.MP_-j8_-s'					=> 1800080,
     'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=> 1900080,
@@ -419,10 +428,18 @@ my @testorder = (
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0616::51_-P10_-t10_-R'	=> 1624161,
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0626::52_-P10_-t10'	=> 1625151,
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0626::52_-P10_-t10_-R'	=> 1625161,
-    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10'			=> 1716111,
-    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10_-R'			=> 1716121,
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10'	=> 1726111,
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10_-R'	=> 1726121,
+    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10'			=> 1717111,
+    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10_-R'			=> 1717121,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10'	=> 1727111,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10_-R'	=> 1727121,
+    'ssh_perform@lt13_iperf3_-c10.8.26.36_-P10_-t10'			=> 1718111,
+    'ssh_perform@lt13_iperf3_-c10.8.26.36_-P10_-t10_-R'			=> 1718121,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0826::36_-P10_-t10'	=> 1728111,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0826::36_-P10_-t10_-R'	=> 1728121,
+    'iperf3_-c10.9.12.52_-P10_-t10'					=> 1719111,
+    'iperf3_-c10.9.12.52_-P10_-t10_-R'					=> 1719121,
+    'iperf3_-6_-cfdd7:e83e:66bc:0912::52_-P10_-t10'			=> 1729111,
+    'iperf3_-6_-cfdd7:e83e:66bc:0912::52_-P10_-t10_-R'			=> 1729121,
 );
 
 %TESTORDER = @testorder;
@@ -616,10 +633,18 @@ my @testdesc = (
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0616::51_-P10_-t10_-R'	=> "linux-openbsd-openbsd-splice-tcp6-ip3rev-ot31",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0626::52_-P10_-t10'	=> "linux-openbsd-splice-tcp6-ip3fwd-ot31",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0626::52_-P10_-t10_-R'	=> "linux-openbsd-splice-tcp6-ip3rev-ot31",
-    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10'			=> "linux-openbsd-ipsec-openbsd-linux-tcp-ip3fwd-ot31",
-    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10_-R'			=> "linux-openbsd-ipsec-openbsd-linux-tcp-ip3rev-ot31",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10'	=> "linux-openbsd-ipsec-openbsd-linux-tcp6-ip3fwd-ot31",
-    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10_-R'	=> "linux-openbsd-ipsec-openbsd-linux-tcp6-ip3rev-ot31",
+    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10'			=> "linux-openbsd-ipsec-tunnel4-tcp-ip3fwd-ot31",
+    'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10_-R'			=> "linux-openbsd-ipsec-tunnel4-tcp-ip3rev-ot31",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10'	=> "linux-openbsd-ipsec-tunnel4-tcp6-ip3fwd-ot31",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10_-R'	=> "linux-openbsd-ipsec-tunnel4-tcp6-ip3rev-ot31",
+    'ssh_perform@lt13_iperf3_-c10.8.26.36_-P10_-t10'			=> "linux-openbsd-ipsec-tunnel6-tcp-ip3fwd-ot31",
+    'ssh_perform@lt13_iperf3_-c10.8.26.36_-P10_-t10_-R'			=> "linux-openbsd-ipsec-tunnel6-tcp-ip3rev-ot31",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0826::36_-P10_-t10'	=> "linux-openbsd-ipsec-tunnel6-tcp6-ip3fwd-ot31",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0826::36_-P10_-t10_-R'	=> "linux-openbsd-ipsec-tunnel6-tcp6-ip3rev-ot31",
+    'iperf3_-c10.9.12.52_-P10_-t10'					=> "linux-openbsd-ipsec-transport-tcp-ip3fwd-ot31",
+    'iperf3_-c10.9.12.52_-P10_-t10_-R'					=> "linux-openbsd-ipsec-transport-tcp-ip3rev-ot31",
+    'iperf3_-6_-cfdd7:e83e:66bc:0912::52_-P10_-t10'			=> "linux-openbsd-ipsec-transport-tcp6-ip3fwd-ot31",
+    'iperf3_-6_-cfdd7:e83e:66bc:0912::52_-P10_-t10_-R'			=> "linux-openbsd-ipsec-transport-tcp6-ip3rev-ot31",
 );
 
 %TESTDESC = @testdesc;
