@@ -37,7 +37,7 @@ usage: $0 [-v] [-b kstack] [-e environment] [-t timeout] [test ...]
 		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6,
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
 		forward, forward4, forward6 relay, relay4, relay6,
-		ipsec, ipsec4, ipsec6
+		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66
 EOF
     exit(2);
 };
@@ -61,8 +61,10 @@ my %testmode = map {
 $testmode{all} = 1 unless @ARGV;
 @testmode{qw(net make fs)} = 1..3 if $testmode{all};
 @testmode{qw(net4 net6 forward relay ipsec)} = 1..5 if $testmode{net};
-@testmode{qw(tcp4 udp4 forward4 relay4 ipsec4)} = 1..5 if $testmode{net4};
-@testmode{qw(tcp6 udp6 forward6 relay6 ipsec6)} = 1..5 if $testmode{net6};
+@testmode{qw(tcp4 udp4 forward4 relay4 ipsec4 ipsec44)} = 1..6
+    if $testmode{net4};
+@testmode{qw(tcp6 udp6 forward6 relay6 ipsec6 ipsec66)} = 1..6
+    if $testmode{net6};
 @testmode{qw(linuxiperftcp4 linuxiperftcp6)} = 1..2 if $testmode{linuxnet};
 @testmode{qw(iperf4 iperf6)} = 1..2 if $testmode{iperf};
 @testmode{qw(iperftcp4 iperfudp4 linuxiperftcp4)} = 1..3 if $testmode{iperf4};
@@ -79,7 +81,8 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(iperfudp4 iperfudp6)} = 1..2 if $testmode{iperfudp};
 @testmode{qw(forward4 forward6)} = 1..2 if $testmode{forward};
 @testmode{qw(relay4 relay6)} = 1..2 if $testmode{relay};
-@testmode{qw(ipsec4 ipsec6)} = 1..2 if $testmode{ipsec};
+@testmode{qw(ipsec4 ipsec44 ipsec46 ipsec6 ipsec64 ipsec66)} = 1..6
+    if $testmode{ipsec};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -134,6 +137,12 @@ my $remote_addr6 = $ENV{REMOTE_ADDR6}
     or die "Environemnt REMOTE_ADDR6 not set";
 my $local_ipsec_addr = $ENV{LOCAL_IPSEC_ADDR};
 my $remote_ipsec_addr = $ENV{REMOTE_IPSEC_ADDR};
+my $local_ipsec6_addr = $ENV{LOCAL_IPSEC6_ADDR};
+my $remote_ipsec6_addr = $ENV{REMOTE_IPSEC6_ADDR};
+my $local_ipsec_trans_addr = $ENV{LOCAL_IPSEC_TRANS_ADDR};
+my $remote_ipsec_trans_addr = $ENV{REMOTE_IPSEC_TRANS_ADDR};
+my $local_ipsec_trans_addr6 = $ENV{LOCAL_IPSEC_TRANS_ADDR6};
+my $remote_ipsec_trans_addr6 = $ENV{REMOTE_IPSEC_TRANS_ADDR6};
 
 my $linux_addr = $ENV{LINUX_ADDR};
 my $linux_addr6 = $ENV{LINUX_ADDR6};
@@ -143,6 +152,8 @@ my $linux_relay_addr = $ENV{LINUX_RELAY_ADDR};
 my $linux_relay_addr6 = $ENV{LINUX_RELAY_ADDR6};
 my $linux_ipsec_addr = $ENV{LINUX_IPSEC_ADDR};
 my $linux_ipsec_addr6 = $ENV{LINUX_IPSEC_ADDR6};
+my $linux_ipsec6_addr = $ENV{LINUX_IPSEC6_ADDR};
+my $linux_ipsec6_addr6 = $ENV{LINUX_IPSEC6_ADDR6};
 my $linux_ssh = $ENV{LINUX_SSH};
 
 my $linux_relay_local_addr = $ENV{LINUX_RELAY_LOCAL_ADDR};
@@ -624,36 +635,44 @@ push @tests, (
 	parser => \&iperf3_parser,
     }
 ) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
-push @tests, (
-    {
-	startup => \&iked_startup,
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_ipsec_addr",
-	    '-P10', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_ipsec_addr",
-	    '-P10', '-t10', '-R'],
-	parser => \&iperf3_parser,
-	shutdown => \&iked_shutdown,
-    }
-) if $testmode{ipsec4} && $linux_ipsec_addr && $linux_ssh;
-push @tests, (
-    {
-	startup => \&iked_startup,
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_ipsec_addr6",
-	    '-P10', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_ipsec_addr6",
-	    '-P10', '-t10', '-R'],
-	parser => \&iperf3_parser,
-	shutdown => \&iked_shutdown,
-    }
-) if $testmode{ipsec6} && $linux_ipsec_addr6 && $linux_ssh;
+my %ipsec = (
+    ipsec4  => { ip => 4, addr => $remote_ipsec_trans_addr },
+    ipsec6  => { ip => 6, addr => $remote_ipsec_trans_addr6 },
+    ipsec44 => { ip => 4, addr => $linux_ipsec_addr,   ssh => $linux_ssh },
+    ipsec46 => { ip => 6, addr => $linux_ipsec_addr6,  ssh => $linux_ssh },
+    ipsec64 => { ip => 4, addr => $linux_ipsec6_addr,  ssh => $linux_ssh },
+    ipsec66 => { ip => 6, addr => $linux_ipsec6_addr6, ssh => $linux_ssh },
+);
+my @ipsectests;
+foreach my $ipsecmode (sort keys %ipsec) {
+    $testmode{$ipsecmode}
+	or next;
+    my $ssh = $ipsec{$ipsecmode}{ssh};
+    my $ip = $ipsec{$ipsecmode}{ip};
+    my $addr = $ipsec{$ipsecmode}{addr}
+	or next;
+    my @cmd;
+    push @cmd, 'ssh', $ssh if $ssh;
+    push @cmd, 'iperf3';
+    push @cmd, '-6' if $ip == 6;
+    push @cmd, "-c$addr";
+    push @ipsectests, (
+	{
+	    initialize => \&iperf3_initialize,
+	    testcmd => [ @cmd, '-P10', '-t10'],
+	    parser => \&iperf3_parser,
+	}, {
+	    initialize => \&iperf3_initialize,
+	    testcmd => [@cmd, '-P10', '-t10', '-R'],
+	    parser => \&iperf3_parser,
+	}
+    );
+}
+if (@ipsectests) {
+    $ipsectests[0]{startup} = \&iked_startup;
+    $ipsectests[-1]{shutdown} = \&iked_shutdown;
+}
+push @tests, @ipsectests;
 push @tests, (
     {
 	testcmd => ['time', '-lp', 'make',
