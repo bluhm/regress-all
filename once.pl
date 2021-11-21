@@ -51,7 +51,7 @@ usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
 		forward, forward4, forward6,
 		relay, relay4, relay6,
-		ipsec, ipsec4, ipsec6
+		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66
 
 EOF
     exit(2);
@@ -93,7 +93,8 @@ $kernelmode{$opts{k}} = 1 if $opts{k};
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
     net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
     linuxnet linuxiperftcp4 linuxiperftcp6
-    forward forward4 forward6 relay relay4 relay6 ipsec ipsec4 ipsec6
+    forward forward4 forward6 relay relay4 relay6
+    ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
 )} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
