@@ -280,6 +280,7 @@ sys/kern/realpath
 sys/kern/realpath-unmount
 sys/kern/recvwait
 sys/kern/rlimit-file
+sys/kern/select
 sys/kern/setuid
 sys/kern/signal/cansig
 sys/kern/signal/earlysig
