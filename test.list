@@ -310,6 +310,7 @@ sys/kern/sysvmsg
 sys/kern/sysvsem
 sys/kern/sysvshm
 sys/kern/unalign
+sys/kern/unconacc
 sys/kern/undgram_conclose
 sys/kern/unfdpass
 sys/kern/unfdpassfail
