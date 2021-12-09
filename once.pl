@@ -125,10 +125,12 @@ if ($date && $cvsdate) {
 	or die "Make directory '$resultdir' failed: $!";
 }
 if ($patch) {
+    my $patchdir = "patch-".
+	join(',', map { s,\.[^/]*,,; basename($_) } split(/,/, $patch));  
     if ($kernelmode{keep}) {
-	$resultdir = chdir_num("$resultdir/patch-". basename($patch));
+	$resultdir = chdir_num("$resultdir/$patchdir");
     } else {
-	$resultdir = mkdir_num("$resultdir/patch-". basename($patch));
+	$resultdir = mkdir_num("$resultdir/$patchdir");
     }
 }
 chdir($resultdir)

@@ -40,7 +40,7 @@ usage: $0 [-v] [-d date] [-D cvsdate] -h host [-P patch] [-r release]
     -d date	set date string and change to sub directory
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
-    -P patch	apply patch to clean kernel source
+    -P patch	apply patch to clean kernel source, comma separated list
     -r release	change to release sub directory
     -v		verbose
     align	relink kernel aligning all object at page size, no randomness
@@ -88,8 +88,8 @@ if ($date && $date eq "current") {
 $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $date && $cvsdate;
 if ($patch) {
-    my $patchdir = "patch-". basename($patch);
-    $patchdir =~ s/\..*//;
+    my $patchdir = "patch-".
+	join(',', map { s,\.[^/]*,,; basename($_) } split(/,/, $patch));
     my $dir = "$resultdir/$patchdir.[0-9]";
     $resultdir = (glob($dir))[-1]
 	or die "Patch directory '$dir' not found";
@@ -131,8 +131,10 @@ if ($before) {
 }
 
 update_cvs(undef, $cvsdate, "sys") if $cvsdate;
-clean_cvs("sys") if $patch;
-patch_cvs($patch, "sys") if $patch;
+if ($patch) {
+    clean_cvs("sys");
+    patch_cvs($_, "sys") foreach split(/,/, $patch);
+}
 make_kernel();
 if ($kernelmode{align}) {
     align_kernel();
