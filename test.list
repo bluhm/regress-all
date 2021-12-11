@@ -310,7 +310,6 @@ sys/kern/sysvmsg
 sys/kern/sysvsem
 sys/kern/sysvshm
 sys/kern/unalign
-sys/kern/unconacc
 sys/kern/unfdpass
 sys/kern/unixsock
 sys/kern/unixsockets
