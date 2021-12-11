@@ -36,7 +36,7 @@ getopts('d:h:r:P:v', \%opts) or do {
 usage: $0 [-v] [-d date] -h host [-P patch] [-r release] mode ...
     -d date	set date string and change to sub directory
     -h host	root\@openbsd-test-machine, login per ssh
-    -P patch	apply patch to clean kernel source
+    -P patch	apply patch to clean kernel source, comma separated list
     -r release	use release for install and cvs checkout, X.Y or current
     -v		verbose
     build	build system from source /usr/src and reboot
@@ -102,8 +102,10 @@ get_version();
 copy_scripts();
 checkout_cvs($release) if $mode{install} || $mode{upgrade};
 update_cvs($release, undef, $cvspath) if $mode{cvs};
-clean_cvs($cvspath) if $patch;
-patch_cvs($patch, $cvspath) if $patch;
+if ($patch) {
+    clean_cvs($cvspath);
+    patch_cvs($_, $cvspath) foreach split(/,/, $patch);
+}
 update_ports($release) if $mode{ports};
 make_kernel() if $mode{kernel} || $mode{build};
 make_build() if $mode{build};
