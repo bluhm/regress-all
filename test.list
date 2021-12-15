@@ -76,6 +76,7 @@ lib/libc/telldir
 lib/libc/time
 lib/libc/timekeep
 lib/libc/timingsafe
+lib/libc/uuid
 lib/libc/vis
 lib/libc/wprintf
 lib/libcrypto/CA
@@ -91,6 +92,7 @@ lib/libcrypto/cast
 lib/libcrypto/certs
 lib/libcrypto/chacha
 lib/libcrypto/cms
+lib/libcrypto/ct
 lib/libcrypto/cts128
 lib/libcrypto/curve25519
 lib/libcrypto/des
