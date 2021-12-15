@@ -311,7 +311,6 @@ sys/kern/sysvsem
 sys/kern/sysvshm
 sys/kern/unalign
 sys/kern/unfdpass
-sys/kern/unixsock
 sys/kern/unixsockets
 sys/kern/unveil
 sys/kern/unveil-unmount
