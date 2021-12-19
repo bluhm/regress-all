@@ -507,6 +507,8 @@ sub write_data_files {
 			my $unit = $value->{unit};
 			my $subtest = $value->{name} || "unknown";
 			my $hostname = $dv->{host};
+			# avoid noise of data in sendbuf, but not reveived
+			next if $test =~ /iperf/ && $subtest eq "sender";
 			print $_ "$test $subtest ".
 			    "$run $checkout $repeat $number $unit $hostname\n"
 			    foreach @fhout;
