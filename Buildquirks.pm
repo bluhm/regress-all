@@ -564,6 +564,11 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-softraid-crypto' => patch_sys_softraid_crypto() },
     },
+    '2021-11-23T10:30:08Z' => {
+	comment => "install bsd.own.mk with ar variable",
+	updatedirs => [ "share/mk" ],
+	builddirs => [ "share/mk" ],
+    },
     '2021-12-17T14:55:47Z' => {
 	comment => "clang, libc++, and libc++abi update LLVM to 13.0.0",
 	updatedirs => [
