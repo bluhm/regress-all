@@ -408,6 +408,7 @@ usr.bin/rev
 usr.bin/sdiff
 usr.bin/sed
 usr.bin/signify
+usr.bin/snmp
 usr.bin/sort
 usr.bin/ssh
 usr.bin/tail
