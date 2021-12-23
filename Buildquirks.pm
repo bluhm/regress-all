@@ -589,6 +589,21 @@ my %quirks = (
 	    "gnu/lib/libcxxabi",
 	],
     },
+    '2021-12-23T18:50:59Z' => {
+	comment => "kernel removes padding from syscalls",
+	updatedirs => [
+	    "sys",
+	    "lib/libc",
+	    "libexec/ld.so",
+	],
+	prebuildcommands => [
+	    "make includes",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	commands => [ "reboot" ],
+    },
 );
 
 #### Patches ####
