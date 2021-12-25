@@ -229,7 +229,6 @@ sys/dev/wscons
 sys/ffs
 sys/fifofs
 sys/fileops
-sys/kern/__syscall
 sys/kern/accept
 sys/kern/access
 sys/kern/bind
