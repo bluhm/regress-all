@@ -171,16 +171,10 @@ sub clean_cvs {
 sub patch_cvs {
     my ($file, $path) = @_;
     $path = $path ? "/$path" : "";
-    my @sshcmd = ('ssh', "$user\@$host", "cd /usr/src$path && patch -fF0");
-    logmsg "Command '@sshcmd' started.\n";
-    open(my $patch, '|-', @sshcmd)
-	or die "Open pipe to '@sshcmd' failed: $!";
-    copy($file, $patch)
-	or die "Copy '$file' to '@sshcmd' failed: $!";
-    close($patch) or die $! ?
-	die "Close pipe to '@sshcmd' failed: $!" :
-	die "Command '@sshcmd' failed: $?";
-    logmsg "Command '@sshcmd' finished.\n";
+    logcmd({
+	cmd => ['ssh', "$user\@$host", "cd /usr/src$path && patch -fF0"],
+	infile => $file,
+    });
 }
 
 sub update_ports {

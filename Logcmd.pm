@@ -1,6 +1,6 @@
 # run commands and log their output into file
 
-# Copyright (c) 2016-2018 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,6 +19,7 @@ package Logcmd;
 use strict;
 use warnings;
 use Carp;
+use File::Copy;
 use POSIX;
 
 use parent 'Exporter';
@@ -104,10 +105,11 @@ sub waitcmd {
 }
 
 sub logcmd {
-    my (@cmd, $outfile);
+    my (@cmd, $infile, $outfile);
     if (ref($_[0])) {
 	my %args = %{$_[0]};
 	@cmd = ref($args{cmd}) ? @{$args{cmd}} : $args{cmd};
+	$infile = $args{infile};
 	$outfile = $args{outfile};
     } else {
 	@cmd = @_;
@@ -117,9 +119,9 @@ sub logcmd {
 	or croak "Open file '$outfile' for writing failed: $!"
 	if $outfile;
     logmsg "Writing output to '$outfile'.\n" if $outfile;
-    defined(my $pid = open(my $out, '-|'))
+    defined(my $outpid = open(my $out, '-|'))
 	or croak "Open pipe from '@cmd' failed: $!";
-    if ($pid == 0) {
+    if ($outpid == 0) {
 	$SIG{__DIE__} = 'DEFAULT';
 	close($out);
 	open(STDIN, '<', "/dev/null")
@@ -131,7 +133,25 @@ sub logcmd {
 	    if $outfile;
 	setsid()
 	    or carp "Setsid $$ failed: $!";
-	{
+	if ($infile) {
+	    defined(my $inpid = open(my $in, '|-'))
+		or croak "Open pipe to '@cmd' failed: $!";
+	    if ($inpid == 0) {
+		close($in);
+		{
+		    no warnings 'exec';
+		    exec(@cmd);
+		    carp "Exec '@cmd' failed: $!";
+		}
+		_exit(126);
+	    }
+	    copy($infile, $in)
+		or die "Copy '$infile' to '@cmd' failed: $!";
+	    close($in) or croak $! ?
+		"Close pipe to '@cmd' failed: $!" :
+		"Command '@cmd' failed: $?";
+	    _exit(0);
+	} else {
 	    no warnings 'exec';
 	    exec(@cmd);
 	    carp "Exec '@cmd' failed: $!";
