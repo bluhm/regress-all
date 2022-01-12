@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # setup machine for regress test
 
-# Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -46,6 +46,7 @@ usage: $0 [-v] [-d date] -h host [-P patch] [-r release] mode ...
     keep	only copy version and scripts
     kernel	build kernel from source /usr/src/sys and reboot
     ports	cvs update /usr/ports
+    sysupgrade	sysupgrade to snapshot
     tools	build and install tools needed for some tests
     upgrade	upgrade with snapshot
 EOF
@@ -58,7 +59,8 @@ my $date = $opts{d};
 my $patch = $opts{P};
 
 my %allmodes;
-@allmodes{qw(build commands cvs install kernel keep ports tools upgrade)} = ();
+@allmodes{qw(build commands cvs install kernel keep ports tools sysupgrade
+    upgrade)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
@@ -66,7 +68,8 @@ my %mode = map {
 } @ARGV;
 my $release;
 if ($opts{r} && $opts{r} ne "current") {
-    die "Upgrade to release not supported" if $mode{upgrade};
+    die "Upgrade to release not supported"
+	if $mode{upgrade} || $mode{sysupgrade};
     ($release = $opts{r}) =~ /^\d+\.\d$/
 	or die "Release '$release' must be major.minor format";
 }
@@ -98,9 +101,11 @@ $cvspath = "sys" if $mode{kernel} && !$mode{build};
 
 install_pxe($release) if $mode{install} && !$mode{keep};
 upgrade_pxe() if $mode{upgrade} && !$mode{keep};
+sysupgrade_fetch() if $mode{sysupgrade};
 get_version();
 copy_scripts();
-checkout_cvs($release) if $mode{install} || $mode{upgrade};
+checkout_cvs($release) if $mode{install} || $mode{upgrade} ||
+    $mode{sysupgrade};
 update_cvs($release, undef, $cvspath) if $mode{cvs};
 if ($patch) {
     clean_cvs($cvspath);
@@ -110,13 +115,17 @@ update_ports($release) if $mode{ports};
 make_kernel() if $mode{kernel} || $mode{build};
 make_build() if $mode{build};
 diff_cvs($cvspath) if $mode{kernel} || $mode{build} || $patch;
-reboot() if $mode{kernel} || $mode{build};
+reboot() if ($mode{kernel} || $mode{build} || $mode{sysupgrade}) &&
+    !$mode{keep};
 get_version() if $mode{kernel} || $mode{build};
-update_packages($release) if $mode{upgrade} || $mode{ports};
-install_packages($release) if $mode{install} || $mode{upgrade} || $mode{ports};
-build_tools() if $mode{install} || $mode{upgrade} || $mode{tools};
-run_commands() if $mode{install} || $mode{upgrade} || $mode{ports} ||
-    $mode{commands};
+update_packages($release) if $mode{upgrade} || $mode{sysupgrade} ||
+    $mode{ports};
+install_packages($release) if $mode{install} || $mode{upgrade} ||
+    $mode{sysupgrade} || $mode{ports};
+build_tools() if $mode{install} || $mode{upgrade} || $mode{sysupgrade} ||
+    $mode{tools};
+run_commands() if $mode{install} || $mode{upgrade} || $mode{sysupgrade} ||
+    $mode{ports} || $mode{commands};
 get_bsdcons();
 
 # finish setup log

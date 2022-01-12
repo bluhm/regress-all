@@ -1,6 +1,6 @@
 # functions to manipulate remote test machine
 
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -27,7 +27,7 @@ use Logcmd;
 
 use parent 'Exporter';
 our @EXPORT= qw(createhost reboot
-    install_pxe upgrade_pxe get_bsdcons get_version
+    install_pxe upgrade_pxe sysupgrade_fetch get_bsdcons get_version
     checkout_cvs update_cvs diff_cvs clean_cvs patch_cvs update_ports
     make_kernel make_build
     align_kernel gap_kernel sort_kernel reorder_kernel
@@ -59,6 +59,10 @@ sub install_pxe {
 
 sub upgrade_pxe {
     logcmd('ssh', "$host\@$testmaster", "upgrade");
+}
+
+sub sysupgrade_fetch {
+    logcmd('ssh', "$user\@$host", "sysupgrade -kns");
 }
 
 # console output since last OpenBSD kernel boot

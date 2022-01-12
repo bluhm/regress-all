@@ -1,6 +1,6 @@
 # functions to control a set of hosts
 
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -42,6 +42,7 @@ my %lasthosts = (
     ot12 => "ot13",
     ot14 => "ot15",
     ot18 => "ot18",
+    ot26 => "ot26",
     ot27 => "ot27",
     ot29 => "ot29",
     ot31 => "ot32",
