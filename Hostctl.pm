@@ -92,7 +92,7 @@ sub setup_hosts {
 	push @setupcmd, keys %mode;
 	push @pidcmds, forkcmd(@setupcmd);
 
-	if ($mode{install} || $mode{upgrade}) {
+	if ($mode{install} || $mode{upgrade} || $mode{sysupgrade}) {
 	    # create new summary with setup log
 	    sleep 5;
 	    setup_html();

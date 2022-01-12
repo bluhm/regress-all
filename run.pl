@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # run regression tests on machine
 
-# Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -41,6 +41,7 @@ usage: $0 [-v] -h host mode ...
     keep	keep installed host as is, skip setup
     kernel	build kernel from source /usr/src/sys and reboot
     reboot	before running tests
+    sysupgrade	sysupgrade to snapshot
     upgrade	upgrade with snapshot
 EOF
     exit(2);
@@ -49,13 +50,13 @@ $opts{h} or die "No -h specified";
 my $patch = $opts{P};
 
 my %allmodes;
-@allmodes{qw(build cvs install keep kernel reboot upgrade)} = ();
+@allmodes{qw(build cvs install keep kernel reboot sysupgrade upgrade)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
-foreach (qw(install keep reboot upgrade)) {
+foreach (qw(install keep reboot sysupgrade upgrade)) {
     die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
 }
 
