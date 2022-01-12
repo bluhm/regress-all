@@ -126,6 +126,7 @@ devel/p5-Net-Server
 devel/p5-Package-DeprecationManager
 devel/p5-Package-Stash
 devel/p5-Params-Util
+devel/p5-Path-Tiny
 devel/p5-Pod-Constant
 devel/p5-Regexp-IPv6
 devel/p5-Set-Infinite
@@ -143,8 +144,11 @@ devel/p5-Term-Size-Perl
 devel/p5-Term-Table
 devel/p5-Test-Class
 devel/p5-Test-Compile
+devel/p5-Test-Deep
 devel/p5-Test-EOL
+devel/p5-Test-Exception
 devel/p5-Test-Exit
+devel/p5-Test-Fatal
 devel/p5-Test-File
 devel/p5-Test-Inline
 devel/p5-Test-LectroTest
@@ -158,9 +162,11 @@ devel/p5-Test-NoWarnings
 devel/p5-Test-Output
 devel/p5-Test-Portability-Files
 devel/p5-Test-Regexp
+devel/p5-Test-Requires
 devel/p5-Test-RequiresInternet
 devel/p5-Test-Script
 devel/p5-Test-TrailingSpace
+devel/p5-Test-Trap
 devel/p5-Test2-Plugin-NoWarnings
 devel/p5-Test2-Suite
 devel/p5-Tie-ToObject
@@ -276,6 +282,7 @@ textproc/p5-XML-SAX-ExpatXS
 textproc/p5-XML-SAX-Writer
 textproc/p5-XML-Simple
 www/p5-CGI
+www/p5-CGI-Simple
 www/p5-Dancer2
 www/p5-Gravatar-URL
 www/p5-HTML-Display
