@@ -773,6 +773,7 @@ foreach my $t (@tests) {
 	open(my $bt, '>', $btfile)
 	    or bad $test, 'NOLOG',
 	    "Open btrace '$btfile' for writing failed: $!";
+	$SIG{USR1} = 'IGNORE';
 	defined($btpid = fork())
 	    or bad $test, 'XPASS', "Fork btrace failed: $!", $log;
 	if ($btpid == 0) {
@@ -791,16 +792,21 @@ foreach my $t (@tests) {
 		warn "Exec '@btcmd' failed: $!";
 		_exit(126);
 	    }
-	    print $log "Btrace '@btcmd' started\n";
-	    print "Btrace '@btcmd' started\n" if $opts{v};
+	    my $tracetime = Time::HiRes::time();
+	    print $log "Btrace '@btcmd' started for $sampletime seconds\n";
+	    print "Btrace '@btcmd' started for $sampletime seconds\n"
+		if $opts{v};
 
 	    # gather samples during 1 minute or 5 minutes
+	    $SIG{USR1} = sub { print "Btrace aborted\n" if $opts{v} };
 	    sleep $sampletime;
+	    $SIG{USR1} = 'IGNORE';
 	    kill 'INT', $btracepid
 		or warn "Interrupt btrace failed: $!";
 
-	    print $log "Btrace '@btcmd' stopped after $sampletime seconds\n";
-	    print "Btrace '@btcmd' stopped after $sampletime seconds\n"
+	    $tracetime = sprintf("%d", Time::HiRes::time() - $tracetime);
+	    print $log "Btrace '@btcmd' stopped after $tracetime seconds\n";
+	    print "Btrace '@btcmd' stopped after $tracetime seconds\n"
 		if $opts{v};
 	    undef $!;
 	    waitpid($btracepid, 0) == $btracepid && $? == 0
@@ -841,6 +847,9 @@ foreach my $t (@tests) {
     }
 
     if ($btpid) {
+	kill 'USR1', $btpid
+	    or bad $test, 'XPASS', "Kill btrace failed: $!", $log;
+	print "Btrace killed\n" if $opts{v};
 	waitpid($btpid, 0) == $btpid
 	    or bad $test, 'XPASS', "Wait for btrace failed: $!", $log;
 	$? == 0
