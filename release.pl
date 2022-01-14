@@ -28,7 +28,7 @@ getopts('e:t:v', \%opts) or do {
     print STDERR "usage: $0 [-v] [-e environment] [-t timeout]\n";
     exit(2);
 };
-my $timeout = $opts{t} || 12*60*60;
+my $timeout = $opts{t} || 5*24*60*60;
 environment($opts{e}) if $opts{e};
 @ARGV and die "No arguments allowed";
 
