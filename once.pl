@@ -126,7 +126,7 @@ if ($date && $cvsdate) {
 }
 if ($patch) {
     my $patchdir = "patch-".
-	join(',', map { s,\.[^/]*,,; basename($_) } split(/,/, $patch));  
+	join(',', map { s,\.[^/]*,,; basename($_) } split(/,/, $patch));
     if ($kernelmode{keep}) {
 	$resultdir = chdir_num("$resultdir/$patchdir");
     } else {
