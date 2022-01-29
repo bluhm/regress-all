@@ -604,6 +604,10 @@ my %quirks = (
 	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	commands => [ "reboot" ],
     },
+    '2022-01-14T06:53:17Z' => {
+	comment => "update drm moves kernel source files",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 );
 
 #### Patches ####
