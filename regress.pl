@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2016-2017 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -87,7 +87,8 @@ sub good {
     $tr->sync();
 }
 
-my @paxcmd = ('pax', '-wzf', "$dir/test.log.tgz", '-s,^/usr/src/regress/,,');
+my @paxcmd = ('pax', '-wzf', "$regressdir/test.log.tgz",
+    '-s,^/usr/src/regress/,,');
 open(my $pax, '|-', @paxcmd)
     or die "Open pipe to '@paxcmd' failed: $!";
 $pax->autoflush();
