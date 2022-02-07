@@ -41,7 +41,8 @@ openldap-server--%openldap
 p11-kit
 perltidy
 pinentry
-python%3.8
+python%3.9
+qtbase
 rrdtool
 unzip--
 zip

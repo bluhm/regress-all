@@ -25,6 +25,8 @@ p5-YAML
 p5-ldap
 posixtestsuite
 py3-tlsfuzzer
+python%3.9
+qtbase
 rsync--
 rsyslog
 scapy
