@@ -87,7 +87,7 @@ close($fh);
 # setup remote machines
 
 usehosts(bindir => "$regressdir/bin", date => $date,
-    host => $opts{h}, verbose => $opts{v});
+    host => $opts{h}, lasthost => $opts{h}, verbose => $opts{v});
 
 # do not run end block until initialized, date may change later
 my $odate = $date;

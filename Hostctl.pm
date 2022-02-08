@@ -55,10 +55,14 @@ sub usehosts {
     ($bindir, $date, $verbose) = delete @args{qw(bindir date verbose)};
     ($user, $firsthost) = split('@', delete $args{host}, 2);
     ($user, $firsthost) = ("root", $user) unless $firsthost;
+    if ($args{lasthost}) {
+	$lasthost = delete $args{lasthost};
+	$lasthost =~ s/.*@//;
+    }
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
 
-    $lasthost = $lasthosts{$firsthost}
+    $lasthost ||= $lasthosts{$firsthost}
 	and return;
     for (my $host = $firsthost;
 	-f "$bindir/pkg-$host.list";
