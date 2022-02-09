@@ -46,6 +46,7 @@ usage: $0 [-v] [-d date] -h host [-P patch] [-r release] mode ...
     keep	only copy version and scripts
     kernel	build kernel from source /usr/src/sys and reboot
     ports	cvs update /usr/ports
+    restart	cvs clean, patch /usr/src, build kernel, install, reboot
     sysupgrade	sysupgrade to snapshot
     tools	build and install tools needed for some tests
     upgrade	upgrade with snapshot
@@ -59,8 +60,8 @@ my $date = $opts{d};
 my $patch = $opts{P};
 
 my %allmodes;
-@allmodes{qw(build commands cvs install kernel keep ports tools sysupgrade
-    upgrade)} = ();
+@allmodes{qw(build commands cvs install kernel keep ports tools restart
+    sysupgrade upgrade)} = ();
 @ARGV or die "No mode specified";
 my %mode = map {
     die "Unknown mode: $_" unless exists $allmodes{$_};
@@ -95,7 +96,7 @@ logmsg("Script '$scriptname' started at $date.\n");
 createhost($user, $host);
 
 my $cvspath;
-$cvspath = "sys" if $mode{kernel} && !$mode{build};
+$cvspath = "sys" if $mode{kernel};
 
 # execute commands
 
@@ -107,17 +108,17 @@ copy_scripts();
 checkout_cvs($release) if $mode{install} || $mode{upgrade} ||
     $mode{sysupgrade};
 update_cvs($release, undef, $cvspath) if $mode{cvs};
+clean_cvs($cvspath) if $mode{restart} || $patch;
 if ($patch) {
-    clean_cvs($cvspath);
     patch_cvs($_, $cvspath) foreach split(/,/, $patch);
 }
 update_ports($release) if $mode{ports};
-make_kernel() if $mode{kernel} || $mode{build};
+make_kernel() if $mode{kernel} || $mode{build} || $mode{restart};
 make_build() if $mode{build};
 diff_cvs($cvspath) if $mode{kernel} || $mode{build} || $patch;
-reboot() if ($mode{kernel} || $mode{build} || $mode{sysupgrade}) &&
-    !$mode{keep};
-get_version() if $mode{kernel} || $mode{build};
+reboot() if ($mode{kernel} || $mode{build} || $mode{restart} ||
+    $mode{sysupgrade}) && !$mode{keep};
+get_version() if $mode{kernel} || $mode{build} || $mode{restart};
 update_packages($release) if $mode{upgrade} || $mode{sysupgrade} ||
     $mode{ports};
 install_packages($release) if $mode{install} || $mode{upgrade} ||
