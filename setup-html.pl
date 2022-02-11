@@ -245,6 +245,9 @@ sub parse_log_files {
 	if (-f "test.obj.tgz") {
 	    $D{$date}{objtgz} = "test.obj.tgz";
 	}
+	if (-f "perform.html") {
+	    $D{$date}{result} = "$reldate/perform.html";
+	}
     }
     return $typename;
 }
@@ -746,6 +749,10 @@ HEADER
 			print $html $duration >= 24*60*60 ?
 			    sprintf("%.2f days", $duration / (24*60*60)) :
 			    strftime("%T", gmtime($duration));
+		    }
+		    if (my $result = $D{$date}{result}) {
+			$link = uri_escape($result, "^A-Za-z0-9\-\._~/");
+			print $html "<br><a href=\"$link\">result</a>";
 		    }
 		    print $html "</td>\n";
 		}
