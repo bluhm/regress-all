@@ -281,6 +281,9 @@ push @cmd, "-r", $release if $release;
 push @cmd, "-v" if $opts{v};
 runcmd(@cmd);
 
+unlink("results/latest-$host");
+symlink($release ? "$release/$date" : $date, "results/latest-$host")
+    or die "Make symlink 'results/latest-$host' failed: $!";
 unlink("results/latest");
 symlink($release ? "$release/$date" : $date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";

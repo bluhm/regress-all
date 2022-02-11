@@ -60,7 +60,7 @@ my $btrace = $opts{b};
 $btrace && $btrace ne "kstack"
     and die "Btrace -b '$btrace' not supported, use 'kstack'";
 $opts{h} or die "No -h specified";
-!$opts{d} || $opts{d} eq "current" || str2time($opts{d})
+!$opts{d} || $opts{d} =~ /^(current|latest|latest-\w+)$/ || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
 my $cvsdate;
@@ -110,7 +110,7 @@ chdir($performdir)
 $performdir = getcwd();
 my $resultdir = "$performdir/results";
 $resultdir .= "/$release" if $release;
-if ($date && $date eq "current") {
+if ($date && $date =~ /^(current|latest|latest-\w+)$/) {
     my $current = readlink("$resultdir/$date")
 	or die "Read link '$resultdir/$date' failed: $!";
     -d "$resultdir/$current"
@@ -225,7 +225,7 @@ if ($date) {
     runcmd(@cmd);
 
     unlink("results/latest");
-    symlink($date, "results/latest")
+    symlink($release ? "$release/$date" : $date, "results/latest")
 	or die "Make symlink 'results/latest' failed: $!";
 }
 
