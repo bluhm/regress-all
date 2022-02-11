@@ -42,7 +42,7 @@ my %opts;
 getopts('d:Ggnr:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-Ggnv] [-d date] [-r release]
-    -d date	run date of performance test, may be current
+    -d date	run date of performance test, may be current or latest host
     -G		do not regenerate any gnuplot files, allows faster debugging
     -g		generate all gnuplot files, even if they already exist
     -n		do not generate gnuplot files on main release page
@@ -51,7 +51,7 @@ usage: $0 [-Ggnv] [-d date] [-r release]
 EOF
     exit(2);
 };
-!$opts{d} || $opts{d} eq "current" || str2time($opts{d})
+!$opts{d} || $opts{d} =~ /^(current|latest|latest-\w+)$/ || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
 my $release;
@@ -67,7 +67,7 @@ chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
 my $resultdir = "$performdir/results";
-if ($date && $date eq "current") {
+if ($date && $date =~ /^(current|latest|latest-\w+)$/) {
     my $current = readlink("$resultdir/$date")
 	or die "Read link '$resultdir/$date' failed: $!";
     -d "$resultdir/$current"
