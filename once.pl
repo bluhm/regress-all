@@ -109,7 +109,6 @@ chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
 $performdir = getcwd();
 my $resultdir = "$performdir/results";
-$resultdir .= "/$release" if $release;
 if ($date && $date =~ /^(current|latest|latest-\w+)$/) {
     my $current = readlink("$resultdir/$date")
 	or die "Read link '$resultdir/$date' failed: $!";
@@ -118,6 +117,7 @@ if ($date && $date =~ /^(current|latest|latest-\w+)$/) {
     $date = basename($current);
     $release ||= dirname($current) if $date ne $current;
 }
+$resultdir .= "/$release" if $release;
 $resultdir = "$resultdir/$date" if $date;
 if ($date && $cvsdate) {
     $resultdir = "$resultdir/$cvsdate";
