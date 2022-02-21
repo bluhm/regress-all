@@ -72,6 +72,7 @@ sub html_header {
 <head>
   <meta charset="UTF-8">
   <title>$title</title>
+  <link rel="icon" href="/favicon.svg">
   <style>
     th { text-align: left; white-space: nowrap; }
     th.desc { text-align: left; white-space: nowrap; }
