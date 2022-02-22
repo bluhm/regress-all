@@ -53,6 +53,7 @@ usage: $0 [-v] [-b kstack] -B date [-E date] -h host [-k kernel] [-N repeat]
 		forward, forward4, forward6,
 		relay, relay4, relay6,
 		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66
+		pfsync
 EOF
     exit(2);
 };
@@ -113,6 +114,7 @@ $setupmode{$opts{s}} = 1 if $opts{s};
     linuxnet linuxiperftcp4 linuxiperftcp6
     forward forward4 forward6 relay relay4 relay6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
+    pfsync
 )} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};

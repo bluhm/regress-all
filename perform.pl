@@ -38,6 +38,7 @@ usage: $0 [-v] [-b kstack] [-e environment] [-t timeout] [test ...]
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
 		forward, forward4, forward6 relay, relay4, relay6,
 		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66
+		pfsync
 EOF
     exit(2);
 };
@@ -54,6 +55,7 @@ my %allmodes;
     linuxnet linuxiperftcp4 linuxiperftcp6
     forward forward4 forward6 relay relay4 relay6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
+    pfsync
 )} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
@@ -162,6 +164,12 @@ my $linux_relay_local_addr6 = $ENV{LINUX_RELAY_LOCAL_ADDR6};
 my $linux_relay_remote_addr = $ENV{LINUX_RELAY_REMOTE_ADDR};
 my $linux_relay_remote_addr6 = $ENV{LINUX_RELAY_REMOTE_ADDR6};
 my $linux_other_ssh = $ENV{LINUX_OTHER_SSH};
+
+my $pfsync_if = $ENV{PFSYNC_IF};
+my $pfsync_addr = $ENV{PFSYNC_ADDR};
+my $pfsync_peer_if = $ENV{PFSYNC_PEER_IF};
+my $pfsync_peer_addr = $ENV{PFSYNC_PEER_ADDR};
+my $pfsync_ssh = $ENV{PFSYNC_SSH};
 
 # tcpdump as workaround for missing workaround in ix(4) for 82598
 # tcpdump during reboot may not be sufficent as other side changes link later
@@ -355,6 +363,26 @@ sub iked_shutdown {
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
     @sshcmd = ('ssh', $remote_ssh, @cmd);
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+}
+
+sub pfsync_startup {
+    my @cmd = ('/sbin/ifconfig', 'pfsync0',
+	'syncdev', $pfsync_if, 'syncpeer', $pfsync_peer_addr, 'up');
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $pfsync_ssh, '/sbin/ifconfig', 'pfsync0',
+	'syncdev', $pfsync_peer_if, 'syncpeer', $pfsync_addr, 'up');
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+}
+
+sub pfsync_shutdown {
+    my @cmd = ('/sbin/ifconfig', 'pfsync0', 'destroy');
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $pfsync_ssh, '/sbin/ifconfig', 'pfsync0', 'destroy');
     system(@sshcmd) and
 	die "Command '@sshcmd' failed: $?";
 }
@@ -674,6 +702,10 @@ if (@ipsectests) {
     $ipsectests[-1]{shutdown} = \&iked_shutdown;
 }
 push @tests, @ipsectests;
+if ($testmode{pfsync}) {
+    $tests[0]{startup} = \&pfsync_startup;
+    $tests[-1]{shutdown} = \&pfsync_shutdown;
+}
 push @tests, (
     {
 	testcmd => ['time', '-lp', 'make',
