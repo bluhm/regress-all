@@ -216,10 +216,14 @@ sub parse_log_files {
 		}
 		if ($repeat) {
 		    $D{$date}{$cvsdate}{$repeat}{host} = \%h;
+		    $D{$date}{$cvsdate}{$repeat}{log} = "once.log"
+			if -f "once.log";
 		} elsif ($cvsdate) {
 		    $D{$date}{$cvsdate}{host} = \%h;
+		    $D{$date}{$cvsdate}{log} = "once.log" if -f "once.log";
 		} else {
 		    $D{$date}{host} = \%h;
+		    $D{$date}{log} = "once.log" if -f "once.log";
 		}
 	    }
 	}
@@ -714,48 +718,59 @@ HEADER
 	foreach my $cvsdate (reverse "", @cvsdates) {
 	    my @repeats = $cvsdate ? @{$D{$date}{$cvsdate}{repeats}} : ();
 	    foreach my $repeat (reverse "", @repeats) {
-		my $h;
+		print $html "  <tr>\n";
+		my ($h, $log, $logdir, $result);
 		if ($repeat) {
-		    print $html "  <tr>\n    <td></td>\n";
 		    $h = $D{$date}{$cvsdate}{$repeat}{host};
+		    $log = $D{$date}{$cvsdate}{$repeat}{log};
+		    $logdir = "$reldate/$cvsdate/$repeat";
 		} elsif ($cvsdate) {
-		    print $html "  <tr>\n    <td></td>\n";
 		    $h = $D{$date}{$cvsdate}{host};
+		    $log = $D{$date}{$cvsdate}{log};
+		    $logdir = "$reldate/$cvsdate";
 		} else {
-		    my $log = $D{$date}{log} || "";
-		    my $logfile = "$reldate/$log";
-		    my $status = $log ? log2status($logfile) : "";
-		    my $mtime = $log ? (stat($logfile))[9] : 0;
-		    my $class = $status ? " class=\"status $status\"" : "";
+		    $h = $D{$date}{host};
+		    $log = $D{$date}{log};
+		    $logdir = "$reldate";
+		    $result = $D{$date}{result};
+		}
+		my ($mtime, $status);
+		if ($log) {
+		    my $logfile = "$logdir/$log";
+		    $mtime = (stat($logfile))[9];
+		    $status = log2status($logfile);
+		    my $class = " class=\"status $status\"";
 		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 		    my $href = $log ? "<a href=\"$link\">" : "";
 		    my $enda = $href ? "</a>" : "";
-		    print $html "  <tr>\n";
 		    print $html "    <td$class>$href$date$enda";
-		    $h = $D{$date}{host};
-		    my $console = 0;
-		    foreach my $host (sort keys %M) {
-			my $bsdcons = $h->{$host}{bsdcons}
-			    or next;
-			print $html "<br>console" unless $console++;
-			$logfile = "$reldate/$bsdcons";
-			$link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-			print $html " <a href=\"$link\">$host</a>";
-		    }
-		    if ($mtime && $status !~ /^(NOEXIT|NOTERM)$/) {
-			my $start = str2time($date);
-			my $duration = $mtime - $start;
-			print $html "<br>duration ";
-			print $html $duration >= 24*60*60 ?
-			    sprintf("%.2f days", $duration / (24*60*60)) :
-			    strftime("%T", gmtime($duration));
-		    }
-		    if (my $result = $D{$date}{result}) {
-			$link = uri_escape($result, "^A-Za-z0-9\-\._~/");
-			print $html "<br><a href=\"$link\">result</a>";
-		    }
-		    print $html "</td>\n";
+		} else {
+		    print $html "    <td>";
 		}
+		my $console = 0;
+		foreach my $host (sort keys %M) {
+		    $h->{$host}
+			or next;
+		    my $bsdcons = $h->{$host}{bsdcons}
+			or next;
+		    print $html "<br>console" unless $console++;
+		    my $logfile = "$reldate/$bsdcons";
+		    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+		    print $html " <a href=\"$link\">$host</a>";
+		}
+		if ($mtime && $status !~ /^(NOEXIT|NOTERM)$/) {
+		    my $start = str2time($date);
+		    my $duration = $mtime - $start;
+		    print $html "<br>duration ";
+		    print $html $duration >= 24*60*60 ?
+			sprintf("%.2f days", $duration / (24*60*60)) :
+			strftime("%T", gmtime($duration));
+		}
+		if ($result) {
+		    my $link = uri_escape($result, "^A-Za-z0-9\-\._~/");
+		    print $html "<br><a href=\"$link\">result</a>";
+		}
+		print $html "</td>\n";
 		foreach my $host (sort keys %M) {
 		    unless ($D{$date}{host}{$host} ||
 			$D{$date}{$cvsdate}{host}{$host} ||
