@@ -194,6 +194,7 @@ graphics/p5-Graphics-Primitive-Driver-Cairo
 graphics/p5-Layout-Manager
 mail/p5-MIME-Types
 mail/p5-MIME-tools
+mail/p5-Mail-Alias
 mail/p5-Mail-AuthenticationResults
 mail/p5-Mail-DKIM
 mail/p5-Mail-DKIM-Iterator
