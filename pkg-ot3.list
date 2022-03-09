@@ -39,6 +39,7 @@ npth
 open62541
 openldap-server--%openldap
 p11-kit
+p5-CryptX
 perltidy
 pinentry
 python%3.9
