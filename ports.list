@@ -1,6 +1,7 @@
 archivers/bzip2
 archivers/p5-Archive-Zip
 archivers/xz
+audio/p5-Audio-Scan
 benchmarks/p5-Dumbbench
 comms/p5-Device-SerialPort
 converters/p5-Convert-ASN1
@@ -16,7 +17,12 @@ converters/p5-Net-IDN-Encode
 converters/p5-Types-Serialiser
 databases/p5-BerkeleyDB
 databases/p5-CDB_File
+databases/p5-DBD-MariaDB
+databases/p5-DBD-Pg
 databases/p5-DBD-SQLite
+databases/p5-DBD-SQLite2
+databases/p5-DBD-Sybase
+databases/p5-DBD-mysql
 databases/p5-DBI
 databases/p5-ldap
 devel/p5-Algorithm-Diff
@@ -36,6 +42,7 @@ devel/p5-Class-Load
 devel/p5-Class-Load-XS
 devel/p5-Class-XSAccessor
 devel/p5-Data-Compare
+devel/p5-Data-Dump-Streamer
 devel/p5-Data-HexDump
 devel/p5-Data-OptList
 devel/p5-Data-Random
@@ -126,6 +133,7 @@ devel/p5-Net-Server
 devel/p5-Package-DeprecationManager
 devel/p5-Package-Stash
 devel/p5-Params-Util
+devel/p5-Params-Validate
 devel/p5-Path-Tiny
 devel/p5-Pod-Constant
 devel/p5-Regexp-IPv6
@@ -270,6 +278,7 @@ textproc/p5-Pod-LaTeX
 textproc/p5-Pod-Markdown
 textproc/p5-Regexp-Common
 textproc/p5-String-RewritePrefix
+textproc/p5-Template
 textproc/p5-Text-Diff
 textproc/p5-Text-Flow
 textproc/p5-XML-LibXML
@@ -287,6 +296,7 @@ www/p5-CGI-Simple
 www/p5-Dancer2
 www/p5-Gravatar-URL
 www/p5-HTML-Display
+www/p5-HTML-Escape
 www/p5-HTML-Form
 www/p5-HTML-FormHandler
 www/p5-HTML-Mason
@@ -304,8 +314,10 @@ www/p5-LWP-Protocol-https
 www/p5-LWP-Protocol-socks
 www/p5-Test-HTTP-LocalServer
 www/p5-URI
+www/p5-WWW-Form-UrlEncoded-XS
 www/p5-WWW-Mechanize
 www/p5-WWW-Mechanize-FormFiller
 www/p5-WWW-Mechanize-Shell
 www/p5-WWW-RobotRules
+www/p5-libapreq2
 www/p5-libwww
