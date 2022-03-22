@@ -353,6 +353,7 @@ security/p5-CryptX
 security/p5-Digest-HMAC
 security/p5-Digest-SHA1
 security/p5-IO-Socket-SSL
+security/p5-MD5
 security/p5-Module-Signature
 security/p5-Net-SSLGlue
 security/p5-Net-SSLeay
