@@ -310,6 +310,14 @@ sub write_html_setup {
     print $html "    <td>$date</td>\n";
     print $html "  </tr>\n";
     if (my $log = $D{$date}{log}) {
+	my $mtime = (stat($log))[9];
+	my $start = str2time($date);
+	my $duration = $mtime - $start;
+	print $html "  <tr>\n    <th>duration</th>\n";
+	print $html "    <td>", $duration >= 24*60*60 ?
+	    sprintf("%.2f days", $duration / (24*60*60)) :
+	    strftime("%T", gmtime($duration)), "</td>\n";
+	print $html "  </tr>\n";
 	print $html "  <tr>\n    <th>run</th>\n";
 	print $html "    <td><a href=\"$log\">log</a></td>\n";
 	print $html "  </tr>\n";
