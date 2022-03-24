@@ -243,6 +243,7 @@ sub parse_log_files {
 	    $D{$date}{log} = "make.log";
 	    $typename = "Release";
 	}
+	$D{$date}{logmtime} = (stat($D{$date}{log}))[9] if $D{$date}{log};
 	if (-f "test.log.tgz") {
 	    $D{$date}{logtgz} = "test.log.tgz";
 	}
@@ -310,16 +311,15 @@ sub write_html_setup {
     print $html "    <td>$date</td>\n";
     print $html "  </tr>\n";
     if (my $log = $D{$date}{log}) {
-	my $mtime = (stat($log))[9];
+	print $html "  <tr>\n    <th>run</th>\n";
+	print $html "    <td><a href=\"$log\">log</a></td>\n";
+	print $html "  </tr>\n";
 	my $start = str2time($date);
-	my $duration = $mtime - $start;
+	my $duration = $D{$date}{logmtime} - $start;
 	print $html "  <tr>\n    <th>duration</th>\n";
 	print $html "    <td>", $duration >= 24*60*60 ?
 	    sprintf("%.2f days", $duration / (24*60*60)) :
 	    strftime("%T", gmtime($duration)), "</td>\n";
-	print $html "  </tr>\n";
-	print $html "  <tr>\n    <th>run</th>\n";
-	print $html "    <td><a href=\"$log\">log</a></td>\n";
 	print $html "  </tr>\n";
     }
     if (my $logtgz = $D{$date}{logtgz}) {
