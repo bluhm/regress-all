@@ -185,6 +185,7 @@ lib/libtls/tls
 lib/libtls/verify
 lib/libusbhid
 lib/libutil
+lib/libz
 libexec/ftpd
 libexec/ld.so
 misc/c++abi
