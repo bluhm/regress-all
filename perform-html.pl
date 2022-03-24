@@ -795,16 +795,14 @@ sub html_repeat_top {
   </tr>
 HEADER
     if (my $log = $dv->{$cvsdate}{log}) {
-	print $html "  <tr>\n    <th>run</th>\n";
-	my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
-	print $html "    <td><a href=\"$link\">log</a></td>\n";
-	print $html "  </tr>\n";
 	my $start = str2time($date);
 	my $duration = $dv->{$cvsdate}{logmtime} - $start;
-	print $html "  <tr>\n    <th>duration</th>\n";
-	print $html "    <td>", $duration >= 24*60*60 ?
+	my $logdur = $duration >= 24*60*60 ?
 	    sprintf("%.2f days", $duration / (24*60*60)) :
-	    strftime("%T", gmtime($duration)), "</td>\n";
+	    strftime("%T", gmtime($duration));
+	print $html "  <tr>\n    <th>run</th>\n";
+	my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
+	print $html "    <td><a href=\"$link\">log</a>/duration $logdur</td>\n";
 	print $html "  </tr>\n";
     }
     print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
@@ -969,16 +967,14 @@ sub html_cvsdate_top {
   </tr>
 HEADER
     if (my $log = $dv->{log}) {
-	print $html "  <tr>\n    <th>run</th>\n";
-	my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
-	print $html "    <td><a href=\"$link\">log</a></td>\n";
-	print $html "  </tr>\n";
 	my $start = str2time($date);
 	my $duration = $dv->{logmtime} - $start;
-	print $html "  <tr>\n    <th>duration</th>\n";
-	print $html "    <td>", $duration >= 24*60*60 ?
+	my $logdur = $duration >= 24*60*60 ?
 	    sprintf("%.2f days", $duration / (24*60*60)) :
-	    strftime("%T", gmtime($duration)), "</td>\n";
+	    strftime("%T", gmtime($duration));
+	print $html "  <tr>\n    <th>run</th>\n";
+	my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
+	print $html "    <td><a href=\"$link\">log</a>/duration $logdur</td>\n";
 	print $html "  </tr>\n";
     }
     print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
