@@ -647,6 +647,11 @@ my %quirks = (
 	    "usr.sbin/tcpdump",
 	],
     },
+    '2022-03-23T14:36:01Z' => {
+	comment => "revert scsi link commit, panic during boot",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-scsi-link' => patch_sys_scsi_link() },
+    },
 );
 
 #### Patches ####
@@ -1172,6 +1177,67 @@ diff -u -p -r1.142 -r1.143
  	crwu->cr_crp->crp_buf = &crwu->cr_uio;
  	for (i = 0; i < crwu->cr_crp->crp_ndesc; i++, blkno++) {
  		crd = &crwu->cr_crp->crp_desc[i];
+PATCH
+}
+
+# Revert previous. Breaks probing native IDE devices.
+sub patch_sys_scsi_link {
+	return <<'PATCH';
+Index: /usr/src/sys/scsi/scsiconf.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/scsi/scsiconf.c,v
+retrieving revision 1.247
+retrieving revision 1.248
+diff -u -p -r1.247 -r1.248
+--- /usr/src/sys/scsi/scsiconf.c	23 Mar 2022 14:36:01 -0000	1.247
++++ /usr/src/sys/scsi/scsiconf.c	24 Mar 2022 00:30:51 -0000	1.248
+@@ -519,8 +519,7 @@ scsi_probe_link(struct scsibus_softc *sb
+ 			SC_DEBUG(link, SDEV_DB2, ("dev_probe(link) failed.\n"));
+ 			rslt = EINVAL;
+ 		}
+-		free(link, M_DEVBUF, sizeof(*link));
+-		return rslt;
++		goto free;
+ 	}
+ 
+ 	/*
+@@ -623,7 +622,7 @@ scsi_probe_link(struct scsibus_softc *sb
+ 		/* The device doesn't distinguish between LUNs. */
+ 		SC_DEBUG(link, SDEV_DB1, ("IDENTIFY not supported.\n"));
+ 		rslt = EINVAL;
+-		goto bad;
++		goto free_devid;
+ 	}
+ 
+ 	link->quirks = devquirks;	/* Restore what the device wanted. */
+@@ -680,7 +679,7 @@ scsi_probe_link(struct scsibus_softc *sb
+ 	if (cf == NULL) {
+ 		scsibussubprint(&sa, sb->sc_dev.dv_xname);
+ 		printf(" not configured\n");
+-		goto bad;
++		goto free_devid;
+ 	}
+ 
+ 	/*
+@@ -718,8 +717,17 @@ scsi_probe_link(struct scsibus_softc *sb
+ 	config_attach((struct device *)sb, cf, &sa, scsibussubprint);
+ 	return 0;
+ 
++free_devid:
++	if (link->id)
++		devid_free(link->id);
+ bad:
+-	scsi_detach_link(link, DETACH_FORCE);
++	if (ISSET(link->flags, SDEV_OWN_IOPL))
++		free(link->pool, M_DEVBUF, sizeof(*link->pool));
++
++	if (sb->sb_adapter->dev_free != NULL)
++		sb->sb_adapter->dev_free(link);
++free:
++	free(link, M_DEVBUF, sizeof(*link));
+ 	return rslt;
+ }
+ 
 PATCH
 }
 
