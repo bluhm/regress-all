@@ -26,7 +26,7 @@ use POSIX;
 use Logcmd;
 
 use parent 'Exporter';
-our @EXPORT= qw(createhost reboot
+our @EXPORT= qw(createhost powerdown reboot
     install_pxe upgrade_pxe sysupgrade_fetch get_bsdcons get_version
     checkout_cvs update_cvs diff_cvs clean_cvs patch_cvs update_ports
     make_kernel make_build
@@ -47,6 +47,12 @@ sub createhost {
 
 sub reboot {
     logcmd('ssh', "$host\@$testmaster", "reboot");
+}
+
+# power down machine
+
+sub powerdown {
+    logcmd('ssh', "$host\@$testmaster", "powerdown");
 }
 
 # pxe install machine
