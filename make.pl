@@ -104,6 +104,7 @@ END {
     }
 };
 setup_hosts(patch => $patch, mode => \%mode) if $patch || !$mode{keep};
+powerup_hosts() if $mode{keep};
 collect_version();
 setup_html();
 

@@ -109,6 +109,7 @@ END {
 };
 setup_hosts(patch => $patch, mode => \%mode)
     if $patch || !($mode{keep} || $mode{reboot});
+powerup_hosts() if $mode{keep} && !$mode{reboot};
 reboot_hosts(mode => \%mode) if $mode{reboot};
 collect_version();
 setup_html();

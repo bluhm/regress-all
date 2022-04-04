@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# power down machine to save cooling power
+# power up and down machine to save cooling power
 
 # Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
 #
@@ -32,13 +32,15 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('d:D:h:R:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] [-D cvsdate] -h host [-R repeat] [-r release]
+usage: $0 [-v] [-d date] [-D cvsdate] -h host [-R repeat] [-r release] down|up
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
     -R repeat	repetition number
     -r release	change to release sub directory
     -v		verbose
+    down	shutdown and power off machine
+    up		machine is up or power cycle
 EOF
     exit(2);
 };
@@ -58,7 +60,14 @@ if ($opts{r} && $opts{r} ne "current") {
 	or die "Release '$opts{r}' must be major.minor format";
 }
 
-@ARGV and die "No arguments allowed";
+my %allmodes;
+@allmodes{qw(down up)} = ();
+@ARGV or die "No mode specified";
+my %mode = map {
+    die "Unknown mode: $_" unless exists $allmodes{$_};
+    $_ => 1;
+} @ARGV;
+die "Mode must be used solely" if keys %mode != 1;
 
 my $performdir = dirname($0). "/..";
 chdir($performdir)
@@ -82,7 +91,7 @@ chdir($resultdir)
 my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
-createlog(file => "powerdown-$host.log", verbose => $opts{v});
+createlog(file => "power-$host.log", verbose => $opts{v});
 $date = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' started at $date.\n");
 
@@ -90,9 +99,10 @@ createhost($user, $host);
 
 # execute commands
 
-power_down();
+power_down() if $mode{down};
+power_up() if $mode{up};
 
-# finish powerdown log
+# finish power log
 
 my $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $now.\n");

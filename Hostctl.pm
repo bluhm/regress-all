@@ -27,7 +27,7 @@ use parent 'Exporter';
 our @EXPORT= qw(
     usehosts setup_hosts
     collect_version collect_bsdcons collect_dmesg collect_result
-    cvsbuild_hosts powerdown_hosts reboot_hosts
+    cvsbuild_hosts powerdown_hosts powerup_hosts reboot_hosts
     setup_html
 );
 
@@ -224,7 +224,11 @@ sub cvsbuild_hosts {
 }
 
 sub powerdown_hosts {
-    hosts_command("powerdown.pl", @_);
+    hosts_command("power.pl", @_, mode => { down => 1 });
+}
+
+sub powerup_hosts {
+    hosts_command("power.pl", @_, mode => { up => 1 });
 }
 
 sub reboot_hosts {

@@ -185,7 +185,8 @@ END {
 	system(@cmd);
     }
 };
-setup_hosts(release => $release, mode => \%setupmode) unless $setupmode{keep};
+setup_hosts(release => $release, mode => \%setupmode) if !$setupmode{keep};
+powerup_hosts() if $setupmode{keep};
 collect_version();
 setup_html();
 

@@ -99,7 +99,8 @@ END {
 	system(@cmd);
     }
 };
-setup_hosts(mode => \%mode) unless $mode{keep};
+setup_hosts(mode => \%mode) if !$mode{keep};
+powerup_hosts() if $mode{keep};
 collect_version();
 setup_html();
 
