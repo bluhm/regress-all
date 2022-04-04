@@ -90,7 +90,7 @@ createhost($user, $host);
 
 # execute commands
 
-powerdown();
+power_down();
 
 # finish powerdown log
 
