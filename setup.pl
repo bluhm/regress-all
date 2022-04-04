@@ -100,6 +100,7 @@ $cvspath = "sys" if $mode{kernel};
 
 # execute commands
 
+power_up() if (!$mode{install} && !$mode{upgrade}) || $mode{keep};
 install_pxe($release) if $mode{install} && !$mode{keep};
 upgrade_pxe() if $mode{upgrade} && !$mode{keep};
 sysupgrade_fetch() if $mode{sysupgrade};
