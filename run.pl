@@ -29,11 +29,12 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('h:P:v', \%opts) or do {
+getopts('h:P:pv', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -h host mode ...
     -h host	user and host for make regress, user defaults to root
     -P patch	apply patch to clean kernel source
+    -p		power down after testing
     -v		verbose
     build	build system from source /usr/src and reboot
     cvs		cvs update /usr/src and make obj
@@ -154,6 +155,7 @@ chdir($resultdir)
 
 collect_dmesg();
 setup_html();
+powerdown_hosts() if $opts{p};
 
 # create html output
 

@@ -31,7 +31,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('b:d:D:h:k:N:P:r:v', \%opts) or do {
+getopts('b:d:D:h:k:N:P:pr:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
     [-N repeat] [-P patch] [-r release] [test ...]
@@ -42,6 +42,7 @@ usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
     -N repeat	number of build, reboot, test repetitions per step
     -P patch	apply patch to clean kernel source
+    -p		power down after testing
     -r release	change to release sub directory
     -v		verbose
     test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
@@ -213,6 +214,7 @@ foreach my $repeatdir (@repeats ? @repeats : ".") {
     collect_dmesg();
     setup_html();
 }
+powerdown_hosts() if $opts{p};
 
 # create html output
 
