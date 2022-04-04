@@ -82,14 +82,7 @@ sub setup_hosts {
     croak "Unknown args: @unknown" if @unknown;
 
     my @pidcmds;
-    my $num = 0;
     for (my $host = $firsthost; $host le $lasthost; $host++) {
-	$num++;
-	if ($mode{build} && $num > 2) {
-	    # only build on first two hosts, ot4 is too slow
-	    next;
-	}
-
 	my @setupcmd = ("$bindir/setup.pl", '-h', "$user\@$host");
 	push @setupcmd, '-d', $date if $date;
 	push @setupcmd, '-v' if $verbose;
