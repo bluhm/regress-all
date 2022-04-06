@@ -215,7 +215,8 @@ foreach my $repeatdir (@repeats ? @repeats : ".") {
     collect_dmesg();
     setup_html();
 }
-powerdown_hosts() if $opts{p};
+powerdown_hosts(cvsdate => $cvsdate, patch => $patch, release => $release)
+    if $opts{p};
 
 # create html output
 

@@ -273,7 +273,7 @@ foreach my $current (@steps) {
     collect_dmesg();
     setup_html();
 }
-powerdown_hosts() if $opts{p};
+powerdown_hosts(release => $release) if $opts{p};
 
 # create html output
 
