@@ -161,7 +161,7 @@ END {
 	system(@cmd);
     }
 };
-powerup_hosts();
+powerup_hosts(cvsdate => $cvsdate, patch => $patch, release => $release);
 cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch, release => $release,
     mode => \%kernelmode) unless $kernelmode{keep};
 collect_version();

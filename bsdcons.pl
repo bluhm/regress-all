@@ -32,13 +32,15 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:lR:r:v', \%opts) or do {
+getopts('d:D:h:lP:R:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-lv] [-d date] [-D cvsdate] -h host [-R repeat] [-r release]
+usage: $0 [-lv] [-d date] [-D cvsdate] -h host [-P patch] [-R repeat]
+    [-r release]
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
     -l		update bsdcons in latest directory with this host
+    -P patch	patch name
     -R repeat	repetition number
     -r release	change to release sub directory
     -v		verbose
@@ -52,6 +54,7 @@ my $date = $opts{d};
 !$opts{D} || str2time($opts{D})
     or die "Invalid -D cvsdate '$opts{D}'";
 my $cvsdate = $opts{D};
+my $patch = $opts{P};
 !$opts{R} || $opts{R} =~ /^\d{3}$/
     or die "Invalid -R repeat '$opts{R}'";
 my $repeat = $opts{R};
@@ -94,6 +97,13 @@ if ($opts{l}) {
 $resultdir .= "/$release" if $release;
 $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $date && $cvsdate;
+if ($patch) {
+    my $patchdir = "patch-".
+	join(',', map { s,\.[^/]*,,; basename($_) } split(/,/, $patch));
+    my $dir = "$resultdir/$patchdir.[0-9]";
+    $resultdir = (glob($dir))[-1]
+	or die "Patch directory '$dir' not found";
+}
 $resultdir .= "/$repeat" if $date && $cvsdate && $repeat;
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
