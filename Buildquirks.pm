@@ -1,6 +1,6 @@
 # get build over incompatible source changes with minimal effort
 
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -651,6 +651,11 @@ my %quirks = (
 	comment => "revert scsi link commit, panic during boot",
 	updatedirs => [ "sys" ],
 	patches => { 'sys-scsi-link' => patch_sys_scsi_link() },
+    },
+# OpenBSD 7.1, 2022-04-05Z
+    '2022-04-08T16:47:36Z' => {
+	comment => "OpenBSD/amd64 7.1 release",
+	release => '7.1',
     },
 );
 
