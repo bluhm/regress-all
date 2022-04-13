@@ -274,6 +274,7 @@ mail/p5-Mail-Alias
 mail/p5-Mail-AuthenticationResults
 mail/p5-Mail-DKIM
 mail/p5-Mail-DKIM-Iterator
+mail/p5-Mail-DMARC
 mail/p5-Mail-DMARC-Iterator
 mail/p5-Mail-SPF-Iterator
 mail/p5-Mail-Tools
