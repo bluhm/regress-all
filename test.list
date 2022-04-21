@@ -205,7 +205,9 @@ sbin/newfs
 sbin/pfctl
 sbin/route
 sbin/slaacd
-sys/arch/amd64
+sys/arch/amd64/dump_tables
+sys/arch/amd64/fpu
+sys/arch/amd64/vmm
 sys/arch/hppa
 sys/arch/i386
 sys/arch/m88k
