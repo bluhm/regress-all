@@ -39,6 +39,7 @@ my %lasthosts = (
     ot5  => "ot5",
     ot6  => "ot6",
     ot7  => "ot7",
+    ot8  => "ot8",
     ot10 => "ot11",
     ot11 => "ot11",
     ot12 => "ot13",
