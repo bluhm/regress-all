@@ -114,6 +114,7 @@ lib/libcrypto/ige
 lib/libcrypto/init
 lib/libcrypto/md4
 lib/libcrypto/md5
+lib/libcrypto/objects
 lib/libcrypto/ocsp
 lib/libcrypto/pbkdf2
 lib/libcrypto/pem
@@ -157,6 +158,7 @@ lib/libpthread
 lib/libradius
 lib/libskey
 lib/libsndio
+lib/libssl/api
 lib/libssl/asn1
 lib/libssl/buffer
 lib/libssl/bytestring
@@ -181,6 +183,7 @@ lib/libssl/verify
 lib/libtls/config
 lib/libtls/gotls
 lib/libtls/keypair
+lib/libtls/signer
 lib/libtls/tls
 lib/libtls/verify
 lib/libusbhid
@@ -327,6 +330,7 @@ sys/net/pair
 sys/net/pf_divert
 sys/net/pf_forward
 sys/net/pf_fragment
+sys/net/pf_opts
 sys/net/pf_print
 sys/net/pf_state
 sys/net/pf_table
