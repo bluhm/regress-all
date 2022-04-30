@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -50,6 +50,7 @@ usage: $0 [-v] [-b kstack] -B date [-E date] -h host [-k kernel] [-N repeat]
 		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
 		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
 		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6,
+		localnet, localnet4, localnet6,
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
 		forward, forward4, forward6,
 		relay, relay4, relay6,
@@ -112,6 +113,7 @@ $setupmode{$opts{s}} = 1 if $opts{s};
     all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
     net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
+    localnet localnet4 localnet6
     linuxnet linuxiperftcp4 linuxiperftcp6
     forward forward4 forward6 relay relay4 relay6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
