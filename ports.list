@@ -356,10 +356,6 @@ security/p5-MD5
 security/p5-Module-Signature
 security/p5-Net-SSLGlue
 security/p5-Net-SSLeay
-sysutils/beats/filebeat
-sysutils/beats/heartbeat
-sysutils/beats/metricbeat
-sysutils/beats/packetbeat
 sysutils/p5-Capture-Tiny
 sysutils/p5-File-Rename
 sysutils/p5-File-Which
