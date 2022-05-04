@@ -70,7 +70,7 @@ sub upgrade_pxe {
 }
 
 sub sysupgrade_fetch {
-    logcmd('ssh', "$user\@$host", "sysupgrade -kns");
+    logcmd('ssh', "$user\@$host", "sysupgrade -fkns");
 }
 
 # console output since last OpenBSD kernel boot
