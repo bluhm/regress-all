@@ -811,5 +811,5 @@ HEADER
     print $html "If a row has any yellow, wait for the test to finish.\n";
     html_running_table($html);
     html_footer($html);
-    html_close($html, $htmlfile, "nozip");
+    html_close($html, $htmlfile);
 }

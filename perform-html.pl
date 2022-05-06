@@ -748,7 +748,6 @@ sub create_btrace_files {
 			and die "Gzip '$svgfile' failed: $?";
 		    rename("$svgfile.gz.new", "$svgfile.gz") or die
 			"Rename '$svgfile.gz.new' to '$svgfile.gz' failed: $!";
-
 		}
 	    }
 	}
