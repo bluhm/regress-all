@@ -58,7 +58,7 @@ sub html_close {
 	or croak "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
     return if $nozip;
     system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-	and croak "Gzip $htmlfile failed: $?";
+	and croak "Gzip '$htmlfile' failed: $?";
     rename("$htmlfile.gz.new", "$htmlfile.gz")
 	or croak "Rename '$htmlfile.gz.new' to '$htmlfile.gz' failed: $!";
 }

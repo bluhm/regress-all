@@ -744,6 +744,11 @@ sub create_btrace_files {
 			and die "Command '$fgcmd' failed: $?";
 		    rename("$svgfile.new", $svgfile)
 			or die "Rename '$svgfile.new' to '$svgfile' failed: $!";
+		    system("gzip -f -c $svgfile >$svgfile.gz.new")
+			and die "Gzip '$svgfile' failed: $?";
+		    rename("$svgfile.gz.new", "$svgfile.gz") or die
+			"Rename '$svgfile.gz.new' to '$svgfile.gz' failed: $!";
+
 		}
 	    }
 	}
