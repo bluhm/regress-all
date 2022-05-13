@@ -38,7 +38,9 @@ usage: $0 [-v] [-b kstack] [-e environment] [-t timeout] [test ...]
 		localnet, localnet4, localnet6,
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
 		forward, forward4, forward6 relay, relay4, relay6,
-		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66
+		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
+		veb, veb4, veb6,
+		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
 		pfsync
 EOF
     exit(2);
@@ -57,6 +59,7 @@ my %allmodes;
     linuxnet linuxiperftcp4 linuxiperftcp6
     forward forward4 forward6 relay relay4 relay6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
+    veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
     pfsync
 )} = ();
 my %testmode = map {
@@ -93,6 +96,11 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(relay4 relay6)} = 1..2 if $testmode{relay};
 @testmode{qw(ipsec4 ipsec44 ipsec46 ipsec6 ipsec64 ipsec66)} = 1..6
     if $testmode{ipsec};
+@testmode{qw(veb4 veb6)} = 1..2 if $testmode{veb};
+@testmode{qw(vbridge4 vport4)} = 1..2 if $testmode{veb4};
+@testmode{qw(vbridge6 vport6)} = 1..2 if $testmode{veb6};
+@testmode{qw(vbridge4 vbridge6)} = 1..2 if $testmode{vbridge};
+@testmode{qw(vport4 vport6)} = 1..2 if $testmode{vport};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -171,6 +179,9 @@ my $linux_relay_local_addr6 = $ENV{LINUX_RELAY_LOCAL_ADDR6};
 my $linux_relay_remote_addr = $ENV{LINUX_RELAY_REMOTE_ADDR};
 my $linux_relay_remote_addr6 = $ENV{LINUX_RELAY_REMOTE_ADDR6};
 my $linux_other_ssh = $ENV{LINUX_OTHER_SSH};
+
+my $linux_veb_addr = $ENV{LINUX_VEB_ADDR};
+my $linux_veb_addr6 = $ENV{LINUX_VEB_ADDR6};
 
 my $pfsync_if = $ENV{PFSYNC_IF};
 my $pfsync_addr = $ENV{PFSYNC_ADDR};
@@ -709,6 +720,54 @@ if (@ipsectests) {
     $ipsectests[-1]{shutdown} = \&iked_shutdown;
 }
 push @tests, @ipsectests;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_veb_addr",
+	    '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_veb_addr",
+	    '-P10', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{vbridge4} && $linux_veb_addr && $linux_ssh;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_veb_addr6",
+	    '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_veb_addr6",
+	    '-P10', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{vbridge6} && $linux_veb_addr6 && $linux_ssh;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', "-c$linux_veb_addr", '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', "-c$linux_veb_addr", '-P10', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{vport4} && $linux_veb_addr;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', '-6', "-c$linux_veb_addr6", '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', '-6', "-c$linux_veb_addr6", '-P10', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{vport6} && $linux_veb_addr6;
 if ($testmode{pfsync}) {
     $tests[0]{startup} = \&pfsync_startup;
     $tests[-1]{shutdown} = \&pfsync_shutdown;

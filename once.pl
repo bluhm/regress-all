@@ -53,7 +53,9 @@ usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
 		forward, forward4, forward6,
 		relay, relay4, relay6,
-		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66
+		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
+		veb, veb4, veb6,
+		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
 		pfsync
 
 EOF
@@ -99,6 +101,7 @@ $kernelmode{$opts{k}} = 1 if $opts{k};
     linuxnet linuxiperftcp4 linuxiperftcp6
     forward forward4 forward6 relay relay4 relay6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
+    veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
     pfsync
 )} = ();
 my %testmode = map {
