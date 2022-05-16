@@ -749,22 +749,22 @@ push @tests, (
 push @tests, (
     {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', "-c$linux_veb_addr", '-P10', '-t10'],
+	testcmd => ['iperf3', "-c$linux_veb_addr", '-w1m', '-t10'],
 	parser => \&iperf3_parser,
     }, {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', "-c$linux_veb_addr", '-P10', '-t10', '-R'],
+	testcmd => ['iperf3', "-c$linux_veb_addr", '-w1m', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{vport4} && $linux_veb_addr;
 push @tests, (
     {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', '-6', "-c$linux_veb_addr6", '-P10', '-t10'],
+	testcmd => ['iperf3', '-6', "-c$linux_veb_addr6", '-w1m', '-t10'],
 	parser => \&iperf3_parser,
     }, {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', '-6', "-c$linux_veb_addr6", '-P10', '-t10', '-R'],
+	testcmd => ['iperf3', '-6', "-c$linux_veb_addr6", '-w1m', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{vport6} && $linux_veb_addr6;
