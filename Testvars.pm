@@ -26,7 +26,7 @@ our @EXPORT_OK = qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
 ########################################################################
 
 our @PLOTORDER;
-@PLOTORDER = qw(tcp tcp6 udp udp6 linux linux6 forward forward6 ipsec ipsec-aesni make fs);
+@PLOTORDER = qw(tcp tcp6 udp udp6 linux linux6 forward forward6 bridge ipsec ipsec-aesni make fs);
 
 our %TESTPLOT;
 my @testplot = (
@@ -110,6 +110,18 @@ my @testplot = (
     'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10_-R'			=> "ipsec",
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10'	=> "ipsec",
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10_-R'	=> "ipsec",
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10'			=> "bridge",
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10_-R'			=> "bridge",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'	=> "bridge",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'	=> "bridge",
+    'iperf3_-c10.5.0.36_-w1m_-t10'					=> "bridge",
+    'iperf3_-c10.5.0.36_-w1m_-t10_-R'					=> "bridge",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10'			=> "bridge",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10_-R'			=> "bridge",
+    'iperf3_-c10.5.0.36_-P10_-t10'					=> "bridge",
+    'iperf3_-c10.5.0.36_-P10_-t10_-R'					=> "bridge",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'			=> "bridge",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'			=> "bridge",
     'time_-lp_make_-CGENERIC.MP_-j4_-s'					=> "make",
     'time_-lp_make_-CGENERIC.MP_-j8_-s'					=> "make",
     'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=> "fs",
@@ -190,6 +202,8 @@ our %TESTORDER;
 #   5xxxxx network ot14/lt16 46
 #   6xxxxx network lt13/ot14/lt16 36 34 46 56
 #   7xxxxx network lt13/ot14/ot15/lt16 34 45 56
+#   8xxxxx network lt13/ot14/lt16 00
+#   9xxxxx network ot14/lt16 00
 #  18xxxxx make kernel
 #  19xxxxx file system
 #  12xxxxx network ot31/ot32
@@ -207,6 +221,7 @@ our %TESTORDER;
 #   xx3xxx network relay splice
 #   xx4xxx network relay splice and remote stack
 #   xx5xxx network relay splice and local stack
+#   xx6xxx network bridge
 #   xx7xxx network ipsec tunnel4
 #   xx8xxx network ipsec tunnel6
 #   xx9xxx network ipsec transport
@@ -380,6 +395,18 @@ my @testorder = (
     'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10_-R'			=> 717121,
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10'	=> 727111,
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10_-R'	=> 727121,
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10'			=> 816151,
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10_-R'			=> 816161,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'	=> 826151,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'	=> 826161,
+    'iperf3_-c10.5.0.36_-w1m_-t10'					=> 916113,
+    'iperf3_-c10.5.0.36_-w1m_-t10_-R'					=> 916123,
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10'			=> 926113,
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10_-R'			=> 926123,
+    'iperf3_-c10.5.0.36_-P10_-t10'					=> 916151,
+    'iperf3_-c10.5.0.36_-P10_-t10_-R'					=> 916161,
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'			=> 926151,
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'			=> 926161,
     'time_-lp_make_-CGENERIC.MP_-j4_-s'					=> 1800040,
     'time_-lp_make_-CGENERIC.MP_-j8_-s'					=> 1800080,
     'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=> 1900080,
@@ -450,12 +477,12 @@ my %ordervalues = reverse @testorder;
 if (2 * keys %ordervalues != @testorder) {
     my %dup;
     foreach (values %TESTORDER) {
-	warn "duplicate testorder value $_\n" if ++$dup{$_} > 1;
+	warn "duplicate testorder value $_" if ++$dup{$_} > 1;
     }
     die "testorder values not unique";
 }
 foreach (keys %TESTPLOT) {
-    die "testplot $_ is not in testorder\n" unless $TESTORDER{$_};
+    die "testplot $_ is not in testorder" unless $TESTORDER{$_};
 }
 
 ########################################################################
@@ -585,6 +612,18 @@ my @testdesc = (
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=> "linux-openbsd-openbsd-splice-tcp6-ip3rev",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=> "linux-openbsd-splice-tcp6-ip3fwd",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=> "linux-openbsd-splice-tcp6-ip3rev",
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10'			=> "linux-openbsd-linux-veb-tcp-ip3fwd-ot14",
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10_-R'			=> "linux-openbsd-linux-veb-tcp-ip3rev-ot14",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'	=> "linux-openbsd-linux-veb-tcp6-ip3fwd-ot14",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'	=> "linux-openbsd-linux-veb-tcp6-ip3rev-ot14",
+    'iperf3_-c10.5.0.36_-w1m_-t10'					=> "vport-openbsd-linux-veb-tcp-ip3fwd-ot14",
+    'iperf3_-c10.5.0.36_-w1m_-t10_-R'					=> "vport-openbsd-linux-veb-tcp-ip3rev-ot14",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10'			=> "vport-openbsd-linux-veb-tcp6-ip3fwd-ot14",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10_-R'			=> "vport-openbsd-linux-veb-tcp6-ip3rev-ot14",
+    'iperf3_-c10.5.0.36_-P10_-t10'					=> "vport-openbsd-linux-veb-tcp-ip3fwd-ot14",
+    'iperf3_-c10.5.0.36_-P10_-t10_-R'					=> "vport-openbsd-linux-veb-tcp-ip3rev-ot14",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'			=> "vport-openbsd-linux-veb-tcp6-ip3fwd-ot14",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'			=> "vport-openbsd-linux-veb-tcp6-ip3rev-ot14",
     'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10'			=> "linux-openbsd-ipsec-openbsd-linux-tcp-ip3fwd",
     'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10_-R'			=> "linux-openbsd-ipsec-openbsd-linux-tcp-ip3rev",
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10'	=> "linux-openbsd-ipsec-openbsd-linux-tcp6-ip3fwd",
@@ -660,10 +699,10 @@ for (my $i = 0; $i < @testdesc; $i += 2) {
     $num{$desc}++;
 }
 foreach (keys %TESTPLOT) {
-    die "testplot $_ is not in testdesc\n" unless $TESTDESC{$_};
+    die "testplot $_ is not in testdesc" unless $TESTDESC{$_};
 }
 foreach (keys %TESTDESC) {
-    die "testdesc $_ is not in testorder\n" unless $TESTORDER{$_};
+    die "testdesc $_ is not in testorder" unless $TESTORDER{$_};
 }
 
 ########################################################################
