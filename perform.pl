@@ -68,10 +68,10 @@ my %testmode = map {
 } @ARGV;
 $testmode{all} = 1 unless @ARGV;
 @testmode{qw(net make fs)} = 1..3 if $testmode{all};
-@testmode{qw(net4 net6 forward relay ipsec)} = 1..5 if $testmode{net};
-@testmode{qw(tcp4 udp4 forward4 relay4 ipsec4 ipsec44)} = 1..6
+@testmode{qw(net4 net6 forward relay ipsec veb)} = 1..6 if $testmode{net};
+@testmode{qw(tcp4 udp4 forward4 relay4 ipsec4 ipsec44 veb4)} = 1..7
     if $testmode{net4};
-@testmode{qw(tcp6 udp6 forward6 relay6 ipsec6 ipsec66)} = 1..6
+@testmode{qw(tcp6 udp6 forward6 relay6 ipsec6 ipsec66 veb6)} = 1..7
     if $testmode{net6};
 @testmode{qw(localnet4 localnet6)} = 1..2 if $testmode{localnet};
 @testmode{qw(iperftcp4 iperfudp4 tcpbench4 udpbench4)} = 1..4
