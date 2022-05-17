@@ -23,12 +23,15 @@ use Getopt::Std;
 use POSIX;
 use Time::HiRes;
 
+my $startdir = getcwd();
+my @startcmd = ($0, @ARGV);
 my %opts;
-getopts('b:e:t:v', \%opts) or do {
+getopts('b:e:t:sv', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-b kstack] [-e environment] [-t timeout] [test ...]
+usage: $0 [-sv] [-b kstack] [-e environment] [-t timeout] [test ...]
     -b kstack	measure with btrace and create kernel stack map
     -e environ	parse environment for tests from shell script
+    -s		stress test, run tests longer, activate sysctl
     -t timeout	timeout for a single test, default 1 hour
     -v		verbose
     test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
@@ -50,6 +53,7 @@ $btrace && $btrace ne "kstack"
     and die "Btrace -b '$btrace' not supported, use 'kstack'";
 my $timeout = $opts{t} || 60*60;
 environment($opts{e}) if $opts{e};
+my $stress = $opts{s};
 
 my %allmodes;
 @allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench iperftcp
@@ -102,12 +106,27 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(vbridge4 vbridge6)} = 1..2 if $testmode{vbridge};
 @testmode{qw(vport4 vport6)} = 1..2 if $testmode{vport};
 
+if ($stress) {
+    my %sysctl = (
+	'kern.pool_debug'	=> 1,
+	'kern.splassert'	=> 3,
+	'kern.witness.watch'	=> 3,
+    );
+    foreach my $k (sort keys %sysctl) {
+	my $v = $sysctl{$k};
+	my @cmd = ('/sbin/sysctl', "$k=$v");
+	system(@cmd)
+	    and die "Sysctl '$k=$v' failed: $?";
+    }
+}
+
 my $dir = dirname($0);
 chdir($dir)
     or die "Change directory to '$dir' failed: $!";
 my $performdir = getcwd();
 
 # write summary of results into result file
+rename("test.result", "test.result.old") if $stress;
 open(my $tr, '>', "test.result")
     or die "Open 'test.result' for writing failed: $!";
 $tr->autoflush();
@@ -822,6 +841,10 @@ foreach my $t (@tests) {
 	} else {
 	    next;
 	}
+    } elsif ($stress) {
+	if (grep { /^-t10$/ } @runcmd) {
+	    s/^-t10$/-t60/ foreach @runcmd;
+	}
     }
 
     my $begin = Time::HiRes::time();
@@ -992,6 +1015,13 @@ system(@paxcmd)
 
 close($tr)
     or die "Close 'test.result' after writing failed: $!";
+
+if ($stress) {
+    chdir($startdir)
+	or die "Change directory to '$startdir' failed: $!";
+    exec $! @startcmd;
+    die "Exec '@startcmd' failed: $!";
+}
 
 exit;
 
