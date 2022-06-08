@@ -4,6 +4,8 @@ archivers/xz
 audio/p5-Audio-Scan
 benchmarks/p5-Dumbbench
 comms/p5-Device-SerialPort
+converters/p5-CBOR-Free
+converters/p5-CBOR-XS
 converters/p5-Convert-ASN1
 converters/p5-Convert-BER
 converters/p5-Convert-BinHex
@@ -156,6 +158,7 @@ devel/p5-Test-Bits
 devel/p5-Test-CPAN-Meta
 devel/p5-Test-CheckManifest
 devel/p5-Test-Class
+devel/p5-Test-Class-Tiny
 devel/p5-Test-ClassAPI
 devel/p5-Test-CleanNamespaces
 devel/p5-Test-Cmd
@@ -244,11 +247,13 @@ devel/p5-Test-utf8
 devel/p5-Test2-Plugin-NoWarnings
 devel/p5-Test2-Suite
 devel/p5-Test2-Tools-Explain
+devel/p5-Text-Control
 devel/p5-Tie-ToObject
 devel/p5-Time-Format
 devel/p5-Time-Period
 devel/p5-Time-TimeDate
 devel/p5-Try-Tiny
+devel/p5-X-Tiny
 devel/p5-YAML
 devel/p5-YAML-Syck
 devel/p5-YAML-Tiny
