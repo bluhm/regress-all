@@ -64,6 +64,7 @@ p5-ldap
 perltidy
 pinentry
 posixtestsuite
+py3-sphinx
 py3-tlsfuzzer
 python%3.9
 qtbase
@@ -72,6 +73,7 @@ rsync--
 rsyslog
 scapy
 sysclean
+texlive_texmf-full
 unzip--
 wycheproof-testvectors
 xz
