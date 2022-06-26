@@ -31,7 +31,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('b:d:D:h:k:N:P:pr:v', \%opts) or do {
+getopts('b:d:D:h:k:N:nP:pr:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
     [-N repeat] [-P patch] [-r release] [test ...]
@@ -41,6 +41,7 @@ usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
     -h host	user and host for performance test, user defaults to root
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
     -N repeat	number of build, reboot, test repetitions per step
+    -n		do not generate gnuplot files on main release page
     -P patch	apply patch to clean kernel source
     -p		power down after testing
     -r release	change to release sub directory
@@ -230,7 +231,8 @@ chdir($performdir)
 
 if ($date) {
     setup_html(date => 1);
-    my @cmd = ("bin/perform-html.pl", "-d", $date, "-n");
+    my @cmd = ("bin/perform-html.pl", "-d", $date);
+    push @cmd, "-n" if $opts{n};
     push @cmd, "-r", $release if $release;
     push @cmd, "-v" if $opts{v};
     runcmd(@cmd);

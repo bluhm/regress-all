@@ -31,7 +31,7 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('b:B:E:h:k:N:pr:S:s:v', \%opts) or do {
+getopts('b:B:E:h:k:N:npr:S:s:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-b kstack] -B date [-E date] -h host [-k kernel] [-N repeat]
     -r release [-S interval] [-s setup] test ...
@@ -41,6 +41,7 @@ usage: $0 [-v] [-b kstack] -B date [-E date] -h host [-k kernel] [-N repeat]
     -h host	user and host for performance test, user defaults to root
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
     -N repeat	number of build, reboot, test repetitions per step
+    -n		do not generate gnuplot files on main release page
     -p		power down after testing
     -r release	use release for install and cvs checkout, X.Y or current
     -S interval	step in sec, min, hour, day, week, month, year
@@ -287,6 +288,7 @@ chdir($performdir)
 
 setup_html(date => 1);
 my @cmd = ("bin/perform-html.pl", "-d", $date);
+push @cmd, "-n" if $opts{n};
 push @cmd, "-r", $release if $release;
 push @cmd, "-v" if $opts{v};
 runcmd(@cmd);
