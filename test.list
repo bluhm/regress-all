@@ -87,7 +87,6 @@ lib/libcrypto/base64
 lib/libcrypto/bf
 lib/libcrypto/bio
 lib/libcrypto/bn
-lib/libcrypto/botan
 lib/libcrypto/cast
 lib/libcrypto/certs
 lib/libcrypto/chacha
