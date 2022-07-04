@@ -283,6 +283,7 @@ mail/p5-Mail-SPF-Iterator
 mail/p5-Mail-Tools
 math/p5-Number-WithError
 math/p5-Statistics-CaseResampling
+misc/open62541
 misc/p5-File-LibMagic
 misc/p5-File-MMagic
 misc/p5-OPCUA-Open62541
