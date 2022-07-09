@@ -8,6 +8,7 @@ botan2
 brotli
 bzip2
 cairo
+cmake
 curl
 db%v4
 diffstat

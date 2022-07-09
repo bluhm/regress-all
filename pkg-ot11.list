@@ -47,6 +47,7 @@ apr-util--
 aspell
 brotli
 cairo
+cmake
 curl
 db%v4
 gd
