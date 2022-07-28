@@ -704,16 +704,16 @@ sub statistics {
 
 sub netstat_m_parser {
 	my ($l, $log) = @_;
-	if ($l =~ m{(\d+) mbufs in use}) {
+	if ($l =~ m{(\d+) mbufs? in use}) {
 		my $mbufs = $1;
 		print "used mbufs: $mbufs\n";
-	} elsif ($l =~ m{(\d+) mbufs allocated to data}) {
+	} elsif ($l =~ m{(\d+) mbufs? allocated to data}) {
 		my $data_mbufs = $1;
 		print "data mbufs: $data_mbufs\n";
-	} elsif ($l =~ m{(\d+) mbufs allocated to packet headers}) {
+	} elsif ($l =~ m{(\d+) mbufs? allocated to packet headers}) {
 		my $header_mbufs = $1;
 		print "header mbufs: $header_mbufs\n";
-	} elsif ($l =~ m{(\d+) mbufs allocated to socket names and addresses}) {
+	} elsif ($l =~ m{(\d+) mbufs? allocated to socket names and addresses}) {
 		my $named_mbufs = $1;
 		print "named mbufs: $named_mbufs\n";
 	} elsif ($l =~ m{(\d+)/(\d+) mbuf (\d+) byte clusters in use}) {
