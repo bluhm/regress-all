@@ -26,7 +26,8 @@ use Time::HiRes;
 
 sub usage {
     print STDERR <<"EOF";
-usage: $0 interface [pseudo-dev] test
+usage: $0 [-v] [-t timeout] interface [pseudo-dev] test
+    timeout	timeout for a single test, default 5 minutes
     interface	em, igc, ix, ixl
     pseudo-dev	veb, bridge, trunk, aggr, carp
     test	all, inet, inet6, fragment, icmp, ipopts, pathmtu, udp, tcp
@@ -35,7 +36,9 @@ EOF
 }
 
 my %opts;
-getopts('v', \%opts) or usage;
+getopts('t:v', \%opts) or usage;
+
+my $timeout = $opts{t} || 5*60;
 
 usage if ($#ARGV < 1 || $#ARGV > 2);
 
@@ -587,6 +590,7 @@ foreach my $t (@tests) {
 
     eval {
 	local $SIG{ALRM} = sub { die "Test running too long, aborted.\n" };
+	alarm($timeout);
 	$t->{initialize}($log)
 	    or bad $test, 'FAIL', "Could not initialize test", $log
 	    if $t->{initialize};
