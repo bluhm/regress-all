@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+# Copyright (c) 2022 Moritz Buhl <mbuhl@genua.de>
 # Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -23,72 +24,81 @@ use Getopt::Std;
 use POSIX;
 use Time::HiRes;
 
-my %opts;
-getopts('b:e:t:v', \%opts) or do {
+sub usage {
     print STDERR <<"EOF";
-usage: $0 [-v] [-b kstack] [-e environment] [-t timeout] [test ...]
-    -b kstack	measure with btrace and create kernel stack map
-    -e environ	parse environment for tests from shell script
-    -t timeout	timeout for a single test, default 1 hour
-    -v		verbose
-    test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
-		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
-		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
-		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6,
-		linuxnet, linuxiperftcp4, linuxiperftcp6,
-		forward, forward4, forward6 relay, relay4, relay6,
-		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66
+usage: $0 interface [pseudo-dev] test
+    interface	em, igc, ix, ixl
+    pseudo-dev	veb, bridge, trunk, aggr, carp
+    test	all, inet, inet6, fragment, icmp, ipopts, pathmtu, udp, tcp
 EOF
     exit(2);
-};
-my $btrace = $opts{b};
-$btrace && $btrace ne "kstack"
-    and die "Btrace -b '$btrace' not supported, use 'kstack'";
-my $timeout = $opts{t} || 60*60;
-environment($opts{e}) if $opts{e};
+}
+
+my %opts;
+getopts('v', \%opts) or usage;
+
+usage if ($#ARGV < 1 || $#ARGV > 2);
+
+my %allifs;
+@allifs{qw(em igc ix ixl)} = ();
+die "Unknown test interface: ${ARGV[0]}" unless exists $allifs{$ARGV[0]};
+my $testif = $ARGV[0];
+shift @ARGV;
+
+my %allpseudodevs;
+@allpseudodevs{qw(veb bridge trunk aggr carp)} = ();
+if ($#ARGV) {
+    die "Unknown test pseudo-device: ${ARGV[0]}" unless exists $allpseudodevs{$ARGV[0]};
+    my $testpseudodev = $ARGV[0];
+    shift @ARGV;
+}
 
 my %allmodes;
-@allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench iperftcp
-    iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
-    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
-    linuxnet linuxiperftcp4 linuxiperftcp6
-    forward forward4 forward6 relay relay4 relay6
-    ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
-)} = ();
+@allmodes{qw(all inet inet6 fragment icmp ipopts pathmtu udp tcp)} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
-} @ARGV;
-$testmode{all} = 1 unless @ARGV;
-@testmode{qw(net make fs)} = 1..3 if $testmode{all};
-@testmode{qw(net4 net6 forward relay ipsec)} = 1..5 if $testmode{net};
-@testmode{qw(tcp4 udp4 forward4 relay4 ipsec4 ipsec44)} = 1..6
-    if $testmode{net4};
-@testmode{qw(tcp6 udp6 forward6 relay6 ipsec6 ipsec66)} = 1..6
-    if $testmode{net6};
-@testmode{qw(linuxiperftcp4 linuxiperftcp6)} = 1..2 if $testmode{linuxnet};
-@testmode{qw(iperf4 iperf6)} = 1..2 if $testmode{iperf};
-@testmode{qw(iperftcp4 iperfudp4 linuxiperftcp4)} = 1..3 if $testmode{iperf4};
-@testmode{qw(iperftcp6 iperfudp6 linuxiperftcp6)} = 1..3 if $testmode{iperf6};
-@testmode{qw(tcp4 tcp6)} = 1..2 if $testmode{tcp};
-@testmode{qw(iperftcp4 tcpbench4 linuxiperftcp4)} = 1..3 if $testmode{tcp4};
-@testmode{qw(iperftcp6 tcpbench6 linuxiperftcp6)} = 1..3 if $testmode{tcp6};
-@testmode{qw(udp4 udp6)} = 1..2 if $testmode{udp};
-@testmode{qw(iperfudp4 udpbench4)} = 1..2 if $testmode{udp4};
-@testmode{qw(iperfudp6 udpbench6)} = 1..2 if $testmode{udp6};
-@testmode{qw(tcpbench4 tcpbench6)} = 1..2 if $testmode{tcpbench};
-@testmode{qw(udpbench4 udpbench6)} = 1..2 if $testmode{udpbench};
-@testmode{qw(iperftcp4 iperftcp6)} = 1..2 if $testmode{iperftcp};
-@testmode{qw(iperfudp4 iperfudp6)} = 1..2 if $testmode{iperfudp};
-@testmode{qw(forward4 forward6)} = 1..2 if $testmode{forward};
-@testmode{qw(relay4 relay6)} = 1..2 if $testmode{relay};
-@testmode{qw(ipsec4 ipsec44 ipsec46 ipsec6 ipsec64 ipsec66)} = 1..6
-    if $testmode{ipsec};
+} $ARGV[0];
+shift @ARGV;
+
+my $local_if = $ENV{LOCAL_IF};
+my $remote_if = $ENV{REMOTE_IF};
+my $remote_ssh = $ENV{REMOTE_SSH}
+    ;#or die "Environemnt REMOTE_SSH not set";
+my $local_addr = $ENV{LOCAL_ADDR}
+    ;#or die "Environemnt LOCAL_ADDR not set";
+my $remote_addr = $ENV{REMOTE_ADDR}
+    ;#or die "Environemnt REMOTE_ADDR not set";
+my $local_addr6 = $ENV{LOCAL_ADDR6}
+    ;#or die "Environemnt LOCAL_ADDR6 not set";
+my $remote_addr6 = $ENV{REMOTE_ADDR6}
+    ;#or die "Environemnt REMOTE_ADDR6 not set";
+
+my $linux_addr = $ENV{LINUX_ADDR};
+my $linux_addr6 = $ENV{LINUX_ADDR6};
+my $linux_forward_addr = $ENV{LINUX_FORWARD_ADDR};
+my $linux_forward_addr6 = $ENV{LINUX_FORWARD_ADDR6};
+my $linux_relay_addr = $ENV{LINUX_RELAY_ADDR};
+my $linux_relay_addr6 = $ENV{LINUX_RELAY_ADDR6};
+my $linux_ipsec_addr = $ENV{LINUX_IPSEC_ADDR};
+my $linux_ipsec_addr6 = $ENV{LINUX_IPSEC_ADDR6};
+my $linux_ipsec6_addr = $ENV{LINUX_IPSEC6_ADDR};
+my $linux_ipsec6_addr6 = $ENV{LINUX_IPSEC6_ADDR6};
+my $linux_ssh = $ENV{LINUX_SSH};
+
+my $linux_relay_local_addr = $ENV{LINUX_RELAY_LOCAL_ADDR};
+my $linux_relay_local_addr6 = $ENV{LINUX_RELAY_LOCAL_ADDR6};
+my $linux_relay_remote_addr = $ENV{LINUX_RELAY_REMOTE_ADDR};
+my $linux_relay_remote_addr6 = $ENV{LINUX_RELAY_REMOTE_ADDR6};
+my $linux_other_ssh = $ENV{LINUX_OTHER_SSH};
+
+my $ip4prefix = '10.10';
+my $ip6prefix = 'fdd7:e83e:66bd:0';
 
 my $dir = dirname($0);
 chdir($dir)
     or die "Change directory to '$dir' failed: $!";
-my $performdir = getcwd();
+my $netlinkdir = getcwd();
 
 # write summary of results into result file
 open(my $tr, '>', "test.result")
@@ -96,7 +106,7 @@ open(my $tr, '>', "test.result")
 $tr->autoflush();
 $| = 1;
 
-my $logdir = "$performdir/logs";
+my $logdir = "$netlinkdir/logs";
 remove_tree($logdir);
 mkdir $logdir
     or die "Make directory '$logdir' failed: $!";
@@ -124,76 +134,46 @@ sub good {
     $tr->sync();
 }
 
-my $local_if = $ENV{LOCAL_IF};
-my $remote_if = $ENV{REMOTE_IF};
-my $remote_ssh = $ENV{REMOTE_SSH}
-    or die "Environemnt REMOTE_SSH not set";
-my $local_addr = $ENV{LOCAL_ADDR}
-    or die "Environemnt LOCAL_ADDR not set";
-my $remote_addr = $ENV{REMOTE_ADDR}
-    or die "Environemnt REMOTE_ADDR not set";
-my $local_addr6 = $ENV{LOCAL_ADDR6}
-    or die "Environemnt LOCAL_ADDR6 not set";
-my $remote_addr6 = $ENV{REMOTE_ADDR6}
-    or die "Environemnt REMOTE_ADDR6 not set";
-my $local_ipsec_addr = $ENV{LOCAL_IPSEC_ADDR};
-my $remote_ipsec_addr = $ENV{REMOTE_IPSEC_ADDR};
-my $local_ipsec6_addr = $ENV{LOCAL_IPSEC6_ADDR};
-my $remote_ipsec6_addr = $ENV{REMOTE_IPSEC6_ADDR};
-my $local_ipsec_trans_addr = $ENV{LOCAL_IPSEC_TRANS_ADDR};
-my $remote_ipsec_trans_addr = $ENV{REMOTE_IPSEC_TRANS_ADDR};
-my $local_ipsec_trans_addr6 = $ENV{LOCAL_IPSEC_TRANS_ADDR6};
-my $remote_ipsec_trans_addr6 = $ENV{REMOTE_IPSEC_TRANS_ADDR6};
+my $kconf = `sysctl -n kern.osversion | cut -d# -f1`;
+my $hostname = `hostname -s`;
+my $machine = `machine`;
+my $ncpu = `sysctl -n hw.ncpu`;
+chomp($kconf, $hostname, $machine, $ncpu);
 
-my $linux_addr = $ENV{LINUX_ADDR};
-my $linux_addr6 = $ENV{LINUX_ADDR6};
-my $linux_forward_addr = $ENV{LINUX_FORWARD_ADDR};
-my $linux_forward_addr6 = $ENV{LINUX_FORWARD_ADDR6};
-my $linux_relay_addr = $ENV{LINUX_RELAY_ADDR};
-my $linux_relay_addr6 = $ENV{LINUX_RELAY_ADDR6};
-my $linux_ipsec_addr = $ENV{LINUX_IPSEC_ADDR};
-my $linux_ipsec_addr6 = $ENV{LINUX_IPSEC_ADDR6};
-my $linux_ipsec6_addr = $ENV{LINUX_IPSEC6_ADDR};
-my $linux_ipsec6_addr6 = $ENV{LINUX_IPSEC6_ADDR6};
-my $linux_ssh = $ENV{LINUX_SSH};
+# map hostname to testing line
+my %lines;
+$lines{ot41} = 1;
+$lines{ot42} = 2;
 
-my $linux_relay_local_addr = $ENV{LINUX_RELAY_LOCAL_ADDR};
-my $linux_relay_local_addr6 = $ENV{LINUX_RELAY_LOCAL_ADDR6};
-my $linux_relay_remote_addr = $ENV{LINUX_RELAY_REMOTE_ADDR};
-my $linux_relay_remote_addr6 = $ENV{LINUX_RELAY_REMOTE_ADDR6};
-my $linux_other_ssh = $ENV{LINUX_OTHER_SSH};
+# unconfigure all interfaces used in testing
+my @allinterfaces = `ifconfig | grep ^[a-z] | cut -d: -f1`;
+chomp(@allinterfaces);
 
-# tcpdump as workaround for missing workaround in ix(4) for 82598
-# tcpdump during reboot may not be sufficent as other side changes link later
-
-if ($local_if && $local_if =~ /^ix\d/) {
-    my $cmd = ("tcpdump -ni '$local_if' & sleep 1; kill \$!");
-    system($cmd);
+foreach my $ifn (@allinterfaces) {
+    unless ($ifn =~ m{^(lo|enc|pflog|em0)}) {
+	system("ifconfig ${ifn} -inet -inet6 down");
+    }
+    my $pdevre = join '|', keys %allpseudodevs;
+    system("ifconfig ${ifn} destroy") if ($ifn =~ m{^($pdevre)});
 }
 
-if ($remote_if && $remote_if =~ /^ix\d/) {
-    my @sshcmd = ('ssh', $remote_ssh,
-	"tcpdump -ni '$remote_if' & sleep 1; kill \$!");
-    system(@sshcmd);
-}
+# em0 usually is our configuration interface
+my $ifl = $testif . (($testif =~ m {^em})? 1 : 0);
+my $ifr = $testif . (($testif =~ m {^em})? 2: 1);
 
-# I have seen hanging iperf3 processes on linux machines, reap them
-
-if ($linux_ssh) {
-    my @sshcmd = ('ssh', $linux_ssh, 'pkill', 'iperf3');
-    system(@sshcmd);
+# configure given interface type
+if ($testmode{inet6}) {
+    system("ifconfig ${ifl} inet6 ${ip6prefix}:$lines{$hostname}1::2 up");
+    system("ifconfig ${ifr} inet6 ${ip6prefix}:$lines{$hostname}2::3 up");
+} else {
+    system("ifconfig ${ifl} inet $ip4prefix.$lines{$hostname}1.2/24 up");
+    system("ifconfig ${ifr} inet $ip4prefix.$lines{$hostname}2.3/24 up");
 }
-if ($linux_other_ssh) {
-    my @sshcmd = ('ssh', $linux_other_ssh, 'pkill', 'iperf3');
-    system(@sshcmd);
-    @sshcmd = ('ssh', $linux_other_ssh, 'iperf3', '-sD');
-    system(@sshcmd)
-	and die "Start linux iperf3 server with '@sshcmd' failed: $?";
-}
+exit;
 
 # tcpbench tests
 
-if ($testmode{tcpbench4}) {
+if ($testmode{tcp}) {
     my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "tcpbench -4"');
     system(@sshcmd);
     @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-4', '-s', '-r0',
@@ -210,22 +190,6 @@ if ($testmode{tcpbench6}) {
     system(@sshcmd)
 	and die "Start tcpbench server with '@sshcmd' failed: $?";
 }
-
-my $kconf = `sysctl -n kern.osversion | cut -d# -f1`;
-my $machine = `machine`;
-my $ncpu = `sysctl -n hw.ncpu`;
-chomp($kconf, $machine, $ncpu);
-
-if ($testmode{make}) {
-    my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf");
-    push @cmd, '-s' unless $opts{v};
-    push @cmd, 'clean', 'config';
-    system(@cmd)
-	and die "Clean kernel with '@cmd' failed: $?";
-}
-
-system('sync');
-sleep 1;
 
 my %iperf3_ids;
 sub iperf3_initialize {
@@ -325,88 +289,10 @@ sub udpbench_parser {
     return 1;
 }
 
-sub iked_startup {
-    my @cmd = ('/etc/rc.d/iked', '-f', 'restart');
-    system(@cmd) and
-	die "Command '@cmd' failed: $?";
-    my @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd) and
-	die "Command '@sshcmd' failed: $?";
-    @cmd = ('ping', '-n', '-c1', '-w1',
-	'-I', $local_ipsec_addr, $remote_ipsec_addr);
-    foreach (1..20) {
-	sleep 1;
-	system(@cmd) or return;
-    }
-    die "Command '@cmd' failed for 20 seconds: $?";
-}
-
-sub iked_shutdown {
-    # XXX give the iperf3 server on linux host some time to close connection
-    sleep 5;
-    my @cmd = ('/etc/rc.d/iked', '-f', 'stop');
-    system(@cmd) and
-	die "Command '@cmd' failed: $?";
-    my @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd) and
-	die "Command '@sshcmd' failed: $?";
-    sleep 1;
-    @cmd = ('ipsecctl', '-F');
-    system(@cmd) and
-	die "Command '@cmd' failed: $?";
-    @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd) and
-	die "Command '@sshcmd' failed: $?";
-}
-
 sub time_parser {
     my ($line, $log) = @_;
     if ($line =~ /^(\w+) +(\d+\.\d+)$/) {
 	print $tr "VALUE $2 sec $1\n";
-    }
-    return 1;
-}
-
-my @fsmark_keys;
-my @fsmark_values;
-my @fsmark_units;
-sub fsmark_parser {
-    my ($line, $log) = @_;
-    if (!@fsmark_keys) {
-	@fsmark_keys = map { lc($_) } $line =~
-	    m{^(FSUse)%\s+(Count)\s+(Size)\s+(Files)/sec\s+App (Overhead)$};
-	if (@fsmark_keys) {
-	    @fsmark_units = qw(percent 1 bytes 1/sec sec);
-	    if (@fsmark_units != @fsmark_keys) {
-		print $log "FAILED not 5 keys\n" if $log;
-		print "FAILED not 5 keys\n" if $opts{v};
-		return;
-	    }
-	}
-    } elsif (!@fsmark_values) {
-	@fsmark_values = split(" ", $line);
-	if (@fsmark_keys != @fsmark_values) {
-	    print $log "FAILED not 5 values\n" if $log;
-	    print "FAILED not 5 values\n" if $opts{v};
-	    return;
-	}
-	for (my $i = 0; $i < 5; $i++) {
-	    my $value = $fsmark_values[$i];
-	    my $unit = $fsmark_units[$i];
-	    my $key = $fsmark_keys[$i];
-	    $value /= 1000000 if $key eq "overhead";
-	    print $tr "VALUE $value $unit $key\n" if $key eq "files";
-	}
-    }
-    return 1;
-}
-
-sub fsmark_finalize {
-    my ($log) = @_;
-    unless (@fsmark_values) {
-	print $log "FAILED no values\n" if $log;
-	print "FAILED no values\n" if $opts{v};
-	return;
     }
     return 1;
 }
@@ -636,65 +522,16 @@ push @tests, (
 	parser => \&iperf3_parser,
     }
 ) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
-my %ipsec = (
-    ipsec4  => { ip => 4, addr => $remote_ipsec_trans_addr },
-    ipsec6  => { ip => 6, addr => $remote_ipsec_trans_addr6 },
-    ipsec44 => { ip => 4, addr => $linux_ipsec_addr,   ssh => $linux_ssh },
-    ipsec46 => { ip => 6, addr => $linux_ipsec_addr6,  ssh => $linux_ssh },
-    ipsec64 => { ip => 4, addr => $linux_ipsec6_addr,  ssh => $linux_ssh },
-    ipsec66 => { ip => 6, addr => $linux_ipsec6_addr6, ssh => $linux_ssh },
-);
-my @ipsectests;
-foreach my $ipsecmode (sort keys %ipsec) {
-    $testmode{$ipsecmode}
-	or next;
-    my $ssh = $ipsec{$ipsecmode}{ssh};
-    my $ip = $ipsec{$ipsecmode}{ip};
-    my $addr = $ipsec{$ipsecmode}{addr}
-	or next;
-    my @cmd;
-    push @cmd, 'ssh', $ssh if $ssh;
-    push @cmd, 'iperf3';
-    push @cmd, '-6' if $ip == 6;
-    push @cmd, "-c$addr";
-    push @ipsectests, (
-	{
-	    initialize => \&iperf3_initialize,
-	    testcmd => [ @cmd, '-P10', '-t10'],
-	    parser => \&iperf3_parser,
-	}, {
-	    initialize => \&iperf3_initialize,
-	    testcmd => [@cmd, '-P10', '-t10', '-R'],
-	    parser => \&iperf3_parser,
-	}
-    );
-}
-if (@ipsectests) {
-    $ipsectests[0]{startup} = \&iked_startup;
-    $ipsectests[-1]{shutdown} = \&iked_shutdown;
-}
-push @tests, @ipsectests;
-push @tests, (
-    {
-	testcmd => ['time', '-lp', 'make',
-	    "-C/usr/src/sys/arch/$machine/compile/$kconf", "-j$ncpu", '-s'],
-	parser => \&time_parser,
-    }
-) if $testmode{make};
-push @tests, (
-    {
-	testcmd => ['time', '-lp', 'fs_mark',
-	    '-d/var/cache/fs_mark', '-D8', '-N16', '-n256', '-t8'],
-	parser => \&fsmark_parser,
-	finalize => \&fsmark_finalize,
-    }
-) if $testmode{fs};
 
 my @stats = (
     {
 	statcmd => [ 'netstat', '-s' ],
     }, {
 	statcmd => [ 'netstat', '-m' ],
+    }, {
+	statcmd => [ 'netstat', '-inv' ],
+    }, {
+	statcmd => [ 'netstat', '-binv' ],
     }, {
 	statcmd => [ 'vmstat', '-mv' ],
     }, {
@@ -708,23 +545,6 @@ TEST:
 foreach my $t (@tests) {
     my @runcmd = @{$t->{testcmd}};
     (my $test = join("_", @runcmd)) =~ s,/.*/,,;
-
-    # reap zombies, might happen it there were some btrace errors
-    1 while waitpid(-1, WNOHANG) > 0;
-
-    my $sampletime;
-    if ($btrace) {
-	# run the test for 80 seconds to measure btrace during 1 minute
-	if (grep { /^-t10$/ } @runcmd) {
-	    s/^-t10$/-t80/ foreach @runcmd;
-	    $sampletime = 60;
-	} elsif (grep { /^make$/ } @runcmd) {
-	    # kernel build usually takes longer than 5 minutes
-	    $sampletime = 300;
-	} else {
-	    next;
-	}
-    }
 
     my $begin = Time::HiRes::time();
     my $date = strftime("%FT%TZ", gmtime($begin));
@@ -747,8 +567,7 @@ foreach my $t (@tests) {
 	bad $test, 'NOEXIST', "Could not startup", $log;
     }
 
-    # XXX temporarily disabled
-    #statistics($test, "before");
+    statistics($test, "before");
 
     defined(my $pid = open(my $out, '-|'))
 	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
@@ -766,62 +585,8 @@ foreach my $t (@tests) {
 	_exit(126);
     }
 
-    my $btpid;
-    if ($btrace) {
-	my @btcmd = ('btrace', '-e', "profile:hz:100{\@[$btrace]=count()}");
-	my $btfile = "$test-$btrace.btrace";
-	open(my $bt, '>', $btfile)
-	    or bad $test, 'NOLOG',
-	    "Open btrace '$btfile' for writing failed: $!";
-	$SIG{USR1} = 'IGNORE';
-	defined($btpid = fork())
-	    or bad $test, 'XPASS', "Fork btrace failed: $!", $log;
-	if ($btpid == 0) {
-	    # child process
-
-	    # allow test to spin up
-	    sleep 10;
-
-	    defined(my $btracepid = fork())
-		or warn "Fork btrace '@btcmd' failed: $!";
-	    if ($btracepid == 0) {
-		# child process
-		open(STDOUT, '>&', $bt)
-		    or warn "Redirect stdout to btrace failed: $!";
-		exec(@btcmd);
-		warn "Exec '@btcmd' failed: $!";
-		_exit(126);
-	    }
-	    my $tracetime = Time::HiRes::time();
-	    print $log "Btrace '@btcmd' started for $sampletime seconds\n";
-	    print "Btrace '@btcmd' started for $sampletime seconds\n"
-		if $opts{v};
-
-	    # gather samples during 1 minute or 5 minutes
-	    $SIG{USR1} = sub { print "Btrace aborted\n" if $opts{v} };
-	    sleep $sampletime;
-	    $SIG{USR1} = 'IGNORE';
-	    kill 'INT', $btracepid
-		or warn "Interrupt btrace failed: $!";
-
-	    $tracetime = sprintf("%d", Time::HiRes::time() - $tracetime);
-	    print $log "Btrace '@btcmd' stopped after $tracetime seconds\n";
-	    print "Btrace '@btcmd' stopped after $tracetime seconds\n"
-		if $opts{v};
-	    undef $!;
-	    waitpid($btracepid, 0) == $btracepid && $? == 0
-		and _exit(0);
-	    warn $! ?
-		"Wait for btrace '@btcmd' failed: $!" :
-		"Btrace '@btcmd' failed: $?";
-	    _exit(126);
-	}
-	close($bt);
-    }
-
     eval {
 	local $SIG{ALRM} = sub { die "Test running too long, aborted.\n" };
-	alarm($timeout);
 	$t->{initialize}($log)
 	    or bad $test, 'FAIL', "Could not initialize test", $log
 	    if $t->{initialize};
@@ -846,23 +611,12 @@ foreach my $t (@tests) {
 	bad $test, 'NOTERM', $@, $log;
     }
 
-    if ($btpid) {
-	kill 'USR1', $btpid
-	    or bad $test, 'XPASS', "Kill btrace failed: $!", $log;
-	print "Btrace killed\n" if $opts{v};
-	waitpid($btpid, 0) == $btpid
-	    or bad $test, 'XPASS', "Wait for btrace failed: $!", $log;
-	$? == 0
-	    or bad $test, 'XFAIL', "Btrace failed: $?", $log;
-    }
-
     close($out)
 	or bad $test, 'NOEXIT', $! ?
 	"Close pipe from '@runcmd' failed: $!" :
 	"Command '@runcmd' failed: $?", $log;
 
-    # XXX temporarily disabled
-    #statistics($test, "after");
+    statistics($test, "after");
 
     eval { $t->{shutdown}($log) if $t->{shutdown}; };
     if ($@) {
@@ -876,8 +630,8 @@ foreach my $t (@tests) {
 	or die "Close log '$logfile' after writing failed: $!";
 }
 
-chdir($performdir)
-    or die "Change directory to '$performdir' failed: $!";
+chdir($netlinkdir)
+    or die "Change directory to '$netlinkdir' failed: $!";
 
 # kill remote commands or ssh will hang forever
 if ($testmode{tcpbench4} || $testmode{tcpbench6}) {
@@ -886,7 +640,7 @@ if ($testmode{tcpbench4} || $testmode{tcpbench6}) {
 }
 
 # create a tgz file with all log files
-my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$performdir/test.log.tgz");
+my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$netlinkdir/test.log.tgz");
 push @paxcmd, '-v' if $opts{v};
 push @paxcmd, ("-s,^$logdir/,,", "-s,^$logdir,,", $logdir);
 system(@paxcmd)
@@ -946,4 +700,88 @@ sub statistics {
 	$? == 0
 	    or die "Command '@statcmd' failed: $?";
     }
+}
+
+sub netstat_m_parser {
+	my ($l, $log) = @_;
+	if ($l =~ m{(\d+) mbufs in use}) {
+		my $mbufs = $1;
+		print "used mbufs: $mbufs\n";
+	} elsif ($l =~ m{(\d+) mbufs allocated to data}) {
+		my $data_mbufs = $1;
+		print "data mbufs: $data_mbufs\n";
+	} elsif ($l =~ m{(\d+) mbufs allocated to packet headers}) {
+		my $header_mbufs = $1;
+		print "header mbufs: $header_mbufs\n";
+	} elsif ($l =~ m{(\d+) mbufs allocated to socket names and addresses}) {
+		my $named_mbufs = $1;
+		print "named mbufs: $named_mbufs\n";
+	} elsif ($l =~ m{(\d+)/(\d+) mbuf (\d+) byte clusters in use}) {
+		my ($current, $peak, $mbuf_size) = ($1, $2, $3);
+		print "mbufs of size $mbuf_size: curr: $current peak: $peak\n";
+	} elsif ($l =~ m{(\d+)/(\d+)/(\d+) Kbytes allocated to network}) {
+		my ($current, $peak, $max) = ($1, $2, $3);
+		print "network mbufs: curr: $current peak: $peak max: $max\n";
+	} elsif ($l =~ m{(\d+) requests for memory denied}) {
+		my $denied = $1;
+		print "denied requests: $denied\n";
+	} elsif ($l =~ m{(\d+) requests for memory delayed}) {
+		my $delayed = $1;
+		print "delayed requests: $delayed\n";
+	} elsif ($l =~ m{(\d+) calls to protocol drain routines}) {
+		my $drains = $1;
+		print "called drains: $drains\n";
+	}
+}
+
+sub netstat_s_parser {
+}
+
+sub netstat_binv_parser {
+	my ($l, $log) = @_;
+	if ($l =~ m{([a-z]+\d+\*?)\s+(\d+)\s+<Link>[0-9a-f:\s]+\s+(\d+)\s+(\d+)}) {
+		my $ifn = $1;
+		my $mtu = $2;
+		my $Ibytes = $3;
+		my $Obytes = $4;
+		print "$ifn ($mtu) >$Ibytes <$Obytes\n";
+	}
+	#} elsif ($l =~ m{(\d+) mbufs allocated to data}) {
+}
+
+sub netstat_inv_parser {
+	my ($l, $log) = @_;
+	my $mac = m{(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})};
+	if ($l =~ m{([a-z]+\d+\*?)\s+(\d+)\s+<Link>\s+(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})?\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)}) {
+		my $ifn = $1;
+		my $mtu = $2;
+		my $Ipkts = $3;
+		my $Ifail = $4;
+		my $Opkts = $5;
+		my $Ofail = $6;
+		my $colls = $7;
+		print "$ifn ($mtu)\t>$Ipkts -$Ifail <$Opkts -$Ofail c$colls\n";
+	}
+}
+
+sub vmstat_iz_parser {
+	my ($l, $log) = @_;
+	if ($l =~ m{irq\d+/(\w+)\s+(\d+)\s+(\d+)}) {
+		my $dev = $1;
+		my $total = $2;
+		my $rate = $3;
+
+		print "$dev has $total at $rate\n";
+	}
+}
+
+sub vmstat_m_tail_1_parser {
+	my ($l, $log) = @_;
+	if ($l =~ m{In use (\d+)K, total allocated (\d+)K; utilization ([0-9.]+)%}) {
+		my $used = $1;
+		my $allocated = $2;
+		my $utilization = $3;
+
+		print "Memory: $used/$allocated = $utilization\n";
+	}
 }
