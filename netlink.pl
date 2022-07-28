@@ -64,39 +64,32 @@ my %testmode = map {
 } $ARGV[0];
 shift @ARGV;
 
-my $local_if = $ENV{LOCAL_IF};
-my $remote_if = $ENV{REMOTE_IF};
-my $remote_ssh = $ENV{REMOTE_SSH}
-    ;#or die "Environemnt REMOTE_SSH not set";
-my $local_addr = $ENV{LOCAL_ADDR}
-    ;#or die "Environemnt LOCAL_ADDR not set";
-my $remote_addr = $ENV{REMOTE_ADDR}
-    ;#or die "Environemnt REMOTE_ADDR not set";
-my $local_addr6 = $ENV{LOCAL_ADDR6}
-    ;#or die "Environemnt LOCAL_ADDR6 not set";
-my $remote_addr6 = $ENV{REMOTE_ADDR6}
-    ;#or die "Environemnt REMOTE_ADDR6 not set";
-
-my $linux_addr = $ENV{LINUX_ADDR};
-my $linux_addr6 = $ENV{LINUX_ADDR6};
-my $linux_forward_addr = $ENV{LINUX_FORWARD_ADDR};
-my $linux_forward_addr6 = $ENV{LINUX_FORWARD_ADDR6};
-my $linux_relay_addr = $ENV{LINUX_RELAY_ADDR};
-my $linux_relay_addr6 = $ENV{LINUX_RELAY_ADDR6};
-my $linux_ipsec_addr = $ENV{LINUX_IPSEC_ADDR};
-my $linux_ipsec_addr6 = $ENV{LINUX_IPSEC_ADDR6};
-my $linux_ipsec6_addr = $ENV{LINUX_IPSEC6_ADDR};
-my $linux_ipsec6_addr6 = $ENV{LINUX_IPSEC6_ADDR6};
-my $linux_ssh = $ENV{LINUX_SSH};
-
-my $linux_relay_local_addr = $ENV{LINUX_RELAY_LOCAL_ADDR};
-my $linux_relay_local_addr6 = $ENV{LINUX_RELAY_LOCAL_ADDR6};
-my $linux_relay_remote_addr = $ENV{LINUX_RELAY_REMOTE_ADDR};
-my $linux_relay_remote_addr6 = $ENV{LINUX_RELAY_REMOTE_ADDR6};
-my $linux_other_ssh = $ENV{LINUX_OTHER_SSH};
+my $hostname = `hostname -s`;
+chomp($hostname);
 
 my $ip4prefix = '10.10';
 my $ip6prefix = 'fdd7:e83e:66bd:0';
+
+# map hostname to testing line
+my %lines; # XXX: make this an env var?
+$lines{ot41} = 1;
+$lines{ot42} = 2;
+
+# em0 usually is our configuration interface
+my $ifi = (($testif =~ m {^em})? 1 : 0);
+my $ifl = $testif . $ifi;
+my $ifr = $testif . ($ifi + 1);
+my $ifl_addr = "$ip4prefix.$lines{$hostname}1.2";
+my $ifr_addr = "$ip4prefix.$lines{$hostname}2.3";
+my $ifl_addr6 = "${ip6prefix}:$lines{$hostname}1::2";
+my $ifr_addr6 = "${ip6prefix}:$lines{$hostname}2::3";
+
+my $linuxl_addr = "$ip4prefix.$lines{$hostname}1.1";
+my $linuxr_addr = "$ip4prefix.$lines{$hostname}1.4";
+my $linuxl_addr6 = "${ip6prefix}:$lines{$hostname}1::1";
+my $linuxr_addr6 = "${ip6prefix}:$lines{$hostname}1::4";
+my $linuxl_ssh = $ENV{LINUXL_SSH}; # XXX
+my $linuxr_ssh = $ENV{LINUXR_SSH};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -137,17 +130,6 @@ sub good {
     $tr->sync();
 }
 
-my $kconf = `sysctl -n kern.osversion | cut -d# -f1`;
-my $hostname = `hostname -s`;
-my $machine = `machine`;
-my $ncpu = `sysctl -n hw.ncpu`;
-chomp($kconf, $hostname, $machine, $ncpu);
-
-# map hostname to testing line
-my %lines;
-$lines{ot41} = 1;
-$lines{ot42} = 2;
-
 # unconfigure all interfaces used in testing
 my @allinterfaces = `ifconfig | grep ^[a-z] | cut -d: -f1`;
 chomp(@allinterfaces);
@@ -160,39 +142,35 @@ foreach my $ifn (@allinterfaces) {
     system("ifconfig ${ifn} destroy") if ($ifn =~ m{^($pdevre)});
 }
 
-# em0 usually is our configuration interface
-my $ifl = $testif . (($testif =~ m {^em})? 1 : 0);
-my $ifr = $testif . (($testif =~ m {^em})? 2: 1);
-
 # configure given interface type
 if ($testmode{inet6}) {
-    system("ifconfig ${ifl} inet6 ${ip6prefix}:$lines{$hostname}1::2 up");
-    system("ifconfig ${ifr} inet6 ${ip6prefix}:$lines{$hostname}2::3 up");
+    system("ifconfig ${ifl} inet6 ${ifl_addr6} up");
+    system("ifconfig ${ifr} inet6 ${ifr_addr6} up");
 } else {
-    system("ifconfig ${ifl} inet $ip4prefix.$lines{$hostname}1.2/24 up");
-    system("ifconfig ${ifr} inet $ip4prefix.$lines{$hostname}2.3/24 up");
+    system("ifconfig ${ifl} inet ${ifl_addr}/24 up");
+    system("ifconfig ${ifr} inet ${ifr_addr}/24 up");
 }
 exit;
 
 # tcpbench tests
 
-if ($testmode{tcp}) {
-    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "tcpbench -4"');
-    system(@sshcmd);
-    @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-4', '-s', '-r0',
-	'-S1000000');
-    system(@sshcmd)
-	and die "Start tcpbench server with '@sshcmd' failed: $?";
-}
+#if ($testmode{tcp}) {
+#    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "tcpbench -4"');
+#    system(@sshcmd);
+#    @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-4', '-s', '-r0',
+#	'-S1000000');
+#    system(@sshcmd)
+#	and die "Start tcpbench server with '@sshcmd' failed: $?";
+#}
 
-if ($testmode{tcpbench6}) {
-    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "tcpbench -6"');
-    system(@sshcmd);
-    @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-6', '-s', '-r0',
-	'-S1000000');
-    system(@sshcmd)
-	and die "Start tcpbench server with '@sshcmd' failed: $?";
-}
+#if ($testmode{tcpbench6}) {
+#    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "tcpbench -6"');
+#    system(@sshcmd);
+#    @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-6', '-s', '-r0',
+#	'-S1000000');
+#    system(@sshcmd)
+#	and die "Start tcpbench server with '@sshcmd' failed: $?";
+#}
 
 my %iperf3_ids;
 sub iperf3_initialize {
@@ -301,230 +279,19 @@ sub time_parser {
 }
 
 my @tests;
-push @tests, (
-    {
-	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	testcmd => ['iperf3', "-c$remote_addr", '-w1m', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{iperftcp4};
-push @tests, (
-    {
-	testcmd => ['iperf3', '-6', "-c$remote_addr6", '-w1m', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	testcmd => ['iperf3', '-6', "-c$remote_addr6", '-w1m', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{iperftcp6};
-push @tests, (
-    {
-	# increase socket buffer limit on Linux machine
-	# echo 2097152 >/proc/sys/net/core/rmem_max
-	# echo 2097152 >/proc/sys/net/core/wmem_max
-	testcmd => ['iperf3', "-c$linux_addr", '-w2m', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	testcmd => ['iperf3', "-c$linux_addr", '-w2m', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{linuxiperftcp4} && $linux_addr;
-push @tests, (
-    {
-	testcmd => ['iperf3', '-6', "-c$linux_addr6", '-w2m', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	testcmd => ['iperf3', '-6', "-c$linux_addr6", '-w2m', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{linuxiperftcp6} && $linux_addr6;
-push @tests, (
-    {
-	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }
-) if $testmode{tcpbench4};
-push @tests, (
-    {
-	testcmd => ['tcpbench', '-S1000000', '-t10', $remote_addr6],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $remote_addr6],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }
-) if $testmode{tcpbench6};
-push @tests, (
-    {
-	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b10G', '-w1m', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	testcmd => ['iperf3', "-c$remote_addr", '-u', '-b10G', '-w1m', '-t10',
-	    '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{iperfudp4};
-push @tests, (
-    {
-	testcmd => ['iperf3', '-6', "-c$remote_addr6", '-u', '-b10G', '-w1m',
-	    '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	testcmd => ['iperf3', '-6', "-c$remote_addr6", '-u', '-b10G', '-w1m',
-	    '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{iperfudp6};
-push @tests, (
-    {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh,
-	    'send', $remote_addr],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh,
-	    'recv', $local_addr],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l1472', '-t10', '-r', $remote_ssh,
-	    'send', $remote_addr],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l1472', '-t10', '-r', $remote_ssh,
-	    'recv', $local_addr],
-	parser => \&udpbench_parser,
-    }
-) if $testmode{udpbench4};
-push @tests, (
-    {
-	testcmd => ['udpbench', '-l16', '-t10', '-r', $remote_ssh,
-	    'send', $remote_addr6],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l16', '-t10', '-r', $remote_ssh,
-	    'recv', $local_addr6],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l1452', '-t10', '-r', $remote_ssh,
-	    'send', $remote_addr6],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l1452', '-t10', '-r', $remote_ssh,
-	    'recv', $local_addr6],
-	parser => \&udpbench_parser,
-    }
-) if $testmode{udpbench6};
-push @tests, (
-    {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_forward_addr",
-	    '-P10', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_forward_addr",
-	    '-P10', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{forward4} && $linux_forward_addr && $linux_ssh;
-push @tests, (
-    {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_forward_addr6",
-	    '-P10', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_forward_addr6",
-	    '-P10', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{forward6} && $linux_forward_addr6 && $linux_ssh;
-push @tests, (
-    {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_relay_addr",
-	    '-P10', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_relay_addr",
-	    '-P10', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{relay4} && $linux_relay_addr && $linux_ssh;
-push @tests, (
-    {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_relay_addr6",
-	    '-P10', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_relay_addr6",
-	    '-P10', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{relay6} && $linux_relay_addr6 && $linux_ssh;
-push @tests, (
-    {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_other_ssh, 'iperf3',
-	    "-c$linux_relay_local_addr", '-P10', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_other_ssh, 'iperf3',
-	    "-c$linux_relay_local_addr", '-P10', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{relay4} && $linux_relay_local_addr && $linux_other_ssh;
-push @tests, (
-    {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
-	    "-c$linux_relay_local_addr6", '-P10', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
-	    "-c$linux_relay_local_addr6", '-P10', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{relay6} && $linux_relay_local_addr6 && $linux_other_ssh;
-push @tests, (
-    {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_other_ssh, 'iperf3',
-	    "-c$linux_relay_remote_addr", '-P10', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_other_ssh, 'iperf3',
-	    "-c$linux_relay_remote_addr", '-P10', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{relay4} && $linux_relay_remote_addr && $linux_other_ssh;
-push @tests, (
-    {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
-	    "-c$linux_relay_remote_addr6", '-P10', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
-	    "-c$linux_relay_remote_addr6", '-P10', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }
-) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
+#push @tests, (
+#    {
+#	initialize => \&iperf3_initialize,
+#	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
+#	    "-c$linux_relay_remote_addr6", '-P10', '-t10'],
+#	parser => \&iperf3_parser,
+#    }, {
+#	initialize => \&iperf3_initialize,
+#	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
+#	    "-c$linux_relay_remote_addr6", '-P10', '-t10', '-R'],
+#	parser => \&iperf3_parser,
+#    }
+#) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
 
 my @stats = (
     {
@@ -638,10 +405,10 @@ chdir($netlinkdir)
     or die "Change directory to '$netlinkdir' failed: $!";
 
 # kill remote commands or ssh will hang forever
-if ($testmode{tcpbench4} || $testmode{tcpbench6}) {
-    my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'tcpbench');
-    system(@sshcmd);
-}
+#if ($testmode{tcpbench4} || $testmode{tcpbench6}) {
+#    my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'tcpbench');
+#    system(@sshcmd);
+#}
 
 # create a tgz file with all log files
 my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$netlinkdir/test.log.tgz");
