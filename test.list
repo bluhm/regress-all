@@ -362,6 +362,7 @@ sys/netinet6/srcaddr
 sys/nfs
 sys/ptrace
 sys/sys/tree
+sys/uvm/blist
 sys/uvm/minherit_zero
 sys/uvm/mmap0
 sys/uvm/mmap_4g
