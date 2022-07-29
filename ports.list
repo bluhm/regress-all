@@ -69,6 +69,7 @@ devel/p5-File-Find-Object-Rule
 devel/p5-File-Find-Rule
 devel/p5-File-Listing
 devel/p5-File-Modified
+devel/p5-File-Share
 devel/p5-File-Slurp
 devel/p5-File-TreeCreate
 devel/p5-Forest
@@ -253,6 +254,7 @@ devel/p5-Time-Format
 devel/p5-Time-Period
 devel/p5-Time-TimeDate
 devel/p5-Try-Tiny
+devel/p5-Type-Tiny
 devel/p5-X-Tiny
 devel/p5-YAML
 devel/p5-YAML-Syck
