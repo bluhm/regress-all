@@ -31,7 +31,7 @@ usage: $0 [-i index] [-v] [-t timeout] interface [pseudo-dev] test
     timeout	timeout for a single test, default 5 minutes
     interface	em, igc, ix, ixl
     pseudo-dev	veb, bridge, trunk, aggr, carp
-    test	all, inet, inet6, fragment, icmp, ipopts, pathmtu, udp, tcp
+    test	all, inet, fragment, icmp, ipopts, pathmtu, udp, tcp
 EOF
     exit(2);
 }
@@ -58,20 +58,21 @@ if ($#ARGV) {
 }
 
 my %allmodes;
-@allmodes{qw(all inet inet6 fragment icmp ipopts pathmtu udp tcp)} = ();
+@allmodes{qw(all inet inet6 fragment fragment6 icmp icmp6 ipopts pathmtu udp udp6 tcp tcp6)} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } $ARGV[0];
 shift @ARGV;
 
-$testmode{inet} = 1 if $testmode{icmp};
+$testmode{inet} = 1 if $testmode{fragment} || $testmode{icmp} || $testmode{ipopts} || $testmode{pathmtu} || $testmode{udp} || $testmode{tcp};
+$testmode{inet6} = 1 if $testmode{fragment6} || $testmode{icmp6} || $testmode{udp6} || $testmode{tcp6};
 
 my $hostname = `hostname -s`;
 chomp($hostname);
 
 my $ip4prefix = '10.10';
-my $ip6prefix = 'fdd7:e83e:66bd:0';
+my $ip6prefix = 'fdd7:e83e:66bd';
 
 # map hostname to testing line
 my %lines; # XXX: make this an env var?
@@ -87,6 +88,8 @@ my $ifl_net = "$ip4prefix.${line}1.0";
 my $ifr_net = "$ip4prefix.${line}2.0";
 my $ifl_addr = "$ip4prefix.${line}1.2";
 my $ifr_addr = "$ip4prefix.${line}2.3";
+my $ifl_net6 = "${ip6prefix}:${line}1::/64";
+my $ifr_net6 = "${ip6prefix}:${line}2::/64";
 my $ifl_addr6 = "${ip6prefix}:${line}1::2";
 my $ifr_addr6 = "${ip6prefix}:${line}2::3";
 
@@ -165,14 +168,19 @@ if ($testmode{inet6}) {
 }
 
 # XXX: if(forwarding)
-system('sysctl net.inet.ip.forwarding=1');
+if ($testmode{inet6}) {
+    system('sysctl net.inet6.ip6.forwarding=1');
+} else {
+    system('sysctl net.inet.ip.forwarding=1');
+}
 
 # configure linux machines
 
 if ($testmode{inet6}) {
     my @sshcmd = ('ssh', $linux_ifl_ssh);
-    system(@sshcmd, 'ifconfig', "$linux_ifl:$line", 'down');
-    system(@sshcmd, 'ifconfig', "$linux_ifl:$line", $linux_ifl_addr6);
+    system(@sshcmd, 'ifconfig', $linux_ifl, 'add', "$linux_ifl_addr6/64");
+    system(@sshcmd, 'route', '-6', 'add', $ifr_net6, 'gw',
+	$ifl_addr6, $linux_ifl);
 } else {
     my @sshcmd = ('ssh', $linux_ifl_ssh);
     system(@sshcmd, 'ifconfig', "$linux_ifl:$line", 'down');
@@ -187,8 +195,9 @@ if ($testmode{inet6}) {
 
 if ($testmode{inet6}) {
     my @sshcmd = ('ssh', $linux_ifr_ssh);
-    system(@sshcmd, 'ifconfig', "$linux_ifr:$line", 'down');
-    system(@sshcmd, 'ifconfig', "$linux_ifr:$line", $linux_ifr_addr6);
+    system(@sshcmd, 'ifconfig', $linux_ifr, 'add', "$linux_ifr_addr6/64");
+    system(@sshcmd, 'route', '-6', 'add', $ifl_net6, 'gw',
+	$ifr_addr6, $linux_ifr);
 } else {
     my @sshcmd = ('ssh', $linux_ifr_ssh);
     system(@sshcmd, 'ifconfig', "$linux_ifr:$line", 'down');
@@ -337,6 +346,12 @@ push @tests, (
 	parser => \&ping_f_parser,
     }
 ) if $testmode{icmp};
+push @tests, (
+    {
+	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-f6c10000', $linux_ifr_addr6],
+	parser => \&ping_f_parser,
+    }
+) if $testmode{icmp6};
 #push @tests, (
 #    {
 #	initialize => \&iperf3_initialize,
