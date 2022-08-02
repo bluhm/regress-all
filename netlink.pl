@@ -26,7 +26,8 @@ use Time::HiRes;
 
 sub usage {
     print STDERR <<"EOF";
-usage: $0 [-v] [-t timeout] interface [pseudo-dev] test
+usage: $0 [-i index] [-v] [-t timeout] interface [pseudo-dev] test
+    index	interface index
     timeout	timeout for a single test, default 5 minutes
     interface	em, igc, ix, ixl
     pseudo-dev	veb, bridge, trunk, aggr, carp
@@ -36,7 +37,7 @@ EOF
 }
 
 my %opts;
-getopts('t:v', \%opts) or usage;
+getopts('i:t:v', \%opts) or usage;
 
 my $timeout = $opts{t} || 5*60;
 
@@ -74,22 +75,26 @@ my $ip6prefix = 'fdd7:e83e:66bd:0';
 my %lines; # XXX: make this an env var?
 $lines{ot41} = 1;
 $lines{ot42} = 2;
+my $line = $lines{$hostname};
+
+my $linux_ifl = "enp0s25"; # XXX: make this an env var?
+my $linux_ifr = "enp0s25"; # XXX
 
 # em0 usually is our configuration interface
-my $ifi = (($testif =~ m {^em})? 1 : 0);
+my $ifi = $opts{i} || (($testif =~ m {^em})? 1 : 0);
 my $ifl = $testif . $ifi;
 my $ifr = $testif . ($ifi + 1);
-my $ifl_addr = "$ip4prefix.$lines{$hostname}1.2";
-my $ifr_addr = "$ip4prefix.$lines{$hostname}2.3";
-my $ifl_addr6 = "${ip6prefix}:$lines{$hostname}1::2";
-my $ifr_addr6 = "${ip6prefix}:$lines{$hostname}2::3";
+my $ifl_addr = "$ip4prefix.${line}1.2";
+my $ifr_addr = "$ip4prefix.${line}2.3";
+my $ifl_addr6 = "${ip6prefix}:${line}1::2";
+my $ifr_addr6 = "${ip6prefix}:${line}2::3";
 
-my $linuxl_addr = "$ip4prefix.$lines{$hostname}1.1";
-my $linuxr_addr = "$ip4prefix.$lines{$hostname}1.4";
-my $linuxl_addr6 = "${ip6prefix}:$lines{$hostname}1::1";
-my $linuxr_addr6 = "${ip6prefix}:$lines{$hostname}1::4";
-my $linuxl_ssh = $ENV{LINUXL_SSH}; # XXX
-my $linuxr_ssh = $ENV{LINUXR_SSH};
+my $linux_ifl_addr = "$ip4prefix.${line}1.1";
+my $linux_ifr_addr = "$ip4prefix.${line}1.4";
+my $linux_ifl_addr6 = "${ip6prefix}:${line}1::1";
+my $linux_ifr_addr6 = "${ip6prefix}:${line}1::4";
+my $linux_ifl_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
+my $linux_ifr_ssh = 'root@lt43'; #$ENV{LINUXR_SSH};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -150,6 +155,25 @@ if ($testmode{inet6}) {
     system("ifconfig ${ifl} inet ${ifl_addr}/24 up");
     system("ifconfig ${ifr} inet ${ifr_addr}/24 up");
 }
+
+# configure linux machines
+
+if ($testmode{inet}) {
+    my @sshcmd = ('ssh', $linux_ifl_ssh, 'ifconfig', "$linux_ifl:$line");
+    system(@sshcmd, $linux_ifl_addr, 'netmask', '255.255.255.0');
+} elsif ($testmode{inet6}) {
+    my @sshcmd = ('ssh', "$linux_ifl_ssh", 'ifconfig', "$linux_ifl:$line");
+    system(@sshcmd, $linux_ifl_addr6);
+}
+
+if ($testmode{inet}) {
+    my @sshcmd = ('ssh', $linux_ifr_ssh, 'ifconfig', "$linux_ifr:$line");
+    system(@sshcmd, $linux_ifr_addr, 'netmask', '255.255.255.0');
+} elsif ($testmode{inet6}) {
+    my @sshcmd = ('ssh', "$linux_ifr_ssh", 'ifconfig', "$linux_ifr:$line");
+    system(@sshcmd, $linux_ifr_addr6);
+}
+
 exit;
 
 # tcpbench tests
@@ -506,6 +530,7 @@ sub netstat_m_parser {
 }
 
 sub netstat_s_parser {
+	# XXX
 }
 
 sub netstat_binv_parser {
