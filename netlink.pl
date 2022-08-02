@@ -65,6 +65,8 @@ my %testmode = map {
 } $ARGV[0];
 shift @ARGV;
 
+$testmode{inet} = 1 if $testmode{icmp};
+
 my $hostname = `hostname -s`;
 chomp($hostname);
 
@@ -77,22 +79,24 @@ $lines{ot41} = 1;
 $lines{ot42} = 2;
 my $line = $lines{$hostname};
 
-my $linux_ifl = "enp6s0"; # XXX: make this an env var?
-my $linux_ifr = "enp6s0"; # XXX
-
 # em0 usually is our configuration interface
 my $ifi = $opts{i} || (($testif =~ m {^em})? 1 : 0);
 my $ifl = $testif . $ifi;
 my $ifr = $testif . ($ifi + 1);
+my $ifl_net = "$ip4prefix.${line}1.0";
+my $ifr_net = "$ip4prefix.${line}2.0";
 my $ifl_addr = "$ip4prefix.${line}1.2";
 my $ifr_addr = "$ip4prefix.${line}2.3";
 my $ifl_addr6 = "${ip6prefix}:${line}1::2";
 my $ifr_addr6 = "${ip6prefix}:${line}2::3";
 
+
+my $linux_ifl = "enp6s0"; # XXX: make this an env var?
+my $linux_ifr = "enp6s0"; # XXX
 my $linux_ifl_addr = "$ip4prefix.${line}1.1";
-my $linux_ifr_addr = "$ip4prefix.${line}1.4";
+my $linux_ifr_addr = "$ip4prefix.${line}2.4";
 my $linux_ifl_addr6 = "${ip6prefix}:${line}1::1";
-my $linux_ifr_addr6 = "${ip6prefix}:${line}1::4";
+my $linux_ifr_addr6 = "${ip6prefix}:${line}2::4";
 my $linux_ifl_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
 my $linux_ifr_ssh = 'root@lt43'; #$ENV{LINUXR_SSH};
 
@@ -160,25 +164,45 @@ if ($testmode{inet6}) {
     system("ifconfig ${ifr} inet ${ifr_addr}/24 up");
 }
 
+# XXX: if(forwarding)
+system('sysctl net.inet.ip.forwarding=1');
+
 # configure linux machines
 
-if ($testmode{inet}) {
-    my @sshcmd = ('ssh', $linux_ifl_ssh, 'ifconfig', "$linux_ifl:$line");
-    system(@sshcmd, $linux_ifl_addr, 'netmask', '255.255.255.0');
-} elsif ($testmode{inet6}) {
-    my @sshcmd = ('ssh', "$linux_ifl_ssh", 'ifconfig', "$linux_ifl:$line");
-    system(@sshcmd, $linux_ifl_addr6);
+if ($testmode{inet6}) {
+    my @sshcmd = ('ssh', $linux_ifl_ssh);
+    system(@sshcmd, 'ifconfig', "$linux_ifl:$line", 'down');
+    system(@sshcmd, 'ifconfig', "$linux_ifl:$line", $linux_ifl_addr6);
+} else {
+    my @sshcmd = ('ssh', $linux_ifl_ssh);
+    system(@sshcmd, 'ifconfig', "$linux_ifl:$line", 'down');
+    system(@sshcmd, 'ifconfig', "$linux_ifl", '10.10.0.1', 'netmask',
+	'255.255.0.0');
+    system(@sshcmd, 'ifconfig', "$linux_ifl:$line", $linux_ifl_addr,
+	'netmask', '255.255.255.0');
+    # XXX: if(forwarding)
+    system(@sshcmd, 'route', 'add', '-net', $ifr_net, 'gw', $ifl_addr,
+	'netmask', '255.255.255.0', "$linux_ifl:$line");
 }
 
-if ($testmode{inet}) {
-    my @sshcmd = ('ssh', $linux_ifr_ssh, 'ifconfig', "$linux_ifr:$line");
-    system(@sshcmd, $linux_ifr_addr, 'netmask', '255.255.255.0');
-} elsif ($testmode{inet6}) {
-    my @sshcmd = ('ssh', "$linux_ifr_ssh", 'ifconfig', "$linux_ifr:$line");
-    system(@sshcmd, $linux_ifr_addr6);
+if ($testmode{inet6}) {
+    my @sshcmd = ('ssh', $linux_ifr_ssh);
+    system(@sshcmd, 'ifconfig', "$linux_ifr:$line", 'down');
+    system(@sshcmd, 'ifconfig', "$linux_ifr:$line", $linux_ifr_addr6);
+} else {
+    my @sshcmd = ('ssh', $linux_ifr_ssh);
+    system(@sshcmd, 'ifconfig', "$linux_ifr:$line", 'down');
+    system(@sshcmd, 'ifconfig', "$linux_ifr", '10.10.0.1', 'netmask',
+	'255.255.0.0');
+    system(@sshcmd, 'ifconfig', "$linux_ifr:$line", $linux_ifr_addr,
+	'netmask', '255.255.255.0');
+    # XXX: if(forwarding)
+    system(@sshcmd, 'route', 'add', '-net', $ifl_net, 'gw', $ifr_addr,
+	'netmask', '255.255.255.0', "$linux_ifr:$line");
 }
 
-exit;
+# wait for linux
+sleep(3);
 
 # tcpbench tests
 
@@ -307,16 +331,16 @@ sub time_parser {
 }
 
 my @tests;
+push @tests, (
+    {
+	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-4c1', $linux_ifr_addr]
+    }
+) if $testmode{icmp};
 #push @tests, (
 #    {
 #	initialize => \&iperf3_initialize,
 #	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
 #	    "-c$linux_relay_remote_addr6", '-P10', '-t10'],
-#	parser => \&iperf3_parser,
-#    }, {
-#	initialize => \&iperf3_initialize,
-#	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
-#	    "-c$linux_relay_remote_addr6", '-P10', '-t10', '-R'],
 #	parser => \&iperf3_parser,
 #    }
 #) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
