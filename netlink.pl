@@ -333,7 +333,8 @@ sub time_parser {
 my @tests;
 push @tests, (
     {
-	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-4c1', $linux_ifr_addr]
+	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-f4c10000', $linux_ifr_addr],
+	parser => \&ping_f_parser,
     }
 ) if $testmode{icmp};
 #push @tests, (
@@ -526,35 +527,35 @@ sub statistics {
 }
 
 sub netstat_m_parser {
-	my ($l, $log) = @_;
-	if ($l =~ m{(\d+) mbufs? in use}) {
-		my $mbufs = $1;
-		print "used mbufs: $mbufs\n";
-	} elsif ($l =~ m{(\d+) mbufs? allocated to data}) {
-		my $data_mbufs = $1;
-		print "data mbufs: $data_mbufs\n";
-	} elsif ($l =~ m{(\d+) mbufs? allocated to packet headers}) {
-		my $header_mbufs = $1;
-		print "header mbufs: $header_mbufs\n";
-	} elsif ($l =~ m{(\d+) mbufs? allocated to socket names and addresses}) {
-		my $named_mbufs = $1;
-		print "named mbufs: $named_mbufs\n";
-	} elsif ($l =~ m{(\d+)/(\d+) mbuf (\d+) byte clusters in use}) {
-		my ($current, $peak, $mbuf_size) = ($1, $2, $3);
-		print "mbufs of size $mbuf_size: curr: $current peak: $peak\n";
-	} elsif ($l =~ m{(\d+)/(\d+)/(\d+) Kbytes allocated to network}) {
-		my ($current, $peak, $max) = ($1, $2, $3);
-		print "network mbufs: curr: $current peak: $peak max: $max\n";
-	} elsif ($l =~ m{(\d+) requests for memory denied}) {
-		my $denied = $1;
-		print "denied requests: $denied\n";
-	} elsif ($l =~ m{(\d+) requests for memory delayed}) {
-		my $delayed = $1;
-		print "delayed requests: $delayed\n";
-	} elsif ($l =~ m{(\d+) calls to protocol drain routines}) {
-		my $drains = $1;
-		print "called drains: $drains\n";
-	}
+    my ($l, $log) = @_;
+    if ($l =~ m{(\d+) mbufs? in use}) {
+	my $mbufs = $1;
+	print "used mbufs: $mbufs\n";
+    } elsif ($l =~ m{(\d+) mbufs? allocated to data}) {
+	my $data_mbufs = $1;
+	print "data mbufs: $data_mbufs\n";
+    } elsif ($l =~ m{(\d+) mbufs? allocated to packet headers}) {
+	my $header_mbufs = $1;
+	print "header mbufs: $header_mbufs\n";
+    } elsif ($l =~ m{(\d+) mbufs? allocated to socket names and addresses}) {
+	my $named_mbufs = $1;
+	print "named mbufs: $named_mbufs\n";
+    } elsif ($l =~ m{(\d+)/(\d+) mbuf (\d+) byte clusters in use}) {
+	my ($current, $peak, $mbuf_size) = ($1, $2, $3);
+	print "mbufs of size $mbuf_size: curr: $current peak: $peak\n";
+    } elsif ($l =~ m{(\d+)/(\d+)/(\d+) Kbytes allocated to network}) {
+	my ($current, $peak, $max) = ($1, $2, $3);
+	print "network mbufs: curr: $current peak: $peak max: $max\n";
+    } elsif ($l =~ m{(\d+) requests for memory denied}) {
+	my $denied = $1;
+	print "denied requests: $denied\n";
+    } elsif ($l =~ m{(\d+) requests for memory delayed}) {
+	my $delayed = $1;
+	print "delayed requests: $delayed\n";
+    } elsif ($l =~ m{(\d+) calls to protocol drain routines}) {
+	my $drains = $1;
+	print "called drains: $drains\n";
+    }
 }
 
 sub netstat_s_parser {
@@ -562,50 +563,64 @@ sub netstat_s_parser {
 }
 
 sub netstat_binv_parser {
-	my ($l, $log) = @_;
-	if ($l =~ m{([a-z]+\d+\*?)\s+(\d+)\s+<Link>[0-9a-f:\s]+\s+(\d+)\s+(\d+)}) {
-		my $ifn = $1;
-		my $mtu = $2;
-		my $Ibytes = $3;
-		my $Obytes = $4;
-		print "$ifn ($mtu) >$Ibytes <$Obytes\n";
-	}
-	#} elsif ($l =~ m{(\d+) mbufs allocated to data}) {
+    my ($l, $log) = @_;
+    if ($l =~ m{([a-z]+\d+\*?)\s+(\d+)\s+<Link>[0-9a-f:\s]+\s+(\d+)\s+(\d+)}) {
+	my $ifn = $1;
+	my $mtu = $2;
+	my $Ibytes = $3;
+	my $Obytes = $4;
+	print "$ifn ($mtu) >$Ibytes <$Obytes\n";
+    }
+    #} elsif ($l =~ m{(\d+) mbufs allocated to data}) {
 }
 
 sub netstat_inv_parser {
-	my ($l, $log) = @_;
-	my $mac = m{(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})};
-	if ($l =~ m{([a-z]+\d+\*?)\s+(\d+)\s+<Link>\s+(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})?\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)}) {
-		my $ifn = $1;
-		my $mtu = $2;
-		my $Ipkts = $3;
-		my $Ifail = $4;
-		my $Opkts = $5;
-		my $Ofail = $6;
-		my $colls = $7;
-		print "$ifn ($mtu)\t>$Ipkts -$Ifail <$Opkts -$Ofail c$colls\n";
-	}
+my ($l, $log) = @_;
+my $mac = m{(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})};
+if ($l =~ m{([a-z]+\d+\*?)\s+(\d+)\s+<Link>\s+(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})?\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)}) {
+    my $ifn = $1;
+    my $mtu = $2;
+    my $Ipkts = $3;
+    my $Ifail = $4;
+    my $Opkts = $5;
+    my $Ofail = $6;
+    my $colls = $7;
+	print "$ifn ($mtu)\t>$Ipkts -$Ifail <$Opkts -$Ofail c$colls\n";
+    }
 }
 
 sub vmstat_iz_parser {
-	my ($l, $log) = @_;
-	if ($l =~ m{irq\d+/(\w+)\s+(\d+)\s+(\d+)}) {
-		my $dev = $1;
-		my $total = $2;
-		my $rate = $3;
+    my ($l, $log) = @_;
+    if ($l =~ m{irq\d+/(\w+)\s+(\d+)\s+(\d+)}) {
+	my $dev = $1;
+	my $total = $2;
+	my $rate = $3;
 
-		print "$dev has $total at $rate\n";
-	}
+	print "$dev has $total at $rate\n";
+    }
 }
 
 sub vmstat_m_tail_1_parser {
-	my ($l, $log) = @_;
-	if ($l =~ m{In use (\d+)K, total allocated (\d+)K; utilization ([0-9.]+)%}) {
-		my $used = $1;
-		my $allocated = $2;
-		my $utilization = $3;
+    my ($l, $log) = @_;
+    if ($l =~ m{In use (\d+)K, total allocated (\d+)K; utilization ([0-9.]+)%}) {
+	my $used = $1;
+	my $allocated = $2;
+	my $utilization = $3;
 
-		print "Memory: $used/$allocated = $utilization\n";
-	}
+	print "Memory: $used/$allocated = $utilization\n";
+    }
+}
+
+sub ping_f_parser {
+    my ($l, $log) = @_;
+    if ($l =~ m{rtt min/avg/max/mdev = ([\.\d]+)/([\.\d]+)/([\.\d]+)/([\.\d]+) ms, ipg/ewma ([\.\d]+)/([\.\d]+) ms}) {
+	my $min = $1;
+	my $avg = $2;
+	my $max = $3;
+	my $mdev = $4;
+	my $ipg = $5;
+	my $ewma = $6;
+	print "Ping: $min/$avg/$max/$mdev $ipg/$ewma\n";
+    }
+    return 1;
 }
