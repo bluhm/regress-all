@@ -77,8 +77,8 @@ $lines{ot41} = 1;
 $lines{ot42} = 2;
 my $line = $lines{$hostname};
 
-my $linux_ifl = "enp0s25"; # XXX: make this an env var?
-my $linux_ifr = "enp0s25"; # XXX
+my $linux_ifl = "enp6s0"; # XXX: make this an env var?
+my $linux_ifr = "enp6s0"; # XXX
 
 # em0 usually is our configuration interface
 my $ifi = $opts{i} || (($testif =~ m {^em})? 1 : 0);
