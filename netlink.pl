@@ -135,6 +135,10 @@ sub good {
     $tr->sync();
 }
 
+# ensure given interface is active
+system("ifconfig ${ifl} | grep -q active") == 0 or die "${ifl} is not active";
+system("ifconfig ${ifr} | grep -q active") == 0 or die "${ifr} is not active";
+
 # unconfigure all interfaces used in testing
 my @allinterfaces = `ifconfig | grep ^[a-z] | cut -d: -f1`;
 chomp(@allinterfaces);
