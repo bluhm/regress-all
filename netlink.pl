@@ -590,16 +590,16 @@ sub netstat_binv_parser {
 }
 
 sub netstat_inv_parser {
-my ($l, $log) = @_;
-my $mac = m{(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})};
-if ($l =~ m{([a-z]+\d+\*?)\s+(\d+)\s+<Link>\s+(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})?\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)}) {
-    my $ifn = $1;
-    my $mtu = $2;
-    my $Ipkts = $3;
-    my $Ifail = $4;
-    my $Opkts = $5;
-    my $Ofail = $6;
-    my $colls = $7;
+    my ($l, $log) = @_;
+    my $mac = m{(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})};
+    if ($l =~ m{([a-z]+\d+\*?)\s+(\d+)\s+<Link>\s+(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})?\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)}) {
+	my $ifn = $1;
+	my $mtu = $2;
+	my $Ipkts = $3;
+	my $Ifail = $4;
+	my $Opkts = $5;
+	my $Ofail = $6;
+	my $colls = $7;
 	print "$ifn ($mtu)\t>$Ipkts -$Ifail <$Opkts -$Ofail c$colls\n";
     }
 }
