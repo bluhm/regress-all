@@ -477,7 +477,7 @@ push @tests, (
 	    'recv', $ifl_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1400', '-t10', '-r', $linux_ifl_ssh,
+	testcmd => ['udpbench', '-l1452', '-t10', '-r', $linux_ifl_ssh,
 	    'recv', $ifl_addr6],
 	parser => \&udpbench_parser,
     }, {
@@ -485,7 +485,7 @@ push @tests, (
 	    'send', $linux_ifr_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1440', '-t10', '-r', $linux_ifr_ssh,
+	testcmd => ['udpbench', '-l1452', '-t10', '-r', $linux_ifr_ssh,
 	    'send', $linux_ifr_addr6],
 	parser => \&udpbench_parser,
     }, {
@@ -493,11 +493,41 @@ push @tests, (
 	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l1472', '-t10',
+	testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l1452', '-t10',
 	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr6],
 	parser => \&udpbench_parser,
     }
 ) if $testmode{udp6};
+push @tests, (
+    {
+	testcmd => ['udpbench', '-l1473', '-t10', '-r', $linux_ifl_ssh,
+	    'recv', $ifl_addr],
+	parser => \&udpbench_parser,
+    }, {
+	testcmd => ['udpbench', '-l1473', '-t10', '-r', $linux_ifr_ssh,
+	    'send', $linux_ifr_addr],
+	parser => \&udpbench_parser,
+    }, {
+	testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l1473', '-t10',
+	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr],
+	parser => \&udpbench_parser,
+    }
+) if $testmode{fragment};
+push @tests, (
+    {
+	testcmd => ['udpbench', '-l1453', '-t10', '-r', $linux_ifl_ssh,
+	    'recv', $ifl_addr6],
+	parser => \&udpbench_parser,
+    }, {
+	testcmd => ['udpbench', '-l1453', '-t10', '-r', $linux_ifr_ssh,
+	    'send', $linux_ifr_addr6],
+	parser => \&udpbench_parser,
+    }, {
+	testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l1453', '-t10',
+	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr6],
+	parser => \&udpbench_parser,
+    }
+) if $testmode{fragment6};
 
 my @stats = (
     {
