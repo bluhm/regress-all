@@ -444,6 +444,32 @@ push @tests, (
 	finalize => \&tcpbench_finalize,
     }
 ) if $testmode{tcp6};
+push @tests, (
+    {
+        testcmd => ['udpbench', '-l36', '-t10', '-r', $linux_ifl_ssh,
+	    'recv', $ifl_addr],
+        parser => \&udpbench_parser,
+    }, {
+        testcmd => ['udpbench', '-l1472', '-t10', '-r', $linux_ifl_ssh,
+	    'recv', $ifl_addr],
+        parser => \&udpbench_parser,
+    }, {
+        testcmd => ['udpbench', '-l36', '-t10', '-r', $linux_ifr_ssh,
+            'send', $linux_ifr_addr],
+        parser => \&udpbench_parser,
+    }, {
+        testcmd => ['udpbench', '-l1472', '-t10', '-r', $linux_ifr_ssh,
+            'send', $linux_ifr_addr],
+        parser => \&udpbench_parser,
+    }, {
+        testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l36', '-t10',
+	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr],
+        parser => \&udpbench_parser,
+    }, {
+        testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l1472', '-t10',
+	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr],
+    }
+) if $testmode{udp};
 
 my @stats = (
     {
