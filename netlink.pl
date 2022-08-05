@@ -237,14 +237,27 @@ if ($testmode{tcp}) {
     }
 }
 
-#if ($testmode{tcp6}) {
-#    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "tcpbench -6"');
-#    system(@sshcmd);
-#    @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-6', '-s', '-r0',
-#	'-S1000000');
-#    system(@sshcmd)
-#	and die "Start tcpbench server with '@sshcmd' failed: $?";
-#}
+if ($testmode{tcp6}) {
+    my @cmd = ('ssh', $linux_ifr_ssh, 'pkill -f "tcpbench -6"');
+    system(@cmd);
+
+    @cmd = ('pkill -f "tcpbench -6"');
+    system(@cmd);
+
+    @cmd = ('ssh', '-f', $linux_ifr_ssh, 'tcpbench', '-6', '-s', '-r0',
+	'-S1000000');
+    system(@cmd)
+	and die "Start tcpbench server with '@cmd' failed: $?";
+
+    @cmd = ('tcpbench', '-6', '-s', '-r0', '-S1000000');
+    defined(my $pid = fork())
+	or die "Fork failed: $!";
+    unless ($pid) {
+	exec(@cmd);
+	warn "Exec '@cmd' failed: $!";
+	_exit(126);
+    }
+}
 
 my %iperf3_ids;
 sub iperf3_initialize {
@@ -404,6 +417,33 @@ push @tests, (
         finalize => \&tcpbench_finalize,
     }
 ) if $testmode{tcp};
+push @tests, (
+    {
+        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $ifl_addr6],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }, {
+        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $ifl_addr6],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }, {
+        testcmd => ['tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }, {
+        testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }, {
+        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }, {
+        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }
+) if $testmode{tcp6};
 
 my @stats = (
     {
@@ -520,6 +560,7 @@ chdir($netlinkdir)
 if ($testmode{tcp} || $testmode{tcp6}) {
     my @sshcmd = ('ssh', $linux_ifr_ssh, 'pkill', 'tcpbench');
     system(@sshcmd);
+    system('pkill', 'tcpbench');
 }
 
 # create a tgz file with all log files
