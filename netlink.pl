@@ -470,6 +470,32 @@ push @tests, (
 	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr],
     }
 ) if $testmode{udp};
+push @tests, (
+    {
+        testcmd => ['udpbench', '-l36', '-t10', '-r', $linux_ifl_ssh,
+	    'recv', $ifl_addr6],
+        parser => \&udpbench_parser,
+    }, {
+        testcmd => ['udpbench', '-l1472', '-t10', '-r', $linux_ifl_ssh,
+	    'recv', $ifl_addr6],
+        parser => \&udpbench_parser,
+    }, {
+        testcmd => ['udpbench', '-l36', '-t10', '-r', $linux_ifr_ssh,
+            'send', $linux_ifr_addr6],
+        parser => \&udpbench_parser,
+    }, {
+        testcmd => ['udpbench', '-l1472', '-t10', '-r', $linux_ifr_ssh,
+            'send', $linux_ifr_addr6],
+        parser => \&udpbench_parser,
+    }, {
+        testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l36', '-t10',
+	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr6],
+        parser => \&udpbench_parser,
+    }, {
+        testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l1472', '-t10',
+	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr6],
+    }
+) if $testmode{udp6};
 
 my @stats = (
     {
