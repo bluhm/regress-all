@@ -477,7 +477,7 @@ push @tests, (
 	    'recv', $ifl_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1472', '-t10', '-r', $linux_ifl_ssh,
+	testcmd => ['udpbench', '-l1400', '-t10', '-r', $linux_ifl_ssh,
 	    'recv', $ifl_addr6],
 	parser => \&udpbench_parser,
     }, {
@@ -485,7 +485,7 @@ push @tests, (
 	    'send', $linux_ifr_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1472', '-t10', '-r', $linux_ifr_ssh,
+	testcmd => ['udpbench', '-l1440', '-t10', '-r', $linux_ifr_ssh,
 	    'send', $linux_ifr_addr6],
 	parser => \&udpbench_parser,
     }, {
