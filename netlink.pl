@@ -392,56 +392,56 @@ push @tests, (
 ) if $testmode{icmp6};
 push @tests, (
     {
-        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $ifl_addr],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $ifl_addr],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
-        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $ifl_addr],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $ifl_addr],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
-        testcmd => ['tcpbench', '-S1000000', '-t10', $linux_ifr_addr],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['tcpbench', '-S1000000', '-t10', $linux_ifr_addr],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
-        testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
-        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $linux_ifr_addr],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $linux_ifr_addr],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
-        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }
 ) if $testmode{tcp};
 push @tests, (
     {
-        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $ifl_addr6],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $ifl_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
-        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $ifl_addr6],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $ifl_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
-        testcmd => ['tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
-        testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
-        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }, {
-        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
-        parser => \&tcpbench_parser,
-        finalize => \&tcpbench_finalize,
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
     }
 ) if $testmode{tcp6};
 
