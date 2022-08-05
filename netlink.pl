@@ -215,16 +215,29 @@ sleep(3);
 
 # tcpbench tests
 
-#if ($testmode{tcp}) {
-#    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "tcpbench -4"');
-#    system(@sshcmd);
-#    @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-4', '-s', '-r0',
-#	'-S1000000');
-#    system(@sshcmd)
-#	and die "Start tcpbench server with '@sshcmd' failed: $?";
-#}
+if ($testmode{tcp}) {
+    my @cmd = ('ssh', $linux_ifr_ssh, 'pkill -f "tcpbench -4"');
+    system(@cmd);
 
-#if ($testmode{tcpbench6}) {
+    @cmd = ('pkill -f "tcpbench -4"');
+    system(@cmd);
+
+    @cmd = ('ssh', '-f', $linux_ifr_ssh, 'tcpbench', '-4', '-s', '-r0',
+	'-S1000000');
+    system(@cmd)
+	and die "Start tcpbench server with '@cmd' failed: $?";
+
+    @cmd = ('tcpbench', '-4', '-s', '-r0', '-S1000000');
+    defined(my $pid = fork())
+	or die "Fork failed: $!";
+    unless ($pid) {
+	exec(@cmd);
+	warn "Exec '@cmd' failed: $!";
+	_exit(126);
+    }
+}
+
+#if ($testmode{tcp6}) {
 #    my @sshcmd = ('ssh', $remote_ssh, 'pkill -f "tcpbench -6"');
 #    system(@sshcmd);
 #    @sshcmd = ('ssh', '-f', $remote_ssh, 'tcpbench', '-6', '-s', '-r0',
@@ -342,24 +355,55 @@ sub time_parser {
 my @tests;
 push @tests, (
     {
-	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-f4c10000', $linux_ifr_addr],
+	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-fc10000', $ifl_addr],
+	parser => \&ping_f_parser,
+    }, {
+	testcmd => ['ping', '-fc10000', $linux_ifr_addr],
+	parser => \&ping_f_parser,
+    }, {
+	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-fc10000', $linux_ifr_addr],
 	parser => \&ping_f_parser,
     }
 ) if $testmode{icmp};
 push @tests, (
     {
-	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-f6c10000', $linux_ifr_addr6],
+	testcmd => ['ssh', $linux_ifl_ssh, 'ping6', '-fc10000', $ifl_addr6],
+	parser => \&ping_f_parser,
+    }, {
+	testcmd => ['ping6', '-fc10000', $linux_ifr_addr6],
+	parser => \&ping_f_parser,
+    }, {
+	testcmd => ['ssh', $linux_ifl_ssh, 'ping6', '-fc10000', $linux_ifr_addr6],
 	parser => \&ping_f_parser,
     }
 ) if $testmode{icmp6};
-#push @tests, (
-#    {
-#	initialize => \&iperf3_initialize,
-#	testcmd => ['ssh', $linux_other_ssh, 'iperf3', '-6',
-#	    "-c$linux_relay_remote_addr6", '-P10', '-t10'],
-#	parser => \&iperf3_parser,
-#    }
-#) if $testmode{relay6} && $linux_relay_remote_addr6 && $linux_other_ssh;
+push @tests, (
+    {
+        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $ifl_addr],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }, {
+        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $ifl_addr],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }, {
+        testcmd => ['tcpbench', '-S1000000', '-t10', $linux_ifr_addr],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }, {
+        testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }, {
+        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $linux_ifr_addr],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }, {
+        testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr],
+        parser => \&tcpbench_parser,
+        finalize => \&tcpbench_finalize,
+    }
+) if $testmode{tcp};
 
 my @stats = (
     {
@@ -473,10 +517,10 @@ chdir($netlinkdir)
     or die "Change directory to '$netlinkdir' failed: $!";
 
 # kill remote commands or ssh will hang forever
-#if ($testmode{tcpbench4} || $testmode{tcpbench6}) {
-#    my @sshcmd = ('ssh', $remote_ssh, 'pkill', 'tcpbench');
-#    system(@sshcmd);
-#}
+if ($testmode{tcp} || $testmode{tcp6}) {
+    my @sshcmd = ('ssh', $linux_ifr_ssh, 'pkill', 'tcpbench');
+    system(@sshcmd);
+}
 
 # create a tgz file with all log files
 my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$netlinkdir/test.log.tgz");
@@ -636,6 +680,13 @@ sub ping_f_parser {
 	my $ipg = $5;
 	my $ewma = $6;
 	print "Ping: $min/$avg/$max/$mdev $ipg/$ewma\n";
+    }
+    if ($l =~ m{round-trip min/avg/max/std-dev = ([\.\d]+)/([\.\d]+)/([\.\d]+)/([\.\d]+) ms}) {
+	my $min = $1;
+	my $avg = $2;
+	my $max = $3;
+	my $stddev = $4;
+	print "Ping: $min/$avg/$max/$stddev\n";
     }
     return 1;
 }
