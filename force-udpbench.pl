@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
-# Allow ssh to run iperf3 client or server daemon, but only iperf3.
-# pkill iperf3 is also allowed.
+# Allow ssh to run local udpbench command, but only udpbench.
+# pkill udpbench is also allowed.
 
 # Copyright (c) 2021-2022 Alexander Bluhm <bluhm@openbsd.org>
 #
@@ -26,30 +26,28 @@ $sshcmd =~ /^([ 0-9A-Za-z.:_-]+)$/
     or die "Invalid characters in ssh command.\n";
 my @args = split(" ", $1)
     or die "Split ssh command failed.\n";
-if (@args == 2 && $args[0] eq "pkill" && $args[1] eq "iperf3") {
+if (@args == 2 && $args[0] eq "pkill" && $args[1] eq "udpbench") {
     $ENV{PATH} = "/bin:/usr/bin:/usr/local/bin";
     exec { 'pkill' } @args;
     die "Exec 'pkill' failed: $!\n";
 }
-$args[0] eq "iperf3"
-    or die "Only 'iperf3' command allowed.\n";
+$args[0] eq "udpbench"
+    or die "Only 'udpbench' command allowed.\n";
 
-# filter out file access options
+# filter out remote and divert options
 my %opts;
 @ARGV = @args;
 shift;
-getopts('p:f:i:A:B:V:J:d:v:hsD1c:ub:t:n:k:l:P:Rw:M:N46S:L:Z:O:T:C:', \%opts)
-    or die "Parsing iperf3 options failed.\n";
-if ($opts{c}) {
-    $opts{c} =~ /^10\.[0-9.]+$/ || $opts{c} =~ /^f[cd][0-9a-f]{2}:[0-9a-f:]+$/i
-	or die "Server address for iperf3 must be local.\n";
-} elsif ($opts{s}) {
-} else {
-    die "Client or server option for iperf3 must be present.\n";
-}
-@ARGV <= 0
-    or die "Too many arguments for iperf3.\n";
+getopts('b:d:l:p:t:', \%opts)
+    or die "Parsing udpbench options failed.\n";
+@ARGV >= 1 && $ARGV[0] =~ /^(send|recv)$/
+    or die "Action send or recv for udpbench must be present.\n";
+@ARGV < 2 || $ARGV[1] =~ /^10\.[0-9.]+$/ ||
+    $ARGV[1] =~ /^f[cd][0-9a-f]{2}:[0-9a-f:]+$/i
+    or die "Host address for udpbench must be local.\n";
+@ARGV <= 2
+    or die "Too many arguments for udpbench.\n";
 
 $ENV{PATH} = "/bin:/usr/bin:/usr/local/bin";
-exec { 'iperf3' } @args;
-die "Exec 'iperf3' failed: $!\n";
+exec { 'udpbench' } @args;
+die "Exec 'udpbench' failed: $!\n";
