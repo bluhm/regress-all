@@ -40,14 +40,17 @@ EOF
 }
 
 my %opts;
-getopts('46i:p:t:v', \%opts) or usage;
+getopts('46i:n:p:t:v', \%opts) or usage;
 
 my $ipv6 = $opts{6} || 0;
 my $ipv4 = $opts{4} || !$ipv6;
-my $timeout = $opts{t} || 5 * 60;
-my $interface = $opts{i} || usage;
-my $pseudodev = $opts{p};
 my $verbose = $opts{v};
+
+my $timeout = $opts{t} || 5 * 60;
+my $pseudodev = $opts{p};
+my $interface = $opts{i} || usage;
+# em0 usually is our configuration interface
+my $ifidx = $opts{n} || (($interface =~ m {^em})? 1 : 0);
 
 usage if ($#ARGV);
 
@@ -81,10 +84,8 @@ $lines{ot41} = 1;
 $lines{ot42} = 2;
 my $line = $lines{$hostname};
 
-# em0 usually is our configuration interface
-my $ifi = $opts{n} || (($interface =~ m {^em})? 1 : 0);
-my $ifl = $interface . $ifi;
-my $ifr = $interface . ($ifi + 1);
+my $ifl = $interface . $ifidx;
+my $ifr = $interface . ($ifidx + 1);
 my $ifl_net = "$ip4prefix.${line}1.0";
 my $ifr_net = "$ip4prefix.${line}2.0";
 my $ifl_addr = "$ip4prefix.${line}1.2";
@@ -218,41 +219,27 @@ sleep(3);
 
 # tcpbench tests
 
-if ($testmode{tcp} && $ipv4) {
-    my @cmd = ('ssh', $linux_ifr_ssh, 'pkill -f "tcpbench -4"');
+if ($testmode{tcp}) {
+    my @cmd = ('ssh', $linux_ifr_ssh, 'pkill -f tcpbench');
     system(@cmd);
 
-    @cmd = ('pkill -f "tcpbench -4"');
+    @cmd = ('pkill -f tcpbench');
     system(@cmd);
 
-    @cmd = ('ssh', '-f', $linux_ifr_ssh, 'tcpbench', '-4', '-s', '-r0',
-	'-S1000000');
-    system(@cmd)
-	and die "Start tcpbench server with '@cmd' failed: $?";
-
-    @cmd = ('tcpbench', '-4', '-s', '-r0', '-S1000000');
-    defined(my $pid = fork())
-	or die "Fork failed: $!";
-    unless ($pid) {
-	exec(@cmd);
-	warn "Exec '@cmd' failed: $!";
-	_exit(126);
+    if ($ipv4) {
+	@cmd = ('ssh', '-f', $linux_ifr_ssh, 'tcpbench', '-4s', '-r0',
+	    '-S1000000');
+	system(@cmd)
+	    and die "Start tcpbench server with '@cmd' failed: $?";
     }
-}
+    if ($ipv6) {
+	@cmd = ('ssh', '-f', $linux_ifr_ssh, 'tcpbench', '-6s', '-r0',
+	    '-S1000000', '-p12346');
+	system(@cmd)
+	    and die "Start tcpbench server with '@cmd' failed: $?";
+    }
 
-if ($testmode{tcp} && $ipv6) {
-    my @cmd = ('ssh', $linux_ifr_ssh, 'pkill -f "tcpbench -6"');
-    system(@cmd);
-
-    @cmd = ('pkill -f "tcpbench -6"');
-    system(@cmd);
-
-    @cmd = ('ssh', '-f', $linux_ifr_ssh, 'tcpbench', '-6', '-s', '-r0',
-	'-S1000000');
-    system(@cmd)
-	and die "Start tcpbench server with '@cmd' failed: $?";
-
-    @cmd = ('tcpbench', '-6', '-s', '-r0', '-S1000000');
+    @cmd = ('tcpbench', '-s', '-r0', '-S1000000');
     defined(my $pid = fork())
 	or die "Fork failed: $!";
     unless ($pid) {
@@ -430,19 +417,19 @@ push @tests, (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-p12346', $linux_ifr_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', '-p12346', $linux_ifr_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-p12346', $linux_ifr_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', '-p12346', $linux_ifr_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }
@@ -644,7 +631,7 @@ chdir($netlinkdir)
     or die "Change directory to '$netlinkdir' failed: $!";
 
 # kill remote commands or ssh will hang forever
-if ($testmode{tcp} || $testmode{tcp6}) {
+if ($testmode{tcp}) {
     my @sshcmd = ('ssh', $linux_ifr_ssh, 'pkill', 'tcpbench');
     system(@sshcmd);
     system('pkill', 'tcpbench');
