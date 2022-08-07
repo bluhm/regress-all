@@ -26,47 +26,48 @@ use Time::HiRes;
 
 sub usage {
     print STDERR <<"EOF";
-usage: $0 [-i index] [-v] [-t timeout] interface [pseudo-dev] test
-    index	interface index
-    timeout	timeout for a single test, default 5 minutes
-    interface	em, igc, ix, ixl
-    pseudo-dev	veb, bridge, trunk, aggr, carp
-    test	all, inet, fragment, icmp, ipopts, pathmtu, udp, tcp
+usage: $0 [-46v] [-t timeout] [-n index] [-p pseudo-dev] -i interface test
+    -4			use IPv4, default unless -6 is given
+    -6			use IPv6
+    -v			verbose
+    -t timeout		timeout for a single test, default 5 minutes
+    -p pseudo-dev	veb, bridge, trunk, aggr, carp
+    -n index		interface index, default 0
+    -i interface	em, igc, ix, ixl
+    test		all, fragment, icmp, ipopts, pathmtu, tcp, udp
 EOF
     exit(2);
 }
 
 my %opts;
-getopts('i:t:v', \%opts) or usage;
+getopts('46i:p:t:v', \%opts) or usage;
 
-my $timeout = $opts{t} || 5*60;
+my $ipv6 = $opts{6} || 0;
+my $ipv4 = $opts{4} || !$ipv6;
+my $timeout = $opts{t} || 5 * 60;
+my $interface = $opts{i} || usage;
+my $pseudodev = $opts{p};
+my $verbose = $opts{v};
 
-usage if ($#ARGV < 1 || $#ARGV > 2);
+usage if ($#ARGV);
 
 my %allifs;
 @allifs{qw(em igc ix ixl)} = ();
-die "Unknown test interface: ${ARGV[0]}" unless exists $allifs{$ARGV[0]};
-my $testif = $ARGV[0];
-shift @ARGV;
+die "Unknown test interface: $interface" unless exists $allifs{$interface};
 
 my %allpseudodevs;
 @allpseudodevs{qw(veb bridge trunk aggr carp)} = ();
-if ($#ARGV) {
-    die "Unknown test pseudo-device: ${ARGV[0]}" unless exists $allpseudodevs{$ARGV[0]};
-    my $testpseudodev = $ARGV[0];
-    shift @ARGV;
+if ($pseudodev && !exists $allpseudodevs{$pseudodev}) {
+    die "Unknown test pseudo-device: $pseudodev"
 }
 
 my %allmodes;
-@allmodes{qw(all inet inet6 fragment fragment6 icmp icmp6 ipopts pathmtu udp udp6 tcp tcp6)} = ();
+@allmodes{qw(all fragment icmp ipopts pathmtu tcp udp)} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } $ARGV[0];
 shift @ARGV;
-
-$testmode{inet} = 1 if $testmode{fragment} || $testmode{icmp} || $testmode{ipopts} || $testmode{pathmtu} || $testmode{udp} || $testmode{tcp};
-$testmode{inet6} = 1 if $testmode{fragment6} || $testmode{icmp6} || $testmode{udp6} || $testmode{tcp6};
 
 my $hostname = `hostname -s`;
 chomp($hostname);
@@ -81,9 +82,9 @@ $lines{ot42} = 2;
 my $line = $lines{$hostname};
 
 # em0 usually is our configuration interface
-my $ifi = $opts{i} || (($testif =~ m {^em})? 1 : 0);
-my $ifl = $testif . $ifi;
-my $ifr = $testif . ($ifi + 1);
+my $ifi = $opts{n} || (($interface =~ m {^em})? 1 : 0);
+my $ifl = $interface . $ifi;
+my $ifr = $interface . ($ifi + 1);
 my $ifl_net = "$ip4prefix.${line}1.0";
 my $ifr_net = "$ip4prefix.${line}2.0";
 my $ifl_addr = "$ip4prefix.${line}1.2";
@@ -143,48 +144,43 @@ sub good {
 }
 
 # ensure given interface is active
+# XXX: do grep in perl
 system("ifconfig ${ifl} | grep -q active") == 0 or die "${ifl} is not active";
 system("ifconfig ${ifr} | grep -q active") == 0 or die "${ifr} is not active";
 
 # unconfigure all interfaces used in testing
+# XXX: do grep in perl
 my @allinterfaces = `ifconfig | grep ^[a-z] | cut -d: -f1`;
 chomp(@allinterfaces);
 
 foreach my $ifn (@allinterfaces) {
     unless ($ifn =~ m{^(lo|enc|pflog|em0)}) {
-	system("ifconfig ${ifn} -inet -inet6 down");
+	system('ifconfig', $ifn, '-inet', '-inet6', 'down');
     }
     my $pdevre = join '|', keys %allpseudodevs;
-    system("ifconfig ${ifn} destroy") if ($ifn =~ m{^($pdevre)});
+    system('ifconfig', $ifn, 'destroy') if ($ifn =~ m{^($pdevre)});
 }
 
 # configure given interface type
-if ($testmode{inet6}) {
-    system("ifconfig ${ifl} inet6 ${ifl_addr6} up");
-    system("ifconfig ${ifr} inet6 ${ifr_addr6} up");
-} else {
-    system("ifconfig ${ifl} inet ${ifl_addr}/24 up");
-    system("ifconfig ${ifr} inet ${ifr_addr}/24 up");
+if ($ipv4) {
+    system('ifconfig', $ifl, 'inet', "${ifl_addr}/24", 'up');
+    system('ifconfig', $ifr, 'inet', "${ifr_addr}/24", 'up');
+}
+if ($ipv6) {
+    system('ifconfig', $ifl, 'inet6', $ifl_addr6, 'up');
+    system('ifconfig', $ifr, 'inet6', $ifr_addr6, 'up');
 }
 
 # XXX: if(forwarding)
-if ($testmode{inet6}) {
-    system('sysctl net.inet6.ip6.forwarding=1');
-} else {
-    system('sysctl net.inet.ip.forwarding=1');
-}
+system('sysctl net.inet.ip.forwarding=1') if ($ipv4);
+system('sysctl net.inet6.ip6.forwarding=1') if ($ipv6);
 
 # configure linux machines
 
-if ($testmode{inet6}) {
-    my @sshcmd = ('ssh', $linux_ifl_ssh);
-    system(@sshcmd, 'ifconfig', $linux_ifl, 'add', "$linux_ifl_addr6/64");
-    system(@sshcmd, 'route', '-6', 'add', $ifr_net6, 'gw',
-	$ifl_addr6, $linux_ifl);
-} else {
+if ($ipv4) {
     my @sshcmd = ('ssh', $linux_ifl_ssh);
     system(@sshcmd, 'ifconfig', "$linux_ifl:$line", 'down');
-    system(@sshcmd, 'ifconfig', "$linux_ifl", '10.10.0.1', 'netmask',
+    system(@sshcmd, 'ifconfig', $linux_ifl, '10.10.0.1', 'netmask',
 	'255.255.0.0');
     system(@sshcmd, 'ifconfig', "$linux_ifl:$line", $linux_ifl_addr,
 	'netmask', '255.255.255.0');
@@ -192,16 +188,17 @@ if ($testmode{inet6}) {
     system(@sshcmd, 'route', 'add', '-net', $ifr_net, 'gw', $ifl_addr,
 	'netmask', '255.255.255.0', "$linux_ifl:$line");
 }
+if ($ipv6) {
+    my @sshcmd = ('ssh', $linux_ifl_ssh);
+    system(@sshcmd, 'ifconfig', $linux_ifl, 'add', "$linux_ifl_addr6/64");
+    system(@sshcmd, 'route', '-6', 'add', $ifr_net6, 'gw',
+	$ifl_addr6, $linux_ifl);
+}
 
-if ($testmode{inet6}) {
-    my @sshcmd = ('ssh', $linux_ifr_ssh);
-    system(@sshcmd, 'ifconfig', $linux_ifr, 'add', "$linux_ifr_addr6/64");
-    system(@sshcmd, 'route', '-6', 'add', $ifl_net6, 'gw',
-	$ifr_addr6, $linux_ifr);
-} else {
+if ($ipv4) {
     my @sshcmd = ('ssh', $linux_ifr_ssh);
     system(@sshcmd, 'ifconfig', "$linux_ifr:$line", 'down');
-    system(@sshcmd, 'ifconfig', "$linux_ifr", '10.10.0.1', 'netmask',
+    system(@sshcmd, 'ifconfig', $linux_ifr, '10.10.0.1', 'netmask',
 	'255.255.0.0');
     system(@sshcmd, 'ifconfig', "$linux_ifr:$line", $linux_ifr_addr,
 	'netmask', '255.255.255.0');
@@ -209,13 +206,19 @@ if ($testmode{inet6}) {
     system(@sshcmd, 'route', 'add', '-net', $ifl_net, 'gw', $ifr_addr,
 	'netmask', '255.255.255.0', "$linux_ifr:$line");
 }
+if ($ipv6) {
+    my @sshcmd = ('ssh', $linux_ifr_ssh);
+    system(@sshcmd, 'ifconfig', $linux_ifr, 'add', "$linux_ifr_addr6/64");
+    system(@sshcmd, 'route', '-6', 'add', $ifl_net6, 'gw',
+	$ifr_addr6, $linux_ifr);
+}
 
 # wait for linux
 sleep(3);
 
 # tcpbench tests
 
-if ($testmode{tcp}) {
+if ($testmode{tcp} && $ipv4) {
     my @cmd = ('ssh', $linux_ifr_ssh, 'pkill -f "tcpbench -4"');
     system(@cmd);
 
@@ -237,7 +240,7 @@ if ($testmode{tcp}) {
     }
 }
 
-if ($testmode{tcp6}) {
+if ($testmode{tcp} && $ipv6) {
     my @cmd = ('ssh', $linux_ifr_ssh, 'pkill -f "tcpbench -6"');
     system(@cmd);
 
@@ -377,7 +380,7 @@ push @tests, (
 	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-fc10000', $linux_ifr_addr],
 	parser => \&ping_f_parser,
     }
-) if $testmode{icmp};
+) if ($testmode{icmp} && $ipv4);
 push @tests, (
     {
 	testcmd => ['ssh', $linux_ifl_ssh, 'ping6', '-fc10000', $ifl_addr6],
@@ -389,7 +392,7 @@ push @tests, (
 	testcmd => ['ssh', $linux_ifl_ssh, 'ping6', '-fc10000', $linux_ifr_addr6],
 	parser => \&ping_f_parser,
     }
-) if $testmode{icmp6};
+) if ($testmode{icmp} && $ipv6);
 push @tests, (
     {
 	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $ifl_addr],
@@ -416,7 +419,7 @@ push @tests, (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }
-) if $testmode{tcp};
+) if ($testmode{tcp} && $ipv4);
 push @tests, (
     {
 	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $ifl_addr6],
@@ -443,7 +446,7 @@ push @tests, (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }
-) if $testmode{tcp6};
+) if ($testmode{tcp} && $ipv6);
 push @tests, (
     {
 	testcmd => ['udpbench', '-l36', '-t10', '-r', $linux_ifl_ssh,
@@ -470,7 +473,7 @@ push @tests, (
 	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr],
 	parser => \&udpbench_parser,
     }
-) if $testmode{udp};
+) if ($testmode{udp} && $ipv4);
 push @tests, (
     {
 	testcmd => ['udpbench', '-l36', '-t10', '-r', $linux_ifl_ssh,
@@ -497,7 +500,7 @@ push @tests, (
 	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr6],
 	parser => \&udpbench_parser,
     }
-) if $testmode{udp6};
+) if ($testmode{udp} && $ipv6);
 push @tests, (
     {
 	testcmd => ['udpbench', '-l1473', '-t10', '-r', $linux_ifl_ssh,
@@ -512,7 +515,7 @@ push @tests, (
 	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr],
 	parser => \&udpbench_parser,
     }
-) if $testmode{fragment};
+) if ($testmode{fragment} && $ipv4);
 push @tests, (
     {
 	testcmd => ['udpbench', '-l1453', '-t10', '-r', $linux_ifl_ssh,
@@ -527,7 +530,7 @@ push @tests, (
 	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr6],
 	parser => \&udpbench_parser,
     }
-) if $testmode{fragment6};
+) if ($testmode{fragment} && $ipv6);
 
 my @stats = (
     {
