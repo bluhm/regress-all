@@ -31,7 +31,7 @@ usage: $0 [-46v] [-t timeout] [-n index] [-p pseudo-dev] -i interface test
     -6			use IPv6
     -v			verbose
     -t timeout		timeout for a single test, default 5 minutes
-    -p pseudo-dev	veb, bridge, trunk, aggr, carp
+    -p pseudo-dev	aggr, bridge, carp, trunk, veb, vlan
     -n index		interface index, default 0
     -i interface	em, igc, ix, ixl
     test		all, fragment, icmp, ipopts, pathmtu, tcp, udp
@@ -163,14 +163,76 @@ foreach my $ifn (@allinterfaces) {
 }
 
 # configure given interface type
-if ($ipv4) {
+if ($ipv4 && !$pseudodev ne 'bridge') {
     system('ifconfig', $ifl, 'inet', "${ifl_addr}/24", 'up');
     system('ifconfig', $ifr, 'inet', "${ifr_addr}/24", 'up');
 }
-if ($ipv6) {
+if ($ipv6 && $pseudodev ne 'bridge') {
     system('ifconfig', $ifl, 'inet6', $ifl_addr6, 'up');
     system('ifconfig', $ifr, 'inet6', $ifr_addr6, 'up');
 }
+
+# XXX: either destroy all possible pseudo devices here or register callbacks?
+if ($pseudodev eq 'aggr') {
+    # XXX: multiple interfaces in one aggr
+    system('ifconfig', 'aggr0', 'destroy');
+    system('ifconfig', 'aggr1', 'destroy');
+
+    system('ifconfig', 'aggr0', 'create');
+    system('ifconfig', 'aggr1', 'create');
+
+    system('ifconfig', 'aggr0', 'trunkport', $ifl);
+    system('ifconfig', 'aggr1', 'trunkport', $ifr);
+
+    if ($ipv4) {
+	system('ifconfig', 'aggr0', "${ifl_addr}/24");
+	system('ifconfig', 'aggr1', "${ifr_addr}/24");
+    }
+    if ($ipv6) {
+	system('ifconfig', 'aggr0', $ifl_addr6);
+	system('ifconfig', 'aggr1', $ifr_addr6);
+    }
+
+    system('ifconfig', 'aggr0', 'up');
+    system('ifconfig', 'aggr1', 'up');
+} elsif ($pseudodev eq 'bridge') {
+    # XXX: vether
+    system('ifconfig', 'bridge0', 'destroy');
+    system('ifconfig', 'bridge0', 'create');
+    system('ifconfig', 'bridge0', 'add', $ifl);
+    system('ifconfig', 'bridge0', 'add', $ifr);
+    system('ifconfig', 'bridge0', 'up');
+} elsif ($pseudodev eq 'carp') {
+    # XXX
+} elsif ($pseudodev eq 'trunk') {
+    # XXX
+} elsif ($pseudodev eq 'veb') {
+    system('ifconfig', 'veb0', 'destroy');
+    system('ifconfig', 'vport0', 'destroy');
+    system('ifconfig', 'vport1', 'destroy');
+
+    system('ifconfig', 'veb0', 'create');
+    system('ifconfig', 'vport0', 'create');
+    system('ifconfig', 'vport1', 'create');
+
+    if ($ipv4) {
+	system('ifconfig', 'vport0', 'inet', "${ifl_addr}/24", 'up');
+	system('ifconfig', 'vport1', 'inet', "${ifr_addr}/24", 'up');
+    }
+    if ($ipv6) {
+	system('ifconfig', 'vport0', 'inet6', $ifl_addr6, 'up');
+	system('ifconfig', 'vport1', 'inet6', $ifr_addr6, 'up');
+    }
+
+    system('ifconfig', 'veb0', 'add', $ifl);
+    system('ifconfig', 'veb0', 'add', $ifr);
+    system('ifconfig', 'veb0', 'add', 'vport0');
+    system('ifconfig', 'veb0', 'add', 'vport1');
+    system('ifconfig', 'veb0', 'up');
+} elsif ($pseudodev eq 'vlan') {
+    # XXX
+}
+# XXX: ipsec, gre?
 
 # XXX: if(forwarding)
 system('sysctl net.inet.ip.forwarding=1') if ($ipv4);
@@ -226,18 +288,10 @@ if ($testmode{tcp}) {
     @cmd = ('pkill -f tcpbench');
     system(@cmd);
 
-    if ($ipv4) {
-	@cmd = ('ssh', '-f', $linux_ifr_ssh, 'tcpbench', '-4s', '-r0',
-	    '-S1000000');
-	system(@cmd)
-	    and die "Start tcpbench server with '@cmd' failed: $?";
-    }
-    if ($ipv6) {
-	@cmd = ('ssh', '-f', $linux_ifr_ssh, 'tcpbench', '-6s', '-r0',
-	    '-S1000000', '-p12346');
-	system(@cmd)
-	    and die "Start tcpbench server with '@cmd' failed: $?";
-    }
+    # requires echo 1 > /proc/sys/net/ipv6/bindv6only
+    @cmd = ('ssh', '-f', $linux_ifr_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
+    system(@cmd)
+	and die "Start tcpbench server with '@cmd' failed: $?";
 
     @cmd = ('tcpbench', '-s', '-r0', '-S1000000');
     defined(my $pid = fork())
@@ -306,14 +360,6 @@ sub udpbench_parser {
     return 1;
 }
 
-sub time_parser {
-    my ($line, $log) = @_;
-    if ($line =~ /^(\w+) +(\d+\.\d+)$/) {
-	print $tr "VALUE $2 sec $1\n";
-    }
-    return 1;
-}
-
 my @tests;
 push @tests, (
     {
@@ -376,19 +422,19 @@ push @tests, (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-p12346', $linux_ifr_addr6],
+	testcmd => ['tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', '-p12346', $linux_ifr_addr6],
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', '$linux_ifr_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-p12346', $linux_ifr_addr6],
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '$linux_ifr_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', '-p12346', $linux_ifr_addr6],
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }
