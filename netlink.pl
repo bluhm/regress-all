@@ -249,47 +249,6 @@ if ($testmode{tcp}) {
     }
 }
 
-my %iperf3_ids;
-sub iperf3_initialize {
-    undef %iperf3_ids;
-    return 1;
-}
-
-sub iperf3_parser {
-    my ($line, $log) = @_;
-    my $id;
-    if ($line =~ m{^\[ *(\w+)\] }) {
-	$id = $1;
-	$iperf3_ids{$id}++ if $id =~ /^\d+$/;
-    }
-    if ($line =~ m{ ([\d.]+) +([kmgt]?)bits/sec(?:.* (sender|receiver))?}i) {
-	my $value = $1;
-	my $unit = lc($2);
-	if ($unit eq '') {
-	} elsif ($unit eq 'k') {
-	    $value *= 1000;
-	} elsif ($unit eq 'm') {
-	    $value *= 1000*1000;
-	} elsif ($unit eq 'g') {
-	    $value *= 1000*1000*1000;
-	} elsif ($unit eq 't') {
-	    $value *= 1000*1000*1000*1000;
-	} else {
-	    print $log "FAILED unknown unit $2\n" if $log;
-	    print "FAILED unknown unit $2\n" if $opts{v};
-	    return;
-	}
-	if ($3) {
-	    # with -P parallel connections parse only summary
-	    if (keys %iperf3_ids <= 1 || $id eq "SUM") {
-		print $tr "VALUE $value bits/sec $3\n";
-		undef %iperf3_ids;
-	    }
-	}
-    }
-    return 1;
-}
-
 my @tcpbench_subvalues;
 sub tcpbench_parser {
     my ($line, $log) = @_;
