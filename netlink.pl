@@ -47,7 +47,7 @@ my $ipv4 = $opts{4} || !$ipv6;
 my $verbose = $opts{v};
 
 my $timeout = $opts{t} || 5 * 60;
-my $pseudodev = $opts{p};
+my $pseudodev = $opts{p} || '';
 my $interface = $opts{i} || usage;
 # em0 usually is our configuration interface
 my $ifidx = $opts{n} || (($interface =~ m {^em})? 1 : 0);
@@ -163,11 +163,11 @@ foreach my $ifn (@allinterfaces) {
 }
 
 # configure given interface type
-if ($ipv4 && !$pseudodev ne 'bridge') {
+if ($ipv4 && ($pseudodev eq 'bridge' || !$pseudodev)) {
     system('ifconfig', $ifl, 'inet', "${ifl_addr}/24", 'up');
     system('ifconfig', $ifr, 'inet', "${ifr_addr}/24", 'up');
 }
-if ($ipv6 && $pseudodev ne 'bridge') {
+if ($ipv6 && ($pseudodev eq 'bridge' || !$pseudodev)) {
     system('ifconfig', $ifl, 'inet6', $ifl_addr6, 'up');
     system('ifconfig', $ifr, 'inet6', $ifr_addr6, 'up');
 }
@@ -216,14 +216,16 @@ if ($pseudodev eq 'aggr') {
     system('ifconfig', 'vport1', 'create');
 
     if ($ipv4) {
-	system('ifconfig', 'vport0', 'inet', "${ifl_addr}/24", 'up');
-	system('ifconfig', 'vport1', 'inet', "${ifr_addr}/24", 'up');
+	system('ifconfig', 'vport0', 'inet', "${ifl_addr}/24");
+	system('ifconfig', 'vport1', 'inet', "${ifr_addr}/24");
     }
     if ($ipv6) {
-	system('ifconfig', 'vport0', 'inet6', $ifl_addr6, 'up');
-	system('ifconfig', 'vport1', 'inet6', $ifr_addr6, 'up');
+	system('ifconfig', 'vport0', 'inet6', $ifl_addr6);
+	system('ifconfig', 'vport1', 'inet6', $ifr_addr6);
     }
 
+    system('ifconfig', 'vport0', 'up');
+    system('ifconfig', 'vport1', 'up');
     system('ifconfig', 'veb0', 'add', $ifl);
     system('ifconfig', 'veb0', 'add', $ifr);
     system('ifconfig', 'veb0', 'add', 'vport0');
@@ -426,11 +428,11 @@ push @tests, (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', '$linux_ifr_addr6],
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '$linux_ifr_addr6],
+	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
