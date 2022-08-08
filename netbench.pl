@@ -23,10 +23,11 @@ use File::Basename;
 use Getopt::Std;
 
 my %opts;
-getopts('a:b:c:d:l:s:t:v', \%opts) or do {
+getopts('a:B:b:c:d:l:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -a address [-c client] [-s server] [-t timeout] [test ...]
+usage: $0 [-v] -a address [-B bitrate] [-b bufsize] [-c client] [-d delay] [-l length] [-s server] [-t timeout] [test ...]
     -a address	IP address for packet destination
+    -B bitrate	set bits per seconds send rate
     -b bufsize	set size of send and receive buffer
     -c client	connect via ssh to start packet generator
     -d delay	delay sending of udp packets with per second rate
@@ -62,6 +63,7 @@ my $netbenchdir = getcwd();
 $| = 1;
 
 my @server_cmd = ('udpbench');
+push @server_cmd, "-b$opts{b}" if defined($opts{b});
 push @server_cmd, "-l$opts{l}" if defined($opts{l});
 push @server_cmd, ('-t'.($timeout+10), '-p0', 'recv', $addr);
 unshift @server_cmd, ('ssh', '-nT', $server_ssh) if $server_ssh;
@@ -88,6 +90,7 @@ unless (defined) {
 }
 
 my @client_cmd = ('udpbench');
+push @client_cmd, "-B$opts{B}" if defined($opts{B});
 push @client_cmd, "-b$opts{b}" if defined($opts{b});
 push @client_cmd, "-d$opts{d}" if defined($opts{d});
 push @client_cmd, "-l$opts{l}" if defined($opts{l});
