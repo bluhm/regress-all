@@ -637,10 +637,10 @@ my @frag = (
 	address => '$linux_forward_addr',
     },
     {
-	# Linux send, other Linux recv
+	# Linux send, local forward, other Linux recv
 	client => $linux_ssh,
 	server => $linux_other_ssh,
-	address => '$linux_linux_addr',
+	address => '$linux_forward_addr',
     },
 );
 foreach my $payload (0, 1500 - 28, 1500 - 28 - 4 + 1500 - 20, 2**16 - 1 - 28) {
