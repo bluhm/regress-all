@@ -41,6 +41,7 @@ usage: $0 [-sv] [-b kstack] [-e environment] [-t timeout] [test ...]
 		localnet, localnet4, localnet6,
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
 		forward, forward4, forward6 relay, relay4, relay6,
+		frag, frag4, frag6,
 		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
 		veb, veb4, veb6,
 		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
@@ -61,7 +62,7 @@ my %allmodes;
     net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
     localnet localnet4 localnet6
     linuxnet linuxiperftcp4 linuxiperftcp6
-    forward forward4 forward6 relay relay4 relay6
+    forward forward4 forward6 relay relay4 relay6 frag frag4 frag6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
     veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
     pfsync
@@ -98,6 +99,7 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(iperfudp4 iperfudp6)} = 1..2 if $testmode{iperfudp};
 @testmode{qw(forward4 forward6)} = 1..2 if $testmode{forward};
 @testmode{qw(relay4 relay6)} = 1..2 if $testmode{relay};
+@testmode{qw(frag4 frag6)} = 1..2 if $testmode{frag};
 @testmode{qw(ipsec4 ipsec44 ipsec46 ipsec6 ipsec64 ipsec66)} = 1..6
     if $testmode{ipsec};
 @testmode{qw(veb4 veb6)} = 1..2 if $testmode{veb};
@@ -160,6 +162,8 @@ sub good {
     $tr->sync();
 }
 
+my $localhost = "127.0.0.1";
+my $localhost6 = "::1";
 my $local_if = $ENV{LOCAL_IF};
 my $remote_if = $ENV{REMOTE_IF};
 my $remote_ssh = $ENV{REMOTE_SSH}
@@ -187,6 +191,8 @@ my $linux_forward_addr = $ENV{LINUX_FORWARD_ADDR};
 my $linux_forward_addr6 = $ENV{LINUX_FORWARD_ADDR6};
 my $linux_relay_addr = $ENV{LINUX_RELAY_ADDR};
 my $linux_relay_addr6 = $ENV{LINUX_RELAY_ADDR6};
+my $linux_linux_addr = $ENV{LINUX_LINUX_ADDR};
+my $linux_linux_addr6 = $ENV{LINUX_LINUX_ADDR6};
 my $linux_ipsec_addr = $ENV{LINUX_IPSEC_ADDR};
 my $linux_ipsec_addr6 = $ENV{LINUX_IPSEC_ADDR6};
 my $linux_ipsec6_addr = $ENV{LINUX_IPSEC6_ADDR};
@@ -207,6 +213,8 @@ my $pfsync_addr = $ENV{PFSYNC_ADDR};
 my $pfsync_peer_if = $ENV{PFSYNC_PEER_IF};
 my $pfsync_peer_addr = $ENV{PFSYNC_PEER_ADDR};
 my $pfsync_ssh = $ENV{PFSYNC_SSH};
+
+my $netbench = "$performdir/netbench.pl";
 
 # tcpdump as workaround for missing workaround in ix(4) for 82598
 # tcpdump during reboot may not be sufficent as other side changes link later
@@ -597,6 +605,55 @@ push @tests, (
 	parser => \&udpbench_parser,
     }
 ) if $testmode{udpbench6};
+my @frag = (
+    {
+	# loopback
+	client => undef,
+	server => undef,
+	address => $localhost,
+    },
+    {
+	# local send, other OpenBSD recv
+	client => undef,
+	server => $remote_ssh,
+	address => $remote_addr,
+    },
+    {
+	# local recv, other OpenBSD send
+	client => $remote_ssh,
+	server => undef,
+	address => $local_addr,
+    },
+    {
+	# local recv, Linux send
+	client => $linux_ssh,
+	server => undef,
+	address => $linux_relay_addr,
+    },
+    {
+	# local send, other Linux recv
+	client => undef,
+	server => $linux_other_ssh,
+	address => $linux_forward_addr,
+    },
+    {
+	# Linux send, other Linux recv
+	client => $linux_ssh,
+	server => $linux_other_ssh,
+	address => $linux_linux_addr,
+    },
+);
+push @tests, map {
+    {
+	testcmd => [$netbench,
+	    '-a', $_->{address},
+	    '-b', 1000000,
+	     $_->{client} ? ('-c', $_->{client}) : (),
+	     $_->{server} ? ('-s', $_->{server}) : (),
+	    'udpbench'],
+	parser => \&udpbench_parser,
+    }
+} @frag if $testmode{frag4};
 push @tests, (
     {
 	initialize => \&iperf3_initialize,

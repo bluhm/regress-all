@@ -157,7 +157,8 @@ sub copy_scripts {
     runcmd(@scpcmd);
 
     @copy = grep { -f $_ }
-	("perform.pl", "makealign.sh", "env-$host.sh", "pkg-$host.list");
+	("perform.pl", "netbench.pl", "makealign.sh", "env-$host.sh",
+	    "pkg-$host.list");
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$user\@$host:/root/perform");
