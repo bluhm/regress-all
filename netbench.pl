@@ -76,8 +76,6 @@ my $port;
 while (<$server_fh>) {
     print $_ if $opts{v};
     if (/^sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
-	$1 eq $addr
-	    or die "Server address is '$1', expected '$addr'";
 	$port = $2;
 	print "netbench port: $port\n" if $opts{v};
 	last;

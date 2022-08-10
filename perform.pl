@@ -610,50 +610,67 @@ my @frag = (
 	# loopback
 	client => undef,
 	server => undef,
-	address => $localhost,
+	address => '$localhost',
     },
     {
 	# local send, other OpenBSD recv
 	client => undef,
 	server => $remote_ssh,
-	address => $remote_addr,
+	address => '$remote_addr',
     },
     {
 	# local recv, other OpenBSD send
 	client => $remote_ssh,
 	server => undef,
-	address => $local_addr,
+	address => '$local_addr',
     },
     {
 	# local recv, Linux send
 	client => $linux_ssh,
 	server => undef,
-	address => $linux_relay_addr,
+	address => '$linux_relay_addr',
     },
     {
 	# local send, other Linux recv
 	client => undef,
 	server => $linux_other_ssh,
-	address => $linux_forward_addr,
+	address => '$linux_forward_addr',
     },
     {
 	# Linux send, other Linux recv
 	client => $linux_ssh,
 	server => $linux_other_ssh,
-	address => $linux_linux_addr,
+	address => '$linux_linux_addr',
     },
 );
-push @tests, map {
-    {
-	testcmd => [$netbench,
-	    '-a', $_->{address},
-	    '-b', 1000000,
-	     $_->{client} ? ('-c', $_->{client}) : (),
-	     $_->{server} ? ('-s', $_->{server}) : (),
-	    'udpbench'],
-	parser => \&udpbench_parser,
-    }
-} @frag if $testmode{frag4};
+foreach my $payload (0, 1500 - 28, 1500 - 28 - 4 + 1500 - 20, 2**16 - 1 - 28) {
+    push @tests, map {
+	{
+	    testcmd => [$netbench,
+		'-b', 1000000,
+		'-l', $payload,
+		 $_->{client} ? ('-c', $_->{client}) : (),
+		 $_->{server} ? ('-s', $_->{server}) : (),
+		'-a', eval "$_->{address}",
+		'udpbench'],
+	    parser => \&udpbench_parser,
+	}
+    } @frag if $testmode{frag4};
+}
+foreach my $payload (0, 1500 - 48, 1500 - 56 + 1500 - 48 - 8, 2**16 - 1 - 8) {
+    push @tests, map {
+	{
+	    testcmd => [$netbench,
+		'-b', 1000000,
+		'-l', $payload,
+		 $_->{client} ? ('-c', $_->{client}) : (),
+		 $_->{server} ? ('-s', $_->{server}) : (),
+		'-a', eval "$_->{address}6",
+		'udpbench'],
+	    parser => \&udpbench_parser,
+	}
+    } @frag if $testmode{frag6};
+}
 push @tests, (
     {
 	initialize => \&iperf3_initialize,
