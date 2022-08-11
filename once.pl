@@ -53,7 +53,7 @@ usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
 		localnet, localnet4, localnet6,
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
 		forward, forward4, forward6,
-		relay, relay4, relay6,
+		relay, relay4, relay6, frag, frag4, frag6,
 		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
 		veb, veb4, veb6,
 		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
@@ -101,6 +101,7 @@ $kernelmode{$opts{k}} = 1 if $opts{k};
     localnet localnet4 localnet6
     linuxnet linuxiperftcp4 linuxiperftcp6
     forward forward4 forward6 relay relay4 relay6
+    frag frag4 frag6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
     veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
     pfsync
