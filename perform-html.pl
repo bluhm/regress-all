@@ -515,6 +515,7 @@ sub write_data_files {
 			my $hostname = $dv->{host};
 			# avoid noise of data in sendbuf, but not reveived
 			next if $test =~ /iperf/ && $subtest eq "sender";
+			next if $test =~ /netbench/ && $subtest eq "send";
 			print $_ "$test $subtest ".
 			    "$run $checkout $repeat $number $unit $hostname\n"
 			    foreach @fhout;
