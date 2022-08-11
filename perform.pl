@@ -162,8 +162,6 @@ sub good {
     $tr->sync();
 }
 
-my $localhost = "127.0.0.1";
-my $localhost6 = "::1";
 my $local_if = $ENV{LOCAL_IF};
 my $remote_if = $ENV{REMOTE_IF};
 my $remote_ssh = $ENV{REMOTE_SSH}
@@ -606,12 +604,6 @@ push @tests, (
     }
 ) if $testmode{udpbench6};
 my @frag = (
-    {
-	# loopback
-	client => undef,
-	server => undef,
-	address => '$localhost',
-    },
     {
 	# local send, other OpenBSD recv
 	client => undef,
