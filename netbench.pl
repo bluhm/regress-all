@@ -63,74 +63,79 @@ chdir($dir)
 my $netbenchdir = getcwd();
 $| = 1;
 
-my @server_cmd = ('udpbench');
-push @server_cmd, "-b$opts{b}" if defined($opts{b});
-push @server_cmd, "-l$opts{l}" if defined($opts{l});
-push @server_cmd, ('-t'.($timeout+10), '-p0', 'recv', $addr);
-unshift @server_cmd, ('ssh', '-nT', $server_ssh) if $server_ssh;
+my %server = (
+    name	=> "server",
+    ssh		=> $server_ssh,
+    addr	=> $addr,
+);
+start_server(\%server);
 
-my $server_pid = open(my $server_fh, '-|', @server_cmd)
-    or die "Open pipe from server '@server_cmd' failed: $!";
-
-my $port;
-while (<$server_fh>) {
-    print $_ if $opts{v};
-    if (/^sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
-	$port = $2;
-	print "netbench port: $port\n" if $opts{v};
-	last;
-    }
-}
-unless (defined) {
-    close($server_fh) or die $! ?
-	"Close pipe from server '@server_cmd' failed: $!" :
-	"Server '@server_cmd' failed: $?";
-    undef $server_fh;
-}
-
-my @client_cmd = ('udpbench');
-push @client_cmd, "-B$opts{B}" if defined($opts{B});
-push @client_cmd, "-b$opts{b}" if defined($opts{b});
-push @client_cmd, "-l$opts{l}" if defined($opts{l});
-push @client_cmd, "-P$opts{P}" if defined($opts{P});
-push @client_cmd, ("-t$timeout", "-p$port", 'send', $addr);
-unshift @client_cmd, ('ssh', '-nT', $client_ssh) if $client_ssh;
-
-my $client_pid = open(my $client_fh, '-|', @client_cmd)
-    or die "Open pipe from client '@client_cmd' failed: $!";
-
-while (<$client_fh>) {
-    print $_ if $opts{v};
-    if (/^sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
-	last;
-    }
-}
-unless (defined) {
-    close($client_fh) or die $! ?
-	"Close pipe from client '@client_cmd' failed: $!" :
-	"Client '@client_cmd' failed: $?";
-    undef $client_fh;
-}
+print "netbench port: $server{port}\n" if $opts{v};
 
 my %client = (
     name	=> "client",
-    fh		=> $client_fh,
-    cmd		=> \@client_cmd,
-    prev	=> undef,
+    ssh		=> $client_ssh,
+    addr	=> $server{addr},
+    port	=> $server{port},
 );
-
-my %server = (
-    name	=> "server",
-    fh		=> $server_fh,
-    cmd		=> \@server_cmd,
-    prev	=> undef,
-);
+start_client(\%client);
 
 set_nonblock($_) foreach (\%client, \%server);
 
 select_output(\%client, \%server);
 
 exit;
+
+sub start_server {
+    my ($proc) = @_;
+
+    my @cmd = ('udpbench');
+    push @cmd, "-b$opts{b}" if defined($opts{b});
+    push @cmd, "-l$opts{l}" if defined($opts{l});
+    push @cmd, ('-t'.($timeout+10), '-p0', 'recv', $proc->{addr});
+    unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
+    $proc->{cmd} = \@cmd;
+
+    open_pipe($proc);
+}
+
+sub start_client {
+    my ($proc) = @_;
+
+    my @cmd = ('udpbench');
+    push @cmd, "-B$opts{B}" if defined($opts{B});
+    push @cmd, "-b$opts{b}" if defined($opts{b});
+    push @cmd, "-l$opts{l}" if defined($opts{l});
+    push @cmd, "-P$opts{P}" if defined($opts{P});
+    push @cmd, ("-t$timeout", "-p$proc->{port}", 'send', $proc->{addr});
+    unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
+    $proc->{cmd} = \@cmd;
+
+    open_pipe($proc);
+}
+
+sub open_pipe {
+    my ($proc) = @_;
+
+    $proc->{pid} = open(my $fh, '-|', @{$proc->{cmd}})
+	or die "Open pipe from proc $proc->{name} '@{$proc->{cmd}}' failed: $!";
+    $proc->{fh} = $fh;
+
+    while (<$fh>) {
+	print $_ if $opts{v};
+	if (/^sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
+	    $proc->{addr} = $1;
+	    $proc->{port} = $2;
+	    last;
+	}
+    }
+    unless (defined) {
+	close($fh) or die $! ?
+	    "Close pipe from proc $proc->{name} '@{$proc->{cmd}}' failed: $!" :
+	    "Proc $proc->{name} Client '@{$proc->{cmd}}' failed: $?";
+	delete $proc->{fh};
+    }
+}
 
 sub set_nonblock {
     my ($proc) = @_;
