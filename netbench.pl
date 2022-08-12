@@ -112,60 +112,70 @@ unless (defined) {
     undef $client_fh;
 }
 
-my $flags = fcntl($client_fh, F_GETFL, 0)
-    or die "Client fcntl F_GETFL failed: $!\n";
-fcntl($client_fh, F_SETFL, $flags | O_NONBLOCK)
-    or die "Client fcntl F_SETFL O_NONBLOCK failed: $!\n";
-$flags = fcntl($server_fh, F_GETFL, 0)
-    or die "Server fcntl F_GETFL failed: $!\n";
-fcntl($server_fh, F_SETFL, $flags | O_NONBLOCK)
-    or die "Server fcntl F_SETFL O_NONBLOCK failed: $!\n";
+my %client = (
+    name	=> "client",
+    fh		=> $client_fh,
+    cmd		=> \@client_cmd,
+    prev	=> undef,
+);
 
-my ($client_prev, $server_prev);
-while ($client_fh || $server_fh) {
-    my $rin = '';
-    vec($rin, fileno($client_fh), 1) = 1 if $client_fh;
-    vec($rin, fileno($server_fh), 1) = 1 if $server_fh;
+my %server = (
+    name	=> "server",
+    fh		=> $server_fh,
+    cmd		=> \@server_cmd,
+    prev	=> undef,
+);
 
-    my $nfound = select(my $rout = $rin, undef, undef, undef);
-    defined($nfound)
-	or die "Select failed: $!";
-    $nfound
-	or die "Select timeout";
+set_nonblock($_) foreach (\%client, \%server);
 
-    if ($client_fh && vec($rout, fileno($client_fh), 1)) {
-	undef $!;
-	while (<$client_fh>) {
-	    print $_ if $opts{v};
-	    # handle short reads
-	    $_ = $client_prev. $_ if defined($client_prev);
-	    $client_prev = /\n$/ ? undef : $_;
-	    print $_ if !$opts{v} && /^(send|recv):.*\n/;
-	}
-	unless ($!{EWOULDBLOCK}) {
-	    close($client_fh) or die $! ?
-		"Close pipe from client '@client_cmd' failed: $!" :
-		"Client '@client_cmd' failed: $?";
-	    undef $client_fh;
-	}
-    }
+select_output(\%client, \%server);
 
-    if ($server_fh && vec($rout, fileno($server_fh), 1)) {
-	undef $!;
-	while (<$server_fh>) {
-	    print $_ if $opts{v};
-	    # handle short reads
-	    $_ = $server_prev. $_ if defined($server_prev);
-	    $server_prev = /\n$/ ? undef : $_;
-	    print $_ if !$opts{v} && /^(send|recv):.*\n/;
-	}
-	unless ($!{EWOULDBLOCK}) {
-	    close($server_fh) or die $! ?
-		"Close pipe from server '@server_cmd' failed: $!" :
-		"Server '@server_cmd' failed: $?";
-	    undef $server_fh;
-	}
+exit;
+
+sub set_nonblock {
+    my ($proc) = @_;
+
+    my $flags = fcntl($proc->{fh}, F_GETFL, 0)
+	or die "Proc $proc->{name} fcntl F_GETFL failed: $!\n";
+    fcntl($proc->{fh}, F_SETFL, $flags | O_NONBLOCK)
+	or die "Proc $proc->{name} fcntl F_SETFL O_NONBLOCK failed: $!\n";
+}
+
+sub select_output {
+    my @procs = @_;
+
+    while (my @fhs = map { $_->{fh} || () } @procs) {
+	my $rin = '';
+	vec($rin, fileno($_), 1) = 1 foreach @fhs;
+
+	my $nfound = select(my $rout = $rin, undef, undef, undef);
+	defined($nfound)
+	    or die "Select failed: $!";
+	$nfound
+	    or die "Select timeout";
+
+	read_output($_, $rout) foreach @procs;
     }
 }
 
-exit;
+sub read_output {
+    my ($proc, $rout) = @_;
+
+    $proc->{fh} && vec($rout, fileno($proc->{fh}), 1)
+	or return;
+
+    undef $!;
+    while (readline($proc->{fh})) {
+	print $_ if $opts{v};
+	# handle short reads
+	$_ = $proc->{prev}. $_ if defined($proc->{prev});
+	$proc->{prev} = /\n$/ ? undef : $_;
+	print $_ if !$opts{v} && /^(send|recv):.*\n/;
+    }
+    unless ($!{EWOULDBLOCK}) {
+	close($proc->{fh}) or die $! ?
+	    "Close pipe from proc $proc->{name} '@{$proc->{cmd}}' failed: $!" :
+	    "Proc $proc->{name} '@{$proc->{cmd}}' failed: $?";
+	delete $proc->{fh};
+    }
+}
