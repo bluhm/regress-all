@@ -27,7 +27,7 @@ getopts('a:B:b:c:l:P:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -a address [-B bitrate] [-b bufsize] [-c client] [-l length]
     [-P packetrate] [-s server] [-t timeout] [test ...]
-    -a address	IP address for packet destination
+    -a address	IP address for packet destination, comma repeat count
     -B bitrate	bits per seconds send rate
     -b bufsize	set size of send and receive buffer
     -c client	connect via ssh to start packet generator
@@ -42,8 +42,11 @@ EOF
 };
 my $addr = $opts{a}
     or die "IP Address required";
-$addr =~ /^[0-9]+\.[0-9.]+$/ || $addr =~ /^[0-9a-fA-F:]+$/
+$addr =~ /^([0-9]+\.[0-9.]+)(?:,(\d+))?$/ ||
+    $addr =~ /^([0-9a-fA-F:]+)(?:,(\d+))?$/
     or die "Address must be IPv4 or IPv6";
+$addr = $1;
+my $repeat = $2;
 my $client_ssh = $opts{c};
 my $server_ssh = $opts{s};
 my $timeout = $opts{t} || 1;
@@ -63,37 +66,60 @@ chdir($dir)
 my $netbenchdir = getcwd();
 $| = 1;
 
-my %server = (
-    name	=> "server",
-    ssh		=> $server_ssh,
-    addr	=> $addr,
-);
-start_server(\%server);
+my @addrs;
+if ($repeat) {
+    my ($net, $sep, $host) = $addr =~ /(.*)([.:])(.*)/;
+    my $hostnum = $sep eq ':' ? hex($host || 0) : $host;
+    foreach (1..$repeat) {
+	$host = $sep eq ':' ? sprintf("%x", $hostnum) : $hostnum;
+	push @addrs, "$net$sep$host";
+	$hostnum++;
+	$hostnum = $sep eq ':' ? ($hostnum & 0xffff) : ($hostnum & 0xff);
+    }
+} else {
+    push @addrs, $addr;
+}
 
-print "netbench port: $server{port}\n" if $opts{v};
+my (@servers, @clients);
+for (my $num = 0; $num < @addrs; $num++) {
+    my $suffix = $repeat ? " $num" : "";
+    my %server = (
+	name	=> "server$suffix",
+	ssh	=> $server_ssh,
+	addr	=> $addrs[$num],
+    );
+    start_server(\%server);
+    print "netbench$suffix: $server{addr} $server{port}\n" if $opts{v};
 
-my %client = (
-    name	=> "client",
-    ssh		=> $client_ssh,
-    addr	=> $server{addr},
-    port	=> $server{port},
-);
-start_client(\%client);
+    my %client = (
+	name	=> "client$suffix",
+	ssh	=> $client_ssh,
+	addr	=> $server{addr},
+	port	=> $server{port},
+    );
+    push @servers, \%server;
+    push @clients, \%client;
+}
 
-set_nonblock($_) foreach (\%client, \%server);
+start_client($_) foreach (@clients);
 
-select_output(\%client, \%server);
+set_nonblock($_) foreach (@clients, @servers);
+
+select_output(@clients, @servers);
 
 exit;
 
+my %master;
 sub start_server {
     my ($proc) = @_;
 
     my @cmd = ('udpbench');
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-l$opts{l}" if defined($opts{l});
-    push @cmd, ('-t'.($timeout+10), '-p0', 'recv', $proc->{addr});
-    unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
+    push @cmd, ('-t'.($timeout+$repeat+10), '-p0', 'recv', $proc->{addr});
+    unshift @cmd, ($proc->{ssh}) if $proc->{ssh};
+    unshift @cmd, '-M' if $repeat && !$master{$proc->{ssh}}++;
+    unshift @cmd, ('ssh', '-nT');
     $proc->{cmd} = \@cmd;
 
     open_pipe($proc);
@@ -108,7 +134,9 @@ sub start_client {
     push @cmd, "-l$opts{l}" if defined($opts{l});
     push @cmd, "-P$opts{P}" if defined($opts{P});
     push @cmd, ("-t$timeout", "-p$proc->{port}", 'send', $proc->{addr});
-    unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
+    unshift @cmd, ($proc->{ssh}) if $proc->{ssh};
+    unshift @cmd, '-M' if $repeat && !$master{$proc->{ssh}}++;
+    unshift @cmd, ('ssh', '-nT') if $proc->{ssh};
     $proc->{cmd} = \@cmd;
 
     open_pipe($proc);
@@ -121,8 +149,9 @@ sub open_pipe {
 	or die "Open pipe from proc $proc->{name} '@{$proc->{cmd}}' failed: $!";
     $proc->{fh} = $fh;
 
+    local $_;
     while (<$fh>) {
-	print $_ if $opts{v};
+	print if $opts{v};
 	if (/^sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
 	    $proc->{addr} = $1;
 	    $proc->{port} = $2;
@@ -170,15 +199,16 @@ sub read_output {
 	or return;
 
     undef $!;
+    local $_;
     while (readline($proc->{fh})) {
-	print $_ if $opts{v};
+	print if $opts{v};
 	# handle short reads
 	$_ = $proc->{prev}. $_ if defined($proc->{prev});
 	$proc->{prev} = /\n$/ ? undef : $_;
-	print $_ if !$opts{v} && /^(send|recv):.*\n/;
+	print if !$opts{v} && /^(send|recv):.*\n/;
     }
     unless ($!{EWOULDBLOCK}) {
-	close($proc->{fh}) or die $! ?
+	close($proc->{fh}) or warn $! ?
 	    "Close pipe from proc $proc->{name} '@{$proc->{cmd}}' failed: $!" :
 	    "Proc $proc->{name} '@{$proc->{cmd}}' failed: $?";
 	delete $proc->{fh};
