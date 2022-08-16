@@ -45,7 +45,7 @@ usage: $0 [-sv] [-b kstack] [-e environment] [-t timeout] [test ...]
 		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
 		veb, veb4, veb6,
 		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
-		pfsync
+		nopf pfsync
 EOF
     exit(2);
 };
@@ -65,7 +65,7 @@ my %allmodes;
     forward forward4 forward6 relay relay4 relay6 frag frag4 frag6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
     veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
-    pfsync
+    nopf pfsync
 )} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
@@ -74,9 +74,9 @@ my %testmode = map {
 $testmode{all} = 1 unless @ARGV;
 @testmode{qw(net make fs)} = 1..3 if $testmode{all};
 @testmode{qw(net4 net6 forward relay ipsec veb)} = 1..6 if $testmode{net};
-@testmode{qw(tcp4 udp4 forward4 relay4 frag4 ipsec4 ipsec44 veb4)} = 1..8
+@testmode{qw(tcp4 udp4 forward4 relay4 ipsec4 ipsec44 veb4)} = 1..7
     if $testmode{net4};
-@testmode{qw(tcp6 udp6 forward6 relay6 frag6 ipsec6 ipsec66 veb6)} = 1..8
+@testmode{qw(tcp6 udp6 forward6 relay6 ipsec6 ipsec66 veb6)} = 1..7
     if $testmode{net6};
 @testmode{qw(localnet4 localnet6)} = 1..2 if $testmode{localnet};
 @testmode{qw(iperftcp4 iperfudp4 tcpbench4 udpbench4)} = 1..4
@@ -90,9 +90,9 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(tcp4 tcp6)} = 1..2 if $testmode{tcp};
 @testmode{qw(iperftcp4 tcpbench4 linuxiperftcp4)} = 1..3 if $testmode{tcp4};
 @testmode{qw(iperftcp6 tcpbench6 linuxiperftcp6)} = 1..3 if $testmode{tcp6};
-@testmode{qw(udp4 udp6 frag)} = 1..3 if $testmode{udp};
-@testmode{qw(iperfudp4 udpbench4 frag4)} = 1..3 if $testmode{udp4};
-@testmode{qw(iperfudp6 udpbench6 frag6)} = 1..3 if $testmode{udp6};
+@testmode{qw(udp4 udp6)} = 1..2 if $testmode{udp};
+@testmode{qw(iperfudp4 udpbench4)} = 1..2 if $testmode{udp4};
+@testmode{qw(iperfudp6 udpbench6)} = 1..2 if $testmode{udp6};
 @testmode{qw(tcpbench4 tcpbench6)} = 1..2 if $testmode{tcpbench};
 @testmode{qw(udpbench4 udpbench6)} = 1..2 if $testmode{udpbench};
 @testmode{qw(iperftcp4 iperftcp6)} = 1..2 if $testmode{iperftcp};
@@ -406,6 +406,24 @@ sub iked_shutdown {
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
     @sshcmd = ('ssh', $remote_ssh, @cmd);
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+}
+
+sub pf_enable {
+    my @cmd = ('/sbin/pfctl', '-e', '-f', '/etc/pf.conf');
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $remote_ssh, @cmd);
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+}
+
+sub pf_disable {
+    my @cmd = ('/sbin/pfctl', '-d');
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $remote_ssh, @cmd);
     system(@sshcmd) and
 	die "Command '@sshcmd' failed: $?";
 }
@@ -858,6 +876,10 @@ push @tests, (
 if ($testmode{pfsync}) {
     $tests[0]{startup} = \&pfsync_startup;
     $tests[-1]{shutdown} = \&pfsync_shutdown;
+}
+if ($testmode{nopf}) {
+    $tests[0]{startup} = \&pf_disable;
+    $tests[-1]{shutdown} = \&pf_enable;
 }
 push @tests, (
     {
