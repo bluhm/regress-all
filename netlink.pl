@@ -30,11 +30,13 @@ my @allifs = sort qw(em igc ix ixl);
 
 sub usage {
     print STDERR <<"EOF";
-usage: $0 [-v] [-t timeout] [-n index] [-p pseudo-dev] -i interface test
+usage: netlink.pl [-v] [-t timeout] [-l index] [-r index] [-p pseudo-dev]
+	-i interface test
     -v			verbose
     -t timeout		timeout for a single test, default 60 seconds
+    -l index		interface index, default 0
+    -r index		interface index, default 1
     -p pseudo-dev	@{[ join ', ', @allpseudodevs ]}
-    -n index		interface index, default 0
     -i interface	@{[ join ', ', @allifs ]}
     test		@{[ join ', ', @alltests ]}
 			appending 4 or 6 to a test restricts the IP version.
@@ -43,14 +45,16 @@ EOF
 }
 
 my %opts;
-getopts('i:n:p:t:v', \%opts) or usage;
+getopts('i:l:p:r:t:v', \%opts) or usage;
 
 my $verbose = $opts{v};
 my $timeout = $opts{t} || 60;
 my $pseudodev = $opts{p} || '';
 my $interface = $opts{i} || usage;
+# ifN if N is even then it is left, odd means right.
 # em0 usually is our configuration interface
-my $ifidx = $opts{n} || (($interface =~ m {^em})? 1 : 0);
+my $left_ifidx = $opts{l} || (($interface =~ m {^em})? 2 : 0);
+my $right_ifidx = $opts{r} || 1;
 
 die "Unknown interface: $interface" unless grep { $_ eq $interface } @allifs;
 if (!grep { $_ eq $pseudodev} @allpseudodevs && $pseudodev) {
@@ -91,26 +95,33 @@ $lines{ot41} = 1;
 $lines{ot42} = 2;
 my $line = $lines{$hostname};
 
-my $ifl = $interface . $ifidx;
-my $ifr = $interface . ($ifidx + 1);
-my $ifl_net = "$ip4prefix.${line}1.0";
-my $ifr_net = "$ip4prefix.${line}2.0";
-my $ifl_addr = "$ip4prefix.${line}1.2";
-my $ifr_addr = "$ip4prefix.${line}2.3";
-my $ifl_net6 = "${ip6prefix}:${line}1::/64";
-my $ifr_net6 = "${ip6prefix}:${line}2::/64";
-my $ifl_addr6 = "${ip6prefix}:${line}1::2";
-my $ifr_addr6 = "${ip6prefix}:${line}2::3";
+my $obsd_l_if = $interface . $left_ifidx;
+my $obsd_l_net = "$ip4prefix.${line}1.0";
+my $obsd_l_addr = "$ip4prefix.${line}1.2";
+my $obsd_l_net6 = "${ip6prefix}:${line}1::/64";
+my $obsd_l_addr6 = "${ip6prefix}:${line}1::2";
 
+my $obsd_r_if = $interface . $right_ifidx;
+my $obsd_r_net = "$ip4prefix.${line}2.0";
+my $obsd_r_addr = "$ip4prefix.${line}2.3";
+my $obsd_r_net6 = "${ip6prefix}:${line}2::/64";
+my $obsd_r_addr6 = "${ip6prefix}:${line}2::3";
 
-my $linux_ifl = "enp6s0"; # XXX: make this an env var?
-my $linux_ifr = "enp6s0"; # XXX
-my $linux_ifl_addr = "$ip4prefix.${line}1.1";
-my $linux_ifr_addr = "$ip4prefix.${line}2.4";
-my $linux_ifl_addr6 = "${ip6prefix}:${line}1::1";
-my $linux_ifr_addr6 = "${ip6prefix}:${line}2::4";
-my $linux_ifl_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
-my $linux_ifr_ssh = 'root@lt43'; #$ENV{LINUXR_SSH};
+my $lnx_l_if = "enp6s0"; # XXX: make this an env var?
+my $lnx_l_pdev = "$lnx_l_if.$line";
+my $lnx_l_addr = "$ip4prefix.${line}1.1";
+my $lnx_l_addr6 = "${ip6prefix}:${line}1::1";
+my $lnx_l_net = "$lnx_l_addr/24";
+my $lnx_l_net6 = "$lnx_l_addr6/64";
+my $lnx_l_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
+
+my $lnx_r_if = "enp6s0"; # XXX
+my $lnx_r_pdev = "$lnx_r_if.$line";
+my $lnx_r_addr = "$ip4prefix.${line}2.4";
+my $lnx_r_addr6 = "${ip6prefix}:${line}2::4";
+my $lnx_r_net = "$lnx_r_addr/24";
+my $lnx_r_net6 = "$lnx_r_addr6/64";
+my $lnx_r_ssh = 'root@lt43'; #$ENV{LINUXR_SSH};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -153,8 +164,8 @@ sub good {
 
 # ensure given interface is active
 # XXX: do grep in perl
-mysystem("ifconfig ${ifl} | grep -q active") == 0 or die "${ifl} is not active";
-mysystem("ifconfig ${ifr} | grep -q active") == 0 or die "${ifr} is not active";
+mysystem("ifconfig ${obsd_l_if} | grep -q active") == 0 or die "${obsd_l_if} is not active";
+mysystem("ifconfig ${obsd_r_if} | grep -q active") == 0 or die "${obsd_r_if} is not active";
 
 # unconfigure all interfaces used in testing
 # XXX: do grep in perl
@@ -169,33 +180,44 @@ foreach my $ifn (@allinterfaces) {
     mysystem('ifconfig', $ifn, 'destroy') if ($ifn =~ m{^($pdevre)});
 }
 
+# unconfigure linux interfaces
+mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'del', $lnx_l_pdev);
+mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net, 'dev',
+	$lnx_l_if);
+mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'del', $lnx_r_pdev);
+mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net, 'dev',
+	$lnx_r_if);
+
 # configure given interface type
 if ($ipv4 && ($pseudodev eq 'bridge' || !$pseudodev)) {
-    mysystem('ifconfig', $ifl, 'inet', "${ifl_addr}/24", 'up');
-    mysystem('ifconfig', $ifr, 'inet', "${ifr_addr}/24", 'up');
+    mysystem('ifconfig', $obsd_l_if, 'inet', "${obsd_l_addr}/24", 'up');
+    mysystem('ifconfig', $obsd_r_if, 'inet', "${obsd_r_addr}/24", 'up');
 }
 if ($ipv6 && ($pseudodev eq 'bridge' || !$pseudodev)) {
-    mysystem('ifconfig', $ifl, 'inet6', $ifl_addr6, 'up');
-    mysystem('ifconfig', $ifr, 'inet6', $ifr_addr6, 'up');
+    mysystem('ifconfig', $obsd_l_if, 'inet6', $obsd_l_addr6, 'up');
+    mysystem('ifconfig', $obsd_r_if, 'inet6', $obsd_r_addr6, 'up');
 }
+
+mysystem('sysctl net.inet.ip.forwarding=1') if ($ipv4);
+mysystem('sysctl net.inet6.ip6.forwarding=1') if ($ipv6);
 
 if ($pseudodev eq 'aggr') {
     # XXX: multiple interfaces in one aggr
     mysystem('ifconfig', 'aggr0', 'create');
     mysystem('ifconfig', 'aggr1', 'create');
 
-    mysystem('ifconfig', $ifl, 'up');
-    mysystem('ifconfig', $ifr, 'up');
-    mysystem('ifconfig', 'aggr0', 'trunkport', $ifl);
-    mysystem('ifconfig', 'aggr1', 'trunkport', $ifr);
+    mysystem('ifconfig', $obsd_l_if, 'up');
+    mysystem('ifconfig', $obsd_r_if, 'up');
+    mysystem('ifconfig', 'aggr0', 'trunkport', $obsd_l_if);
+    mysystem('ifconfig', 'aggr1', 'trunkport', $obsd_r_if);
 
     if ($ipv4) {
-	mysystem('ifconfig', 'aggr0', "${ifl_addr}/24");
-	mysystem('ifconfig', 'aggr1', "${ifr_addr}/24");
+	mysystem('ifconfig', 'aggr0', "${obsd_l_addr}/24");
+	mysystem('ifconfig', 'aggr1', "${obsd_r_addr}/24");
     }
     if ($ipv6) {
-	mysystem('ifconfig', 'aggr0', $ifl_addr6);
-	mysystem('ifconfig', 'aggr1', $ifr_addr6);
+	mysystem('ifconfig', 'aggr0', $obsd_l_addr6);
+	mysystem('ifconfig', 'aggr1', $obsd_r_addr6);
     }
 
     mysystem('ifconfig', 'aggr0', 'up');
@@ -203,8 +225,8 @@ if ($pseudodev eq 'aggr') {
 } elsif ($pseudodev eq 'bridge') {
     # XXX: vether
     mysystem('ifconfig', 'bridge0', 'create');
-    mysystem('ifconfig', 'bridge0', 'add', $ifl);
-    mysystem('ifconfig', 'bridge0', 'add', $ifr);
+    mysystem('ifconfig', 'bridge0', 'add', $obsd_l_if);
+    mysystem('ifconfig', 'bridge0', 'add', $obsd_r_if);
     mysystem('ifconfig', 'bridge0', 'up');
 } elsif ($pseudodev eq 'carp') {
     # XXX
@@ -216,68 +238,88 @@ if ($pseudodev eq 'aggr') {
     mysystem('ifconfig', 'vport1', 'create');
 
     if ($ipv4) {
-	mysystem('ifconfig', 'vport0', 'inet', "${ifl_addr}/24");
-	mysystem('ifconfig', 'vport1', 'inet', "${ifr_addr}/24");
+	mysystem('ifconfig', 'vport0', 'inet', "${obsd_l_addr}/24");
+	mysystem('ifconfig', 'vport1', 'inet', "${obsd_r_addr}/24");
     }
     if ($ipv6) {
-	mysystem('ifconfig', 'vport0', 'inet6', $ifl_addr6);
-	mysystem('ifconfig', 'vport1', 'inet6', $ifr_addr6);
+	mysystem('ifconfig', 'vport0', 'inet6', $obsd_l_addr6);
+	mysystem('ifconfig', 'vport1', 'inet6', $obsd_r_addr6);
     }
 
     mysystem('ifconfig', 'vport0', 'up');
     mysystem('ifconfig', 'vport1', 'up');
-    mysystem('ifconfig', $ifl, 'up');
-    mysystem('ifconfig', $ifr, 'up');
-    mysystem('ifconfig', 'veb0', 'add', $ifl);
-    mysystem('ifconfig', 'veb0', 'add', $ifr);
+    mysystem('ifconfig', $obsd_l_if, 'up');
+    mysystem('ifconfig', $obsd_r_if, 'up');
+    mysystem('ifconfig', 'veb0', 'add', $obsd_l_if);
+    mysystem('ifconfig', 'veb0', 'add', $obsd_r_if);
     mysystem('ifconfig', 'veb0', 'add', 'vport0');
     mysystem('ifconfig', 'veb0', 'add', 'vport1');
     mysystem('ifconfig', 'veb0', 'up');
 } elsif ($pseudodev eq 'vlan') {
-    # XXX
-}
-# XXX: tpmr, nipsec, gre?
+    my $vlanl = $line;
+    my $vlanr = 128 + $line;
+    mysystem('ssh', $lnx_l_ssh, 'modprobe', '8021q');
+    mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'link', $lnx_l_if,
+	'name', $lnx_l_pdev, 'type', 'vlan', 'id', $vlanl);
+    mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net,
+	'dev', $lnx_l_pdev);
+    mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'set', 'dev',
+	$lnx_l_pdev, 'up');
 
-# XXX: if(forwarding)
-mysystem('sysctl net.inet.ip.forwarding=1') if ($ipv4);
-mysystem('sysctl net.inet6.ip6.forwarding=1') if ($ipv6);
+    mysystem('ssh', $lnx_r_ssh, 'modprobe', '8021q');
+    mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'link', $lnx_r_if,
+	'name', $lnx_r_pdev, 'type', 'vlan', 'id', $vlanr);
+    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $lnx_r_net,
+	'dev', $lnx_r_pdev);
+    mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'set', 'dev',
+	$lnx_r_pdev, 'up');
+
+    mysystem('ifconfig', 'vlan0', 'create');
+    mysystem('ifconfig', 'vlan1', 'create');
+    mysystem('ifconfig', 'vlan0', 'parent', $obsd_l_if, 'vnetid', $vlanl);
+    mysystem('ifconfig', 'vlan1', 'parent', $obsd_r_if, 'vnetid', $vlanr);
+
+    if ($ipv4) {
+	mysystem('ifconfig', 'vlan0', 'inet', "${obsd_l_addr}/24", 'up');
+	mysystem('ifconfig', 'vlan1', 'inet', "${obsd_r_addr}/24", 'up');
+    }
+    if ($ipv6) {
+	mysystem('ifconfig', 'vlan0', 'inet6', $obsd_l_addr6, 'up');
+	mysystem('ifconfig', 'vlan1', 'inet6', $obsd_r_addr6, 'up');
+    }
+# XXX: tpmr, nipsec, gre?
+} else {
+    # XXX: move "normal" interface config here?
+}
 
 # configure linux machines
 
 if ($ipv4) {
-    my @sshcmd = ('ssh', $linux_ifl_ssh);
-    mysystem(@sshcmd, 'ifconfig', "$linux_ifl:$line", 'down');
-    mysystem(@sshcmd, 'ifconfig', $linux_ifl, '10.10.0.1', 'netmask',
-	'255.255.0.0');
-    mysystem(@sshcmd, 'ifconfig', "$linux_ifl:$line", $linux_ifl_addr,
-	'netmask', '255.255.255.0');
-    # XXX: if(forwarding)
-    mysystem(@sshcmd, 'route', 'add', '-net', $ifr_net, 'gw', $ifl_addr,
-	'netmask', '255.255.255.0', "$linux_ifl:$line");
+    my @sshcmd = ('ssh', $lnx_l_ssh);
+    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net, 'dev', $lnx_l_if);
+    mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_l_if, 'up');
+    mysystem(@sshcmd, 'route', 'add', '-net', $obsd_r_net, 'gw', $obsd_l_addr,
+	'netmask', '255.255.255.0', "$lnx_l_if");
 }
 if ($ipv6) {
-    my @sshcmd = ('ssh', $linux_ifl_ssh);
-    mysystem(@sshcmd, 'ifconfig', $linux_ifl, 'add', "$linux_ifl_addr6/64");
-    mysystem(@sshcmd, 'route', '-6', 'add', $ifr_net6, 'gw',
-	$ifl_addr6, $linux_ifl);
+    my @sshcmd = ('ssh', $lnx_l_ssh);
+    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net6, 'dev', $lnx_l_if);
+    mysystem(@sshcmd, 'route', '-6', 'add', $obsd_r_net6, 'gw', $obsd_l_addr6,
+	$lnx_l_if);
 }
 
 if ($ipv4) {
-    my @sshcmd = ('ssh', $linux_ifr_ssh);
-    mysystem(@sshcmd, 'ifconfig', "$linux_ifr:$line", 'down');
-    mysystem(@sshcmd, 'ifconfig', $linux_ifr, '10.10.0.1', 'netmask',
-	'255.255.0.0');
-    mysystem(@sshcmd, 'ifconfig', "$linux_ifr:$line", $linux_ifr_addr,
-	'netmask', '255.255.255.0');
-    # XXX: if(forwarding)
-    mysystem(@sshcmd, 'route', 'add', '-net', $ifl_net, 'gw', $ifr_addr,
-	'netmask', '255.255.255.0', "$linux_ifr:$line");
+    my @sshcmd = ('ssh', $lnx_r_ssh);
+    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net, 'dev', $lnx_r_if);
+    mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_r_if, 'up');
+    mysystem(@sshcmd, 'route', 'add', '-net', $obsd_l_net, 'gw', $obsd_r_addr,
+	'netmask', '255.255.255.0', "$lnx_r_if");
 }
 if ($ipv6) {
-    my @sshcmd = ('ssh', $linux_ifr_ssh);
-    mysystem(@sshcmd, 'ifconfig', $linux_ifr, 'add', "$linux_ifr_addr6/64");
-    mysystem(@sshcmd, 'route', '-6', 'add', $ifl_net6, 'gw',
-	$ifr_addr6, $linux_ifr);
+    my @sshcmd = ('ssh', $lnx_r_ssh);
+    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net6, 'dev', $lnx_r_if);
+    mysystem(@sshcmd, 'route', '-6', 'add', $obsd_l_net6, 'gw', $obsd_r_addr6,
+	$lnx_r_if);
 }
 
 # wait for linux
@@ -286,14 +328,14 @@ sleep(3);
 # tcpbench tests
 
 if ($testmode{tcp4} || $testmode{tcp6}) {
-    my @cmd = ('ssh', $linux_ifr_ssh, 'pkill -f tcpbench');
+    my @cmd = ('ssh', $lnx_r_ssh, 'pkill -f tcpbench');
     mysystem(@cmd);
 
     @cmd = ('pkill -f tcpbench');
     mysystem(@cmd);
 
     # requires echo 1 > /proc/sys/net/ipv6/bindv6only
-    @cmd = ('ssh', '-f', $linux_ifr_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
+    @cmd = ('ssh', '-f', $lnx_r_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
     mysystem(@cmd)
 	and die "Start tcpbench server with '@cmd' failed: $?";
 
@@ -367,164 +409,164 @@ sub udpbench_parser {
 my @tests;
 push @tests, (
     {
-	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-fc10000', $ifl_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'ping', '-qfc10000', $obsd_l_addr],
 	parser => \&ping_f_parser,
     }, {
-	testcmd => ['ping', '-fc10000', $linux_ifr_addr],
+	testcmd => ['ping', '-qfc10000', $lnx_r_addr],
 	parser => \&ping_f_parser,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'ping', '-fc10000', $linux_ifr_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'ping', '-qfc10000', $lnx_r_addr],
 	parser => \&ping_f_parser,
     }
 ) if ($testmode{icmp4});
 push @tests, (
     {
-	testcmd => ['ssh', $linux_ifl_ssh, 'ping6', '-fc10000', $ifl_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'ping6', '-qfc10000', $obsd_l_addr6],
 	parser => \&ping_f_parser,
     }, {
-	testcmd => ['ping6', '-fc10000', $linux_ifr_addr6],
+	testcmd => ['ping6', '-qfc10000', $lnx_r_addr6],
 	parser => \&ping_f_parser,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'ping6', '-fc10000', $linux_ifr_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'ping6', '-qfc10000', $lnx_r_addr6],
 	parser => \&ping_f_parser,
     }
 ) if ($testmode{icmp6});
 push @tests, (
     {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $ifl_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', $obsd_l_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $ifl_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $obsd_l_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', $linux_ifr_addr],
+	testcmd => ['tcpbench', '-S1000000', '-t10', $lnx_r_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr],
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $lnx_r_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $linux_ifr_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', $lnx_r_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $lnx_r_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }
 ) if ($testmode{tcp4});
 push @tests, (
     {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $ifl_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', $obsd_l_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $ifl_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $obsd_l_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
+	testcmd => ['tcpbench', '-S1000000', '-t10', $lnx_r_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $lnx_r_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', $linux_ifr_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', $lnx_r_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $linux_ifr_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $lnx_r_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }
 ) if ($testmode{tcp6});
 push @tests, (
     {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $linux_ifl_ssh,
-	    'recv', $ifl_addr],
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_l_ssh,
+	    'recv', $obsd_l_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1472', '-t10', '-r', $linux_ifl_ssh,
-	    'recv', $ifl_addr],
+	testcmd => ['udpbench', '-l1472', '-t10', '-r', $lnx_l_ssh,
+	    'recv', $obsd_l_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $linux_ifr_ssh,
-	    'send', $linux_ifr_addr],
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_r_ssh,
+	    'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1472', '-t10', '-r', $linux_ifr_ssh,
-	    'send', $linux_ifr_addr],
+	testcmd => ['udpbench', '-l1472', '-t10', '-r', $lnx_r_ssh,
+	    'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l36', '-t10',
-	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l36', '-t10',
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l1472', '-t10',
-	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1472', '-t10',
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{udp4});
 push @tests, (
     {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $linux_ifl_ssh,
-	    'recv', $ifl_addr6],
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_l_ssh,
+	    'recv', $obsd_l_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1452', '-t10', '-r', $linux_ifl_ssh,
-	    'recv', $ifl_addr6],
+	testcmd => ['udpbench', '-l1452', '-t10', '-r', $lnx_l_ssh,
+	    'recv', $obsd_l_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $linux_ifr_ssh,
-	    'send', $linux_ifr_addr6],
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_r_ssh,
+	    'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1452', '-t10', '-r', $linux_ifr_ssh,
-	    'send', $linux_ifr_addr6],
+	testcmd => ['udpbench', '-l1452', '-t10', '-r', $lnx_r_ssh,
+	    'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l36', '-t10',
-	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l36', '-t10',
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l1452', '-t10',
-	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1452', '-t10',
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{udp6});
 push @tests, (
     {
-	testcmd => ['udpbench', '-l1473', '-t10', '-r', $linux_ifl_ssh,
-	    'recv', $ifl_addr],
+	testcmd => ['udpbench', '-l1473', '-t10', '-r', $lnx_l_ssh,
+	    'recv', $obsd_l_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1473', '-t10', '-r', $linux_ifr_ssh,
-	    'send', $linux_ifr_addr],
+	testcmd => ['udpbench', '-l1473', '-t10', '-r', $lnx_r_ssh,
+	    'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l1473', '-t10',
-	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1473', '-t10',
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{fragment4});
 # might require increasing net.ipv4.ipfrag_high_thresh on linux
 push @tests, (
     {
-	testcmd => ['udpbench', '-l1453', '-t10', '-r', $linux_ifl_ssh,
-	    'recv', $ifl_addr6],
+	testcmd => ['udpbench', '-l1453', '-t10', '-r', $lnx_l_ssh,
+	    'recv', $obsd_l_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1453', '-t10', '-r', $linux_ifr_ssh,
-	    'send', $linux_ifr_addr6],
+	testcmd => ['udpbench', '-l1453', '-t10', '-r', $lnx_r_ssh,
+	    'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['ssh', $linux_ifl_ssh, 'udpbench', '-l1453', '-t10',
-	    '-r', $linux_ifr_ssh, 'send', $linux_ifr_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1453', '-t10',
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{fragment6});
@@ -643,7 +685,7 @@ chdir($netlinkdir)
 
 # kill remote commands or ssh will hang forever
 if ($testmode{tcp}) {
-    my @sshcmd = ('ssh', $linux_ifr_ssh, 'pkill', 'tcpbench');
+    my @sshcmd = ('ssh', $lnx_r_ssh, 'pkill', 'tcpbench');
     mysystem(@sshcmd);
     mysystem('pkill', 'tcpbench');
 }
