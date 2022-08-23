@@ -52,9 +52,11 @@ my $timeout = $opts{t} || 60;
 my $pseudodev = $opts{p} || '';
 my $interface = $opts{i} || usage;
 # ifN if N is even then it is left, odd means right.
-# em0 usually is our configuration interface
-my $left_ifidx = $opts{l} || (($interface =~ m {^em})? 2 : 0);
+my $left_ifidx = $opts{l} || 0;
 my $right_ifidx = $opts{r} || 1;
+
+warn "left interface should be in the wrong network" if ($left_ifidx % 2);
+warn "right interface should be in the wrong network" if (!$right_ifidx % 2);
 
 die "Unknown interface: $interface" unless grep { $_ eq $interface } @allifs;
 if (!grep { $_ eq $pseudodev} @allpseudodevs && $pseudodev) {
@@ -94,6 +96,7 @@ my %lines; # XXX: make this an env var?
 $lines{ot41} = 1;
 $lines{ot42} = 2;
 my $line = $lines{$hostname};
+my $management_if = $ENV{interface} || 'em0'; # XXX
 
 my $obsd_l_if = $interface . $left_ifidx;
 my $obsd_l_net = "$ip4prefix.${line}1.0";
@@ -108,7 +111,7 @@ my $obsd_r_net6 = "${ip6prefix}:${line}2::/64";
 my $obsd_r_addr6 = "${ip6prefix}:${line}2::3";
 
 my $lnx_l_if = "enp6s0"; # XXX: make this an env var?
-my $lnx_l_pdev = "$lnx_l_if.$line";
+my $lnx_l_pdev = "$lnx_l_if.0";
 my $lnx_l_addr = "$ip4prefix.${line}1.1";
 my $lnx_l_addr6 = "${ip6prefix}:${line}1::1";
 my $lnx_l_net = "$lnx_l_addr/24";
@@ -116,7 +119,7 @@ my $lnx_l_net6 = "$lnx_l_addr6/64";
 my $lnx_l_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
 
 my $lnx_r_if = "enp6s0"; # XXX
-my $lnx_r_pdev = "$lnx_r_if.$line";
+my $lnx_r_pdev = "$lnx_r_if.0";
 my $lnx_r_addr = "$ip4prefix.${line}2.4";
 my $lnx_r_addr6 = "${ip6prefix}:${line}2::4";
 my $lnx_r_net = "$lnx_r_addr/24";
@@ -173,7 +176,7 @@ my @allinterfaces = `ifconfig | grep ^[a-z] | cut -d: -f1`;
 chomp(@allinterfaces);
 
 foreach my $ifn (@allinterfaces) {
-    unless ($ifn =~ m{^(lo|enc|pflog|em0)}) {
+    unless ($ifn =~ m{^(lo|enc|pflog|${management_if})}) {
 	mysystem('ifconfig', $ifn, '-inet', '-inet6', 'down');
     }
     my $pdevre = join '|', @allpseudodevs;
@@ -181,25 +184,43 @@ foreach my $ifn (@allinterfaces) {
 }
 
 # unconfigure linux interfaces
-mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'del', $lnx_l_pdev);
 mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net, 'dev',
-	$lnx_l_if);
-mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'del', $lnx_r_pdev);
+    $lnx_l_pdev);
+mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net6, 'dev',
+    $lnx_l_pdev);
+mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net, 'dev',
+    $lnx_l_if);
+mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net6, 'dev',
+    $lnx_l_if);
+
 mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net, 'dev',
-	$lnx_r_if);
+    $lnx_r_pdev);
+mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net6, 'dev',
+    $lnx_r_pdev);
+mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net, 'dev',
+    $lnx_r_if);
+mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net6, 'dev',
+    $lnx_r_if);
 
 # configure given interface type
-if ($ipv4 && ($pseudodev eq 'bridge' || !$pseudodev)) {
-    mysystem('ifconfig', $obsd_l_if, 'inet', "${obsd_l_addr}/24", 'up');
-    mysystem('ifconfig', $obsd_r_if, 'inet', "${obsd_r_addr}/24", 'up');
+if ($pseudodev eq 'bridge' || !$pseudodev) {
+    if ($ipv4) {
+	mysystem('ifconfig', $obsd_l_if, 'inet', "${obsd_l_addr}/24");
+	mysystem('ifconfig', $obsd_r_if, 'inet', "${obsd_r_addr}/24");
+    }
+    if ($ipv6) {
+	mysystem('ifconfig', $obsd_l_if, 'inet6', $obsd_l_addr6);
+	mysystem('ifconfig', $obsd_r_if, 'inet6', $obsd_r_addr6);
+    }
 }
-if ($ipv6 && ($pseudodev eq 'bridge' || !$pseudodev)) {
-    mysystem('ifconfig', $obsd_l_if, 'inet6', $obsd_l_addr6, 'up');
-    mysystem('ifconfig', $obsd_r_if, 'inet6', $obsd_r_addr6, 'up');
-}
+
+mysystem('ifconfig', $obsd_l_if, 'up');
+mysystem('ifconfig', $obsd_r_if, 'up');
 
 mysystem('sysctl net.inet.ip.forwarding=1') if ($ipv4);
 mysystem('sysctl net.inet6.ip6.forwarding=1') if ($ipv6);
+
+my $configure_linux = 1;
 
 if ($pseudodev eq 'aggr') {
     # XXX: multiple interfaces in one aggr
@@ -256,23 +277,23 @@ if ($pseudodev eq 'aggr') {
     mysystem('ifconfig', 'veb0', 'add', 'vport1');
     mysystem('ifconfig', 'veb0', 'up');
 } elsif ($pseudodev eq 'vlan') {
-    my $vlanl = $line;
-    my $vlanr = 128 + $line;
+    $configure_linux = 0; # all necessary config is below
+    my $vlanl = 252;
+    my $vlanr = 253;
+
     mysystem('ssh', $lnx_l_ssh, 'modprobe', '8021q');
+    mysystem('ssh', $lnx_r_ssh, 'modprobe', '8021q');
+
     mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'link', $lnx_l_if,
 	'name', $lnx_l_pdev, 'type', 'vlan', 'id', $vlanl);
-    mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net,
-	'dev', $lnx_l_pdev);
-    mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'set', 'dev',
-	$lnx_l_pdev, 'up');
-
-    mysystem('ssh', $lnx_r_ssh, 'modprobe', '8021q');
     mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'link', $lnx_r_if,
 	'name', $lnx_r_pdev, 'type', 'vlan', 'id', $vlanr);
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $lnx_r_net,
-	'dev', $lnx_r_pdev);
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'set', 'dev',
-	$lnx_r_pdev, 'up');
+
+    mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'set', 'dev', $lnx_l_if, 'up');
+    mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'set', 'dev', $lnx_r_if, 'up');
+
+    mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'set', 'dev', $lnx_l_pdev, 'up');
+    mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'set', 'dev', $lnx_r_pdev, 'up');
 
     mysystem('ifconfig', 'vlan0', 'create');
     mysystem('ifconfig', 'vlan1', 'create');
@@ -282,44 +303,59 @@ if ($pseudodev eq 'aggr') {
     if ($ipv4) {
 	mysystem('ifconfig', 'vlan0', 'inet', "${obsd_l_addr}/24", 'up');
 	mysystem('ifconfig', 'vlan1', 'inet', "${obsd_r_addr}/24", 'up');
+
+	mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net, 'dev',
+	    $lnx_l_pdev);
+	mysystem('ssh', $lnx_l_ssh, 'route', 'add', '-net', $obsd_r_net, 'gw',
+	    $obsd_l_addr, 'netmask', '255.255.255.0', "$lnx_l_pdev");
+
+	mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $lnx_r_net, 'dev',
+	    $lnx_r_pdev);
+	mysystem('ssh', $lnx_r_ssh, 'route', 'add', '-net', $obsd_l_net, 'gw',
+	    $obsd_r_addr, 'netmask', '255.255.255.0', "$lnx_r_pdev");
     }
     if ($ipv6) {
 	mysystem('ifconfig', 'vlan0', 'inet6', $obsd_l_addr6, 'up');
 	mysystem('ifconfig', 'vlan1', 'inet6', $obsd_r_addr6, 'up');
+
+	mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net6, 'dev',
+	    $lnx_l_pdev);
+	mysystem('ssh', $lnx_l_ssh, 'route', '-6', 'add', $obsd_r_net6, 'gw',
+	    $obsd_l_addr6, $lnx_l_pdev);
+
+	mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $lnx_r_net6, 'dev',
+	    $lnx_r_pdev);
+	mysystem('ssh', $lnx_r_ssh, 'route', '-6', 'add', $obsd_l_net6, 'gw',
+	    $obsd_r_addr6, $lnx_r_pdev);
     }
+}
 # XXX: tpmr, nipsec, gre?
-} else {
-    # XXX: move "normal" interface config here?
-}
 
-# configure linux machines
+if ($configure_linux) {
+    if ($ipv4) {
+	my @sshcmd = ('ssh', $lnx_l_ssh);
+	mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net, 'dev', $lnx_l_if);
+	mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_l_if, 'up');
+	mysystem(@sshcmd, 'route', 'add', '-net', $obsd_r_net, 'gw',
+	    $obsd_l_addr, 'netmask', '255.255.255.0', "$lnx_l_if");
 
-if ($ipv4) {
-    my @sshcmd = ('ssh', $lnx_l_ssh);
-    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net, 'dev', $lnx_l_if);
-    mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_l_if, 'up');
-    mysystem(@sshcmd, 'route', 'add', '-net', $obsd_r_net, 'gw', $obsd_l_addr,
-	'netmask', '255.255.255.0', "$lnx_l_if");
-}
-if ($ipv6) {
-    my @sshcmd = ('ssh', $lnx_l_ssh);
-    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net6, 'dev', $lnx_l_if);
-    mysystem(@sshcmd, 'route', '-6', 'add', $obsd_r_net6, 'gw', $obsd_l_addr6,
-	$lnx_l_if);
-}
+	@sshcmd = ('ssh', $lnx_r_ssh);
+	mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net, 'dev', $lnx_r_if);
+	mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_r_if, 'up');
+	mysystem(@sshcmd, 'route', 'add', '-net', $obsd_l_net, 'gw',
+	    $obsd_r_addr, 'netmask', '255.255.255.0', "$lnx_r_if");
+    }
+    if ($ipv6) {
+	my @sshcmd = ('ssh', $lnx_l_ssh);
+	mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net6, 'dev', $lnx_l_if);
+	mysystem(@sshcmd, 'route', '-6', 'add', $obsd_r_net6, 'gw',
+	    $obsd_l_addr6, $lnx_l_if);
 
-if ($ipv4) {
-    my @sshcmd = ('ssh', $lnx_r_ssh);
-    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net, 'dev', $lnx_r_if);
-    mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_r_if, 'up');
-    mysystem(@sshcmd, 'route', 'add', '-net', $obsd_l_net, 'gw', $obsd_r_addr,
-	'netmask', '255.255.255.0', "$lnx_r_if");
-}
-if ($ipv6) {
-    my @sshcmd = ('ssh', $lnx_r_ssh);
-    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net6, 'dev', $lnx_r_if);
-    mysystem(@sshcmd, 'route', '-6', 'add', $obsd_l_net6, 'gw', $obsd_r_addr6,
-	$lnx_r_if);
+	@sshcmd = ('ssh', $lnx_r_ssh);
+	mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net6, 'dev', $lnx_r_if);
+	mysystem(@sshcmd, 'route', '-6', 'add', $obsd_l_net6, 'gw',
+	    $obsd_r_addr6, $lnx_r_if);
+    }
 }
 
 # wait for linux
