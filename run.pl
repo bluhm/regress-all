@@ -29,11 +29,12 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('h:P:v', \%opts) or do {
+getopts('h:P:pv', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] -h host mode ...
     -h host	user and host for make regress, user defaults to root
     -P patch	apply patch to clean kernel source
+    -p		power down after testing
     -v		verbose
     build	build system from source /usr/src and reboot
     cvs		cvs update /usr/src and make obj
@@ -108,6 +109,7 @@ END {
 };
 setup_hosts(patch => $patch, mode => \%mode)
     if $patch || !($mode{keep} || $mode{reboot});
+powerup_hosts() if $mode{keep} && !$mode{reboot};
 reboot_hosts(mode => \%mode) if $mode{reboot};
 collect_version();
 setup_html();
@@ -154,6 +156,7 @@ chdir($resultdir)
 
 collect_dmesg();
 setup_html();
+powerdown_hosts() if $opts{p};
 
 # create html output
 
@@ -162,7 +165,6 @@ chdir($regressdir)
 
 setup_html(date => 1);
 runcmd("bin/regress-html.pl", "-h", $host, "src");
-runcmd("bin/regress-html.pl", "src");
 
 unlink("results/latest-$host");
 symlink($date, "results/latest-$host")
@@ -171,6 +173,8 @@ unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
 runcmd("bin/regress-html.pl", "-l", "src");
+
+runcmd("bin/regress-html.pl", "src");
 
 my $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $now.\n");

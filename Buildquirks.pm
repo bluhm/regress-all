@@ -1,6 +1,6 @@
 # get build over incompatible source changes with minimal effort
 
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -608,6 +608,55 @@ my %quirks = (
 	comment => "update drm moves kernel source files",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2022-02-22T17:26:04Z' => {
+	comment => "maxcomlen include",
+	updatedirs => [ "sys", "sbin/sysctl", "usr.sbin/btrace" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/sysctl", "usr.sbin/btrace" ],
+    },
+    '2022-02-22T17:42:52Z' => {
+	comment => "param include",
+	updatedirs => [
+	    "lib/libkvm",
+	    "bin/ps",
+	    "usr.bin/kdump",
+	    "usr.bin/ktrace",
+	    "usr.bin/systat",
+	    "usr.bin/tmux",
+	    "usr.bin/top",
+	    "usr.bin/vmstat",
+	    "usr.bin/w",
+	    "usr.sbin/procmap",
+	    "usr.sbin/pstat",
+	    "usr.sbin/sa",
+	    "usr.sbin/tcpdump",
+	],
+	builddirs => [
+	    "lib/libkvm",
+	    "bin/ps",
+	    "usr.bin/kdump",
+	    "usr.bin/ktrace",
+	    "usr.bin/systat",
+	    "usr.bin/tmux",
+	    "usr.bin/top",
+	    "usr.bin/vmstat",
+	    "usr.bin/w",
+	    "usr.sbin/procmap",
+	    "usr.sbin/pstat",
+	    "usr.sbin/sa",
+	    "usr.sbin/tcpdump",
+	],
+    },
+    '2022-03-23T14:36:01Z' => {
+	comment => "revert scsi link commit, panic during boot",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-scsi-link' => patch_sys_scsi_link() },
+    },
+# OpenBSD 7.1, 2022-04-05Z
+    '2022-04-12T00:10:09Z' => {
+	comment => "OpenBSD/amd64 7.1 release",
+	release => '7.1',
+    },
 );
 
 #### Patches ####
@@ -1133,6 +1182,67 @@ diff -u -p -r1.142 -r1.143
  	crwu->cr_crp->crp_buf = &crwu->cr_uio;
  	for (i = 0; i < crwu->cr_crp->crp_ndesc; i++, blkno++) {
  		crd = &crwu->cr_crp->crp_desc[i];
+PATCH
+}
+
+# Revert previous. Breaks probing native IDE devices.
+sub patch_sys_scsi_link {
+	return <<'PATCH';
+Index: /usr/src/sys/scsi/scsiconf.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/scsi/scsiconf.c,v
+retrieving revision 1.247
+retrieving revision 1.248
+diff -u -p -r1.247 -r1.248
+--- /usr/src/sys/scsi/scsiconf.c	23 Mar 2022 14:36:01 -0000	1.247
++++ /usr/src/sys/scsi/scsiconf.c	24 Mar 2022 00:30:51 -0000	1.248
+@@ -519,8 +519,7 @@ scsi_probe_link(struct scsibus_softc *sb
+ 			SC_DEBUG(link, SDEV_DB2, ("dev_probe(link) failed.\n"));
+ 			rslt = EINVAL;
+ 		}
+-		free(link, M_DEVBUF, sizeof(*link));
+-		return rslt;
++		goto free;
+ 	}
+ 
+ 	/*
+@@ -623,7 +622,7 @@ scsi_probe_link(struct scsibus_softc *sb
+ 		/* The device doesn't distinguish between LUNs. */
+ 		SC_DEBUG(link, SDEV_DB1, ("IDENTIFY not supported.\n"));
+ 		rslt = EINVAL;
+-		goto bad;
++		goto free_devid;
+ 	}
+ 
+ 	link->quirks = devquirks;	/* Restore what the device wanted. */
+@@ -680,7 +679,7 @@ scsi_probe_link(struct scsibus_softc *sb
+ 	if (cf == NULL) {
+ 		scsibussubprint(&sa, sb->sc_dev.dv_xname);
+ 		printf(" not configured\n");
+-		goto bad;
++		goto free_devid;
+ 	}
+ 
+ 	/*
+@@ -718,8 +717,17 @@ scsi_probe_link(struct scsibus_softc *sb
+ 	config_attach((struct device *)sb, cf, &sa, scsibussubprint);
+ 	return 0;
+ 
++free_devid:
++	if (link->id)
++		devid_free(link->id);
+ bad:
+-	scsi_detach_link(link, DETACH_FORCE);
++	if (ISSET(link->flags, SDEV_OWN_IOPL))
++		free(link->pool, M_DEVBUF, sizeof(*link->pool));
++
++	if (sb->sb_adapter->dev_free != NULL)
++		sb->sb_adapter->dev_free(link);
++free:
++	free(link, M_DEVBUF, sizeof(*link));
+ 	return rslt;
+ }
+ 
 PATCH
 }
 

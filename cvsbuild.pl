@@ -114,7 +114,7 @@ if ($sysctl{'kern.version'} =~
     /: (\w{3} \w{3}  ?\d?\d \d\d:\d\d:\d\d \w+ \d{4})\n/) {
     $before = $1;
 }
-if ($before) {
+if ($before && $cvsdate) {
     my %q = quirks($before, $cvsdate);
     if (keys %q) {
 	open(my $fh, '>', "quirks-$host.txt")

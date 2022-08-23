@@ -1,7 +1,7 @@
 #!/usr/bin/perl
-# collect kernel output from console to regress or perform dir
+# power up and down machine to save cooling power
 
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -27,23 +27,22 @@ use lib dirname($0);
 use Logcmd;
 use Machine;
 
-my $now = strftime("%FT%TZ", gmtime);
-
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:lP:R:r:v', \%opts) or do {
+getopts('d:D:h:P:R:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-lv] [-d date] [-D cvsdate] -h host [-P patch] [-R repeat]
-    [-r release]
+usage: $0 [-v] [-d date] [-D cvsdate] -h host [-P patch] [-R repeat]
+    [-r release] down|up
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
-    -l		update bsdcons in latest directory with this host
     -P patch	patch name
     -R repeat	repetition number
     -r release	change to release sub directory
     -v		verbose
+    down	shutdown and power off machine
+    up		machine is up or power cycle
 EOF
     exit(2);
 };
@@ -63,14 +62,22 @@ if ($opts{r} && $opts{r} ne "current") {
     ($release = $opts{r}) =~ /^\d+\.\d$/
 	or die "Release '$opts{r}' must be major.minor format";
 }
-$opts{d} && $opts{l}
-    and die "Use either specific date or latest date";
 
-my $testdir = dirname($0). "/..";
-chdir($testdir)
-    or die "Change directory to '$testdir' failed: $!";
-$testdir = getcwd();
-my $resultdir = "$testdir/results";
+my %allmodes;
+@allmodes{qw(down up)} = ();
+@ARGV or die "No mode specified";
+my %mode = map {
+    die "Unknown mode: $_" unless exists $allmodes{$_};
+    $_ => 1;
+} @ARGV;
+die "Mode must be used solely" if keys %mode != 1;
+
+my $performdir = dirname($0). "/..";
+chdir($performdir)
+    or die "Change directory to '$performdir' failed: $!";
+$performdir = getcwd();
+my $resultdir = "$performdir/results";
+$resultdir .= "/$release" if $release;
 if ($date && $date eq "current") {
     my $current = readlink("$resultdir/$date")
 	or die "Read link '$resultdir/$date' failed: $!";
@@ -78,23 +85,6 @@ if ($date && $date eq "current") {
 	or die "Test directory '$resultdir/$current' failed: $!";
     $date = $current;
 }
-chdir($resultdir)
-    or die "Change directory to '$resultdir' failed: $!";
-
-my ($user, $host) = split('@', $opts{h}, 2);
-($user, $host) = ("root", $user) unless $host;
-
-createlog(verbose => $opts{v});
-logmsg("Script '$scriptname' started at $now.\n");
-
-if ($opts{l}) {
-    my @bsdcons = sort glob("*T*/bsdcons-$host.txt")
-	or die "No latest 'bsdcons-$host.txt' in date directories";
-    logmsg("Update latest '$bsdcons[-1]' file.\n");
-    $date = dirname($bsdcons[-1]);
-}
-
-$resultdir .= "/$release" if $release;
 $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $date && $cvsdate;
 if ($patch) {
@@ -107,13 +97,24 @@ if ($patch) {
 $resultdir .= "/$repeat" if $date && $cvsdate && $repeat;
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
-logmsg("Result directory is '$resultdir'.\n");
+
+my ($user, $host) = split('@', $opts{h}, 2);
+($user, $host) = ("root", $user) unless $host;
+
+createlog(file => "power-$host.log", verbose => $opts{v});
+$date = strftime("%FT%TZ", gmtime);
+logmsg("Script '$scriptname' started at $date.\n");
 
 createhost($user, $host);
 
 # execute commands
 
-get_bsdcons();
+power_down() if $mode{down};
+power_up() if $mode{up};
 
-$now = strftime("%FT%TZ", gmtime);
+# finish power log
+
+my $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $now.\n");
+
+exit;

@@ -26,7 +26,7 @@ our @EXPORT_OK = qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
 ########################################################################
 
 our @PLOTORDER;
-@PLOTORDER = qw(tcp tcp6 udp udp6 linux linux6 forward forward6 ipsec ipsec-aesni make fs);
+@PLOTORDER = qw(tcp tcp6 udp udp6 linux linux6 forward forward6 frag frag6 bridge ipsec ipsec-aesni make fs);
 
 our %TESTPLOT;
 my @testplot = (
@@ -110,6 +110,18 @@ my @testplot = (
     'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10_-R'			=> "ipsec",
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10'	=> "ipsec",
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10_-R'	=> "ipsec",
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10'			=> "bridge",
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10_-R'			=> "bridge",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'	=> "bridge",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'	=> "bridge",
+    'iperf3_-c10.5.0.36_-w1m_-t10'					=> "bridge",
+    'iperf3_-c10.5.0.36_-w1m_-t10_-R'					=> "bridge",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10'			=> "bridge",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10_-R'			=> "bridge",
+    'iperf3_-c10.5.0.36_-P10_-t10'					=> "bridge",
+    'iperf3_-c10.5.0.36_-P10_-t10_-R'					=> "bridge",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'			=> "bridge",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'			=> "bridge",
     'time_-lp_make_-CGENERIC.MP_-j4_-s'					=> "make",
     'time_-lp_make_-CGENERIC.MP_-j8_-s'					=> "make",
     'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=> "fs",
@@ -154,6 +166,54 @@ my @testplot = (
     'ssh_perform@lt16_iperf3_-c10.6.16.51_-P10_-t10_-R'			=> "forward",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0616::51_-P10_-t10'	=> "forward6",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0616::51_-P10_-t10_-R'	=> "forward6",
+    'netbench.pl_-b1000000_-l0_-a127.0.0.1_-t10_udpbench'							=> "frag",
+    'netbench.pl_-b1000000_-l0_-sot32_-a10.6.12.52_-t10_udpbench'						=> "frag",
+    'netbench.pl_-b1000000_-l0_-cot32_-a10.6.12.51_-t10_udpbench'						=> "frag",
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> "frag",
+    'netbench.pl_-b1000000_-l0_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> "frag",
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> "frag",
+    'netbench.pl_-b1000000_-l1472_-a127.0.0.1_-t10_udpbench'							=> "frag",
+    'netbench.pl_-b1000000_-l1472_-sot32_-a10.6.12.52_-t10_udpbench'						=> "frag",
+    'netbench.pl_-b1000000_-l1472_-cot32_-a10.6.12.51_-t10_udpbench'						=> "frag",
+    'netbench.pl_-b1000000_-l1472_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> "frag",
+    'netbench.pl_-b1000000_-l1472_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> "frag",
+    'netbench.pl_-b1000000_-l1472_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> "frag",
+    'netbench.pl_-b1000000_-l2948_-a127.0.0.1_-t10_udpbench'							=> "frag",
+    'netbench.pl_-b1000000_-l2948_-sot32_-a10.6.12.52_-t10_udpbench'						=> "frag",
+    'netbench.pl_-b1000000_-l2948_-cot32_-a10.6.12.51_-t10_udpbench'						=> "frag",
+    'netbench.pl_-b1000000_-l2948_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> "frag",
+    'netbench.pl_-b1000000_-l2948_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> "frag",
+    'netbench.pl_-b1000000_-l2948_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> "frag",
+    'netbench.pl_-b1000000_-l65507_-a127.0.0.1_-t10_udpbench'							=> "frag",
+    'netbench.pl_-b1000000_-l65507_-sot32_-a10.6.12.52_-t10_udpbench'						=> "frag",
+    'netbench.pl_-b1000000_-l65507_-cot32_-a10.6.12.51_-t10_udpbench'						=> "frag",
+    'netbench.pl_-b1000000_-l65507_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> "frag",
+    'netbench.pl_-b1000000_-l65507_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> "frag",
+    'netbench.pl_-b1000000_-l65507_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> "frag",
+    'netbench.pl_-b1000000_-l0_-a::1_-t10_udpbench'								=> "frag6",
+    'netbench.pl_-b1000000_-l0_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'					=> "frag6",
+    'netbench.pl_-b1000000_-l0_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'					=> "frag6",
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'				=> "frag6",
+    'netbench.pl_-b1000000_-l0_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'				=> "frag6",
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'		=> "frag6",
+    'netbench.pl_-b1000000_-l1452_-a::1_-t10_udpbench'								=> "frag6",
+    'netbench.pl_-b1000000_-l1452_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'				=> "frag6",
+    'netbench.pl_-b1000000_-l1452_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'				=> "frag6",
+    'netbench.pl_-b1000000_-l1452_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'			=> "frag6",
+    'netbench.pl_-b1000000_-l1452_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'			=> "frag6",
+    'netbench.pl_-b1000000_-l1452_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'	=> "frag6",
+    'netbench.pl_-b1000000_-l2888_-a::1_-t10_udpbench'								=> "frag6",
+    'netbench.pl_-b1000000_-l2888_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'				=> "frag6",
+    'netbench.pl_-b1000000_-l2888_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'				=> "frag6",
+    'netbench.pl_-b1000000_-l2888_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'			=> "frag6",
+    'netbench.pl_-b1000000_-l2888_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'			=> "frag6",
+    'netbench.pl_-b1000000_-l2888_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'	=> "frag6",
+    'netbench.pl_-b1000000_-l65527_-a::1_-t10_udpbench'								=> "frag6",
+    'netbench.pl_-b1000000_-l65527_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'				=> "frag6",
+    'netbench.pl_-b1000000_-l65527_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'				=> "frag6",
+    'netbench.pl_-b1000000_-l65527_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'			=> "frag6",
+    'netbench.pl_-b1000000_-l65527_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'			=> "frag6",
+    'netbench.pl_-b1000000_-l65527_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'	=> "frag6",
     'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10'			=> "ipsec-aesni",
     'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10_-R'			=> "ipsec-aesni",
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10'	=> "ipsec-aesni",
@@ -190,6 +250,8 @@ our %TESTORDER;
 #   5xxxxx network ot14/lt16 46
 #   6xxxxx network lt13/ot14/lt16 36 34 46 56
 #   7xxxxx network lt13/ot14/ot15/lt16 34 45 56
+#   8xxxxx network lt13/ot14/lt16 00
+#   9xxxxx network ot14/lt16 00
 #  18xxxxx make kernel
 #  19xxxxx file system
 #  12xxxxx network ot31/ot32
@@ -207,6 +269,7 @@ our %TESTORDER;
 #   xx3xxx network relay splice
 #   xx4xxx network relay splice and remote stack
 #   xx5xxx network relay splice and local stack
+#   xx6xxx network bridge
 #   xx7xxx network ipsec tunnel4
 #   xx8xxx network ipsec tunnel6
 #   xx9xxx network ipsec transport
@@ -216,6 +279,7 @@ our %TESTORDER;
 #   xxx3xx iperf udp
 #   xxx4xx iperf udp 10Gbit
 #   xxx5xx udpbench
+#   xxx6xx fragments
 # - xxxx0x aspects
 #   xxxx1x iperf forward direction
 #   xxxx2x iperf reverse direction
@@ -380,6 +444,18 @@ my @testorder = (
     'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10_-R'			=> 717121,
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10'	=> 727111,
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10_-R'	=> 727121,
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10'			=> 816151,
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10_-R'			=> 816161,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'	=> 826151,
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'	=> 826161,
+    'iperf3_-c10.5.0.36_-w1m_-t10'					=> 916113,
+    'iperf3_-c10.5.0.36_-w1m_-t10_-R'					=> 916123,
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10'			=> 926113,
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10_-R'			=> 926123,
+    'iperf3_-c10.5.0.36_-P10_-t10'					=> 916151,
+    'iperf3_-c10.5.0.36_-P10_-t10_-R'					=> 916161,
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'			=> 926151,
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'			=> 926161,
     'time_-lp_make_-CGENERIC.MP_-j4_-s'					=> 1800040,
     'time_-lp_make_-CGENERIC.MP_-j8_-s'					=> 1800080,
     'time_-lp_fs_mark_-dfs_mark_-D8_-N16_-n256_-t8'			=> 1900080,
@@ -412,6 +488,54 @@ my @testorder = (
     'udpbench_-l1472_-t10_-r_ot32_recv_fdd7:e83e:66bc:0612::51'		=> 1421522,
     'udpbench_-l36_-t10_-r_ot32_send_fdd7:e83e:66bc:0612::52'		=> 1421532,
     'udpbench_-l36_-t10_-r_ot32_recv_fdd7:e83e:66bc:0612::51'		=> 1421542,
+    'netbench.pl_-b1000000_-l0_-a127.0.0.1_-t10_udpbench'							=> 1612613,
+    'netbench.pl_-b1000000_-l0_-sot32_-a10.6.12.52_-t10_udpbench'						=> 1612614,
+    'netbench.pl_-b1000000_-l0_-cot32_-a10.6.12.51_-t10_udpbench'						=> 1612615,
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> 1612616,
+    'netbench.pl_-b1000000_-l0_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> 1612617,
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> 1612618,
+    'netbench.pl_-b1000000_-l1472_-a127.0.0.1_-t10_udpbench'							=> 1612623,
+    'netbench.pl_-b1000000_-l1472_-sot32_-a10.6.12.52_-t10_udpbench'						=> 1612624,
+    'netbench.pl_-b1000000_-l1472_-cot32_-a10.6.12.51_-t10_udpbench'						=> 1612625,
+    'netbench.pl_-b1000000_-l1472_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> 1612626,
+    'netbench.pl_-b1000000_-l1472_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> 1612627,
+    'netbench.pl_-b1000000_-l1472_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> 1612628,
+    'netbench.pl_-b1000000_-l2948_-a127.0.0.1_-t10_udpbench'							=> 1612633,
+    'netbench.pl_-b1000000_-l2948_-sot32_-a10.6.12.52_-t10_udpbench'						=> 1612634,
+    'netbench.pl_-b1000000_-l2948_-cot32_-a10.6.12.51_-t10_udpbench'						=> 1612635,
+    'netbench.pl_-b1000000_-l2948_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> 1612636,
+    'netbench.pl_-b1000000_-l2948_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> 1612637,
+    'netbench.pl_-b1000000_-l2948_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> 1612638,
+    'netbench.pl_-b1000000_-l65507_-a127.0.0.1_-t10_udpbench'							=> 1612643,
+    'netbench.pl_-b1000000_-l65507_-sot32_-a10.6.12.52_-t10_udpbench'						=> 1612644,
+    'netbench.pl_-b1000000_-l65507_-cot32_-a10.6.12.51_-t10_udpbench'						=> 1612645,
+    'netbench.pl_-b1000000_-l65507_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> 1612646,
+    'netbench.pl_-b1000000_-l65507_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> 1612647,
+    'netbench.pl_-b1000000_-l65507_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> 1612648,
+    'netbench.pl_-b1000000_-l0_-a::1_-t10_udpbench'								=> 1622613,
+    'netbench.pl_-b1000000_-l0_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'					=> 1622614,
+    'netbench.pl_-b1000000_-l0_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'					=> 1622615,
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'				=> 1622616,
+    'netbench.pl_-b1000000_-l0_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'				=> 1622617,
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'		=> 1622618,
+    'netbench.pl_-b1000000_-l1452_-a::1_-t10_udpbench'								=> 1622623,
+    'netbench.pl_-b1000000_-l1452_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'				=> 1622624,
+    'netbench.pl_-b1000000_-l1452_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'				=> 1622625,
+    'netbench.pl_-b1000000_-l1452_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'			=> 1622626,
+    'netbench.pl_-b1000000_-l1452_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'			=> 1622627,
+    'netbench.pl_-b1000000_-l1452_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'	=> 1622628,
+    'netbench.pl_-b1000000_-l2888_-a::1_-t10_udpbench'								=> 1622633,
+    'netbench.pl_-b1000000_-l2888_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'				=> 1622634,
+    'netbench.pl_-b1000000_-l2888_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'				=> 1622635,
+    'netbench.pl_-b1000000_-l2888_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'			=> 1622636,
+    'netbench.pl_-b1000000_-l2888_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'			=> 1622637,
+    'netbench.pl_-b1000000_-l2888_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'	=> 1622638,
+    'netbench.pl_-b1000000_-l65527_-a::1_-t10_udpbench'								=> 1622643,
+    'netbench.pl_-b1000000_-l65527_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'				=> 1622644,
+    'netbench.pl_-b1000000_-l65527_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'				=> 1622645,
+    'netbench.pl_-b1000000_-l65527_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'			=> 1622646,
+    'netbench.pl_-b1000000_-l65527_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'			=> 1622647,
+    'netbench.pl_-b1000000_-l65527_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'	=> 1622648,
     'ssh_perform@lt13_iperf3_-c10.6.16.36_-P10_-t10'			=> 1612151,
     'ssh_perform@lt13_iperf3_-c10.6.16.36_-P10_-t10_-R'			=> 1612161,
     'ssh_perform@lt13_iperf3_-c10.6.31.51_-P10_-t10'			=> 1613151,
@@ -450,12 +574,12 @@ my %ordervalues = reverse @testorder;
 if (2 * keys %ordervalues != @testorder) {
     my %dup;
     foreach (values %TESTORDER) {
-	warn "duplicate testorder value $_\n" if ++$dup{$_} > 1;
+	warn "duplicate testorder value $_" if ++$dup{$_} > 1;
     }
     die "testorder values not unique";
 }
 foreach (keys %TESTPLOT) {
-    die "testplot $_ is not in testorder\n" unless $TESTORDER{$_};
+    die "testplot $_ is not in testorder" unless $TESTORDER{$_};
 }
 
 ########################################################################
@@ -585,6 +709,18 @@ my @testdesc = (
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0346::34_-P10_-t10_-R'	=> "linux-openbsd-openbsd-splice-tcp6-ip3rev",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10'	=> "linux-openbsd-splice-tcp6-ip3fwd",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0356::35_-P10_-t10_-R'	=> "linux-openbsd-splice-tcp6-ip3rev",
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10'			=> "linux-openbsd-linux-veb-tcp-ip3fwd-ot14",
+    'ssh_perform@lt13_iperf3_-c10.5.0.36_-P10_-t10_-R'			=> "linux-openbsd-linux-veb-tcp-ip3rev-ot14",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'	=> "linux-openbsd-linux-veb-tcp6-ip3fwd-ot14",
+    'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'	=> "linux-openbsd-linux-veb-tcp6-ip3rev-ot14",
+    'iperf3_-c10.5.0.36_-w1m_-t10'					=> "vport-openbsd-linux-veb-tcp-ip3fwd-ot14",
+    'iperf3_-c10.5.0.36_-w1m_-t10_-R'					=> "vport-openbsd-linux-veb-tcp-ip3rev-ot14",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10'			=> "vport-openbsd-linux-veb-tcp6-ip3fwd-ot14",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-w1m_-t10_-R'			=> "vport-openbsd-linux-veb-tcp6-ip3rev-ot14",
+    'iperf3_-c10.5.0.36_-P10_-t10'					=> "vport-openbsd-linux-veb-tcp-ip3fwd-ot14",
+    'iperf3_-c10.5.0.36_-P10_-t10_-R'					=> "vport-openbsd-linux-veb-tcp-ip3rev-ot14",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10'			=> "vport-openbsd-linux-veb-tcp6-ip3fwd-ot14",
+    'iperf3_-6_-cfdd7:e83e:66bc:0500::36_-P10_-t10_-R'			=> "vport-openbsd-linux-veb-tcp6-ip3rev-ot14",
     'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10'			=> "linux-openbsd-ipsec-openbsd-linux-tcp-ip3fwd",
     'ssh_perform@lt13_iperf3_-c10.4.56.36_-P10_-t10_-R'			=> "linux-openbsd-ipsec-openbsd-linux-tcp-ip3rev",
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0456::36_-P10_-t10'	=> "linux-openbsd-ipsec-openbsd-linux-tcp6-ip3fwd",
@@ -633,6 +769,54 @@ my @testdesc = (
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0616::51_-P10_-t10_-R'	=> "linux-openbsd-openbsd-splice-tcp6-ip3rev-ot31",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0626::52_-P10_-t10'	=> "linux-openbsd-splice-tcp6-ip3fwd-ot31",
     'ssh_perform@lt16_iperf3_-6_-cfdd7:e83e:66bc:0626::52_-P10_-t10_-R'	=> "linux-openbsd-splice-tcp6-ip3rev-ot31",
+    'netbench.pl_-b1000000_-l0_-a127.0.0.1_-t10_udpbench'							=> "openbsd-empty-udp-ot31",
+    'netbench.pl_-b1000000_-l0_-sot32_-a10.6.12.52_-t10_udpbench'						=> "openbsd-send-empty-udp-ot31",
+    'netbench.pl_-b1000000_-l0_-cot32_-a10.6.12.51_-t10_udpbench'						=> "openbsd-recv-empty-udp-ot31",
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> "linux-openbsd-empty-udp-ot31",
+    'netbench.pl_-b1000000_-l0_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> "openbsd-linux-empty-udp-ot31",
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> "linux-openbsd-linux-empty-udp-ot31",
+    'netbench.pl_-b1000000_-l1472_-a127.0.0.1_-t10_udpbench'							=> "openbsd-max-udp-ot31",
+    'netbench.pl_-b1000000_-l1472_-sot32_-a10.6.12.52_-t10_udpbench'						=> "openbsd-send-max-udp-ot31",
+    'netbench.pl_-b1000000_-l1472_-cot32_-a10.6.12.51_-t10_udpbench'						=> "openbsd-recv-max-udp-ot31",
+    'netbench.pl_-b1000000_-l1472_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> "linux-openbsd-max-udp-ot31",
+    'netbench.pl_-b1000000_-l1472_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> "openbsd-linux-max-udp-ot31",
+    'netbench.pl_-b1000000_-l1472_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> "linux-openbsd-linux-max-udp-ot31",
+    'netbench.pl_-b1000000_-l2948_-a127.0.0.1_-t10_udpbench'							=> "openbsd-two-frag-ot31",
+    'netbench.pl_-b1000000_-l2948_-sot32_-a10.6.12.52_-t10_udpbench'						=> "openbsd-send-two-frag-ot31",
+    'netbench.pl_-b1000000_-l2948_-cot32_-a10.6.12.51_-t10_udpbench'						=> "openbsd-recv-two-frag-ot31",
+    'netbench.pl_-b1000000_-l2948_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> "linux-openbsd-two-frag-ot31",
+    'netbench.pl_-b1000000_-l2948_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> "openbsd-linux-two-frag-ot31",
+    'netbench.pl_-b1000000_-l2948_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> "linux-openbsd-linux-two-frag-ot31",
+    'netbench.pl_-b1000000_-l65507_-a127.0.0.1_-t10_udpbench'							=> "openbsd-max-frag-ot31",
+    'netbench.pl_-b1000000_-l65507_-sot32_-a10.6.12.52_-t10_udpbench'						=> "openbsd-send-max-frag-ot31",
+    'netbench.pl_-b1000000_-l65507_-cot32_-a10.6.12.51_-t10_udpbench'						=> "openbsd-recv-max-frag-ot31",
+    'netbench.pl_-b1000000_-l65507_-cperform@lt13_-a10.6.31.51_-t10_udpbench'					=> "linux-openbsd-max-frag-ot31",
+    'netbench.pl_-b1000000_-l65507_-sperform@lt16_-a10.6.16.36_-t10_udpbench'					=> "openbsd-linux-max-frag-ot31",
+    'netbench.pl_-b1000000_-l65507_-cperform@lt13_-sperform@lt16_-a10.6.16.36_-t10_udpbench'			=> "linux-openbsd-linux-max-frag-ot31",
+    'netbench.pl_-b1000000_-l0_-a::1_-t10_udpbench'								=> "openbsd-empty-udp6-ot31",
+    'netbench.pl_-b1000000_-l0_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'					=> "openbsd-send-empty-udp6-ot31",
+    'netbench.pl_-b1000000_-l0_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'					=> "openbsd-recv-empty-udp6-ot31",
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'				=> "linux-openbsd-empty-udp6-ot31",
+    'netbench.pl_-b1000000_-l0_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'				=> "openbsd-linux-empty-udp6-ot31",
+    'netbench.pl_-b1000000_-l0_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'		=> "linux-openbsd-linux-empty-udp6-ot31",
+    'netbench.pl_-b1000000_-l1452_-a::1_-t10_udpbench'								=> "openbsd-max-udp6-ot31",
+    'netbench.pl_-b1000000_-l1452_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'				=> "openbsd-send-max-udp6-ot31",
+    'netbench.pl_-b1000000_-l1452_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'				=> "openbsd-recv-max-udp6-ot31",
+    'netbench.pl_-b1000000_-l1452_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'			=> "linux-openbsd-max-udp6-ot31",
+    'netbench.pl_-b1000000_-l1452_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'			=> "openbsd-linux-max-udp6-ot31",
+    'netbench.pl_-b1000000_-l1452_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'	=> "linux-openbsd-linux-max-udp6-ot31",
+    'netbench.pl_-b1000000_-l2888_-a::1_-t10_udpbench'								=> "openbsd-two-frag6-ot31",
+    'netbench.pl_-b1000000_-l2888_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'				=> "openbsd-send-two-frag6-ot31",
+    'netbench.pl_-b1000000_-l2888_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'				=> "openbsd-recv-two-frag6-ot31",
+    'netbench.pl_-b1000000_-l2888_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'			=> "linux-openbsd-two-frag6-ot31",
+    'netbench.pl_-b1000000_-l2888_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'			=> "openbsd-linux-two-frag6-ot31",
+    'netbench.pl_-b1000000_-l2888_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'	=> "linux-openbsd-linux-two-frag6-ot31",
+    'netbench.pl_-b1000000_-l65527_-a::1_-t10_udpbench'								=> "openbsd-max-frag6-ot31",
+    'netbench.pl_-b1000000_-l65527_-sot32_-afdd7:e83e:66bc:0612::52_-t10_udpbench'				=> "openbsd-send-max-frag6-ot31",
+    'netbench.pl_-b1000000_-l65527_-cot32_-afdd7:e83e:66bc:0612::51_-t10_udpbench'				=> "openbsd-recv-max-frag6-ot31",
+    'netbench.pl_-b1000000_-l65527_-cperform@lt13_-afdd7:e83e:66bc:0631::51_-t10_udpbench'			=> "linux-openbsd-max-frag6-ot31",
+    'netbench.pl_-b1000000_-l65527_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'			=> "openbsd-linux-max-frag6-ot31",
+    'netbench.pl_-b1000000_-l65527_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:0616::36_-t10_udpbench'	=> "linux-openbsd-linux-max-frag6-ot31",
     'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10'			=> "linux-openbsd-ipsec-tunnel4-tcp-ip3fwd-ot31",
     'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10_-R'			=> "linux-openbsd-ipsec-tunnel4-tcp-ip3rev-ot31",
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10'	=> "linux-openbsd-ipsec-tunnel4-tcp6-ip3fwd-ot31",
@@ -660,10 +844,10 @@ for (my $i = 0; $i < @testdesc; $i += 2) {
     $num{$desc}++;
 }
 foreach (keys %TESTPLOT) {
-    die "testplot $_ is not in testdesc\n" unless $TESTDESC{$_};
+    die "testplot $_ is not in testdesc" unless $TESTDESC{$_};
 }
 foreach (keys %TESTDESC) {
-    die "testdesc $_ is not in testorder\n" unless $TESTORDER{$_};
+    die "testdesc $_ is not in testorder" unless $TESTORDER{$_};
 }
 
 ########################################################################

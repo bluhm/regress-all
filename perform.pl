@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -23,21 +23,29 @@ use Getopt::Std;
 use POSIX;
 use Time::HiRes;
 
+my $startdir = getcwd();
+my @startcmd = ($0, @ARGV);
 my %opts;
-getopts('b:e:t:v', \%opts) or do {
+getopts('b:e:t:sv', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-b kstack] [-e environment] [-t timeout] [test ...]
+usage: $0 [-sv] [-b kstack] [-e environment] [-t timeout] [test ...]
     -b kstack	measure with btrace and create kernel stack map
     -e environ	parse environment for tests from shell script
+    -s		stress test, run tests longer, activate sysctl
     -t timeout	timeout for a single test, default 1 hour
     -v		verbose
     test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
 		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
 		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
 		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6,
+		localnet, localnet4, localnet6,
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
 		forward, forward4, forward6 relay, relay4, relay6,
-		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66
+		frag, frag4, frag6,
+		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
+		veb, veb4, veb6,
+		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
+		nopf pfsync
 EOF
     exit(2);
 };
@@ -46,14 +54,18 @@ $btrace && $btrace ne "kstack"
     and die "Btrace -b '$btrace' not supported, use 'kstack'";
 my $timeout = $opts{t} || 60*60;
 environment($opts{e}) if $opts{e};
+my $stress = $opts{s};
 
 my %allmodes;
 @allmodes{qw(all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
     net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
+    localnet localnet4 localnet6
     linuxnet linuxiperftcp4 linuxiperftcp6
-    forward forward4 forward6 relay relay4 relay6
+    forward forward4 forward6 relay relay4 relay6 frag frag4 frag6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
+    veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
+    nopf pfsync
 )} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
@@ -61,11 +73,16 @@ my %testmode = map {
 } @ARGV;
 $testmode{all} = 1 unless @ARGV;
 @testmode{qw(net make fs)} = 1..3 if $testmode{all};
-@testmode{qw(net4 net6 forward relay ipsec)} = 1..5 if $testmode{net};
-@testmode{qw(tcp4 udp4 forward4 relay4 ipsec4 ipsec44)} = 1..6
+@testmode{qw(net4 net6 forward relay ipsec veb)} = 1..6 if $testmode{net};
+@testmode{qw(tcp4 udp4 forward4 relay4 ipsec4 ipsec44 veb4)} = 1..7
     if $testmode{net4};
-@testmode{qw(tcp6 udp6 forward6 relay6 ipsec6 ipsec66)} = 1..6
+@testmode{qw(tcp6 udp6 forward6 relay6 ipsec6 ipsec66 veb6)} = 1..7
     if $testmode{net6};
+@testmode{qw(localnet4 localnet6)} = 1..2 if $testmode{localnet};
+@testmode{qw(iperftcp4 iperfudp4 tcpbench4 udpbench4)} = 1..4
+    if $testmode{localnet4};
+@testmode{qw(iperftcp6 iperfudp6 tcpbench6 udpbench6)} = 1..4
+    if $testmode{localnet6};
 @testmode{qw(linuxiperftcp4 linuxiperftcp6)} = 1..2 if $testmode{linuxnet};
 @testmode{qw(iperf4 iperf6)} = 1..2 if $testmode{iperf};
 @testmode{qw(iperftcp4 iperfudp4 linuxiperftcp4)} = 1..3 if $testmode{iperf4};
@@ -82,8 +99,28 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(iperfudp4 iperfudp6)} = 1..2 if $testmode{iperfudp};
 @testmode{qw(forward4 forward6)} = 1..2 if $testmode{forward};
 @testmode{qw(relay4 relay6)} = 1..2 if $testmode{relay};
+@testmode{qw(frag4 frag6)} = 1..2 if $testmode{frag};
 @testmode{qw(ipsec4 ipsec44 ipsec46 ipsec6 ipsec64 ipsec66)} = 1..6
     if $testmode{ipsec};
+@testmode{qw(veb4 veb6)} = 1..2 if $testmode{veb};
+@testmode{qw(vbridge4 vport4)} = 1..2 if $testmode{veb4};
+@testmode{qw(vbridge6 vport6)} = 1..2 if $testmode{veb6};
+@testmode{qw(vbridge4 vbridge6)} = 1..2 if $testmode{vbridge};
+@testmode{qw(vport4 vport6)} = 1..2 if $testmode{vport};
+
+if ($stress) {
+    my %sysctl = (
+	'kern.pool_debug'	=> 1,
+	'kern.splassert'	=> 3,
+	'kern.witness.watch'	=> 3,
+    );
+    foreach my $k (sort keys %sysctl) {
+	my $v = $sysctl{$k};
+	my @cmd = ('/sbin/sysctl', "$k=$v");
+	system(@cmd)
+	    and die "Sysctl '$k=$v' failed: $?";
+    }
+}
 
 my $dir = dirname($0);
 chdir($dir)
@@ -91,6 +128,7 @@ chdir($dir)
 my $performdir = getcwd();
 
 # write summary of results into result file
+rename("test.result", "test.result.old") if $stress;
 open(my $tr, '>', "test.result")
     or die "Open 'test.result' for writing failed: $!";
 $tr->autoflush();
@@ -151,6 +189,8 @@ my $linux_forward_addr = $ENV{LINUX_FORWARD_ADDR};
 my $linux_forward_addr6 = $ENV{LINUX_FORWARD_ADDR6};
 my $linux_relay_addr = $ENV{LINUX_RELAY_ADDR};
 my $linux_relay_addr6 = $ENV{LINUX_RELAY_ADDR6};
+my $linux_linux_addr = $ENV{LINUX_LINUX_ADDR};
+my $linux_linux_addr6 = $ENV{LINUX_LINUX_ADDR6};
 my $linux_ipsec_addr = $ENV{LINUX_IPSEC_ADDR};
 my $linux_ipsec_addr6 = $ENV{LINUX_IPSEC_ADDR6};
 my $linux_ipsec6_addr = $ENV{LINUX_IPSEC6_ADDR};
@@ -162,6 +202,17 @@ my $linux_relay_local_addr6 = $ENV{LINUX_RELAY_LOCAL_ADDR6};
 my $linux_relay_remote_addr = $ENV{LINUX_RELAY_REMOTE_ADDR};
 my $linux_relay_remote_addr6 = $ENV{LINUX_RELAY_REMOTE_ADDR6};
 my $linux_other_ssh = $ENV{LINUX_OTHER_SSH};
+
+my $linux_veb_addr = $ENV{LINUX_VEB_ADDR};
+my $linux_veb_addr6 = $ENV{LINUX_VEB_ADDR6};
+
+my $pfsync_if = $ENV{PFSYNC_IF};
+my $pfsync_addr = $ENV{PFSYNC_ADDR};
+my $pfsync_peer_if = $ENV{PFSYNC_PEER_IF};
+my $pfsync_peer_addr = $ENV{PFSYNC_PEER_ADDR};
+my $pfsync_ssh = $ENV{PFSYNC_SSH};
+
+my $netbench = "$performdir/netbench.pl";
 
 # tcpdump as workaround for missing workaround in ix(4) for 82598
 # tcpdump during reboot may not be sufficent as other side changes link later
@@ -359,6 +410,44 @@ sub iked_shutdown {
 	die "Command '@sshcmd' failed: $?";
 }
 
+sub pf_enable {
+    my @cmd = ('/sbin/pfctl', '-e', '-f', '/etc/pf.conf');
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $remote_ssh, @cmd);
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+}
+
+sub pf_disable {
+    my @cmd = ('/sbin/pfctl', '-d');
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $remote_ssh, @cmd);
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+}
+
+sub pfsync_startup {
+    my @cmd = ('/sbin/ifconfig', 'pfsync0',
+	'syncdev', $pfsync_if, 'syncpeer', $pfsync_peer_addr, 'up');
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $pfsync_ssh, '/sbin/ifconfig', 'pfsync0',
+	'syncdev', $pfsync_peer_if, 'syncpeer', $pfsync_addr, 'up');
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+}
+
+sub pfsync_shutdown {
+    my @cmd = ('/sbin/ifconfig', 'pfsync0', 'destroy');
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $pfsync_ssh, '/sbin/ifconfig', 'pfsync0', 'destroy');
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+}
+
 sub time_parser {
     my ($line, $log) = @_;
     if ($line =~ /^(\w+) +(\d+\.\d+)$/) {
@@ -532,6 +621,68 @@ push @tests, (
 	parser => \&udpbench_parser,
     }
 ) if $testmode{udpbench6};
+my @frag = (
+    {
+	# local send, other OpenBSD recv
+	client => undef,
+	server => $remote_ssh,
+	address => '$remote_addr',
+    },
+    {
+	# local recv, other OpenBSD send
+	client => $remote_ssh,
+	server => undef,
+	address => '$local_addr',
+    },
+    {
+	# local recv, Linux send
+	client => $linux_ssh,
+	server => undef,
+	address => '$linux_relay_addr',
+    },
+    {
+	# local send, other Linux recv
+	client => undef,
+	server => $linux_other_ssh,
+	address => '$linux_forward_addr',
+    },
+    {
+	# Linux send, local forward, other Linux recv
+	client => $linux_ssh,
+	server => $linux_other_ssh,
+	address => '$linux_forward_addr',
+    },
+);
+foreach my $payload (0, 1500 - 28, 1500 - 28 - 4 + 1500 - 20, 2**16 - 1 - 28) {
+    push @tests, map {
+	{
+	    testcmd => [$netbench,
+		'-b1000000',
+		"-l$payload",
+		 $_->{client} ? ("-c$_->{client}") : (),
+		 $_->{server} ? ("-s$_->{server}") : (),
+		'-a'. eval "$_->{address}",
+		'-t10',
+		'udpbench'],
+	    parser => \&udpbench_parser,
+	}
+    } @frag if $testmode{frag4};
+}
+foreach my $payload (0, 1500 - 48, 1500 - 56 + 1500 - 48 - 8, 2**16 - 1 - 8) {
+    push @tests, map {
+	{
+	    testcmd => [$netbench,
+		'-b1000000',
+		"-l$payload",
+		 $_->{client} ? ("-c$_->{client}") : (),
+		 $_->{server} ? ("-s$_->{server}") : (),
+		'-a'. eval "$_->{address}6",
+		'-t10',
+		'udpbench'],
+	    parser => \&udpbench_parser,
+	}
+    } @frag if $testmode{frag6};
+}
 push @tests, (
     {
 	initialize => \&iperf3_initialize,
@@ -676,6 +827,62 @@ if (@ipsectests) {
 push @tests, @ipsectests;
 push @tests, (
     {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_veb_addr",
+	    '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', "-c$linux_veb_addr",
+	    '-P10', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{vbridge4} && $linux_veb_addr && $linux_ssh;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_veb_addr6",
+	    '-P10', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $linux_ssh, 'iperf3', '-6', "-c$linux_veb_addr6",
+	    '-P10', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{vbridge6} && $linux_veb_addr6 && $linux_ssh;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', "-c$linux_veb_addr", '-w1m', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', "-c$linux_veb_addr", '-w1m', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{vport4} && $linux_veb_addr;
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', '-6', "-c$linux_veb_addr6", '-w1m', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', '-6', "-c$linux_veb_addr6", '-w1m', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{vport6} && $linux_veb_addr6;
+if ($testmode{pfsync}) {
+    $tests[0]{startup} = \&pfsync_startup;
+    $tests[-1]{shutdown} = \&pfsync_shutdown;
+}
+if ($testmode{nopf}) {
+    $tests[0]{startup} = \&pf_disable;
+    $tests[-1]{shutdown} = \&pf_enable;
+}
+push @tests, (
+    {
 	testcmd => ['time', '-lp', 'make',
 	    "-C/usr/src/sys/arch/$machine/compile/$kconf", "-j$ncpu", '-s'],
 	parser => \&time_parser,
@@ -723,6 +930,10 @@ foreach my $t (@tests) {
 	    $sampletime = 300;
 	} else {
 	    next;
+	}
+    } elsif ($stress) {
+	if (grep { /^-t10$/ } @runcmd) {
+	    s/^-t10$/-t60/ foreach @runcmd;
 	}
     }
 
@@ -894,6 +1105,13 @@ system(@paxcmd)
 
 close($tr)
     or die "Close 'test.result' after writing failed: $!";
+
+if ($stress) {
+    chdir($startdir)
+	or die "Change directory to '$startdir' failed: $!";
+    exec $! @startcmd;
+    die "Exec '@startcmd' failed: $!";
+}
 
 exit;
 

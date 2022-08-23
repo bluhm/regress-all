@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -31,7 +31,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('b:d:D:h:k:N:P:r:v', \%opts) or do {
+getopts('b:d:D:h:k:N:nP:pr:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
     [-N repeat] [-P patch] [-r release] [test ...]
@@ -41,17 +41,23 @@ usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
     -h host	user and host for performance test, user defaults to root
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
     -N repeat	number of build, reboot, test repetitions per step
+    -n		do not generate gnuplot files on main release page
     -P patch	apply patch to clean kernel source
+    -p		power down after testing
     -r release	change to release sub directory
     -v		verbose
     test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
 		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
 		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
 		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6,
+		localnet, localnet4, localnet6,
 		linuxnet, linuxiperftcp4, linuxiperftcp6,
 		forward, forward4, forward6,
-		relay, relay4, relay6,
-		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66
+		relay, relay4, relay6, frag, frag4, frag6,
+		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
+		veb, veb4, veb6,
+		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
+		nopf pfsync
 
 EOF
     exit(2);
@@ -92,9 +98,13 @@ $kernelmode{$opts{k}} = 1 if $opts{k};
     all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
     net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
+    localnet localnet4 localnet6
     linuxnet linuxiperftcp4 linuxiperftcp6
     forward forward4 forward6 relay relay4 relay6
+    frag frag4 frag6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
+    veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
+    nopf pfsync
 )} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
@@ -158,6 +168,7 @@ END {
 	system(@cmd);
     }
 };
+powerup_hosts(cvsdate => $cvsdate, patch => $patch, release => $release);
 cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch, release => $release,
     mode => \%kernelmode) unless $kernelmode{keep};
 collect_version();
@@ -211,6 +222,8 @@ foreach my $repeatdir (@repeats ? @repeats : ".") {
     collect_dmesg();
     setup_html();
 }
+powerdown_hosts(cvsdate => $cvsdate, patch => $patch, release => $release)
+    if $opts{p};
 
 # create html output
 
@@ -219,7 +232,8 @@ chdir($performdir)
 
 if ($date) {
     setup_html(date => 1);
-    my @cmd = ("bin/perform-html.pl", "-d", $date, "-n");
+    my @cmd = ("bin/perform-html.pl", "-d", $date);
+    push @cmd, "-n" if $opts{n};
     push @cmd, "-r", $release if $release;
     push @cmd, "-v" if $opts{v};
     runcmd(@cmd);

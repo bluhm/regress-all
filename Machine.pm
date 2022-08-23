@@ -26,7 +26,7 @@ use POSIX;
 use Logcmd;
 
 use parent 'Exporter';
-our @EXPORT= qw(createhost reboot
+our @EXPORT= qw(createhost power_down power_up reboot
     install_pxe upgrade_pxe sysupgrade_fetch get_bsdcons get_version
     checkout_cvs update_cvs diff_cvs clean_cvs patch_cvs update_ports
     make_kernel make_build
@@ -43,7 +43,15 @@ sub createhost {
     ($user, $host) = @_;
 }
 
-# reboot machine
+# power down, up and reboot machine
+
+sub power_down {
+    logcmd('ssh', "$host\@$testmaster", "powerdown");
+}
+
+sub power_up {
+    logcmd('ssh', "$host\@$testmaster", "powerup");
+}
 
 sub reboot {
     logcmd('ssh', "$host\@$testmaster", "reboot");
@@ -62,7 +70,7 @@ sub upgrade_pxe {
 }
 
 sub sysupgrade_fetch {
-    logcmd('ssh', "$user\@$host", "sysupgrade -kns");
+    logcmd('ssh', "$user\@$host", "sysupgrade -fkns");
 }
 
 # console output since last OpenBSD kernel boot

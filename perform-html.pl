@@ -268,9 +268,15 @@ sub parse_result_files {
 	} else {
 	    $D{$date}{$cvsdate}{result} = $result;
 	}
-	$D{$date}{log} ||= "step.log" if -f "$reldate/step.log";
-	$D{$date}{$cvsdate}{log} ||= "once.log"
-	    if -f "$reldate/$cvsdate/once.log";
+	if (!$D{$date}{log} && -f "$reldate/step.log") {
+	    $D{$date}{log} = "step.log";
+	    $D{$date}{logmtime} = (stat("$reldate/step.log"))[9];
+	}
+	if (!$D{$date}{$cvsdate}{log} && -f "$reldate/$cvsdate/once.log") {
+	    $D{$date}{$cvsdate}{log} = "once.log";
+	    $D{$date}{$cvsdate}{logmtime} =
+		(stat("$reldate/$cvsdate/once.log"))[9];
+	}
 	unless ($D{$date}{stepconf}) {
 	    my $stepfile = "$reldate/stepconf.txt";
 	    if (open (my $fh, '<', $stepfile)) {
@@ -509,6 +515,7 @@ sub write_data_files {
 			my $hostname = $dv->{host};
 			# avoid noise of data in sendbuf, but not reveived
 			next if $test =~ /iperf/ && $subtest eq "sender";
+			next if $test =~ /netbench/ && $subtest eq "send";
 			print $_ "$test $subtest ".
 			    "$run $checkout $repeat $number $unit $hostname\n"
 			    foreach @fhout;
@@ -738,6 +745,10 @@ sub create_btrace_files {
 			and die "Command '$fgcmd' failed: $?";
 		    rename("$svgfile.new", $svgfile)
 			or die "Rename '$svgfile.new' to '$svgfile' failed: $!";
+		    system("gzip -f -c $svgfile >$svgfile.gz.new")
+			and die "Gzip '$svgfile' failed: $?";
+		    rename("$svgfile.gz.new", "$svgfile.gz") or die
+			"Rename '$svgfile.gz.new' to '$svgfile.gz' failed: $!";
 		}
 	    }
 	}
@@ -788,13 +799,17 @@ sub html_repeat_top {
     <td><a href="$absresult/$reldate/$cvsdate/perform.html">$date</a></td>
   </tr>
 HEADER
-    print $html "  <tr>\n    <th>run</th>\n";
-    my $log = $dv->{$cvsdate}{log};
-    my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
-    my $href = $log ? "<a href=\"$link\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <td>${href}log$enda</td>\n";
-    print $html "  </tr>\n";
+    if (my $log = $dv->{$cvsdate}{log}) {
+	my $start = str2time($date);
+	my $duration = $dv->{$cvsdate}{logmtime} - $start;
+	my $logdur = $duration >= 24*60*60 ?
+	    sprintf("%.2f days", $duration / (24*60*60)) :
+	    strftime("%T", gmtime($duration));
+	print $html "  <tr>\n    <th>run</th>\n";
+	my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
+	print $html "    <td><a href=\"$link\">log</a>/duration $logdur</td>\n";
+	print $html "  </tr>\n";
+    }
     print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
     my $hostname = $dv->{host};
     my $ncpu = $dv->{ncpu};
@@ -813,9 +828,9 @@ HEADER
     }
     $kerneltext =~ s/\s//g;
     my $build = $dv->{$cvsdate}{build};
-    $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
-    $href = $build ? "<a href=\"$absresult/$link\">" : "";
-    $enda = $href ? " info</a>" : "";
+    my $link = uri_escape($build, "^A-Za-z0-9\-\._~/");
+    my $href = $build ? "<a href=\"$absresult/$link\">" : "";
+    my $enda = $href ? " info</a>" : "";
     print $html "    <td>$href$kerneltext$enda</td>\n";
     print $html "  </tr>\n";
     print $html "</table>\n";
@@ -956,13 +971,17 @@ sub html_cvsdate_top {
     <td><a href="$absresult/$reldate/perform.html">$date</a></td>
   </tr>
 HEADER
-    print $html "  <tr>\n    <th>run</th>\n";
-    my $log = $dv->{log};
-    my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
-    my $href = $log ? "<a href=\"$link\">" : "";
-    my $enda = $href ? "</a>" : "";
-    print $html "    <td>${href}log$enda</td>\n";
-    print $html "  </tr>\n";
+    if (my $log = $dv->{log}) {
+	my $start = str2time($date);
+	my $duration = $dv->{logmtime} - $start;
+	my $logdur = $duration >= 24*60*60 ?
+	    sprintf("%.2f days", $duration / (24*60*60)) :
+	    strftime("%T", gmtime($duration));
+	print $html "  <tr>\n    <th>run</th>\n";
+	my $link = uri_escape($log, "^A-Za-z0-9\-\._~/");
+	print $html "    <td><a href=\"$link\">log</a>/duration $logdur</td>\n";
+	print $html "  </tr>\n";
+    }
     print $html "  <tr>\n    <th>test host with cpu cores</th>\n";
     my $hostname = $dv->{host};
     my $ncpu = $dv->{ncpu};
@@ -973,9 +992,9 @@ HEADER
     my $release = $dv->{stepconf}{release};
     my $setupmodes = $dv->{stepconf}{setupmodes} ||
 	$dv->{stepconf}{modes};
-    $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
-    $href = $setup ? "<a href=\"$absresult/$link\">" : "";
-    $enda = $href ? " info</a>" : "";
+    my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
+    my $href = $setup ? "<a href=\"$absresult/$link\">" : "";
+    my $enda = $href ? " info</a>" : "";
     print $html "    <td>$href$release/$setupmodes$enda</td>\n";
     print $html "  </tr>\n";
     print $html "  <tr>\n    <th>steps</th>\n";

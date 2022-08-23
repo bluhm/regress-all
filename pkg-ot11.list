@@ -47,6 +47,7 @@ apr-util--
 aspell
 brotli
 cairo
+cmake
 curl
 db%v4
 gd
@@ -75,8 +76,10 @@ openldap-server--%openldap
 p11-kit
 perltidy
 pinentry
+py3-sphinx
 python%3.9
 qtbase
 rrdtool
+texlive_texmf-full
 unzip--
 zip

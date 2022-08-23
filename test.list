@@ -87,7 +87,6 @@ lib/libcrypto/base64
 lib/libcrypto/bf
 lib/libcrypto/bio
 lib/libcrypto/bn
-lib/libcrypto/botan
 lib/libcrypto/cast
 lib/libcrypto/certs
 lib/libcrypto/chacha
@@ -114,6 +113,7 @@ lib/libcrypto/ige
 lib/libcrypto/init
 lib/libcrypto/md4
 lib/libcrypto/md5
+lib/libcrypto/objects
 lib/libcrypto/ocsp
 lib/libcrypto/pbkdf2
 lib/libcrypto/pem
@@ -157,6 +157,7 @@ lib/libpthread
 lib/libradius
 lib/libskey
 lib/libsndio
+lib/libssl/api
 lib/libssl/asn1
 lib/libssl/buffer
 lib/libssl/bytestring
@@ -181,10 +182,12 @@ lib/libssl/verify
 lib/libtls/config
 lib/libtls/gotls
 lib/libtls/keypair
+lib/libtls/signer
 lib/libtls/tls
 lib/libtls/verify
 lib/libusbhid
 lib/libutil
+lib/libz
 libexec/ftpd
 libexec/ld.so
 misc/c++abi
@@ -204,7 +207,9 @@ sbin/newfs
 sbin/pfctl
 sbin/route
 sbin/slaacd
-sys/arch/amd64
+sys/arch/amd64/dump_tables
+sys/arch/amd64/fpu
+sys/arch/amd64/vmm
 sys/arch/hppa
 sys/arch/i386
 sys/arch/m88k
@@ -324,6 +329,7 @@ sys/net/pair
 sys/net/pf_divert
 sys/net/pf_forward
 sys/net/pf_fragment
+sys/net/pf_opts
 sys/net/pf_print
 sys/net/pf_state
 sys/net/pf_table
@@ -356,6 +362,7 @@ sys/netinet6/srcaddr
 sys/nfs
 sys/ptrace
 sys/sys/tree
+sys/uvm/blist
 sys/uvm/minherit_zero
 sys/uvm/mmap0
 sys/uvm/mmap_4g

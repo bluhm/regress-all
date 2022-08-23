@@ -31,12 +31,13 @@ use Buildquirks;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:h:r:P:v', \%opts) or do {
+getopts('d:h:P:pr:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: $0 [-v] [-d date] -h host [-P patch] [-r release] mode ...
     -d date	set date string and change to sub directory
     -h host	root\@openbsd-test-machine, login per ssh
     -P patch	apply patch to clean kernel source, comma separated list
+    -p		power down after setup
     -r release	use release for install and cvs checkout, X.Y or current
     -v		verbose
     build	build system from source /usr/src and reboot
@@ -100,6 +101,7 @@ $cvspath = "sys" if $mode{kernel};
 
 # execute commands
 
+power_up() if (!$mode{install} && !$mode{upgrade}) || $mode{keep};
 install_pxe($release) if $mode{install} && !$mode{keep};
 upgrade_pxe() if $mode{upgrade} && !$mode{keep};
 sysupgrade_fetch() if $mode{sysupgrade};
@@ -127,6 +129,7 @@ build_tools() if $mode{install} || $mode{upgrade} || $mode{sysupgrade} ||
     $mode{tools};
 run_commands() if $mode{install} || $mode{upgrade} || $mode{sysupgrade} ||
     $mode{ports} || $mode{commands};
+power_down() if $opts{p};
 get_bsdcons();
 
 # finish setup log
@@ -154,7 +157,8 @@ sub copy_scripts {
     runcmd(@scpcmd);
 
     @copy = grep { -f $_ }
-	("perform.pl", "makealign.sh", "env-$host.sh", "pkg-$host.list");
+	("perform.pl", "netbench.pl", "makealign.sh", "env-$host.sh",
+	    "pkg-$host.list");
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$user\@$host:/root/perform");

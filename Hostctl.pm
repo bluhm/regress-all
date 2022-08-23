@@ -27,7 +27,7 @@ use parent 'Exporter';
 our @EXPORT= qw(
     usehosts setup_hosts
     collect_version collect_bsdcons collect_dmesg collect_result
-    cvsbuild_hosts reboot_hosts
+    cvsbuild_hosts powerdown_hosts powerup_hosts reboot_hosts
     setup_html
 );
 
@@ -35,8 +35,11 @@ my %lasthosts = (
     ot1  => "ot4",
     ot2  => "ot2",
     ot3  => "ot3",
+    ot4  => "ot4",
+    ot5  => "ot5",
     ot6  => "ot6",
     ot7  => "ot7",
+    ot8  => "ot8",
     ot10 => "ot11",
     ot11 => "ot11",
     ot12 => "ot13",
@@ -80,14 +83,7 @@ sub setup_hosts {
     croak "Unknown args: @unknown" if @unknown;
 
     my @pidcmds;
-    my $num = 0;
     for (my $host = $firsthost; $host le $lasthost; $host++) {
-	$num++;
-	if ($mode{build} && $num > 2) {
-	    # only build on first two hosts, ot4 is too slow
-	    next;
-	}
-
 	my @setupcmd = ("$bindir/setup.pl", '-h', "$user\@$host");
 	push @setupcmd, '-d', $date if $date;
 	push @setupcmd, '-v' if $verbose;
@@ -193,25 +189,27 @@ sub collect_result {
     }
 }
 
-sub cvsbuild_hosts {
-    my %args = @_;
+sub hosts_command {
+    my ($command, %args) = @_;
     my $cvsdate = delete $args{cvsdate};
     my $patch = delete $args{patch};
     my $release = delete $args{release};
+    my $repeat = delete $args{repeat};
     my %mode = %{delete $args{mode}};
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
 
     my @pidcmds;
     for (my $host = $firsthost; $host le $lasthost; $host++) {
-	my @cvscmd = ("$bindir/cvsbuild.pl", '-h', "$user\@$host");
-	push @cvscmd, '-d', $date if $date;
-	push @cvscmd, '-D', $cvsdate if $cvsdate;
-	push @cvscmd, '-P', $patch if $patch;
-	push @cvscmd, '-r', $release if $release;
-	push @cvscmd, '-v' if $verbose;
-	push @cvscmd, keys %mode;
-	push @pidcmds, forkcmd(@cvscmd);
+	my @cmd = ("$bindir/$command", '-h', "$user\@$host");
+	push @cmd, '-d', $date if $date;
+	push @cmd, '-D', $cvsdate if $cvsdate;
+	push @cmd, '-P', $patch if $patch;
+	push @cmd, '-r', $release if $release;
+	push @cmd, '-R', $repeat if $repeat;
+	push @cmd, '-v' if $verbose;
+	push @cmd, keys %mode;
+	push @pidcmds, forkcmd(@cmd);
     }
     if (@pidcmds) {
 	# create new summary with setup log
@@ -222,33 +220,20 @@ sub cvsbuild_hosts {
     }
 }
 
+sub cvsbuild_hosts {
+    hosts_command("cvsbuild.pl", @_);
+}
+
+sub powerdown_hosts {
+    hosts_command("power.pl", @_, mode => { down => 1 });
+}
+
+sub powerup_hosts {
+    hosts_command("power.pl", @_, mode => { up => 1 });
+}
+
 sub reboot_hosts {
-    my %args = @_;
-    my $cvsdate = delete $args{cvsdate};
-    my $repeat = delete $args{repeat};
-    my $release = delete $args{release};
-    my %mode = %{delete $args{mode}};
-    my @unknown = keys %args;
-    croak "Unknown args: @unknown" if @unknown;
-
-    my @pidcmds;
-    for (my $host = $firsthost; $host le $lasthost; $host++) {
-	my @rebootcmd = ("$bindir/reboot.pl", '-h', "$user\@$host");
-	push @rebootcmd, '-d', $date if $date;
-	push @rebootcmd, '-D', $cvsdate if $cvsdate;
-	push @rebootcmd, '-R', $repeat if $repeat;
-	push @rebootcmd, '-r', $release if $release;
-	push @rebootcmd, '-v' if $verbose;
-	push @rebootcmd, keys %mode;
-	push @pidcmds, forkcmd(@rebootcmd);
-    }
-    if (@pidcmds) {
-	# create new summary with setup log
-	sleep 5;
-	setup_html();
-
-	waitcmd(@pidcmds);
-    }
+    hosts_command("reboot.pl", @_);
 }
 
 # there may be races with other running instances, make it non fatal

@@ -185,7 +185,7 @@ sub write_html_ostest_file {
 
     print "." if $verbose;
     system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-	and die "Gzip $htmlfile failed: $?";
+	and die "Gzip '$htmlfile' failed: $?";
     rename("$htmlfile.gz.new", "$htmlfile.gz")
 	or die "Rename '$htmlfile.gz.new' to '$htmlfile.gz' failed: $!";
 }
@@ -222,7 +222,7 @@ sub write_html_posixtestsuite_file {
 
     print "." if $verbose;
     system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-	and die "Gzip $htmlfile failed: $?";
+	and die "Gzip '$htmlfile' failed: $?";
     rename("$htmlfile.gz.new", "$htmlfile.gz")
 	or die "Rename '$htmlfile.gz.new' to '$htmlfile.gz' failed: $!";
 }
