@@ -122,7 +122,8 @@ sub glob_log_files {
 	bsd_glob("*T*/run.log", GLOB_NOSORT),
 	bsd_glob("*T*/step.log", GLOB_NOSORT),
 	bsd_glob("*T*/test.log", GLOB_NOSORT),
-	bsd_glob("*T*/make.log", GLOB_NOSORT));
+	bsd_glob("*T*/make.log", GLOB_NOSORT),
+	bsd_glob("*T*/net.log", GLOB_NOSORT));
     print "." if $verbose;
     my @reldates =
 	map { dirname($_) } (
@@ -243,6 +244,9 @@ sub parse_log_files {
 	} elsif (-f "make.log") {
 	    $D{$date}{log} = "make.log";
 	    $typename = "Release";
+	} elsif (-f "net.log") {
+	    $D{$date}{log} = "net.log";
+	    $typename = "Netlink";
 	}
 	$D{$date}{logmtime} = (stat($D{$date}{log}))[9] if $D{$date}{log};
 	if (-f "test.log.tgz") {

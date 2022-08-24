@@ -68,7 +68,7 @@ my (%L, %V);
 # $V{$host}{ncpu}			sysctl hardware ncpu cores
 # $V{$host}{mtime}			latest modified time of version file
 
-my @types = qw(regress perform portstest release);
+my @types = qw(regress perform portstest release netlink);
 
 print "find latest logs" if $verbose;
 foreach my $type (@types) {
@@ -98,6 +98,7 @@ sub glob_log_files {
 	perform   => "{step,once}",
 	portstest => "test",
 	release   => "make",
+	netlink   => "net",
     );
 
     my @logs = glob("$resultdir/${dateglob}T*Z/$logglob{$type}.log");
@@ -164,6 +165,7 @@ sub create_html_running {
 	Perform => "../perform/results/perform.html",
 	Ports   => "../portstest/results/latest.html",
 	Release => "../release/results/latest.html",
+	Netlink => "../netlink/results/latest.html",
 	Running => undef);
     html_header($html, "OpenBSD Running",
 	"OpenBSD test running",
