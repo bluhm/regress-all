@@ -58,7 +58,6 @@ usage: once.pl [-npv] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
 		veb, veb4, veb6,
 		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
 		nopf pfsync
-
 EOF
     exit(2);
 };

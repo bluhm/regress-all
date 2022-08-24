@@ -94,6 +94,7 @@ close($fh);
 
 usehosts(bindir => "$regressdir/bin", date => $date,
     host => $opts{h}, verbose => $opts{v});
+(my $host = $opts{h}) =~ s/.*\@//;
 
 # do not run end block until initialized, date may change later
 my $odate = $date;
@@ -119,7 +120,6 @@ setup_html();
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
-(my $host = $opts{h}) =~ s/.*\@//;
 my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/regress/regress.pl',
     '-e', "/root/regress/env-$host.sh", '-v');
 logcmd(@sshcmd);
