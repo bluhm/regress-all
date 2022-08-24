@@ -106,6 +106,7 @@ my %allmodes;
 my %kernelmode;
 $kernelmode{$opts{k}} = 1 if $opts{k};
 
+undef %allmodes;
 @allmodes{qw(build cvs install keep)} = ();
 !$opts{s} || exists $allmodes{$opts{s}}
     or die "Unknown setup mode '$opts{s}'";

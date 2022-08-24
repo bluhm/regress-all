@@ -30,7 +30,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('h:pv', \%opts) or do {
     print STDERR <<"EOF";
-usage: test.pl [-pv] -h host mode ...
+usage: test.pl [-pv] -h host setupmode ...
     -h host	user and host for make test, user defaults to root
     -p		power down after testing
     -v		verbose
@@ -44,13 +44,14 @@ $opts{h} or die "No -h specified";
 
 my %allmodes;
 @allmodes{qw(commands keep ports)} = ();
-@ARGV or die "No mode specified";
-my %mode = map {
-    die "Unknown mode: $_" unless exists $allmodes{$_};
+@ARGV or die "No setupmode specified";
+my %setupmode = map {
+    die "Unknown setupmode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
 foreach (qw(keep)) {
-    die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
+    die "Mode must be used solely: $_"
+	if $setupmode{$_} && keys %setupmode != 1;
 }
 
 # better get an errno than random kill by SIGPIPE
@@ -79,7 +80,7 @@ open(my $fh, '>', "testconf.txt")
     or die "Open 'testconf.txt' for writing failed: $!";
 print $fh "ARGUMENTS @ARGV\n";
 print $fh "HOST $opts{h}\n";
-print $fh "MODE ", join(" ", sort keys %mode), "\n";
+print $fh "SETUPMODE ", join(" ", sort keys %setupmode), "\n";
 close($fh);
 
 # setup remote machines
@@ -100,8 +101,8 @@ END {
 	system(@cmd);
     }
 };
-setup_hosts(mode => \%mode) if !$mode{keep};
-powerup_hosts() if $mode{keep};
+setup_hosts(mode => \%setupmode) if !$setupmode{keep};
+powerup_hosts() if $setupmode{keep};
 collect_version();
 setup_html();
 

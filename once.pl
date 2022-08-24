@@ -93,6 +93,7 @@ my %allmodes;
 my %kernelmode;
 $kernelmode{$opts{k}} = 1 if $opts{k};
 
+undef %allmodes;
 @allmodes{qw(
     all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4

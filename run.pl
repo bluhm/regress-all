@@ -31,7 +31,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('h:P:pv', \%opts) or do {
     print STDERR <<"EOF";
-usage: run.pl [-pv] -h host [-P patch] mode ...
+usage: run.pl [-pv] -h host [-P patch] setupmode ...
     -h host	user and host for make regress, user defaults to root
     -P patch	apply patch to clean kernel source
     -p		power down after testing
@@ -53,12 +53,13 @@ my $patch = $opts{P};
 my %allmodes;
 @allmodes{qw(build cvs install keep kernel reboot sysupgrade upgrade)} = ();
 @ARGV or die "No mode specified";
-my %mode = map {
-    die "Unknown mode: $_" unless exists $allmodes{$_};
+my %setupmode = map {
+    die "Unknown setupmode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
 foreach (qw(install keep reboot sysupgrade upgrade)) {
-    die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
+    die "Mode must be used solely: $_"
+	if $setupmode{$_} && keys %setupmode != 1;
 }
 
 # better get an errno than random kill by SIGPIPE
@@ -87,7 +88,7 @@ open(my $fh, '>', "runconf.txt")
     or die "Open 'runconf.txt' for writing failed: $!";
 print $fh "ARGUMENTS @ARGV\n";
 print $fh "HOST $opts{h}\n";
-print $fh "MODE ", join(" ", sort keys %mode), "\n";
+print $fh "SETUPMODE ", join(" ", sort keys %setupmode), "\n";
 close($fh);
 
 # setup remote machines
@@ -108,10 +109,10 @@ END {
 	system(@cmd);
     }
 };
-setup_hosts(patch => $patch, mode => \%mode)
-    if $patch || !($mode{keep} || $mode{reboot});
-powerup_hosts() if $mode{keep} && !$mode{reboot};
-reboot_hosts(mode => \%mode) if $mode{reboot};
+setup_hosts(patch => $patch, mode => \%setupmode)
+    if $patch || !($setupmode{keep} || $setupmode{reboot});
+powerup_hosts() if $setupmode{keep} && !$setupmode{reboot};
+reboot_hosts(mode => \%setupmode) if $setupmode{reboot};
 collect_version();
 setup_html();
 
