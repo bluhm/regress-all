@@ -26,6 +26,10 @@ my %opts;
 getopts('e:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: regress.pl [-v] [-e environment] [-t timeout] [test ...]
+    -e environ	parse environment for tests from shell script
+    -t timeout	timeout for a single test, default 1 hour
+    -v		verbose
+    test ...	explicit test list, default test.list file
 EOF
     exit(2);
 };

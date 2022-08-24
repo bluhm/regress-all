@@ -27,6 +27,9 @@ my %opts;
 getopts('e:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: release.pl [-v] [-e environment] [-t timeout]
+    -e environ	parse environment for tests from shell script
+    -t timeout	timeout for a single test, default 1 hour
+    -v		verbose
 EOF
     exit(2);
 };
