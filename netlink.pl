@@ -165,15 +165,8 @@ sub good {
     $tr->sync();
 }
 
-# ensure given interface is active
-# XXX: do grep in perl
-mysystem("ifconfig ${obsd_l_if} | grep -q active") == 0 or die "${obsd_l_if} is not active";
-mysystem("ifconfig ${obsd_r_if} | grep -q active") == 0 or die "${obsd_r_if} is not active";
-
 # unconfigure all interfaces used in testing
-# XXX: do grep in perl
-my @allinterfaces = `ifconfig | grep ^[a-z] | cut -d: -f1`;
-chomp(@allinterfaces);
+my @allinterfaces = map { m{^([a-z]+\d+):} } `ifconfig`;
 
 foreach my $ifn (@allinterfaces) {
     unless ($ifn =~ m{^(lo|enc|pflog|${management_if})}) {
