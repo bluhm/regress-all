@@ -31,7 +31,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('h:P:pv', \%opts) or do {
     print STDERR <<"EOF";
-usage: run.pl [-v] -h host mode ...
+usage: run.pl [-pv] -h host [-P patch] mode ...
     -h host	user and host for make regress, user defaults to root
     -P patch	apply patch to clean kernel source
     -p		power down after testing

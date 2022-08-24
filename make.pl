@@ -31,7 +31,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('h:P:pv', \%opts) or do {
     print STDERR <<"EOF";
-usage: make.pl [-v] -h host mode ...
+usage: make.pl [-pv] -h host [-P patch] mode ...
     -h host	user and host for make release, user defaults to root
     -P patch	apply patch to clean source or kernel source
     -p		power down after testing

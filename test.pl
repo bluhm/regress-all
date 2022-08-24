@@ -30,7 +30,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('h:pv', \%opts) or do {
     print STDERR <<"EOF";
-usage: test.pl [-v] -h host mode ...
+usage: test.pl [-pv] -h host mode ...
     -h host	user and host for make test, user defaults to root
     -p		power down after testing
     -v		verbose

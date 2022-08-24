@@ -33,7 +33,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('d:h:P:pr:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: setup.pl [-v] [-d date] -h host [-P patch] [-r release] mode ...
+usage: setup.pl [-pv] [-d date] -h host [-P patch] [-r release] mode ...
     -d date	set date string and change to sub directory
     -h host	root\@openbsd-test-machine, login per ssh
     -P patch	apply patch to clean kernel source, comma separated list

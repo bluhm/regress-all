@@ -33,7 +33,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('b:B:E:h:k:N:npr:S:s:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: step.pl [-v] [-b kstack] -B date [-E date] -h host [-k kernel]
+usage: step.pl [-npv] [-b kstack] -B date [-E date] -h host [-k kernel]
 	[-N repeat] -r release [-S interval] [-s setup] [test ...]
     -b kstack	measure with btrace and create kernel stack map
     -B date	begin date, inclusive
