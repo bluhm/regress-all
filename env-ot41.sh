@@ -1,1 +1,1 @@
-export interface=em4
+export MANAGEMENT_IF=em4

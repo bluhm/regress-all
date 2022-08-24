@@ -96,7 +96,7 @@ my %lines; # XXX: make this an env var?
 $lines{ot41} = 1;
 $lines{ot42} = 2;
 my $line = $lines{$hostname};
-my $management_if = $ENV{interface} || 'em0'; # XXX
+my $management_if = $ENV{MANAGEMENT_IF} || 'em0';
 
 my $obsd_l_if = $interface . $left_ifidx;
 my $obsd_l_net = "$ip4prefix.${line}1.0";
