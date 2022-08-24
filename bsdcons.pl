@@ -65,6 +65,7 @@ if ($opts{r} && $opts{r} ne "current") {
 }
 $opts{d} && $opts{l}
     and die "Use either specific date or latest date";
+@ARGV and die "No arguments allowed";
 
 my $testdir = dirname($0). "/..";
 chdir($testdir)

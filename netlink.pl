@@ -69,7 +69,7 @@ my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
     $_ => 1;
 } @ARGV;
-
+$testmode{all} = 1 unless @ARGV;
 $testmode{all4} = $testmode{all6} = 1 if ($testmode{all});
 if ($testmode{all4}) {
     $testmode{$_} = 1 foreach (map { $_ . '4' } @alltests);

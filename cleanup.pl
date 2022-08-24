@@ -47,6 +47,7 @@ my $alldays = ($opts{y} // 1) * $dy;
 my $thindays = ($opts{m} // 1) * $dm;
 my $logdays = ($opts{w} // 4) * $dw;
 my $tgzdays = ($opts{d} // 3);
+@ARGV and die "No arguments allowed";
 
 my ($year, $month, $day) = $now =~ /^(\d+)-(\d+)-(\d+)T/
     or die "Bad date: $now";

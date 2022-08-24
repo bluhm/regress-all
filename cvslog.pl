@@ -56,6 +56,7 @@ $opts{P} or die "No -P cvs path";
 my ($module, $path) = split("/", $opts{P}, 2);
 $module && $path
     or die "Path '$opts{P}' must consist of cvs module / path";
+@ARGV and die "No arguments allowed";
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';

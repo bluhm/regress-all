@@ -26,7 +26,7 @@ use Getopt::Std;
 my %opts;
 getopts('h:p:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: testsuite-html.pl [-h host] -p publish [mode]
+usage: testsuite-html.pl [-h host] -p publish [mode ...]
     -h host	user and host for version information, user defaults to root
     -p publish	directory where the test suite results are created
     -v		verbose

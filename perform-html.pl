@@ -61,6 +61,7 @@ if ($opts{r} && $opts{r} ne "current") {
 }
 my $verbose = $opts{v};
 $| = 1 if $verbose;
+@ARGV and die "No arguments allowed";
 
 my $performdir = dirname($0). "/..";
 chdir($performdir)

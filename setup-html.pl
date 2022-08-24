@@ -48,6 +48,7 @@ $opts{a} && $opts{d}
 my $date = $opts{d};
 my $verbose = $opts{v};
 $| = 1 if $verbose;
+@ARGV and die "No arguments allowed";
 
 my $regressdir = dirname($0). "/..";
 chdir($regressdir)

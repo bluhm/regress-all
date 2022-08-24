@@ -43,6 +43,7 @@ EOF
 };
 my $verbose = $opts{v};
 $| = 1 if $verbose;
+@ARGV and die "No arguments allowed";
 
 my $testdir = dirname(($0 =~ m{^([/\w.-]+)$})[0]). "/../..";
 chdir($testdir)

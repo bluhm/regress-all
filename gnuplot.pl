@@ -68,6 +68,7 @@ if ($opts{E}) {
 }
 my $plot = $opts{p}
     or die "Option -p plot missing";
+@ARGV and die "No arguments allowed";
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';
