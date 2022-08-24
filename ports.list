@@ -63,6 +63,7 @@ devel/p5-Eval-Closure
 devel/p5-Exporter-Tiny
 devel/p5-FFI-CheckLib
 devel/p5-File-Attributes
+devel/p5-File-BaseDir
 devel/p5-File-Copy-Recursive
 devel/p5-File-Find-Object
 devel/p5-File-Find-Object-Rule
@@ -82,6 +83,7 @@ devel/p5-IO-stringy
 devel/p5-IPC-Run
 devel/p5-Importer
 devel/p5-Lchown
+devel/p5-List-AllUtils
 devel/p5-List-Compare
 devel/p5-List-MoreUtils
 devel/p5-List-MoreUtils-XS
@@ -269,6 +271,7 @@ graphics/p5-Chart-Clicker
 graphics/p5-Color-Library
 graphics/p5-Color-Scheme
 graphics/p5-GD
+graphics/p5-GD-Graph
 graphics/p5-Geometry-Primitive
 graphics/p5-Graphics-Color
 graphics/p5-Graphics-Primitive
