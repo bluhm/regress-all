@@ -35,7 +35,7 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('B:E:P:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -B date [-E date] -P cvspath
+usage: cvslog.pl [-v] -B date [-E date] -P cvspath
     -v		verbose
     -B date	begin date, exclusive
     -E date	end date, inclusive

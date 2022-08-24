@@ -34,7 +34,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my %opts;
 getopts('ad:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-a] [-d date]
+usage: setup-html.pl [-a] [-d date]
     -a		create setup.html for all dates
     -d date	create setup.html for a specific date, may be current
     -v		verbose

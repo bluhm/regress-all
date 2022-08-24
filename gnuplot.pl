@@ -33,7 +33,7 @@ use Testvars qw(%TESTDESC);
 my %opts;
 getopts('vnB:d:E:p:r:', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-vn] [-B date] [-d date] [-E date] -p plot [-r release]
+usage: gnuplot.pl [-vn] [-B date] [-d date] [-E date] -p plot [-r release]
     -v		verbose
     -n		dry run
     -B date	begin date of x range, inclusive

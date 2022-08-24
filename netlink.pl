@@ -31,7 +31,7 @@ my @allifs = sort qw(em igc ix ixl);
 sub usage {
     print STDERR <<"EOF";
 usage: netlink.pl [-v] [-t timeout] [-l index] [-r index] [-p pseudo-dev]
-	-i interface test
+	-i interface [test ...]
     -v			verbose
     -t timeout		timeout for a single test, default 60 seconds
     -l index		interface index, default 0

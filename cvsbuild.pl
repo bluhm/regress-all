@@ -35,8 +35,8 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('d:D:h:P:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-d date] [-D cvsdate] -h host [-P patch] [-r release]
-    [kernel ...]
+usage: cvsbuild.pl [-v] [-d date] [-D cvsdate] -h host [-P patch] [-r release]
+	[kernel ...]
     -d date	set date string and change to sub directory
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh

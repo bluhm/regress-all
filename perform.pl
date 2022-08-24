@@ -28,7 +28,7 @@ my @startcmd = ($0, @ARGV);
 my %opts;
 getopts('b:e:t:sv', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-sv] [-b kstack] [-e environment] [-t timeout] [test ...]
+usage: perform.pl [-sv] [-b kstack] [-e environment] [-t timeout] [test ...]
     -b kstack	measure with btrace and create kernel stack map
     -e environ	parse environment for tests from shell script
     -s		stress test, run tests longer, activate sysctl

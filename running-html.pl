@@ -35,7 +35,7 @@ my $now = strftime("%FT%TZ", @now);
 my %opts;
 getopts('va', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-a] [-d date]
+usage: running-html.pl [-a] [-d date]
     -a		create running.html for all dates
     -v		verbose
 EOF

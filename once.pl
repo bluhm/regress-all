@@ -33,8 +33,8 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('b:d:D:h:k:N:nP:pr:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
-    [-N repeat] [-P patch] [-r release] [test ...]
+usage: once.pl [-v] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
+	[-N repeat] [-P patch] [-r release] [test ...]
     -b kstack	measure with btrace and create kernel stack map
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date

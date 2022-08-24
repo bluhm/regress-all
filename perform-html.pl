@@ -41,7 +41,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my %opts;
 getopts('d:Ggnr:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-Ggnv] [-d date] [-r release]
+usage: perform-html.pl [-Ggnv] [-d date] [-r release]
     -d date	run date of performance test, may be current or latest host
     -G		do not regenerate any gnuplot files, allows faster debugging
     -g		generate all gnuplot files, even if they already exist

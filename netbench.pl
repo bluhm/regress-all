@@ -25,8 +25,8 @@ use Getopt::Std;
 my %opts;
 getopts('a:B:b:c:l:P:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-v] -a address [-B bitrate] [-b bufsize] [-c client] [-l length]
-    [-P packetrate] [-s server] [-t timeout] [test ...]
+usage: netbench.pl [-v] -a address [-B bitrate] [-b bufsize] [-c client]
+	[-l length] [-P packetrate] [-s server] [-t timeout] [test ...]
     -a address	IP address for packet destination, comma repeat count
     -B bitrate	bits per seconds send rate
     -b bufsize	set size of send and receive buffer

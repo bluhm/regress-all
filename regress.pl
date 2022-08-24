@@ -24,7 +24,9 @@ use Time::HiRes;
 
 my %opts;
 getopts('e:t:v', \%opts) or do {
-    print STDERR "usage: $0 [-v] [-e environment] [-t timeout]\n";
+    print STDERR <<"EOF";
+usage: regress.pl [-v] [-e environment] [-t timeout] [test ...]
+EOF
     exit(2);
 };
 my $timeout = $opts{t} || 60*60;

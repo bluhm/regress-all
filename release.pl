@@ -25,7 +25,9 @@ use Time::HiRes;
 
 my %opts;
 getopts('e:t:v', \%opts) or do {
-    print STDERR "usage: $0 [-v] [-e environment] [-t timeout]\n";
+    print STDERR <<"EOF";
+usage: release.pl [-v] [-e environment] [-t timeout]
+EOF
     exit(2);
 };
 my $timeout = $opts{t} || 5*24*60*60;

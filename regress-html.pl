@@ -32,7 +32,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my %opts;
 getopts('h:lv', \%opts) or do {
     print STDERR <<"EOF";
-usage: $0 [-l] [-h host] mode
+usage: regress-html.pl [-l] [-h host] mode
     -h host	user and host for version information, user defaults to root
     -l		create latest.html with one column of the latest results
     -v		verbose
