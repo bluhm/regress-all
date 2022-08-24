@@ -86,7 +86,7 @@ my $ipv4 = (join '', keys %testmode) =~ /4/;
 my $ipv6 = (join '', keys %testmode) =~ /6/;
 
 my $ip4prefix = '10.10';
-my $ip6prefix = 'fdd7:e83e:66bd';
+my $ip6prefix = 'fdd7:e83e:66bd:10';
 
 my $line = $ENV{NETLINK_LINE} || die "NETLINK_LINE is not in env";
 my $management_if = $ENV{MANAGEMENT_IF} || die "MANAGEMENT_IF is not in env";
@@ -94,19 +94,19 @@ my $management_if = $ENV{MANAGEMENT_IF} || die "MANAGEMENT_IF is not in env";
 my $obsd_l_if = $interface . $left_ifidx;
 my $obsd_l_net = "$ip4prefix.${line}1.0";
 my $obsd_l_addr = "$ip4prefix.${line}1.2";
-my $obsd_l_net6 = "${ip6prefix}:${line}1::/64";
-my $obsd_l_addr6 = "${ip6prefix}:${line}1::2";
+my $obsd_l_net6 = "${ip6prefix}${line}1::/64";
+my $obsd_l_addr6 = "${ip6prefix}${line}1::2";
 
 my $obsd_r_if = $interface . $right_ifidx;
 my $obsd_r_net = "$ip4prefix.${line}2.0";
 my $obsd_r_addr = "$ip4prefix.${line}2.3";
-my $obsd_r_net6 = "${ip6prefix}:${line}2::/64";
-my $obsd_r_addr6 = "${ip6prefix}:${line}2::3";
+my $obsd_r_net6 = "${ip6prefix}${line}2::/64";
+my $obsd_r_addr6 = "${ip6prefix}${line}2::3";
 
 my $lnx_l_if = "enp6s0"; # XXX: make this an env var?
 my $lnx_l_pdev = "$lnx_l_if.0";
 my $lnx_l_addr = "$ip4prefix.${line}1.1";
-my $lnx_l_addr6 = "${ip6prefix}:${line}1::1";
+my $lnx_l_addr6 = "${ip6prefix}${line}1::1";
 my $lnx_l_net = "$lnx_l_addr/24";
 my $lnx_l_net6 = "$lnx_l_addr6/64";
 my $lnx_l_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
@@ -114,7 +114,7 @@ my $lnx_l_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
 my $lnx_r_if = "enp6s0"; # XXX
 my $lnx_r_pdev = "$lnx_r_if.0";
 my $lnx_r_addr = "$ip4prefix.${line}2.4";
-my $lnx_r_addr6 = "${ip6prefix}:${line}2::4";
+my $lnx_r_addr6 = "${ip6prefix}${line}2::4";
 my $lnx_r_net = "$lnx_r_addr/24";
 my $lnx_r_net6 = "$lnx_r_addr6/64";
 my $lnx_r_ssh = 'root@lt43'; #$ENV{LINUXR_SSH};
