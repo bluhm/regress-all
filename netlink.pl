@@ -705,7 +705,7 @@ chdir($netlinkdir)
     or die "Change directory to '$netlinkdir' failed: $!";
 
 # kill remote commands or ssh will hang forever
-if ($testmode{tcp}) {
+if ($testmode{tcp4} || $testmode{tcp6}) {
     my @sshcmd = ('ssh', $lnx_r_ssh, 'pkill', 'tcpbench');
     mysystem(@sshcmd);
     mysystem('pkill', 'tcpbench');
