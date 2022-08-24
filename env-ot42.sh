@@ -1,1 +1,2 @@
 export MANAGEMENT_IF=em0
+export NETLINK_LINE=2

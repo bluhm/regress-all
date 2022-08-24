@@ -85,18 +85,11 @@ foreach (keys %testmode) {
 my $ipv4 = (join '', keys %testmode) =~ /4/;
 my $ipv6 = (join '', keys %testmode) =~ /6/;
 
-my $hostname = `hostname -s`;
-chomp($hostname);
-
 my $ip4prefix = '10.10';
 my $ip6prefix = 'fdd7:e83e:66bd';
 
-# map hostname to testing line
-my %lines; # XXX: make this an env var?
-$lines{ot41} = 1;
-$lines{ot42} = 2;
-my $line = $lines{$hostname};
-my $management_if = $ENV{MANAGEMENT_IF} || 'em0';
+my $line = $ENV{NETLINK_LINE} || die "NETLINK_LINE is not in env";
+my $management_if = $ENV{MANAGEMENT_IF} || die "MANAGEMENT_IF is not in env";
 
 my $obsd_l_if = $interface . $left_ifidx;
 my $obsd_l_net = "$ip4prefix.${line}1.0";
