@@ -90,6 +90,9 @@ $resultdir = "$resultdir/$date";
 unless ($opts{d}) {
     mkdir $resultdir
 	or die "Make directory '$resultdir' failed: $!";
+    unlink("results/current");
+    symlink($date, "results/current")
+	or die "Make symlink 'results/current' failed: $!";
 }
 if ($patch) {
     my $patchdir = "patch-".
@@ -159,6 +162,9 @@ chdir($netlinkdir)
 
 setup_html(date => 1);
 
+unlink("results/latest-$host");
+symlink($date, "results/latest-$host")
+    or die "Make symlink 'results/latest-$host' failed: $!";
 unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
