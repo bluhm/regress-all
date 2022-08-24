@@ -33,21 +33,9 @@ our @EXPORT= qw(
 
 my %lasthosts = (
     ot1  => "ot4",
-    ot2  => "ot2",
-    ot3  => "ot3",
-    ot4  => "ot4",
-    ot5  => "ot5",
-    ot6  => "ot6",
-    ot7  => "ot7",
-    ot8  => "ot8",
     ot10 => "ot11",
-    ot11 => "ot11",
     ot12 => "ot13",
     ot14 => "ot15",
-    ot18 => "ot18",
-    ot26 => "ot26",
-    ot27 => "ot27",
-    ot29 => "ot29",
     ot31 => "ot32",
 );
 
@@ -65,7 +53,7 @@ sub usehosts {
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
 
-    $lasthost ||= $lasthosts{$firsthost}
+    $lasthost ||= $lasthosts{$firsthost} || $firsthost
 	and return;
     for (my $host = $firsthost;
 	-f "$bindir/pkg-$host.list";
