@@ -145,7 +145,8 @@ sub copy_scripts {
     chdir($bindir)
 	or die "Change directory to '$bindir' failed: $!";
 
-    my @mkdirs = map { "/root/$_" } qw(regress perform portstest release);
+    my @mkdirs = map { "/root/$_" }
+	qw(regress perform portstest release netlink);
     runcmd('ssh', "$user\@$host", 'mkdir', '-p', @mkdirs);
 
     my @copy = grep { -f $_ }
@@ -176,6 +177,13 @@ sub copy_scripts {
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$user\@$host:/root/release");
+    runcmd(@scpcmd);
+
+    @copy = grep { -f $_ }
+	("netlink.pl", "netbench.pl", "env-$host.sh", "pkg-$host.list");
+    @scpcmd = ('scp');
+    push @scpcmd, '-q' unless $opts{v};
+    push @scpcmd, (@copy, "$user\@$host:/root/netlink");
     runcmd(@scpcmd);
 
     chdir($resultdir)
