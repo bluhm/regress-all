@@ -246,7 +246,7 @@ sub parse_log_files {
 	    $typename = "Release";
 	} elsif (-f "net.log") {
 	    $D{$date}{log} = "net.log";
-	    $typename = "Netlink";
+	    $typename = "Net";
 	}
 	$D{$date}{logmtime} = (stat($D{$date}{log}))[9] if $D{$date}{log};
 	if (-f "test.log.tgz") {
