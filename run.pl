@@ -58,7 +58,7 @@ my %setupmode = map {
     $_ => 1;
 } @ARGV;
 foreach (qw(install keep reboot sysupgrade upgrade)) {
-    die "Mode must be used solely: $_"
+    die "Setupmode must be used solely: $_"
 	if $setupmode{$_} && keys %setupmode != 1;
 }
 

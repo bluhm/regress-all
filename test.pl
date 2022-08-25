@@ -50,7 +50,7 @@ my %setupmode = map {
     $_ => 1;
 } @ARGV;
 foreach (qw(keep)) {
-    die "Mode must be used solely: $_"
+    die "Setupmode must be used solely: $_"
 	if $setupmode{$_} && keys %setupmode != 1;
 }
 
