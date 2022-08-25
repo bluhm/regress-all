@@ -82,4 +82,5 @@ qtbase
 rrdtool
 texlive_texmf-full
 unzip--
+xdg-user-dirs-gtk
 zip

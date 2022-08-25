@@ -77,5 +77,6 @@ sysclean
 texlive_texmf-full
 unzip--
 wycheproof-testvectors
+xdg-user-dirs-gtk
 xz
 zip
