@@ -209,6 +209,16 @@ mysystem('sysctl net.inet6.ip6.forwarding=1') if ($ipv6);
 mysystem('ssh', $lnx_l_ssh, 'sysctl','net.ipv6.bindv6only=1') if ($ipv6);
 mysystem('ssh', $lnx_r_ssh, 'sysctl','net.ipv6.bindv6only=1') if ($ipv6);
 
+# allow fragment reassembly to use up to 1GiB of memory
+mysystem('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv6.ip6frag_high_thresh=1073741824')
+    if ($testmode{fragment6});
+mysystem('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv6.ip6frag_high_thresh=1073741824')
+    if ($testmode{fragment6});
+mysystem('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
+    if ($testmode{fragment4});
+mysystem('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
+    if ($testmode{fragment4});
+
 my $configure_linux = 1;
 
 if ($pseudodev eq 'aggr') {
@@ -579,7 +589,6 @@ push @tests, (
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{fragment4});
-# might require increasing net.ipv4.ipfrag_high_thresh on linux
 push @tests, (
     {
 	testcmd => ['udpbench', '-l1453', '-t10', '-r', $lnx_l_ssh,
@@ -595,7 +604,6 @@ push @tests, (
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{fragment6});
-# might require increasing net.ipv6.ip6frag_high_thresh on linux
 
 my @stats = (
     {
