@@ -205,6 +205,10 @@ mysystem('ifconfig', $obsd_r_if, 'up');
 mysystem('sysctl net.inet.ip.forwarding=1') if ($ipv4);
 mysystem('sysctl net.inet6.ip6.forwarding=1') if ($ipv6);
 
+# allow tcpbench to bind on ipv6 addresses without explicitly providing it
+mysystem('ssh', $lnx_l_ssh, 'sysctl','net.ipv6.bindv6only=1') if ($ipv6);
+mysystem('ssh', $lnx_r_ssh, 'sysctl','net.ipv6.bindv6only=1') if ($ipv6);
+
 my $configure_linux = 1;
 
 if ($pseudodev eq 'aggr') {
