@@ -31,10 +31,11 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('c:d:D:h:i:N:P:ps:v', \%opts) or do {
+getopts('b:c:d:D:h:i:N:P:ps:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: net.pl [-pv] [-c pseudo] [-d date] [-D cvsdate] -h host [-i iface]
-	[-N repeat] [-P patch] [-s setup] [test ...]
+usage: net.pl [-pv]  [-b kstack] [-c pseudo] [-d date] [-D cvsdate] -h host
+	[-i iface] [-N repeat] [-P patch] [-s setup] [test ...]
+#    -b kstack	measure with btrace and create kernel stack map
 #    -c pseudo	ifconfig create pseudo network device
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
@@ -176,65 +177,92 @@ if (($cvsdate && ! -f "$resultdir/cvsbuild-$host.log") || $patch) {
 } elsif ($cvsdate && !($patch || $iface || $pseudo || $repeat || $btrace)) {
 	die "Directory '$resultdir' exists and no subdir given";
 }
-if ($iface) {
-    $resultdir .= "/iface-$iface";
-    (-d $resultdir && ($pseudo || $repeat || $btrace))
-	|| mkdir $resultdir
-	or die "Make directory '$resultdir' failed: $!";
-}
-if ($pseudo) {
-    $resultdir .= "/pseudo-$pseudo";
-    (-d $resultdir && ($repeat || $btrace))
-	|| mkdir $resultdir
-	or die "Make directory '$resultdir' failed: $!";
-}
+
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 collect_version();
 
+my @ifaces;
+if ($iface) {
+    $iface =~ s/^all$/em,igc,ix,ixl/;
+    @ifaces = map { "iface-$_" } split(/,/, $iface);
+}
+my @pseudos;
+if ($pseudo) {
+    $pseudo =~ s/^all$/aggr,bridge,carp,trunk,veb,vlan/;
+    @pseudos = map { "pseudo-$_" } split(/,/, $pseudo);
+}
 my @repeats;
 push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1)
     if $repeat;
 # after all regular repeats, make one with btrace turned on
 push @repeats, "btrace-$btrace" if $btrace;
 
-foreach my $repeatdir (@repeats ? @repeats : ".") {
-    if (@repeats) {
-	if ($repeatdir =~ /^btrace-/) {
-	    $repeatdir = mkdir_num($repeatdir);
-	} else {
-	    mkdir $repeatdir
-		or die "Make directory '$repeatdir' failed: $!";
-	}
-	chdir($repeatdir)
-	    or die "Change directory to '$repeatdir' failed: $!";
+foreach my $ifacedir (@ifaces ? @ifaces : ".") {
+    if (@ifaces) {
+	-d $ifacedir || mkdir $ifacedir
+	    or die "Make directory '$ifacedir' failed: $!";
+	chdir($ifacedir)
+	    or die "Change directory to '$ifacedir' failed: $!";
+	($iface = $ifacedir) =~ s/.*-//;
     }
 
-    # run network link tests remotely
+    foreach my $pseudodir (@pseudos ? @pseudos : ".") {
+	if (@pseudos) {
+	    -d $pseudodir || mkdir $pseudodir
+		or die "Make directory '$pseudodir' failed: $!";
+	    chdir($pseudodir)
+		or die "Change directory to '$pseudodir' failed: $!";
+	    ($pseudo = $pseudodir) =~ s/.*-//;
+	}
 
-    my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/netlink/netlink.pl');
-    push @sshcmd, '-c', $pseudo if $pseudo;
-    push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
-    push @sshcmd, '-e', "/root/netlink/env-$host.sh";
-    push @sshcmd, '-i', $iface if $iface;
-    push @sshcmd, '-v' if $opts{v};
-    push @sshcmd, keys %testmode;
-    logcmd(@sshcmd);
+	foreach my $repeatdir (@repeats ? @repeats : ".") {
+	    if (@repeats) {
+		if ($repeatdir =~ /^btrace-/) {
+		    $repeatdir = mkdir_num($repeatdir);
+		} else {
+		    -d $repeatdir || mkdir $repeatdir
+			or die "Make directory '$repeatdir' failed: $!";
+		}
+		chdir($repeatdir)
+		    or die "Change directory to '$repeatdir' failed: $!";
+	    }
 
-    # get result and logs
+	    # run network link tests remotely
 
-    collect_result("$opts{h}:/root/netlink");
+	    my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/netlink/netlink.pl');
+	    push @sshcmd, '-c', $pseudo if $pseudo;
+	    push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
+	    push @sshcmd, '-e', "/root/netlink/env-$host.sh";
+	    push @sshcmd, '-i', $iface if $iface;
+	    push @sshcmd, '-v' if $opts{v};
+	    push @sshcmd, keys %testmode;
+	    logcmd(@sshcmd);
 
-    if (@repeats) {
-	collect_version();
-	setup_html();
+	    # get result and logs
+
+	    collect_result("$opts{h}:/root/netlink");
+	    collect_version();
+	    setup_html();
+
+	    if (@repeats) {
+		chdir("..")
+		    or die "Change directory to '..' failed: $!";
+	    }
+	}
+	if (@pseudos) {
+	    chdir("..")
+		or die "Change directory to '..' failed: $!";
+	}
+    }
+    if (@ifaces) {
 	chdir("..")
 	    or die "Change directory to '..' failed: $!";
     }
-    collect_dmesg();
-    setup_html();
 }
-powerdown_hosts(patch => $patch) if $opts{p};
+
+collect_dmesg();
+powerdown_hosts(cvsdate => $cvsdate, patch => $patch) if $opts{p};
 
 # create html output
 
