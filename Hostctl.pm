@@ -183,7 +183,7 @@ sub hosts_command {
     my $patch = delete $args{patch};
     my $release = delete $args{release};
     my $repeat = delete $args{repeat};
-    my %mode = %{delete $args{mode}};
+    my %mode = %{delete $args{mode} || {}};
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
 
