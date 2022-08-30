@@ -431,6 +431,7 @@ usr.sbin/bgpd/unittests
 usr.sbin/btrace
 usr.sbin/httpd
 usr.sbin/ifstated
+usr.sbin/installboot
 usr.sbin/ldapd
 usr.sbin/mtree
 usr.sbin/ocspcheck
