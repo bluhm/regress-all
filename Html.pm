@@ -149,6 +149,7 @@ sub html_status_table {
     ($topic, $tool) = ("performance test", "test") if $type eq "perform";
     ($topic, $tool) = ("make test", "make") if $type eq "portstest";
     ($topic, $tool) = ("make release", "make") if $type eq "release";
+    ($topic, $tool) = ("netlink test", "test") if $type eq "netlink";
     print $html <<"TABLE";
 <table>
   <tr>

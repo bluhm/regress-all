@@ -111,7 +111,7 @@ if ($date && $date =~ /^(current|latest|latest-\w+)$/) {
     $date = basename($current);
 }
 
-# hierarchy: date cvsdate patch iface pseudo repeat btrace;
+# hierarchy: date cvsdate patch iface pseudo repeat btrace
 
 $resultdir .= "/$date";
 unless ($opts{d}) {
