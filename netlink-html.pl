@@ -149,8 +149,9 @@ sub html_hier_test_row {
     my ($html, $test, $td, @hiers) = @_;
 
     (my $testcmd = $test) =~ s/_/ /g;
-    print $html "  <tr>\n    <th class=\"desc\">", $TESTDESC{$test} || "",
-	"</th>\n";
+    my $testdesc = $TESTDESC{$test} || "";
+    print $html "  <tr>\n";
+    print $html "    <th class=\"desc\">$testdesc</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $hv (@hiers) {
 	my $tv = $td->{$hv->{key}};
@@ -236,7 +237,7 @@ HEADER
     print "." if $verbose;
     my @dates = reverse sort keys %D;
     print $html "<table>\n";
-    print $html "  <tr>\n    <th>pass rate</th>\n";
+    print $html "  <tr>\n    <th></th>\n    <th>pass rate</th>\n";
     foreach my $date (@dates) {
 	my $passrate = $D{$date}{pass};
 	$passrate /= $D{$date}{total} if $D{$date}{total};
@@ -244,7 +245,7 @@ HEADER
 	$percent = sprintf("%d%%", 100 * $passrate) if defined $passrate;
 	print $html "    <th>$percent</th>\n";
     }
-    print $html "  <tr>\n    <th>run at date</th>\n";
+    print $html "  <tr>\n    <th></th>\n    <th>run at date</th>\n";
     foreach my $date (@dates) {
 	my $short = $D{$date}{short};
 	my $time = encode_entities($date);
@@ -254,7 +255,12 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$time\">$href$short$enda</th>\n";
     }
-    print $html "  <tr>\n    <th>machine</th>\n";
+    print $html "  <tr>\n    <th></th>\n    <th>sub runs</th>\n";
+    foreach my $date (@dates) {
+	my $num = @{$H{$date}};
+	print $html "    <th>$num</th>\n";
+    }
+    print $html "  <tr>\n    <th></th>\n    <th>machine</th>\n";
     foreach my $date (@dates) {
 	my $setup = $D{$date}{setup};
 	my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
@@ -262,7 +268,7 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>${href}setup info$enda</th>\n";
     }
-    print $html "  <tr>\n    <th>architecture</th>\n";
+    print $html "  <tr>\n    <th></th>\n    <th>architecture</th>\n";
     foreach my $date (@dates) {
 	my $arch = $D{$date}{arch};
 	my $dmesg = $D{$date}{dmesg};
@@ -271,7 +277,7 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>$href$arch$enda</th>\n";
     }
-    print $html "  <tr>\n    <th>host</th>\n";
+    print $html "  <tr>\n    <th></th>\n    <th>host</th>\n";
     foreach my $date (@dates) {
 	my $hostname = $D{$date}{host};
 	my $hostlink;
@@ -289,7 +295,11 @@ HEADER
 	keys %T;
     foreach my $test (@tests) {
 	print "." if $verbose;
-	print $html "  <tr>\n    <th>$test</th>\n";
+	(my $testcmd = $test) =~ s/_/ /g;
+	my $testdesc = $TESTDESC{$test} || "";
+	print $html "  <tr>\n";
+	print $html "    <th class=\"desc\">$testdesc</th>\n";
+	print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
 	foreach my $date (@dates) {
 	    my $tv = $T{$test}{$date};
 	    my $status = $tv->{status} || "";
