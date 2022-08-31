@@ -216,8 +216,9 @@ sub write_html_date_file {
     my $typename = "Netlink";
     my @nav = (
 	Top     => "../../test.html",
-	All     => ($opts{l} || $host ? "regress.html" : undef),
-	Latest  => (! $opts{l} ? "latest.html" : undef),
+	All     => ($opts{l} || $host ? "netlink.html" : undef),
+	Latest  => ($opts{l} ? undef :
+	    $host ? "latest-$host/netlink.html" : "latest/netlink.html"),
 	Running => "run.html");
     html_header($html, "OpenBSD $typename Results",
 	"OpenBSD ". lc($typename). " $topic test results",
@@ -285,7 +286,7 @@ HEADER
 	my $hostname = $D{$date}{host};
 	my $hostlink;
 	if (!$host || $opts{l}) {
-	    $hostlink = "regress-$hostname.html";
+	    $hostlink = "netlink-$hostname.html";
 	    undef $hostlink unless -f $hostlink;
 	}
 	my $href = $hostlink ? "<a href=\"$hostlink\">" : "";
@@ -374,10 +375,10 @@ sub glob_result_files {
 	my @latest;
 	if ($host) {
 	    @latest = "latest-$host";
-	    -f $latest[0]
+	    -d $latest[0]
 		or die "No latest test.result for $host";
 	} else {
-	    @latest = glob("latest-*");
+	    @latest = grep { -d } glob("latest-*");
 	}
 	find($wanted, map { (readlink($_) or die
 	    "Readlink latest '$_' failed: $!") }  @latest);
@@ -387,7 +388,7 @@ sub glob_result_files {
     find($wanted, ".");
     if ($host) {
 	return sort { $a->{dir} cmp $b->{dir} }
-	    grep { "$_->{date}/version-$host.txt" } @files;
+	    grep { -f "$_->{date}/version-$host.txt" } @files;
     } else {
 	return sort { $a->{dir} cmp $b->{dir} } @files;
     }
