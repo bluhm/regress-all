@@ -76,7 +76,7 @@ my (%T, %D);
 # $T{$test}{$date}{logfile}	relative path to make.log for hyper link
 # %D
 # $date				date and time when test was executed as string
-# $D{$date}{pass}		percentage of not skipped tests that passed
+# $D{$date}{passrate}		percentage of not skipped tests that passed
 # $D{$date}{short}		date without time
 # $D{$date}{result}		path to test.result file
 # $D{$date}{setup}		relative path to setup.html for hyper link
@@ -133,9 +133,9 @@ HEADER
     print $html "<table>\n";
     print $html "  <tr>\n    <th>pass rate</th>\n";
     foreach my $date (@dates) {
-	my $pass = $D{$date}{pass};
+	my $passrate = $D{$date}{passrate};
 	my $percent = "";
-	$percent = sprintf("%d%%", 100 * $pass) if defined $pass;
+	$percent = sprintf("%d%%", 100 * $passrate) if defined $passrate;
 	print $html "    <th>$percent</th>\n";
     }
     print $html "  <tr>\n    <th>run at date</th>\n";
@@ -291,7 +291,7 @@ sub parse_result_files {
 	}
 	close($fh)
 	    or die "Close '$result' after reading failed: $!";
-	$dv->{pass} = $pass / $total if $total;
+	$dv->{passrate} = $pass / $total if $total;
 
 	# parse version file
 	foreach my $version (sort glob("$date/version-*.txt")) {

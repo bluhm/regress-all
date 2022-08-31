@@ -238,7 +238,8 @@ HEADER
     print $html "<table>\n";
     print $html "  <tr>\n    <th>pass rate</th>\n";
     foreach my $date (@dates) {
-	my $pass = $D{$date}{pass};
+	my $passrate = $D{$date}{pass};
+	$passrate /= $D{$date}{total} if $D{$date}{total};
 	my $percent = "";
 	$percent = sprintf("%d%%", 100 * $pass) if defined $pass;
 	print $html "    <th>$percent</th>\n";
@@ -394,7 +395,7 @@ sub glob_result_files {
     }
 }
 
-# fill global hashes %T %D
+# fill global hashes %T %D %H
 sub parse_result_files {
     foreach my $file (@_) {
 	print "." if $verbose;
@@ -402,9 +403,11 @@ sub parse_result_files {
 	# parse result file
 	my ($date, $short) = $file->{date} =~ m,^(([^/]+)T[^/]+Z)$,
 	    or next;
-	my $dv = $D{$date} = {
+	my $dv = $D{$date} ||= {
 	    short => $short,
 	    result => $file->{name},
+	    pass => 0,
+	    total => 0,
 	};
 	$dv->{setup} = "$date/setup.html" if -f "$date/setup.html";
 	$_->{severity} *= .5 foreach values %T;
@@ -442,16 +445,22 @@ sub parse_result_files {
 		and warn "Duplicate test '$test' at '$file->{name}'";
 	    $tv->{status} = $status;
 	    $tv->{message} = $message;
+	    my $logfile = "$file->{dir}/logs/$test.log";
+	    $tv->{logfile} = $logfile if -f $logfile;
 	    my $severity = status2severity($status);
 	    $T{$test}{severity} += $severity;
 	    $total++ unless $status eq 'SKIP' || $status eq 'XFAIL';
 	    $pass++ if $status eq 'PASS';
-	    my $logfile = "$file->{dir}/logs/$test.log";
-	    $tv->{logfile} = $logfile if -f $logfile;
+	    $tv = $T{$test}{$date};
+	    if (($tv->{severity} || 0) < $severity) {
+		$tv->{status} = $status;
+		$tv->{severity} = $severity;
+	    }
 	}
 	close($fh)
 	    or die "Close '$file->{name}' after reading failed: $!";
-	$dv->{pass} = $pass / $total if $total;
+	$dv->{pass} += $pass;
+	$dv->{total} += $total;
 
 	# parse version file
 	foreach my $version (sort glob("$date/version-*.txt")) {
