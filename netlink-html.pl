@@ -22,6 +22,7 @@ use File::Basename;
 use File::Find;
 use HTML::Entities;
 use Getopt::Std;
+use List::Util qw(first max min sum);
 use POSIX;
 use URI::Escape;
 
@@ -65,7 +66,7 @@ my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
 
 my @HIERARCHY = qw(date cvsdate patch iface pseudo repeat btrace);
-my (%T, %D, %H);
+my (%T, %D, %H, %V);
 
 # %T
 # $test				test directory relative to /usr/src/regress/
@@ -166,6 +167,25 @@ sub html_hier_test_row {
 	print $html "    <td$class$title>$href$status$enda</td>\n";
     }
     print $html "  </tr>\n";
+
+    my $vt = $V{$test};
+    my $maxval = max map { scalar @{$_ || []} } values %$vt;
+    for (my $i = 0; $i < $maxval; $i++) {
+	my $value0 = first { $_ } map { $_->[$i] } values %$vt;
+	my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
+	print $html "  <tr>\n    <th></th>\n";
+	print $html "    <th>$name0</th>\n";
+	foreach my $hv (@hiers) {
+	    my $tv = $td->{$hv->{key}};
+	    my $vv = $vt->{$hv->{key}};
+	    if ($tv && ($tv->{status} eq 'PASS')) {
+		print $html "    <td>$vv->[$i]{number}</td>\n";
+	    } else {
+		print $html "    <td></td>\n";
+	    }
+	}
+	print $html "  </tr>\n";
+    }
 }
 
 sub write_html_hier_files {
@@ -446,6 +466,8 @@ sub parse_result_files {
 	    $tv->{message} = $message;
 	    my $logfile = "$file->{dir}/logs/$test.log";
 	    $tv->{logfile} = $logfile if -f $logfile;
+	    $V{$test}{$hk} = [ @values ];
+	    undef @values;
 	    my $severity = status2severity($status);
 	    $T{$test}{severity} += $severity;
 	    $total++ unless $status eq 'SKIP' || $status eq 'XFAIL';
