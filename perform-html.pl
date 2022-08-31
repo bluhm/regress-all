@@ -258,44 +258,45 @@ sub parse_result_files {
 	my $reldate = "$date";
 	$reldate = "$release/$reldate" if $release;
 	$R{$release}{dates}{$date} = 1 if $release;
-	$D{$date}{short} ||= $short;
-	$D{$date}{reldate} = $reldate;
-	push @{$D{$date}{cvsdates} ||= []}, $cvsdate unless $D{$date}{$cvsdate};
-	$D{$date}{$cvsdate}{cvsshort} ||= $cvsshort;
+	my $dv = $D{$date} ||= {};
+	$dv->{short} ||= $short;
+	$dv->{reldate} = $reldate;
+	push @{$dv->{cvsdates} ||= []}, $cvsdate unless $dv->{$cvsdate};
+	$dv->{$cvsdate}{cvsshort} ||= $cvsshort;
 	if (defined $repeat) {
-	    push @{$D{$date}{$cvsdate}{repeats} ||= []}, $repeat;
-	    $D{$date}{$cvsdate}{$repeat}{repshort} ||= $repshort;
-	    $D{$date}{$cvsdate}{$repeat}{result} = $result;
+	    push @{$dv->{$cvsdate}{repeats} ||= []}, $repeat;
+	    $dv->{$cvsdate}{$repeat}{repshort} ||= $repshort;
+	    $dv->{$cvsdate}{$repeat}{result} = $result;
 	} else {
-	    $D{$date}{$cvsdate}{result} = $result;
+	    $dv->{$cvsdate}{result} = $result;
 	}
-	if (!$D{$date}{log} && -f "$reldate/step.log") {
-	    $D{$date}{log} = "step.log";
-	    $D{$date}{logmtime} = (stat("$reldate/step.log"))[9];
+	if (!$dv->{log} && -f "$reldate/step.log") {
+	    $dv->{log} = "step.log";
+	    $dv->{logmtime} = (stat("$reldate/step.log"))[9];
 	}
-	if (!$D{$date}{$cvsdate}{log} && -f "$reldate/$cvsdate/once.log") {
-	    $D{$date}{$cvsdate}{log} = "once.log";
-	    $D{$date}{$cvsdate}{logmtime} =
+	if (!$dv->{$cvsdate}{log} && -f "$reldate/$cvsdate/once.log") {
+	    $dv->{$cvsdate}{log} = "once.log";
+	    $dv->{$cvsdate}{logmtime} =
 		(stat("$reldate/$cvsdate/once.log"))[9];
 	}
-	unless ($D{$date}{stepconf}) {
+	unless ($dv->{stepconf}) {
 	    my $stepfile = "$reldate/stepconf.txt";
 	    if (open (my $fh, '<', $stepfile)) {
 		while (<$fh>) {
 		    chomp;
 		    my ($k, $v) = split(/\s+/, $_, 2);
-		    $D{$date}{stepconf}{lc($k)} = $v;
+		    $dv->{stepconf}{lc($k)} = $v;
 		}
 	    } else {
 		$!{ENOENT}
 		    or die "Open '$stepfile' for reading failed: $!";
 	    }
 	}
-	$D{$date}{setup} ||= "$reldate/setup.html" if -f "$reldate/setup.html";
-	$D{$date}{$cvsdate}{build} ||= "$reldate/$cvsdate/build.html"
+	$dv->{setup} ||= "$reldate/setup.html" if -f "$reldate/setup.html";
+	$dv->{$cvsdate}{build} ||= "$reldate/$cvsdate/build.html"
 	    if -f "$reldate/$cvsdate/build.html";
 	if (defined $repeat) {
-	    $D{$date}{$cvsdate}{$repeat}{reboot} ||=
+	    $dv->{$cvsdate}{$repeat}{reboot} ||=
 		"$reldate/$cvsdate/$repeat/reboot.html"
 		if -f "$reldate/$cvsdate/$repeat/reboot.html";
 	}
@@ -319,13 +320,14 @@ sub parse_result_files {
 		next;
 	    }
 	    $R{$release}{tests}{$test} = 1 if $release;
+	    my $tv = $T{$test}{$date} ||= {};
 	    my $severity = status2severity($status);
 	    if (defined $repeat) {
 		$V{$date}{$test}{$cvsdate}{$repeat} = [ @values ];
-		$T{$test}{$date}{$cvsdate}{$repeat}
+		$tv->{$cvsdate}{$repeat}
 		    and warn "Duplicate test '$test' date '$date' ".
 			"cvsdate '$cvsdate' repeat '$repeat'";
-		$T{$test}{$date}{$cvsdate}{$repeat} = {
+		$tv->{$cvsdate}{$repeat} = {
 		    status => $status,
 		    message => $message,
 		};
@@ -336,25 +338,25 @@ sub parse_result_files {
 			    "$reldate/$cvsdate/$repeat/logs/".
 			    "$test-$repshort.btrace"
 		}
-		if (($T{$test}{$date}{$cvsdate}{severity} || 0) < $severity) {
-		    $T{$test}{$date}{$cvsdate}{status} = $status;
-		    $T{$test}{$date}{$cvsdate}{severity} = $severity;
+		if (($tv->{$cvsdate}{severity} || 0) < $severity) {
+		    $tv->{$cvsdate}{status} = $status;
+		    $tv->{$cvsdate}{severity} = $severity;
 		}
 	    } else {
 		$V{$date}{$test}{$cvsdate} = [ @values ];
-		$T{$test}{$date}{$cvsdate}
+		$tv->{$cvsdate}
 		    and warn "Duplicate test '$test' date '$date' ".
 			"cvsdate '$cvsdate'";
-		$T{$test}{$date}{$cvsdate} = {
+		$tv->{$cvsdate} = {
 		    status => $status,
 		    message => $message,
 		};
 	    }
 	    $Z{$cvsdate}{$date} = 1 if @values;
 	    undef @values;
-	    if (($T{$test}{$date}{severity} || 0) < $severity) {
-		$T{$test}{$date}{status} = $status;
-		$T{$test}{$date}{severity} = $severity;
+	    if (($tv->{severity} || 0) < $severity) {
+		$tv->{status} = $status;
+		$tv->{severity} = $severity;
 	    }
 	    $T{$test}{severity} += $severity;
 	}
@@ -366,26 +368,26 @@ sub parse_result_files {
 	    $version =~ m,/version-(.+)\.txt$,;
 	    my $hostname = $1;
 
-	    next if $D{$date}{$cvsdate}{$hostname};
-	    push @{$D{$date}{$cvsdate}{hosts} ||= []}, $hostname;
-	    $D{$date}{$cvsdate}{$hostname} = {
+	    next if $dv->{$cvsdate}{$hostname};
+	    push @{$dv->{$cvsdate}{hosts} ||= []}, $hostname;
+	    $dv->{$cvsdate}{$hostname} = {
 		version => $version,
 	    };
-	    $D{$date}{host} ||= $hostname;
+	    $dv->{host} ||= $hostname;
 	    (my $dmesg = $version) =~ s,/version-,/dmesg-,;
-	    $D{$date}{$cvsdate}{$hostname}{dmesg} ||= $dmesg if -f $dmesg;
+	    $dv->{$cvsdate}{$hostname}{dmesg} ||= $dmesg if -f $dmesg;
 
-	    next if $D{$date}{$cvsdate}{version};
-	    $D{$date}{$cvsdate}{version} = $version;
+	    next if $dv->{$cvsdate}{version};
+	    $dv->{$cvsdate}{version} = $version;
 	    (my $quirks = $version) =~ s,/version-,/quirks-,;
-	    $D{$date}{$cvsdate}{quirks} ||= $quirks if -f $quirks;
+	    $dv->{$cvsdate}{quirks} ||= $quirks if -f $quirks;
 	    (my $diff = $version) =~ s,/version-,/diff-,;
-	    $D{$date}{$cvsdate}{diff} ||= $diff if -f $diff;
+	    $dv->{$cvsdate}{diff} ||= $diff if -f $diff;
 
 	    my %v = parse_version_file($version);
-	    %{$D{$date}{$cvsdate}} = (%v, %{$D{$date}{$cvsdate}});
-	    $D{$date}{arch} ||= $v{arch};
-	    $D{$date}{ncpu} ||= $v{ncpu};
+	    %{$dv->{$cvsdate}} = (%v, %{$dv->{$cvsdate}});
+	    $dv->{arch} ||= $v{arch};
+	    $dv->{ncpu} ||= $v{ncpu};
 	}
     }
     foreach my $cvsdate (sort keys %Z) {

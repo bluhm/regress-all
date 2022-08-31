@@ -264,11 +264,11 @@ sub parse_result_files {
 	# parse result file
 	my ($date, $short) = $result =~ m,(([^/]+)T[^/]+Z)/test.result,
 	    or next;
-	$D{$date} = {
+	my $dv = $D{$date} = {
 	    short => $short,
 	    result => $result,
 	};
-	$D{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
+	$dv->{setup} = "$date/setup.html" if -f "$date/setup.html";
 	$_->{severity} *= .5 foreach values %T;
 	my ($total, $pass) = (0, 0);
 	open(my $fh, '<', $result)
@@ -291,25 +291,24 @@ sub parse_result_files {
 	}
 	close($fh)
 	    or die "Close '$result' after reading failed: $!";
-	$D{$date}{pass} = $pass / $total if $total;
+	$dv->{pass} = $pass / $total if $total;
 
 	# parse version file
 	foreach my $version (sort glob("$date/version-*.txt")) {
 	    $version =~ m,/version-(.+)\.txt$,;
 	    my $hostname = $1;
 
-	    next if $D{$date}{version};
-	    $D{$date}{version} = $version;
-	    $D{$date}{host} ||= $hostname;
+	    next if $dv->{version};
+	    $dv->{version} = $version;
+	    $dv->{host} ||= $hostname;
 	    (my $dmesg = $version) =~ s,/version-,/dmesg-,;
-	    $D{$date}{dmesg} ||= $dmesg if -f $dmesg;
+	    $dv->{dmesg} ||= $dmesg if -f $dmesg;
 	    (my $diff = $version) =~ s,/version-,/diff-,;
-	    $D{$date}{diff} ||= $diff if -s $diff;
+	    $dv->{diff} ||= $diff if -s $diff;
 
-	    %{$D{$date}} = (parse_version_file($version), %{$D{$date}});
+	    %$dv = (parse_version_file($version), %$dv);
 	}
-	$D{$date}{build} =
-	    $D{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
+	$dv->{build} = ($dv->{location} =~ /^deraadt@\w+.openbsd.org:/) ?
 	    "snapshot" : "custom";
     }
 }
