@@ -241,37 +241,26 @@ HEADER
 	my $passrate = $D{$date}{pass};
 	$passrate /= $D{$date}{total} if $D{$date}{total};
 	my $percent = "";
-	$percent = sprintf("%d%%", 100 * $pass) if defined $pass;
+	$percent = sprintf("%d%%", 100 * $passrate) if defined $passrate;
 	print $html "    <th>$percent</th>\n";
     }
     print $html "  <tr>\n    <th>run at date</th>\n";
     foreach my $date (@dates) {
 	my $short = $D{$date}{short};
-	my $setup = $D{$date}{setup};
 	my $time = encode_entities($date);
-	my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
-	my $href = $setup ? "<a href=\"$link\">" : "";
+	my $hierhtml = "$date/netlink.html";
+	my $link = uri_escape($hierhtml, "^A-Za-z0-9\-\._~/");
+	my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$time\">$href$short$enda</th>\n";
     }
-    print $html "  <tr>\n    <th>machine build</th>\n";
+    print $html "  <tr>\n    <th>machine</th>\n";
     foreach my $date (@dates) {
-	my $version = $D{$date}{version};
-	unless ($version) {
-	    print $html "    <th></th>\n";
-	    next;
-	}
-	my $kernel = encode_entities($D{$date}{kernel});
-	my $build = $D{$date}{build};
-	my $diff = $D{$date}{diff};
-	my $link;
-	$link = uri_escape($version, "^A-Za-z0-9\-\._~/")
-	    if $build eq "snapshot";
-	$link = uri_escape($diff, "^A-Za-z0-9\-\._~/")
-	    if $build eq "custom" && $diff;
-	my $href = $link ? "<a href=\"$link\">" : "";
+	my $setup = $D{$date}{setup};
+	my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
+	my $href = $setup ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
-	print $html "    <th title=\"$kernel\">$href$build$enda</th>\n";
+	print $html "    <th>${href}setup info$enda</th>\n";
     }
     print $html "  <tr>\n    <th>architecture</th>\n";
     foreach my $date (@dates) {
@@ -307,9 +296,9 @@ HEADER
 	    my $class = " class=\"status $status\"";
 	    my $message = encode_entities($tv->{message});
 	    my $title = $message ? " title=\"$message\"" : "";
-	    my $logfile = $tv->{logfile};
-	    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-	    my $href = $logfile ? "<a href=\"$link\">" : "";
+	    my $hierhtml = "$date/netlink.html";
+	    my $link = uri_escape($hierhtml, "^A-Za-z0-9\-\._~/");
+	    my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
 	    my $enda = $href ? "</a>" : "";
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
