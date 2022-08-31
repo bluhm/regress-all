@@ -27,6 +27,7 @@ use URI::Escape;
 
 use lib dirname($0);
 use Html;
+use Testvars qw(%TESTDESC);
 
 my $now = strftime("%FT%TZ", gmtime);
 
@@ -40,6 +41,7 @@ usage: netlink-html.pl [-l] [-h host]
 EOF
     exit(2);
 };
+my $date = $opts{d};
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 @ARGV and die "No arguments allowed";
@@ -49,13 +51,21 @@ chdir($netlinkdir)
     or die "Change directory to '$netlinkdir' failed: $!";
 $netlinkdir = getcwd();
 my $resultdir = "$netlinkdir/results";
+if ($date && $date =~ /^(current|latest|latest-\w+)$/) {
+    my $current = readlink("$resultdir/$date")
+	or die "Read link '$resultdir/$date' failed: $!";
+    -d "$resultdir/$current"
+	or die "Test directory '$resultdir/$current' failed: $!";
+    $date = basename($current);
+}
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
 
-my (%T, %D);
+my @HIERARCHY = qw(date cvsdate patch iface pseudo repeat btrace);
+my (%T, %D, %H);
 
 # %T
 # $test				test directory relative to /usr/src/regress/
@@ -85,11 +95,116 @@ print "glob_result_files" if $verbose;
 my @result_files = glob_result_files();
 print "\nparse result files" if $verbose;
 parse_result_files(@result_files);
+print "\ncreate html hier files" if $verbose;
+write_html_hier_files($date);
 print "\nwrite html date file" if $verbose;
 write_html_date_file();
 print "\n" if $verbose;
 
 exit;
+
+sub list_dates {
+    my @dates = shift || reverse sort keys %D;
+    return @dates;
+}
+
+sub html_hier_top {
+    my ($html, $date, @cvsdates) = @_;
+    my $dv = $D{$date};
+    print $html <<"HEADER";
+<table>
+  <tr>
+    <th>created at</th>
+    <td>$now</td>
+  </tr>
+  <tr>
+    <th>run at</th>
+    <td><a href="../$date/netlink.html">$date</a></td>
+  </tr>
+HEADER
+    print $html "</table>\n";
+}
+
+sub html_hier_test_head {
+    my ($html, @hiers) = @_;
+
+    foreach my $hier (@HIERARCHY) {
+	print $html "  <tr>\n    <th></th>\n";
+	print $html "    <th>$hier</th>\n";
+	foreach my $hv (@hiers) {
+	    my $title = "";
+	    my $name = $hv->{$hier} || "";
+	    if ($hier =~ /date$/) {
+		my $time = encode_entities($name);
+		$title = "  title=\"$time\"";
+		$name =~ s/T.*//;
+	    }
+	    print $html "    <th$title>$name</th>\n";
+	}
+	print $html "  </tr>\n";
+    }
+}
+
+sub html_hier_test_row {
+    my ($html, $test, $td, @hiers) = @_;
+
+    (my $testcmd = $test) =~ s/_/ /g;
+    print $html "  <tr>\n    <th class=\"desc\">", $TESTDESC{$test} || "",
+	"</th>\n";
+    print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
+    foreach my $hv (@hiers) {
+	my $tv = $td->{$hv->{key}};
+	my $status = $tv->{status} || "";
+	my $class = " class=\"status $status\"";
+	my $message = encode_entities($tv->{message});
+	my $title = $message ? " title=\"$message\"" : "";
+	my $logfile = $tv->{logfile};
+	my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
+	my $href = $logfile ? "<a href=\"../$link\">" : "";
+	my $enda = $href ? "</a>" : "";
+	print $html "    <td$class$title>$href$status$enda</td>\n";
+    }
+    print $html "  </tr>\n";
+}
+
+sub write_html_hier_files {
+    my @dates = list_dates(shift);
+
+    foreach my $date (@dates) {
+	print "." if $verbose;
+	my $dv = $D{$date};
+	my $short = $dv->{short};
+
+	my ($html, $htmlfile) = html_open("$date/netlink");
+	my @nav = (
+	    Top      => "../../../test.html",
+	    All      => "../netlink.html",
+	    Latest   => "../latest/netlink.html",
+	    Running  => "../run.html");
+	html_header($html, "OpenBSD Netlink Hierarchie",
+	    "OpenBSD netlink $short test results",
+	    @nav);
+
+	my $hv = $H{$date};
+	html_hier_top($html, $date, @$hv);
+
+	print $html "<table>\n";
+	html_hier_test_head($html, @$hv);
+
+	my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
+	    keys %T;
+	foreach my $test (@tests) {
+	    my $td = $T{$test}{$date}
+		or next;
+	    html_hier_test_row($html, $test, $td, @$hv);
+	}
+	print $html "</table>\n";
+
+	html_status_table($html, "netlink");
+	html_footer($html);
+	html_close($html, $htmlfile);
+    }
+}
 
 sub write_html_date_file {
     my $file = $opts{l} ? "latest" : "netlink";
@@ -185,11 +300,12 @@ HEADER
 	print "." if $verbose;
 	print $html "  <tr>\n    <th>$test</th>\n";
 	foreach my $date (@dates) {
-	    my $status = $T{$test}{$date}{status} || "";
+	    my $tv = $T{$test}{$date};
+	    my $status = $tv->{status} || "";
 	    my $class = " class=\"status $status\"";
-	    my $message = encode_entities($T{$test}{$date}{message});
+	    my $message = encode_entities($tv->{message});
 	    my $title = $message ? " title=\"$message\"" : "";
-	    my $logfile = $T{$test}{$date}{logfile};
+	    my $logfile = $tv->{logfile};
 	    my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 	    my $href = $logfile ? "<a href=\"$link\">" : "";
 	    my $enda = $href ? "</a>" : "";
@@ -285,12 +401,22 @@ sub parse_result_files {
 	# parse result file
 	my ($date, $short) = $file->{date} =~ m,^(([^/]+)T[^/]+Z)$,
 	    or next;
-	$D{$date} = {
+	my $dv = $D{$date} = {
 	    short => $short,
 	    result => $file->{name},
 	};
-	$D{$date}{setup} = "$date/setup.html" if -f "$date/setup.html";
+	$dv->{setup} = "$date/setup.html" if -f "$date/setup.html";
 	$_->{severity} *= .5 foreach values %T;
+	my %hiers;
+	foreach my $hier (@HIERARCHY) {
+	    my $subdir = $file->{$hier}
+		or next;
+	    $hiers{$hier} = $subdir;
+	}
+	my $hk = join($;, map { $file->{$_} || "" } @HIERARCHY);
+	$hiers{key} = $hk;
+	my $hv = $H{$date} ||= [];
+	push @$hv, \%hiers;
 	my ($total, $pass) = (0, 0);
 	open(my $fh, '<', $file->{name})
 	    or die "Open '$file->{name}' for reading failed: $!";
@@ -310,47 +436,38 @@ sub parse_result_files {
 		};
 		next;
 	    }
-	    my $t = $T{$test} ||= {};
-	    my @hierarchy = qw(date cvsdate patch iface pseudo repeat btrace);
-	    foreach my $hier (@hierarchy) {
-		my $subdir = $file->{$hier}
-		    or next;
-		push @{$t->{"${hier}s"}}, $subdir;
-		$t = $t->{$subdir} ||= {};
-	    }
-	    $t->{status}
+	    my $tv = $T{$test}{$date}{$hk} ||= {};
+	    $tv->{status}
 		and warn "Duplicate test '$test' at '$file->{name}'";
-	    $t->{status} = $status;
-	    $t->{message} = $message;
+	    $tv->{status} = $status;
+	    $tv->{message} = $message;
 	    my $severity = status2severity($status);
 	    $T{$test}{severity} += $severity;
 	    $total++ unless $status eq 'SKIP' || $status eq 'XFAIL';
 	    $pass++ if $status eq 'PASS';
 	    my $logfile = "$file->{dir}/logs/$test.log";
-	    $t->{logfile} = $logfile if -f $logfile;
+	    $tv->{logfile} = $logfile if -f $logfile;
 	}
 	close($fh)
 	    or die "Close '$file->{name}' after reading failed: $!";
-	$D{$date}{pass} = $pass / $total if $total;
+	$dv->{pass} = $pass / $total if $total;
 
 	# parse version file
 	foreach my $version (sort glob("$date/version-*.txt")) {
 	    $version =~ m,/version-(.+)\.txt$,;
 	    my $hostname = $1;
 
-	    next if $D{$date}{version};
-	    $D{$date}{version} = $version;
-	    $D{$date}{host} ||= $hostname;
+	    next if $dv->{version};
+	    $dv->{version} = $version;
+	    $dv->{host} ||= $hostname;
 	    (my $dmesg = $version) =~ s,/version-,/dmesg-,;
-	    $D{$date}{dmesg} ||= $dmesg if -f $dmesg;
+	    $dv->{dmesg} ||= $dmesg if -f $dmesg;
 	    (my $diff = $version) =~ s,/version-,/diff-,;
-	    $D{$date}{diff} ||= $diff if -s $diff;
+	    $dv->{diff} ||= $diff if -s $diff;
 
-	    %{$D{$date}} = (parse_version_file($version), %{$D{$date}});
+	    %$dv = (parse_version_file($version), %$dv);
 	}
-	$D{$date}{build} =
-	    $D{$date}{location} =~ /^deraadt@\w+.openbsd.org:/ ?
+	$dv->{build} = ($dv->{location} =~ /^deraadt@\w+.openbsd.org:/) ?
 	    "snapshot" : "custom";
     }
-#use YAML::Tiny; my $yaml = YAML::Tiny->new(\%T); print $yaml->write_string();
 }
