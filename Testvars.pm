@@ -829,6 +829,42 @@ my @testdesc = (
     'iperf3_-c10.9.12.52_-P10_-t10_-R'					=> "linux-openbsd-ipsec-transport-tcp-ip3rev-ot31",
     'iperf3_-6_-cfdd7:e83e:66bc:0912::52_-P10_-t10'			=> "linux-openbsd-ipsec-transport-tcp6-ip3fwd-ot31",
     'iperf3_-6_-cfdd7:e83e:66bc:0912::52_-P10_-t10_-R'			=> "linux-openbsd-ipsec-transport-tcp6-ip3rev-ot31",
+    'ping6_-qfc10000_fdd7:e83e:66bd:1012::4'						=> "openbsd-linux-icmp6",
+    'ping_-qfc10000_10.10.12.4'								=> "openbsd-linux-icmp4",
+    'ssh_root@lt40_ping6_-qfc10000_fdd7:e83e:66bd:1011::2'				=> "linux-openbsd-icmp6",
+    'ssh_root@lt40_ping6_-qfc10000_fdd7:e83e:66bd:1012::4'				=> "linux-openbsd-linux-icmp6",
+    'ssh_root@lt40_ping_-qfc10000_10.10.11.2'						=> "linux-openbsd-icmp4",
+    'ssh_root@lt40_ping_-qfc10000_10.10.12.4'						=> "linux-openbsd-linux-icmp6",
+    'tcpbench_-S1000000_-t10_-n100_10.10.12.4'						=> "openbsd-linux-tcp4bench-parallel",
+    'tcpbench_-S1000000_-t10_10.10.12.4'						=> "openbsd-linux-tcp4bench-single",
+    'ssh_root@lt40_udpbench_-l1453_-t10_-r_root@lt43_send_fdd7:e83e:66bd:1012::4'	=> "linux-openbsd-linux-udp6bench-frag",
+    'ssh_root@lt40_udpbench_-l1473_-t10_-r_root@lt43_send_10.10.12.4'			=> "linux-openbsd-linux-udp4bench-frag",
+    'udpbench_-l1473_-t10_-r_root@lt40_recv_10.10.11.2'					=> "linux-openbsd-udp4bench-frag",
+    'ssh_root@lt40_udpbench_-l1452_-t10_-r_root@lt43_send_fdd7:e83e:66bd:1012::4'	=> "linux-openbsd-linux-udp6bench-long",
+    'ssh_root@lt40_udpbench_-l1472_-t10_-r_root@lt43_send_10.10.12.4'			=> "linux-openbsd-linux-udp4bench-frag",
+    'ssh_root@lt40_udpbench_-l36_-t10_-r_root@lt43_send_10.10.12.4'			=> "linux-openbsd-linux-udp4bench-short",
+    'ssh_root@lt40_udpbench_-l36_-t10_-r_root@lt43_send_fdd7:e83e:66bd:1012::4'		=> "linux-openbsd-linux-udp6bench-short",
+    'udpbench_-l1452_-t10_-r_root@lt40_recv_fdd7:e83e:66bd:1011::2'			=> "linux-openbsd-udp6bench-long",
+    'udpbench_-l1452_-t10_-r_root@lt43_send_fdd7:e83e:66bd:1012::4'			=> "openbsd-linux-udp6bench-long",
+    'udpbench_-l1453_-t10_-r_root@lt40_recv_fdd7:e83e:66bd:1011::2'			=> "linux-openbsd-udp6bench-frag",
+    'udpbench_-l1453_-t10_-r_root@lt43_send_fdd7:e83e:66bd:1012::4'			=> "openbsd-linux-udp6bench-frag",
+    'udpbench_-l1472_-t10_-r_root@lt40_recv_10.10.11.2'					=> "linux-openbsd-udp4bench-long",
+    'udpbench_-l1472_-t10_-r_root@lt43_send_10.10.12.4'					=> "openbsd-linux-udp4bench-long",
+    'udpbench_-l1473_-t10_-r_root@lt43_send_10.10.12.4'					=> "openbsd-linux-udp4bench-frag",
+    'udpbench_-l36_-t10_-r_root@lt40_recv_10.10.11.2'					=> "linux-openbsd-udp4bench-short",
+    'udpbench_-l36_-t10_-r_root@lt40_recv_fdd7:e83e:66bd:1011::2'			=> "linux-openbsd-udp6bench-short",
+    'udpbench_-l36_-t10_-r_root@lt43_send_10.10.12.4'					=> "openbsd-linux-udp4bench-short",
+    'udpbench_-l36_-t10_-r_root@lt43_send_fdd7:e83e:66bd:1012::4'			=> "openbsd-linux-udp6bench-short",
+    'tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bd:1012::4'				=> "openbsd-linux-tcp6bench-parallel",
+    'tcpbench_-S1000000_-t10_fdd7:e83e:66bd:1012::4'					=> "openbsd-linux-tcp6bench-single",
+    'ssh_root@lt40_tcpbench_-S1000000_-t10_-n100_10.10.12.4'				=> "linux-openbsd-linux-tcp4bench-parallel",
+    'ssh_root@lt40_tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bd:1012::4'		=> "linux-openbsd-linux-tcp6bench-parallel",
+    'ssh_root@lt40_tcpbench_-S1000000_-t10_10.10.12.4'					=> "linux-openbsd-linux-tcp4bench-single",
+    'ssh_root@lt40_tcpbench_-S1000000_-t10_fdd7:e83e:66bd:1012::4'			=> "linux-openbsd-linux-tcp6bench-single",
+    'ssh_root@lt40_tcpbench_-S1000000_-t10_-n100_10.10.11.2'				=> "linux-openbsd-tcp4bench-parallel",
+    'ssh_root@lt40_tcpbench_-S1000000_-t10_-n100_fdd7:e83e:66bd:1011::2'		=> "linux-openbsd-tcp6bench-parallel",
+    'ssh_root@lt40_tcpbench_-S1000000_-t10_10.10.11.2'					=> "linux-openbsd-tcp4bench-single",
+    'ssh_root@lt40_tcpbench_-S1000000_-t10_fdd7:e83e:66bd:1011::2'			=> "linux-openbsd-tcp6bench-single",
 );
 
 %TESTDESC = @testdesc;
@@ -846,9 +882,9 @@ for (my $i = 0; $i < @testdesc; $i += 2) {
 foreach (keys %TESTPLOT) {
     die "testplot $_ is not in testdesc" unless $TESTDESC{$_};
 }
-foreach (keys %TESTDESC) {
-    die "testdesc $_ is not in testorder" unless $TESTORDER{$_};
-}
+#foreach (keys %TESTDESC) {
+#    die "testdesc $_ is not in testorder" unless $TESTORDER{$_};
+#}
 
 ########################################################################
 
