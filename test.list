@@ -111,8 +111,7 @@ lib/libcrypto/hmac
 lib/libcrypto/idea
 lib/libcrypto/ige
 lib/libcrypto/init
-lib/libcrypto/md4
-lib/libcrypto/md5
+lib/libcrypto/md
 lib/libcrypto/objects
 lib/libcrypto/ocsp
 lib/libcrypto/pbkdf2
@@ -124,10 +123,8 @@ lib/libcrypto/rc2
 lib/libcrypto/rc4
 lib/libcrypto/rmd
 lib/libcrypto/rsa
-lib/libcrypto/sha1
+lib/libcrypto/sha
 lib/libcrypto/sha2
-lib/libcrypto/sha256
-lib/libcrypto/sha512
 lib/libcrypto/sm3
 lib/libcrypto/sm4
 lib/libcrypto/symbols
