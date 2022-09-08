@@ -82,6 +82,7 @@ devel/p5-IO-Tty
 devel/p5-IO-stringy
 devel/p5-IPC-Run
 devel/p5-Importer
+devel/p5-Iterator-Simple
 devel/p5-Lchown
 devel/p5-List-AllUtils
 devel/p5-List-Compare
@@ -322,6 +323,7 @@ net/p5-Test-TCP
 productivity/p5-iCal-Parser
 security/botan2
 security/p5-Authen-SASL
+security/p5-Crypt-Argon2
 security/p5-Crypt-Blowfish
 security/p5-Crypt-Blowfish_PP
 security/p5-Crypt-CAST5_PP
@@ -354,7 +356,6 @@ security/p5-Crypt-RIPEMD160
 security/p5-Crypt-Rijndael
 security/p5-Crypt-SSLeay
 security/p5-Crypt-SaltedHash
-security/p5-Crypt-Serpent
 security/p5-Crypt-SmbHash
 security/p5-Crypt-TripleDES
 security/p5-Crypt-Twofish
@@ -375,6 +376,7 @@ telephony/p5-Net-SIP
 textproc/libxml
 textproc/libxslt
 textproc/p5-Encode-Locale
+textproc/p5-File-KDBX
 textproc/p5-PDF-API2
 textproc/p5-PDF-Table
 textproc/p5-Pod-LaTeX
