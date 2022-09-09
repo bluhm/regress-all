@@ -38,6 +38,7 @@ set datafile separator whitespace
 if (!exists("TITLE")) { TITLE = "" }
 if (!exists("UNIT")) { UNIT = "" }
 if (!exists("QUIRKS")) { QUIRKS = "" }
+if (!exists("LATEX")) { LATEX = 0 }
 
 if (exists("RUN_DATE")) {
     stats DATA_FILE using 4:(strcol(3) eq RUN_DATE? $6:NaN) nooutput
@@ -73,12 +74,17 @@ set xdata time
 set xlabel "Checkout (date)"
 set tics out
 set border 3
-set output PREFIX."_0.png"
-set terminal png transparent size 1360, 768
+if (LATEX) {
+    set output PREFIX.".tex"
+    set terminal epslatex color size 10.5, 5
+} else {
+    set output PREFIX.".png"
+    set terminal png transparent size 1360, 768
+    set style textbox opaque noborder fillcolor rgb "white"
+}
 unset key
 
 # draw quirks
-set style textbox opaque noborder fillcolor rgb "white"
 lbl_index = 65
 descr_suffix = ""
 do for [i = 1:words(QUIRKS)] {
@@ -100,26 +106,30 @@ do for [i = 1:words(QUIRKS)] {
     }
 }
 
-# draw frame
-plot 0 notitle lc bgnd
-
 # draw complete plot
-set output PREFIX.".png"
 if (exists("RUN_DATE")) {
     plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
-        strcol(3) eq RUN_DATE? ( \
-            strcol(1) eq word(TESTS,test)? ( \
-                strcol(2) eq word(TESTS,test+1)? $6:NaN \
-            ):NaN \
-        ):NaN \
+	strcol(3) eq RUN_DATE? ( \
+	    strcol(1) eq word(TESTS,test)? ( \
+		strcol(2) eq word(TESTS,test+1)? $6:NaN \
+	    ):NaN \
+	):NaN \
     ) with points lc test/2+1 pt test/2+1
 } else {
     plot for [test = 1:words(TESTS):2] DATA_FILE using 4:( \
-        strcol(1) eq word(TESTS,test)? ( \
-            strcol(2) eq word(TESTS,test+1)? $6:NaN \
-        ):NaN \
+	strcol(1) eq word(TESTS,test)? ( \
+	    strcol(2) eq word(TESTS,test+1)? $6:NaN \
+	):NaN \
     ) with points lc test/2+1 pt test/2+1
 }
+
+if (LATEX) {
+    exit
+}
+
+# draw frame
+set output PREFIX."_0.png"
+plot 0 notitle lc bgnd
 
 # draw data
 set title tc bgnd
@@ -136,18 +146,18 @@ do for [test = 1:words(TESTS):2] {
     i = test/2+1
     set output PREFIX."_".i.".png"
     if (exists("RUN_DATE")) {
-        plot DATA_FILE using 4:( \
-            strcol(3) eq RUN_DATE? ( \
-                strcol(1) eq word(TESTS,test)? ( \
-                    strcol(2) eq word(TESTS,test+1)? $6:NaN \
-                ):NaN \
-            ):NaN \
-        ) with points lc i pt i
+	plot DATA_FILE using 4:( \
+	    strcol(3) eq RUN_DATE? ( \
+		strcol(1) eq word(TESTS,test)? ( \
+		    strcol(2) eq word(TESTS,test+1)? $6:NaN \
+		):NaN \
+	    ):NaN \
+	) with points lc i pt i
     } else {
-        plot DATA_FILE using 4:( \
-            strcol(1) eq word(TESTS,test)? ( \
-                strcol(2) eq word(TESTS,test+1)? $6:NaN \
-            ):NaN \
-        ) with points lc i pt i
+	plot DATA_FILE using 4:( \
+	    strcol(1) eq word(TESTS,test)? ( \
+		strcol(2) eq word(TESTS,test+1)? $6:NaN \
+	    ):NaN \
+	) with points lc i pt i
     }
 }
