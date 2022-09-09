@@ -31,9 +31,10 @@ use Html;
 use Testvars qw(%TESTDESC);
 
 my %opts;
-getopts('vnB:d:E:p:r:', \%opts) or do {
+getopts('vnB:d:E:p:r:X:x:Y:y:', \%opts) or do {
     print STDERR <<"EOF";
 usage: gnuplot.pl [-vn] [-B date] [-d date] [-E date] -p plot [-r release]
+	[-x min] [-X max] [-y min] [-Y max]
     -v		verbose
     -n		dry run
     -B date	begin date of x range, inclusive
@@ -41,6 +42,10 @@ usage: gnuplot.pl [-vn] [-B date] [-d date] [-E date] -p plot [-r release]
     -E date	end date of x range, inclusive
     -p plot	(tcp|tcp6|udp|udp6|linux|linux6|forward|forward6|ipsec|make|fs)
     -r release	OpenBSD version number
+    -x min	x range minimum
+    -X max	x range maximum
+    -y min	y range minimum
+    -Y max	y range maximum
 EOF
     exit(2);
 };
@@ -65,6 +70,27 @@ if ($opts{B}) {
 if ($opts{E}) {
     $end = str2time($opts{E})
 	or die "Invalid -E date '$opts{E}'";
+}
+my ($xmin, $xmax, $ymin, $ymax);
+if (defined $opts{x}) {
+    $opts{x} =~ /^\d+$/
+	or die "x min '$opts{x}' not a number";
+    $xmin = $opts{x}
+}
+if (defined $opts{X}) {
+    $opts{X} =~ /^\d+$/
+	or die "X max '$opts{X}' not a number";
+    $xmax = $opts{X}
+}
+if (defined $opts{y}) {
+    $opts{y} =~ /^\d+$/
+	or die "y min '$opts{y}' not a number";
+    $ymin = $opts{y}
+}
+if (defined $opts{Y}) {
+    $opts{Y} =~ /^\d+$/
+	or die "Y max '$opts{Y}' not a number";
+    $ymax = $opts{Y}
 }
 my $plot = $opts{p}
     or die "Option -p plot missing";
@@ -157,6 +183,10 @@ sub create_plot_files {
     push @vars, "RUN_DATE='$run'" if $run;
     push @vars, "XRANGE_MIN='$begin'" if $begin;
     push @vars, "XRANGE_MAX='$end'" if $end;
+    push @vars, "XRANGE_MIN='$xmin'" if defined $xmin;
+    push @vars, "XRANGE_MAX='$xmax'" if defined $xmax;
+    push @vars, "YRANGE_MIN='$ymin'" if defined $ymin;
+    push @vars, "YRANGE_MAX='$ymax'" if defined $ymax;
     my @cmd = ("gnuplot", "-d");
     if ($dry) {
 	push @cmd, (map { ("-e", "\"$_\"") } @vars);
