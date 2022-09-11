@@ -127,14 +127,17 @@ chdir($gnuplotdir)
 $gnuplotdir = getcwd();
 
 my $datafile = "$plot.data";
-$datafile = "results/$date/$plot.data" if $latex;
-$datafile = "results/test.data" if $latex && ! -f $datafile;
+if ($latex) {
+    $datafile = "results/$date/$plot.data" if $date;
+    $datafile = "results/$release/$plot.data" if $release;
+    $datafile = "results/test.data" if ! -f $datafile;
+}
 -f $datafile
     or die "No test data file '$datafile' in $gnuplotdir";
 
 my $prefix = "";
 $prefix .= "gnuplot/" if $latex;
-$prefix .= "$release-" if $release && ($begin || $end);
+$prefix .= "$release-" if $release && ($begin || $end || $latex);
 $prefix .= "$date-" if $date && $latex;
 $prefix .= "$plot";
 $prefix .= "-$number" if $number;
