@@ -33,7 +33,7 @@ use Testvars qw(%TESTDESC);
 my %opts;
 getopts('vnB:d:E:LN:p:r:X:x:Y:y:', \%opts) or do {
     print STDERR <<"EOF";
-usage: gnuplot.pl [-Lnv] [-B date] [-d date] [-E date] [-N number] -p plot
+usage: gnuplot.pl [-Lnv] [-B date] [-d date] [-E date] [-N numbers] -p plot
 	[-r release] [-x min] [-X max] [-y min] [-Y max]
     -v		verbose
     -n		dry run
@@ -41,7 +41,7 @@ usage: gnuplot.pl [-Lnv] [-B date] [-d date] [-E date] [-N number] -p plot
     -d date	run date of performance test
     -E date	end date of x range, inclusive
     -L		create LaTeX and EPS output instead of PNG and HTML
-    -N number	test number
+    -N numbers	list of test numbers
     -p plot	(tcp|tcp6|udp|udp6|linux|linux6|forward|forward6|ipsec|make|fs)
     -r release	OpenBSD version number
     -x min	x range minimum
@@ -78,24 +78,29 @@ my ($xmin, $xmax, $ymin, $ymax);
 if (defined $opts{x}) {
     $opts{x} =~ /^\d+$/
 	or die "x min '$opts{x}' not a number";
-    $xmin = $opts{x}
+    $xmin = $opts{x};
 }
 if (defined $opts{X}) {
     $opts{X} =~ /^\d+$/
 	or die "X max '$opts{X}' not a number";
-    $xmax = $opts{X}
+    $xmax = $opts{X};
 }
 if (defined $opts{y}) {
     $opts{y} =~ /^\d+$/
 	or die "y min '$opts{y}' not a number";
-    $ymin = $opts{y}
+    $ymin = $opts{y};
 }
 if (defined $opts{Y}) {
     $opts{Y} =~ /^\d+$/
 	or die "Y max '$opts{Y}' not a number";
-    $ymax = $opts{Y}
+    $ymax = $opts{Y};
 }
-my $number = $opts{N};
+my @numbers;
+if (defined $opts{N}) {
+    $opts{N} =~ /^\d+(,\d+)*$/
+	or die "Numbers '$opts{N}' is not a list of numbers";
+    @numbers = split(/,/, $opts{N});
+}
 my $plot = $opts{p}
     or die "Option -p plot missing";
 @ARGV and die "No arguments allowed";
@@ -140,7 +145,7 @@ $prefix .= "gnuplot/" if $latex;
 $prefix .= "$release-" if $release && ($begin || $end || $latex);
 $prefix .= "$date-" if $date && $latex;
 $prefix .= "$plot";
-$prefix .= "-$number" if $number;
+$prefix .= "-" . join(',', @numbers) if @numbers;
 
 my ($UNIT, %SUBTESTS);
 parse_data_file();
@@ -182,7 +187,7 @@ sub parse_data_file {
 sub create_plot_files {
     # sort by description, use test values for gnuplot
     my @tests = map { $SUBTESTS{$_} } sort keys %SUBTESTS;
-    @tests = $tests[$number] if $number;
+    @tests = @tests[@numbers] if @numbers;
     my @quirks = sort keys %{{quirks()}};
 
     my $title = uc($plot). " Performance";
