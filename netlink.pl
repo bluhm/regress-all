@@ -29,14 +29,14 @@ my @allpseudodevs = sort qw(aggr bridge carp trunk veb vlan);
 my @allifs = sort qw(em igc ix ixl);
 
 my %opts;
-getopts('e:i:l:p:r:t:v', \%opts) or do {
+getopts('c:e:i:l:r:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: netlink.pl [-v] [-e environment] [-i interface] [-l index]
-	[-p pseudo-dev] [-r index] [-t timeout] [test ...]
+usage: netlink.pl [-v] [-c pseudo-dev] [-e environment] [-i interface]
+	[-l index] [-r index] [-t timeout] [test ...]
+    -c pseudo-dev	@{[ join ', ', @allpseudodevs ]}
     -e environ		parse environment for tests from shell script
     -i interface	@{[ join ', ', @allifs ]}
     -l index		interface index, default 0
-    -p pseudo-dev	@{[ join ', ', @allpseudodevs ]}
     -r index		interface index, default 1
     -t timeout		timeout for a single test, default 60 seconds
     -v			verbose
@@ -48,7 +48,7 @@ EOF
 my $verbose = $opts{v};
 my $timeout = $opts{t} || 60;
 environment($opts{e}) if $opts{e};
-my $pseudodev = $opts{p} || '';
+my $pseudodev = $opts{c} || '';
 my $interface = $opts{i} || "em";
 # ifN if N is even then it is left, odd means right.
 my $left_ifidx = $opts{l} || 0;
