@@ -23,6 +23,9 @@ cvslog.pl	- collect all cvs commit messages between two dates
 env-ot1.sh	- environment variables to be set on the test machine ot1
 force-iperf3.pl	- restrict ssh command to iperf3 in client mode
 mktestlist.pl	- find possible names of tests in regress directory
+net.pl		- run network regression tests
+netlink.pl	- set up and run one network regression test on test machine
+		  this is started by net.pl
 once.pl		- run performance test once, used for manual testing
 perform-html.pl	- convert performance test results into html table
 perform.pl	- run one set up performace test on test machine,
