@@ -50,9 +50,13 @@ my $timeout = $opts{t} || 60;
 environment($opts{e}) if $opts{e};
 my $pseudodev = $opts{p} || '';
 my $interface = $opts{i} || "em";
+
+my $line = $ENV{NETLINK_LINE} || die "NETLINK_LINE is not in env";
+my $management_if = $ENV{MANAGEMENT_IF} || die "MANAGEMENT_IF is not in env";
+
 # ifN if N is even then it is left, odd means right.
-my $left_ifidx = $opts{l} || 0;
-my $right_ifidx = $opts{r} || 1;
+my $left_ifidx = $opts{l} || ("${interface}0" eq $management_if? 2 : 0);
+my $right_ifidx = $opts{r} || ("${interface}1" eq $management_if? 3 : 1);
 
 warn "left interface should be in the wrong network" if ($left_ifidx % 2);
 warn "right interface should be in the wrong network" if (!$right_ifidx % 2);
@@ -86,9 +90,6 @@ my $ipv6 = (join '', keys %testmode) =~ /6/;
 
 my $ip4prefix = '10.10';
 my $ip6prefix = 'fdd7:e83e:66bd:10';
-
-my $line = $ENV{NETLINK_LINE} || die "NETLINK_LINE is not in env";
-my $management_if = $ENV{MANAGEMENT_IF} || die "MANAGEMENT_IF is not in env";
 
 my $obsd_l_if = $interface . $left_ifidx;
 my $obsd_l_net = "$ip4prefix.${line}1.0";
