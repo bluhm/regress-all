@@ -25,7 +25,7 @@ use POSIX;
 use Time::HiRes;
 
 my @alltests = sort qw(all fragment icmp ipopts pathmtu tcp udp);
-my @allpseudodevs = sort qw(aggr bridge carp trunk veb vlan);
+my @allpseudodevs = sort qw(aggr bridge carp none trunk veb vlan);
 my @allifs = sort qw(em igc ix ixl);
 
 my %opts;
@@ -48,7 +48,7 @@ EOF
 my $verbose = $opts{v};
 my $timeout = $opts{t} || 60;
 environment($opts{e}) if $opts{e};
-my $pseudodev = $opts{c} || '';
+my $pseudodev = $opts{c} || 'none';
 my $interface = $opts{i} || "em";
 
 my $line = $ENV{NETLINK_LINE} || die "NETLINK_LINE is not in env";
@@ -189,7 +189,7 @@ mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net6, 'dev',
     $lnx_r_if);
 
 # configure given interface type
-if ($pseudodev eq 'bridge' || !$pseudodev) {
+if ($pseudodev eq 'bridge' || $pseudodev eq 'none') {
     if ($ipv4) {
 	mysystem('ifconfig', $obsd_l_if, 'inet', "${obsd_l_addr}/24");
 	mysystem('ifconfig', $obsd_r_if, 'inet', "${obsd_r_addr}/24");
