@@ -46,7 +46,7 @@ EOF
     exit(2);
 };
 my $verbose = $opts{v};
-my $timeout = $opts{t} || 60;
+my $timeout = $opts{t} || 20;
 environment($opts{e}) if $opts{e};
 my $pseudodev = $opts{c} || 'none';
 my $interface = $opts{i} || "em";
