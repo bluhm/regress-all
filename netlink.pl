@@ -616,6 +616,16 @@ my @stats = (
     }, {
 	statcmd => [ 'netstat', '-binv' ],
     }, {
+	statcmd => [ 'netstat', '-nr' ],
+    }, {
+	statcmd => [ 'ssh', 'root@lt40', 'netstat', '-nr' ],
+    }, {
+	statcmd => [ 'ssh', 'root@lt40', 'netstat', '-6nr' ],
+    }, {
+	statcmd => [ 'ssh', 'root@lt43', 'netstat', '-nr' ],
+    }, {
+	statcmd => [ 'ssh', 'root@lt43', 'netstat', '-6nr' ],
+    }, {
 	statcmd => [ 'vmstat', '-mv' ],
     }, {
 	statcmd => [ 'vmstat', '-s' ],
