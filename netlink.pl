@@ -92,13 +92,13 @@ my $ip4prefix = '10.10';
 my $ip6prefix = 'fdd7:e83e:66bd:10';
 
 my $obsd_l_if = $interface . $left_ifidx;
-my $obsd_l_net = "$ip4prefix.${line}1.0";
+my $obsd_l_net = "$ip4prefix.${line}1.0/24";
 my $obsd_l_addr = "$ip4prefix.${line}1.2";
 my $obsd_l_net6 = "${ip6prefix}${line}1::/64";
 my $obsd_l_addr6 = "${ip6prefix}${line}1::2";
 
 my $obsd_r_if = $interface . $right_ifidx;
-my $obsd_r_net = "$ip4prefix.${line}2.0";
+my $obsd_r_net = "$ip4prefix.${line}2.0/24";
 my $obsd_r_addr = "$ip4prefix.${line}2.3";
 my $obsd_r_net6 = "${ip6prefix}${line}2::/64";
 my $obsd_r_addr6 = "${ip6prefix}${line}2::3";
@@ -306,13 +306,13 @@ if ($pseudodev eq 'aggr') {
 
 	mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net, 'dev',
 	    $lnx_l_pdev);
-	mysystem('ssh', $lnx_l_ssh, 'route', 'add', '-net', $obsd_r_net, 'gw',
-	    $obsd_l_addr, 'netmask', '255.255.255.0', "$lnx_l_pdev");
+	mysystem('ssh', $lnx_l_ssh, 'ip', 'route', 'add', $obsd_r_net, 'via',
+	    $obsd_l_addr, 'dev', "$lnx_l_pdev");
 
 	mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $lnx_r_net, 'dev',
 	    $lnx_r_pdev);
-	mysystem('ssh', $lnx_r_ssh, 'route', 'add', '-net', $obsd_l_net, 'gw',
-	    $obsd_r_addr, 'netmask', '255.255.255.0', "$lnx_r_pdev");
+	mysystem('ssh', $lnx_r_ssh, 'ip', 'route', 'add', $obsd_l_net, 'via',
+	    $obsd_r_addr, 'dev', "$lnx_r_pdev");
     }
     if ($ipv6) {
 	mysystem('ifconfig', 'vlan0', 'inet6', $obsd_l_addr6, 'up');
@@ -320,13 +320,13 @@ if ($pseudodev eq 'aggr') {
 
 	mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net6, 'dev',
 	    $lnx_l_pdev);
-	mysystem('ssh', $lnx_l_ssh, 'route', '-6', 'add', $obsd_r_net6, 'gw',
-	    $obsd_l_addr6, $lnx_l_pdev);
+	mysystem('ssh', $lnx_l_ssh, 'ip', '-6', 'route', 'add', $obsd_r_net6, 'via',
+	    $obsd_l_addr6, 'dev', "$lnx_l_pdev");
 
 	mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $lnx_r_net6, 'dev',
 	    $lnx_r_pdev);
-	mysystem('ssh', $lnx_r_ssh, 'route', '-6', 'add', $obsd_l_net6, 'gw',
-	    $obsd_r_addr6, $lnx_r_pdev);
+	mysystem('ssh', $lnx_r_ssh, 'ip', '-6', 'route', 'add', $obsd_l_net6, 'via',
+	    $obsd_r_addr6, 'dev', "$lnx_r_pdev");
     }
 }
 # XXX: tpmr, nipsec, gre?
@@ -336,25 +336,25 @@ if ($configure_linux) {
 	my @sshcmd = ('ssh', $lnx_l_ssh);
 	mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net, 'dev', $lnx_l_if);
 	mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_l_if, 'up');
-	mysystem(@sshcmd, 'route', 'add', '-net', $obsd_r_net, 'gw',
-	    $obsd_l_addr, 'netmask', '255.255.255.0', "$lnx_l_if");
+	mysystem(@sshcmd, 'ip', 'route', 'add', $obsd_r_net, 'via',
+	    $obsd_l_addr, 'dev', "$lnx_l_if");
 
 	@sshcmd = ('ssh', $lnx_r_ssh);
 	mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net, 'dev', $lnx_r_if);
 	mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_r_if, 'up');
-	mysystem(@sshcmd, 'route', 'add', '-net', $obsd_l_net, 'gw',
-	    $obsd_r_addr, 'netmask', '255.255.255.0', "$lnx_r_if");
+	mysystem(@sshcmd, 'ip', 'route', 'add', $obsd_l_net, 'via',
+	    $obsd_r_addr, 'dev', "$lnx_r_if");
     }
     if ($ipv6) {
 	my @sshcmd = ('ssh', $lnx_l_ssh);
 	mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net6, 'dev', $lnx_l_if);
-	mysystem(@sshcmd, 'route', '-6', 'add', $obsd_r_net6, 'gw',
-	    $obsd_l_addr6, $lnx_l_if);
+	mysystem(@sshcmd, 'ip', '-6', 'route', 'add', $obsd_r_net6, 'via',
+	    $obsd_l_addr6, 'dev', "$lnx_l_if");
 
 	@sshcmd = ('ssh', $lnx_r_ssh);
 	mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net6, 'dev', $lnx_r_if);
-	mysystem(@sshcmd, 'route', '-6', 'add', $obsd_l_net6, 'gw',
-	    $obsd_r_addr6, $lnx_r_if);
+	mysystem(@sshcmd, 'ip', '-6', 'route', 'add', $obsd_l_net6, 'via',
+	    $obsd_r_addr6, 'dev', "$lnx_r_if");
     }
 }
 
