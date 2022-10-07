@@ -657,6 +657,12 @@ my %quirks = (
 	comment => "OpenBSD/amd64 7.1 release",
 	release => '7.1',
     },
+    '2022-09-22T04:57:08Z' => {
+	comment => "libc RDTSCP for tsc and usertc",
+	updatedirs => [ "sys", "include", "lib/libc" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "lib/libc" ],
+    },
 );
 
 #### Patches ####
