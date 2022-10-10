@@ -33,10 +33,10 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('b:c:d:D:h:i:N:P:ps:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: net.pl [-pv]  [-b kstack] [-c pseudo] [-d date] [-D cvsdate] -h host
+usage: net.pl [-pv] [-b kstack] [-c pseudo] [-d date] [-D cvsdate] -h host
 	[-i iface] [-N repeat] [-P patch] [-s setup] [test ...]
 #    -b kstack	measure with btrace and create kernel stack map
-#    -c pseudo	ifconfig create pseudo network device
+    -c pseudo	ifconfig create pseudo network device
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for network link test, user defaults to root
