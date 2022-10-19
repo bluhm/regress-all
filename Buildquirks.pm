@@ -663,6 +663,11 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "lib/libc" ],
     },
+# OpenBSD 7.2, 2022-09-27Z
+    '2022-09-27T18:03:44Z' => {
+	comment => "OpenBSD/amd64 7.2 release",
+	release => '7.2',
+    },
 );
 
 #### Patches ####
