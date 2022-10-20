@@ -31,6 +31,8 @@ py3-tlsfuzzer
 raspberrypi-firmware
 rsync--
 rsyslog
+rust
+rust-openssl-tests
 scapy
 sudo--
 sysclean
