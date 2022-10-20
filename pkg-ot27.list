@@ -29,6 +29,8 @@ posixtestsuite
 py3-tlsfuzzer
 rsync--
 rsyslog
+rust
+rust-openssl-tests
 scapy
 sudo--
 sysclean
