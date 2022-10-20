@@ -169,6 +169,7 @@ lib/libssl/pqueue
 lib/libssl/quic
 lib/libssl/record
 lib/libssl/record_layer
+lib/libssl/rust-openssl
 lib/libssl/server
 lib/libssl/ssl
 lib/libssl/tls
