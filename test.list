@@ -206,6 +206,7 @@ sbin/newfs
 sbin/pfctl
 sbin/route
 sbin/slaacd
+sys/altivec_ast
 sys/arch/amd64/dump_tables
 sys/arch/amd64/fpu
 sys/arch/amd64/vmm
