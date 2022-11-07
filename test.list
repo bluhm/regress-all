@@ -81,6 +81,7 @@ lib/libc/vis
 lib/libc/wprintf
 lib/libcrypto/CA
 lib/libcrypto/aead
+lib/libcrypto/aes
 lib/libcrypto/aeswrap
 lib/libcrypto/asn1
 lib/libcrypto/base64
