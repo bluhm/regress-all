@@ -397,7 +397,7 @@ my %quirks = (
 	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	commands => [ "reboot" ],
     },
-    # Reboot to kernel with dummy syscall msyscall(2) before ld.so quirk.
+    # Reboot to kernel with dummy syscall msyscall before ld.so quirk.
     '2019-11-29T06:34:46Z' => {
 	comment => "ld.so uses msyscall to permit syscalls",
 	updatedirs => [ "libexec/ld.so" ],
@@ -667,6 +667,44 @@ my %quirks = (
     '2022-09-27T18:03:44Z' => {
 	comment => "OpenBSD/amd64 7.2 release",
 	release => '7.2',
+    },
+    '2022-10-07T15:00:12Z' => {
+	comment => "kernel provides mimmutable system call",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [
+	    "make includes",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	commands => [ "reboot" ],
+    },
+    '2022-10-07T15:04:52Z' => {
+	comment => "llvm and binutils create openbsd mutable section",
+	updatedirs => [
+	    "gnu/llvm",
+	    "gnu/usr.bin/binutils",
+	    "gnu/usr.bin/binutils-2.17",
+	],
+	builddirs => [ "gnu/usr.bin/clang" ],
+	buildcommands => [
+	    "make -C gnu/usr.bin/binutils -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper obj",
+	    "make -C gnu/usr.bin/binutils -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper all",
+	    "make -C gnu/usr.bin/binutils -f Makefile.bsd-wrapper install",
+	    "make -C gnu/usr.bin/binutils-2.17 -f Makefile.bsd-wrapper install",
+	],
+    },
+    '2022-10-07T15:21:04Z' => {
+	comment => "libc provides mimmutable stub",
+	updatedirs => [ "lib/libc", "lib/librthread" ],
+	builddirs => [ "lib/libc", "lib/librthread" ],
+    },
+    '2022-11-09T19:50:25Z' => {
+	comment => "ld.so uses mimmutable",
+	updatedirs => [ "libexec/ld.so" ],
+	builddirs => [ "libexec/ld.so" ],
     },
     '2022-11-09T22:25:08Z' => {
 	comment => "fix build in kern pledge",
