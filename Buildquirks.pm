@@ -668,6 +668,11 @@ my %quirks = (
 	comment => "OpenBSD/amd64 7.2 release",
 	release => '7.2',
     },
+    '2022-11-09T22:25:08Z' => {
+	comment => "fix build in kern pledge",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-pledge-nodelay' => patch_sys_pledge_nodelay() },
+    },
 );
 
 #### Patches ####
@@ -1176,7 +1181,7 @@ PATCH
 # Remove last dangling usage of CRYPTO_F_NOQUEUE.
 sub patch_sys_softraid_crypto {
 	return <<'PATCH';
-Index: /usr/src/sys/dev/softraid_crypto.c
+Index: sys/dev/softraid_crypto.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/softraid_crypto.c,v
 retrieving revision 1.142
@@ -1199,14 +1204,14 @@ PATCH
 # Revert previous. Breaks probing native IDE devices.
 sub patch_sys_scsi_link {
 	return <<'PATCH';
-Index: /usr/src/sys/scsi/scsiconf.c
+Index: sys/scsi/scsiconf.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/scsi/scsiconf.c,v
 retrieving revision 1.247
 retrieving revision 1.248
 diff -u -p -r1.247 -r1.248
---- /usr/src/sys/scsi/scsiconf.c	23 Mar 2022 14:36:01 -0000	1.247
-+++ /usr/src/sys/scsi/scsiconf.c	24 Mar 2022 00:30:51 -0000	1.248
+--- sys/scsi/scsiconf.c	23 Mar 2022 14:36:01 -0000	1.247
++++ sys/scsi/scsiconf.c	24 Mar 2022 00:30:51 -0000	1.248
 @@ -519,8 +519,7 @@ scsi_probe_link(struct scsibus_softc *sb
  			SC_DEBUG(link, SDEV_DB2, ("dev_probe(link) failed.\n"));
  			rslt = EINVAL;
@@ -1253,6 +1258,28 @@ diff -u -p -r1.247 -r1.248
 +	free(link, M_DEVBUF, sizeof(*link));
  	return rslt;
  }
+ 
+PATCH
+}
+
+# Fix build after 1.298
+sub patch_sys_pledge_nodelay {
+	return <<'PATCH';
+Index: sys/kern/kern_pledge.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/kern/kern_pledge.c,v
+retrieving revision 1.298
+retrieving revision 1.299
+diff -u -p -r1.298 -r1.299
+--- sys/kern/kern_pledge.c	9 Nov 2022 22:25:08 -0000	1.298
++++ sys/kern/kern_pledge.c	10 Nov 2022 00:14:11 -0000	1.299
+@@ -1378,6 +1378,7 @@ pledge_sockopt(struct proc *p, int set, 
+ 		switch (optname) {
+ 		case TCP_NODELAY:
+ 			return (0);
++		}
+ 		break;
+ 	}
  
 PATCH
 }
