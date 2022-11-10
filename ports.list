@@ -9,6 +9,8 @@ converters/p5-CBOR-XS
 converters/p5-Convert-ASN1
 converters/p5-Convert-BER
 converters/p5-Convert-BinHex
+converters/p5-Convert-Color
+converters/p5-Convert-Color-XTerm
 converters/p5-Cpanel-JSON-XS
 converters/p5-JSON
 converters/p5-JSON-Any
@@ -29,6 +31,7 @@ databases/p5-ldap
 devel/p5-Algorithm-Diff
 devel/p5-Alien-Base
 devel/p5-AnyEvent
+devel/p5-B-COW
 devel/p5-B-Hooks-EndOfScope
 devel/p5-BSD-Resource
 devel/p5-BSD-arc4random
@@ -42,6 +45,7 @@ devel/p5-Class-Date
 devel/p5-Class-Load
 devel/p5-Class-Load-XS
 devel/p5-Class-XSAccessor
+devel/p5-Commandable
 devel/p5-Data-Compare
 devel/p5-Data-Dump-Streamer
 devel/p5-Data-HexDump
@@ -51,17 +55,20 @@ devel/p5-Data-Validate
 devel/p5-Data-Validate-IP
 devel/p5-Data-Validate-Struct
 devel/p5-Data-Visitor
+devel/p5-Date-ICal
 devel/p5-DateTime-Set
 devel/p5-Devel-CheckBin
 devel/p5-Devel-CheckOS
 devel/p5-Devel-FindPerl
 devel/p5-Devel-GlobalDestruction
+devel/p5-Devel-MAT-Dumper
 devel/p5-Devel-NYTProf
 devel/p5-Devel-OverloadInfo
 devel/p5-Devel-StackTrace
 devel/p5-Eval-Closure
 devel/p5-Exporter-Tiny
 devel/p5-FFI-CheckLib
+devel/p5-Feature-Compat-Try
 devel/p5-File-Attributes
 devel/p5-File-BaseDir
 devel/p5-File-Copy-Recursive
@@ -143,6 +150,8 @@ devel/p5-Path-Tiny
 devel/p5-Pod-Constant
 devel/p5-Regexp-IPv6
 devel/p5-Set-Infinite
+devel/p5-String-Tagged
+devel/p5-String-Tagged-Terminal
 devel/p5-Sub-Attribute
 devel/p5-Sub-Exporter
 devel/p5-Sub-Exporter-ForMethods
@@ -151,6 +160,9 @@ devel/p5-Sub-Identify
 devel/p5-Sub-Info
 devel/p5-Sub-Install
 devel/p5-Sub-Name
+devel/p5-Syntax-Keyword-Defer
+devel/p5-Syntax-Keyword-Match
+devel/p5-Syntax-Keyword-Try
 devel/p5-Term-Size
 devel/p5-Term-Size-Any
 devel/p5-Term-Size-Perl
@@ -190,6 +202,7 @@ devel/p5-Test-Group
 devel/p5-Test-HTML-Tidy
 devel/p5-Test-HasVersion
 devel/p5-Test-HexDifferences
+devel/p5-Test-Identity
 devel/p5-Test-Inline
 devel/p5-Test-Inter
 devel/p5-Test-JSON
@@ -259,6 +272,7 @@ devel/p5-Time-TimeDate
 devel/p5-Try-Tiny
 devel/p5-Type-Tiny
 devel/p5-X-Tiny
+devel/p5-XS-Parse-Keyword
 devel/p5-YAML
 devel/p5-YAML-Syck
 devel/p5-YAML-Tiny
