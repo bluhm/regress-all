@@ -711,6 +711,12 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-pledge-nodelay' => patch_sys_pledge_nodelay() },
     },
+    '2022-11-11T10:55:48Z' => {
+	comment => "remove struct pf_state from pfvar.h",
+	updatedirs => [ "sys", "sbin/pfctl" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+    },
 );
 
 #### Patches ####
