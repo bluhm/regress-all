@@ -53,6 +53,7 @@ p5-AnyEvent
 p5-BSD-Resource
 p5-BSD-Socket-Splice
 p5-BSD-arc4random
+p5-Devel-MAT
 p5-File-Slurp
 p5-Hash-Merge
 p5-IO-Socket-INET6

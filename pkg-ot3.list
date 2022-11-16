@@ -41,6 +41,7 @@ open62541
 openldap-server--%openldap
 p11-kit
 p5-CryptX
+p5-Devel-MAT
 perltidy
 pinentry
 py3-sphinx

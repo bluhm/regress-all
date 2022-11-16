@@ -61,6 +61,7 @@ devel/p5-Devel-CheckBin
 devel/p5-Devel-CheckOS
 devel/p5-Devel-FindPerl
 devel/p5-Devel-GlobalDestruction
+devel/p5-Devel-MAT
 devel/p5-Devel-MAT-Dumper
 devel/p5-Devel-NYTProf
 devel/p5-Devel-OverloadInfo
