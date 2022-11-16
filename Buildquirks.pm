@@ -717,6 +717,11 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
+    '2022-11-11T12:29:32Z' => {
+	comment => "fix build in pfvar priv header",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-pfvar-annotations' => patch_sys_pfvar_annotations() },
+    },
 );
 
 #### Patches ####
@@ -1325,6 +1330,29 @@ diff -u -p -r1.298 -r1.299
  		break;
  	}
  
+PATCH
+}
+
+# Fix build after 1.16
+sub patch_sys_pfvar_annotations {
+	return <<'PATCH';
+Index: sys/net/pfvar_priv.h
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/pfvar_priv.h,v
+retrieving revision 1.16
+retrieving revision 1.17
+diff -u -p -r1.16 -r1.17
+--- sys/net/pfvar_priv.h	11 Nov 2022 12:29:32 -0000	1.16
++++ sys/net/pfvar_priv.h	11 Nov 2022 12:36:05 -0000	1.17
+@@ -60,7 +60,7 @@ struct pf_state {
+ 	TAILQ_ENTRY(pf_state)	 entry_list;	/* (L) */
+ 	SLIST_ENTRY(pf_state)	 gc_list;	/* (g) */
+ 	RB_ENTRY(pf_state)	 entry_id;	/* (P) */
+-	struct pf_state_peer	 src(;
++	struct pf_state_peer	 src;
+ 	struct pf_state_peer	 dst;
+ 	struct pf_rule_slist	 match_rules;	/* (I) */
+ 	union pf_rule_ptr	 rule;		/* (I) */
 PATCH
 }
 
