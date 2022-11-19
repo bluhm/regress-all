@@ -711,6 +711,10 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-pledge-nodelay' => patch_sys_pledge_nodelay() },
     },
+    '2022-11-10T00:14:11Z' => {
+	comment => "update fixed kern pledge",
+	updatedirs => [ "sys" ],
+    },
     '2022-11-11T10:55:48Z' => {
 	comment => "remove struct pf_state from pfvar.h",
 	updatedirs => [ "sys", "sbin/pfctl" ],
@@ -721,6 +725,10 @@ my %quirks = (
 	comment => "fix build in pfvar priv header",
 	updatedirs => [ "sys" ],
 	patches => { 'sys-pfvar-annotations' => patch_sys_pfvar_annotations() },
+    },
+    '2022-11-11T12:36:05Z' => {
+	comment => "update fixed pfvar priv header",
+	updatedirs => [ "sys" ],
     },
 );
 
