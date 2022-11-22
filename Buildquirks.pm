@@ -730,6 +730,11 @@ my %quirks = (
 	comment => "update fixed pfvar priv header",
 	updatedirs => [ "sys" ],
     },
+    '2022-11-11T16:12:08Z' => {
+	comment => "pf purge without netlock, fix hang in ixgbe ioctl",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-pf-purge' => patch_sys_pf_purge() },
+    }
 );
 
 #### Patches ####
@@ -1361,6 +1366,64 @@ diff -u -p -r1.16 -r1.17
  	struct pf_state_peer	 dst;
  	struct pf_rule_slist	 match_rules;	/* (I) */
  	union pf_rule_ptr	 rule;		/* (I) */
+PATCH
+}
+
+# Fix hang in pf purge after moving pf_purge() to systqmp, remove net lock
+sub patch_sys_pf_purge {
+	return <<'PATCH';
+Index: sys/net/pf.c
+===================================================================
+RCS file: /mount/openbsd/cvs/src/sys/net/pf.c,v
+retrieving revision 1.1152
+diff -u -p -r1.1152 pf.c
+--- sys/net/pf.c	11 Nov 2022 16:12:08 -0000	1.1152
++++ sys/net/pf.c	22 Nov 2022 14:05:27 -0000
+@@ -1601,20 +1601,14 @@ pf_purge(void *null)
+ {
+ 	unsigned int interval = max(1, pf_default_rule.timeout[PFTM_INTERVAL]);
+ 
+-	/* XXX is NET_LOCK necessary? */
+-	NET_LOCK();
+-
+-	PF_LOCK();
+-
++	rw_enter_write(&pf_lock); /* PF_LOCK() without NET_LOCK() */
+ 	pf_purge_expired_src_nodes();
+-
+-	PF_UNLOCK();
++	rw_exit_write(&pf_lock); /* PF_UNLOCK() without NET_LOCK() */
+ 
+ 	/*
+ 	 * Fragments don't require PF_LOCK(), they use their own lock.
+ 	 */
+ 	pf_purge_expired_fragments();
+-	NET_UNLOCK();
+ 
+ 	/* interpret the interval as idle time between runs */
+ 	timeout_add_sec(&pf_purge_to, interval);
+@@ -1889,9 +1883,8 @@ pf_purge_expired_states(const unsigned i
+ 	if (SLIST_EMPTY(&gcl))
+ 		return (scanned);
+ 
+-	NET_LOCK();
+ 	rw_enter_write(&pf_state_list.pfs_rwl);
+-	PF_LOCK();
++	rw_enter_write(&pf_lock); /* PF_LOCK() without NET_LOCK() */
+ 	PF_STATE_ENTER_WRITE();
+ 	SLIST_FOREACH(st, &gcl, gc_list) {
+ 		if (st->timeout != PFTM_UNLINKED)
+@@ -1900,9 +1893,8 @@ pf_purge_expired_states(const unsigned i
+ 		pf_free_state(st);
+ 	}
+ 	PF_STATE_EXIT_WRITE();
+-	PF_UNLOCK();
++	rw_exit_write(&pf_lock); /* PF_UNLOCK() without NET_LOCK() */
+ 	rw_exit_write(&pf_state_list.pfs_rwl);
+-	NET_UNLOCK();
+ 
+ 	while ((st = SLIST_FIRST(&gcl)) != NULL) {
+ 		SLIST_REMOVE_HEAD(&gcl, gc_list);
 PATCH
 }
 
