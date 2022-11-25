@@ -720,6 +720,12 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-pledge-nodelay' => patch_sys_pledge_nodelay() },
     },
+    '2022-11-09T23:00:00Z' => {
+	comment => "simplify expiration of once rules",
+	updatedirs => [ "sys", "sbin/pfctl" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+    },
     '2022-11-10T00:14:11Z' => {
 	comment => "update fixed kern pledge",
 	updatedirs => [ "sys" ],
