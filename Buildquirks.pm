@@ -734,7 +734,11 @@ my %quirks = (
 	comment => "pf purge without netlock, fix hang in ixgbe ioctl",
 	updatedirs => [ "sys" ],
 	patches => { 'sys-pf-purge' => patch_sys_pf_purge() },
-    }
+    },
+    '2022-11-25T03:45:39Z' => {
+	comment => "update fixed pf purge without netlock",
+	updatedirs => [ "sys" ],
+    },
 );
 
 #### Patches ####
