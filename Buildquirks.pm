@@ -725,6 +725,7 @@ my %quirks = (
 	updatedirs => [ "sys", "sbin/pfctl" ],
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
+	patches => { 'sys-pledge-nodelay' => patch_sys_pledge_nodelay() },
     },
     '2022-11-10T00:14:11Z' => {
 	comment => "update fixed kern pledge",
