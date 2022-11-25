@@ -701,10 +701,19 @@ my %quirks = (
 	updatedirs => [ "lib/libc", "lib/librthread" ],
 	builddirs => [ "lib/libc", "lib/librthread" ],
     },
+    '2022-11-09T10:41:18Z' => {
+	comment => "revert replace SRP with SMR in the if_idxmap",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-if-srp-smr' => patch_sys_if_srp_smr() },
+    },
     '2022-11-09T19:50:25Z' => {
 	comment => "ld.so uses mimmutable",
 	updatedirs => [ "libexec/ld.so" ],
 	builddirs => [ "libexec/ld.so" ],
+    },
+    '2022-11-09T22:15:50Z' => {
+	comment => "update fixed revert replace SRP with SMR",
+	updatedirs => [ "sys" ],
     },
     '2022-11-09T22:25:08Z' => {
 	comment => "fix build in kern pledge",
@@ -737,15 +746,6 @@ my %quirks = (
     },
     '2022-11-25T03:45:39Z' => {
 	comment => "update fixed pf purge without netlock",
-	updatedirs => [ "sys" ],
-    },
-    '2022-11-09T10:41:18Z' => {
-	comment => "revert replace SRP with SMR in the if_idxmap",
-	updatedirs => [ "sys" ],
-	patches => { 'sys-if-srp-smr' => patch_sys_if_srp_smr() },
-    },
-    '2022-11-09T22:15:50Z' => {
-	comment => "update fixed revert replace SRP with SMR",
 	updatedirs => [ "sys" ],
     },
 );
