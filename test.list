@@ -137,6 +137,7 @@ lib/libedit
 lib/libevent
 lib/libexpat
 lib/libfuse
+lib/libkeynote
 lib/libm/cephes
 lib/libm/complex
 lib/libm/exp
