@@ -103,7 +103,6 @@ lib/libcrypto/ecdh
 lib/libcrypto/ecdsa
 lib/libcrypto/engine
 lib/libcrypto/evp
-lib/libcrypto/exp
 lib/libcrypto/free
 lib/libcrypto/gcm128
 lib/libcrypto/gost
