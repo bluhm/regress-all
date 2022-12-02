@@ -246,6 +246,60 @@ mysystem('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
 mysystem('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
     if ($testmode{fragment4});
 
+# install tcpbench service
+defined(my $pid = open(my $lnx_tcpbench_service, '|-'))
+    or die "fork failed";
+if ($pid == 0) {
+    my @sshcmd = ('ssh', $lnx_r_ssh, 'cat', '-', '>',
+	'/etc/systemd/system/tcpbench.service');
+    exec(@sshcmd);
+    warn "Exec '@sshcmd' failed: $!";
+    _exit(126);
+}
+print $lnx_tcpbench_service <<'EOF' if ($testmode{tcp4} || $testmode{tcp6});
+[Unit]
+Description=OpenBSD tcpbench server
+After=network.target auditd.service
+
+[Service]
+ExecStart=/usr/local/bin/tcpbench -s
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartPreventExitStatus=255
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
+Alias=tcpbench.service
+EOF
+
+close($lnx_tcpbench_service)
+    or die ($! ?
+    "Close pipe failed: $!" :
+    "Command failed: $?");
+
+open(my $tcpbench_rc, '>', '/etc/rc.d/tcpbench')
+    or die 'Could not open /etc/rc.d/tcpbench';
+
+print $tcpbench_rc <<'EOF';
+#!/bin/ksh
+
+daemon="/usr/bin/tcpbench"
+daemon_flags="-s"
+daemon_user=user
+
+. /etc/rc.d/rc.subr
+
+rc_reload=NO
+rc_bg=YES
+
+rc_cmd $1
+EOF
+close($tcpbench_rc);
+
+mysystem('chmod', '555', '/etc/rc.d/tcpbench');
+
 my $configure_linux = 1;
 
 if ($pseudodev eq 'aggr') {
@@ -390,18 +444,12 @@ sleep(3);
 # tcpbench tests
 
 if ($testmode{tcp4} || $testmode{tcp6}) {
-    my @cmd = ('ssh', $lnx_r_ssh, 'pkill -f tcpbench');
-    mysystem(@cmd);
-
-    @cmd = ('pkill -f tcpbench');
-    mysystem(@cmd);
-
     # requires echo 1 > /proc/sys/net/ipv6/bindv6only
-    @cmd = ('ssh', '-f', $lnx_r_ssh, 'tcpbench', '-s', '-r0', '-S1000000');
+    my @cmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'start');
     mysystem(@cmd)
 	and die "Start tcpbench server with '@cmd' failed: $?";
 
-    @cmd = ('tcpbench', '-s', '-r0', '-S1000000');
+    @cmd = ('rcctl', '-f', 'start', 'tcpbench');
     defined(my $pid = fork())
 	or die "Fork failed: $!";
     unless ($pid) {
