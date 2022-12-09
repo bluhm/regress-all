@@ -131,6 +131,7 @@ HEADER
     print "." if $verbose;
     my @dates = reverse sort keys %D;
     print $html "<table>\n";
+    print $html "  <thead>\n";
     print $html "  <tr>\n    <th>pass rate</th>\n";
     foreach my $date (@dates) {
 	my $passrate = $D{$date}{passrate};
@@ -189,6 +190,7 @@ HEADER
 	print $html "    <th>$href$hostname$enda</th>\n";
     }
     print $html "  </tr>\n";
+    print $html "  </thead>\n  <tbody>\n";
 
     my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/";
     $cvsweb .= "src/regress/" if $mode{src};
@@ -223,6 +225,7 @@ HEADER
 	}
 	print $html "  </tr>\n";
     }
+    print $html "  </tbody>\n";
     print $html "</table>\n";
 
     my $type = $mode{src} ? "regress" : $mode{ports} ? "portstest" :
