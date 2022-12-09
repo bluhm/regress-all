@@ -338,7 +338,9 @@ sub write_html_setup {
 	print $html "  </tr>\n";
     }
     print $html "</table>\n";
+
     print $html "<table>\n";
+    print $html "  <thead>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
     print $html "    <th>repeat</th>\n"
 	if @cvsdates && @{$D{$date}{$cvsdates[0]}{repeats}};
@@ -353,6 +355,8 @@ sub write_html_setup {
     print $html "    <th>quirks</th>\n";
     print $html "    <th>nmbsd</th>\n";
     print $html "  </tr>\n";
+    print $html "  </thead>\n  <tbody>\n";
+
     foreach my $cvsdate ("", @cvsdates) {
 	$h = $D{$date}{$cvsdate}{host} if $cvsdate;
 	my @repeats = $cvsdate ? @{$D{$date}{$cvsdate}{repeats}} : ();
@@ -440,7 +444,9 @@ sub write_html_setup {
 	    }
 	}
     }
+    print $html "  </tbody>\n";
     print $html "</table>\n";
+
     html_footer($html);
     html_close($html, $htmlfile, "nozip");
 }
@@ -471,7 +477,9 @@ sub write_html_build {
     print $html "    <td>$cvsdate</td>\n";
     print $html "  </tr>\n";
     print $html "</table>\n";
+
     print $html "<table>\n";
+    print $html "  <thead>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
     print $html "    <th>repeat</th>\n" if @repeats;
     print $html "    <th>checkout</th>\n";
@@ -483,6 +491,8 @@ sub write_html_build {
     print $html "    <th>quirks</th>\n";
     print $html "    <th>nmbsd</th>\n";
     print $html "  </tr>\n";
+    print $html "  </thead>\n  <tbody>\n";
+
     foreach my $repeat ("", @repeats) {
 	$h = $D{$date}{$cvsdate}{$repeat}{host} if $repeat;
 	foreach my $host (sort keys %$h) {
@@ -561,7 +571,9 @@ sub write_html_build {
 	    print $html "  </tr>\n";
 	}
     }
+    print $html "  </tbody>\n";
     print $html "</table>\n";
+
     html_footer($html);
     html_close($html, $htmlfile, "nozip");
 }
@@ -595,7 +607,9 @@ sub write_html_reboot {
     print $html "    <td>$repeat</td>\n";
     print $html "  </tr>\n";
     print $html "</table>\n";
+
     print $html "<table>\n";
+    print $html "  <thead>\n";
     print $html "  <tr>\n    <th>machine</th>\n";
     print $html "    <th>repeat</th>\n";
     print $html "    <th>checkout</th>\n";
@@ -607,6 +621,8 @@ sub write_html_reboot {
     print $html "    <th>quirks</th>\n";
     print $html "    <th>nmbsd</th>\n";
     print $html "  </tr>\n";
+    print $html "  </thead>\n  <tbody>\n";
+
     foreach my $host (sort keys %$h) {
 	print $html "  <tr>\n    <th>$host</th>\n";
 	(my $repshort = $repeat) =~ s/^btrace-(.*)\.\d+$/$1/;
@@ -679,7 +695,9 @@ sub write_html_reboot {
 	}
 	print $html "  </tr>\n";
     }
+    print $html "  </tbody>\n";
     print $html "</table>\n";
+
     html_footer($html);
     html_close($html, $htmlfile, "nozip");
 }
@@ -718,11 +736,13 @@ sub write_html_run {
 HEADER
 
     print $html "<table>\n";
+    print $html "  <thead>\n";
     print $html "  <tr>\n    <th>run log</th>\n";
     foreach my $host (sort keys %M) {
 	print $html "    <th>$host setup log</th>\n";
     }
     print $html "  </tr>\n";
+    print $html "  </thead>\n  <tbody>\n";
 
     foreach my $date (reverse sort keys %D) {
 	print "." if $verbose;
@@ -809,7 +829,9 @@ HEADER
 	    }
 	}
     }
+    print $html "  </tbody>\n";
     print $html "</table>\n";
+
     print $html "Each row displays one running test setup.\n";
     print $html "If a row is completely green, the test has finished.\n";
     print $html "Red means the failure should be examined.\n";

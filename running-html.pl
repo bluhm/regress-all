@@ -180,6 +180,7 @@ sub create_html_running {
 HEADER
 
     print $html "<table>\n";
+    print $html "  <thead>\n";
     print $html "  <tr>\n    <th>host</th>\n";
     foreach my $type (@types) {
 	my $link = uri_escape("../$type/results/run.html",
@@ -191,6 +192,7 @@ HEADER
 	print $html "    <th>$label</th>\n";
     }
     print $html "  </tr>\n";
+    print $html "  </thead>\n  <tbody>\n";
 
     my @hosts = sort { $L{$b}{mtime} <=> $L{$a}{mtime} || $a cmp $b } keys %L;
     foreach my $host (@hosts) {
@@ -236,8 +238,9 @@ HEADER
 	}
 	print $html "  </tr>\n";
     }
-
+    print $html "  </tbody>\n";
     print $html "</table>\n";
+
     print $html "Each row displays the status of a host.\n";
     print $html "If a row is completely green, the host is unused now.\n";
     print $html "Red means the failure should be examined.\n";
