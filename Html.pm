@@ -75,6 +75,7 @@ sub html_header {
   <link rel="icon" href="/favicon.svg">
   <style>
     thead { background-color: #ffffff; position: sticky; top:0; }
+    thead > tr > th { outline: solid #ffffff; }
     th { text-align: left; white-space: nowrap; }
     th.desc { text-align: left; white-space: nowrap; }
     th.test { text-align: left; white-space: nowrap; }
