@@ -46,6 +46,7 @@ devel/p5-Class-Load
 devel/p5-Class-Load-XS
 devel/p5-Class-XSAccessor
 devel/p5-Commandable
+devel/p5-Coro
 devel/p5-Data-Compare
 devel/p5-Data-Dump-Streamer
 devel/p5-Data-HexDump
