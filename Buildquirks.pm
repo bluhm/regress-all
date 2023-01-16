@@ -764,6 +764,10 @@ my %quirks = (
 	comment => "backout pf purge without kernel lock",
 	updatedirs => [ "sys" ],
     },
+    '2023-01-01T01:35:00Z' => {
+	comment => "update drm moves kernel source files",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 );
 
 #### Patches ####
