@@ -162,6 +162,7 @@ lib/libssl/bytestring
 lib/libssl/ciphers
 lib/libssl/client
 lib/libssl/dtls
+lib/libssl/exporter
 lib/libssl/handshake
 lib/libssl/interop
 lib/libssl/key_schedule
@@ -331,6 +332,7 @@ sys/net/pf_divert
 sys/net/pf_forward
 sys/net/pf_fragment
 sys/net/pf_opts
+sys/net/pf_policy
 sys/net/pf_print
 sys/net/pf_state
 sys/net/pf_table
