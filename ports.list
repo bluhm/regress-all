@@ -11,6 +11,7 @@ converters/p5-Convert-BER
 converters/p5-Convert-BinHex
 converters/p5-Convert-Color
 converters/p5-Convert-Color-XTerm
+converters/p5-Convert-UUlib
 converters/p5-Cpanel-JSON-XS
 converters/p5-JSON
 converters/p5-JSON-Any
