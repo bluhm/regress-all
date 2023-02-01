@@ -6,8 +6,8 @@ gsed
 iperf3
 net-snmp
 openldap-client--
-openssl%1.0.2
 openssl%1.1
+openssl%3.0
 openssl-ruby-tests
 p5-AnyEvent
 p5-BSD-Resource
