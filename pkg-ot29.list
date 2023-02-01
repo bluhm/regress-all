@@ -44,8 +44,8 @@ npth
 open62541
 openldap-client--
 openldap-server--%openldap
-openssl%1.0.2
 openssl%1.1
+openssl%3.0
 openssl-ruby-tests
 os-test
 p11-kit
