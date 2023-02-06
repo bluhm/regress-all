@@ -26,16 +26,17 @@ use Time::HiRes;
 my %opts;
 getopts('e:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: release.pl [-v] [-e environment] [-t timeout]
+usage: release.pl [-v] [-e environment] [-t timeout] [steps ...]
     -e environ	parse environment for tests from shell script
     -t timeout	timeout for a single test, default 1 hour
     -v		verbose
+    steps ...	clean obj build sysmerge dev destdir reldir release chkflist
 EOF
     exit(2);
 };
 my $timeout = $opts{t} || 5*24*60*60;
 environment($opts{e}) if $opts{e};
-@ARGV and die "No arguments allowed";
+@ARGV and warn "Make release restricted to build steps, for debugging only\n";
 
 my $dir = dirname($0);
 chdir($dir)
@@ -103,6 +104,9 @@ my @tests = (
 foreach (@tests) {
     my ($test, $cmd) = @$_;
 
+    if (@ARGV) {
+	next unless grep { $_ eq $test } @ARGV;
+    }
     my $prev = "";
     my $begin = Time::HiRes::time();
     my $date = strftime("%FT%TZ", gmtime($begin));
