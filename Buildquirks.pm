@@ -768,6 +768,12 @@ my %quirks = (
 	comment => "update drm moves kernel source files",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2023-02-07T17:58:43Z' => {
+	comment => "change icmp fields of struct pf_rule in pfvar.h",
+	updatedirs => [ "sys", "sbin/pfctl" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+    },
 );
 
 #### Patches ####
