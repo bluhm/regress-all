@@ -24,6 +24,9 @@ use Getopt::Std;
 use POSIX;
 use Time::HiRes;
 
+use lib dirname($0);
+use Netstat;
+
 my @alltests = sort qw(all fragment icmp ipopts pathmtu tcp udp);
 my @allpseudodevs = sort qw(aggr bridge carp none trunk veb vlan);
 my @allifs = sort qw(em igc ix ixl);
@@ -737,6 +740,7 @@ foreach my $t (@tests) {
 	"Command '@runcmd' failed: $?", $log;
 
     statistics($test, "after");
+    generate_diff_netstat_s($test);
 
     eval { $t->{shutdown}($log) if $t->{shutdown}; };
     if ($@) {
@@ -853,10 +857,6 @@ sub netstat_m_parser {
 	my $drains = $1;
 	print "called drains: $drains\n";
     }
-}
-
-sub netstat_s_parser {
-	# XXX
 }
 
 sub netstat_binv_parser {

@@ -180,7 +180,7 @@ sub copy_scripts {
     runcmd(@scpcmd);
 
     @copy = grep { -f $_ }
-	("netlink.pl", "netbench.pl", "env-$host.sh", "pkg-$host.list");
+	("netlink.pl", "Netstat.pm", "netbench.pl", "env-$host.sh", "pkg-$host.list");
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$user\@$host:/root/netlink");
