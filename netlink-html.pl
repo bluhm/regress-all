@@ -164,7 +164,11 @@ sub html_hier_test_row {
 	my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
 	my $href = $logfile ? "<a href=\"../$link\">" : "";
 	my $enda = $href ? "</a>" : "";
-	print $html "    <td$class$title>$href$status$enda</td>\n";
+	my $stats = $tv->{stats};
+	my $stats_link = uri_escape($stats, "^A-Za-z0-9\-\._~/");
+	my $stats_href = $stats ? "<a style='float: right' href=\"../$stats_link\">stats</a>" : "";
+
+	print $html "    <td$class$title>$href$status$enda$stats_href</td>\n";
     }
     print $html "  </tr>\n";
 
@@ -466,6 +470,8 @@ sub parse_result_files {
 	    $tv->{message} = $message;
 	    my $logfile = "$file->{dir}/logs/$test.log";
 	    $tv->{logfile} = $logfile if -f $logfile;
+	    my $stats = "$file->{dir}/logs/$test.stats-diff-netstat_-s.log";
+	    $tv->{stats} = $stats if -f $stats;
 	    $V{$test}{$hk} = [ @values ];
 	    undef @values;
 	    my $severity = status2severity($status);
