@@ -184,7 +184,8 @@ sub patch_cvs {
     my ($file, $path) = @_;
     $path = $path ? "/$path" : "";
     logcmd({
-	cmd => ['ssh', "$user\@$host", "cd /usr/src$path && patch -fF0"],
+	cmd => ['ssh', "$user\@$host",
+	    "cd /usr/src$path && patch -ENufF0 -p0"],
 	infile => $file,
     });
 }
