@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -26,11 +26,13 @@ use Time::HiRes;
 my $startdir = getcwd();
 my @startcmd = ($0, @ARGV);
 my %opts;
-getopts('b:e:t:sv', \%opts) or do {
+getopts('b:e:m:t:sv', \%opts) or do {
     print STDERR <<"EOF";
-usage: perform.pl [-sv] [-b kstack] [-e environment] [-t timeout] [test ...]
+usage: perform.pl [-sv] [-b kstack] [-e environment] [-m modify] [-t timeout]
+	[test ...]
     -b kstack	measure with btrace and create kernel stack map
     -e environ	parse environment for tests from shell script
+    -m modify	modify mode: nopf pfsync tso
     -s		stress test, run tests longer, activate sysctl
     -t timeout	timeout for a single test, default 1 hour
     -v		verbose
@@ -44,14 +46,16 @@ usage: perform.pl [-sv] [-b kstack] [-e environment] [-t timeout] [test ...]
 		frag, frag4, frag6,
 		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
 		veb, veb4, veb6,
-		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
-		nopf pfsync
+		vbridge, vbridge4, vbridge6, vport, vport4, vport6
 EOF
     exit(2);
 };
 my $btrace = $opts{b};
-$btrace && $btrace ne "kstack"
-    and die "Btrace -b '$btrace' not supported, use 'kstack'";
+!$btrace || $btrace eq "kstack"
+    or die "Btrace -b '$btrace' not supported, use 'kstack'";
+my $modify = $opts{m};
+!$modify || grep { $_ eq $modify } qw(nopf pfsync tso)
+    or die "Modify -m '$modify' not supported, use any of 'nopf pfsync tso'";
 my $timeout = $opts{t} || 60*60;
 environment($opts{e}) if $opts{e};
 my $stress = $opts{s};
@@ -65,7 +69,6 @@ my %allmodes;
     forward forward4 forward6 relay relay4 relay6 frag frag4 frag6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
     veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
-    nopf pfsync
 )} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
@@ -377,6 +380,7 @@ sub udpbench_parser {
 }
 
 sub iked_startup {
+    my ($log) = @_;
     my @cmd = ('/etc/rc.d/iked', '-f', 'restart');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
@@ -390,11 +394,14 @@ sub iked_startup {
 	system(@cmd) or return;
     }
     die "Command '@cmd' failed for 20 seconds: $?";
+    print $log "iked started\n\n";
 }
 
 sub iked_shutdown {
+    my ($log) = @_;
     # XXX give the iperf3 server on linux host some time to close connection
     sleep 5;
+    print $log "\nstopping iked\n";
     my @cmd = ('/etc/rc.d/iked', '-f', 'stop');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
@@ -410,7 +417,20 @@ sub iked_shutdown {
 	die "Command '@sshcmd' failed: $?";
 }
 
-sub pf_enable {
+sub nopf_startup {
+    my ($log) = @_;
+    my @cmd = ('/sbin/pfctl', '-d');
+    system(@cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $remote_ssh, @cmd);
+    system(@sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+    print $log "pf disabled\n\n";
+}
+
+sub nopf_shutdown {
+    my ($log) = @_;
+    print $log "\nenabling pf\n";
     my @cmd = ('/sbin/pfctl', '-e', '-f', '/etc/pf.conf');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
@@ -419,16 +439,8 @@ sub pf_enable {
 	die "Command '@sshcmd' failed: $?";
 }
 
-sub pf_disable {
-    my @cmd = ('/sbin/pfctl', '-d');
-    system(@cmd) and
-	die "Command '@cmd' failed: $?";
-    my @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd) and
-	die "Command '@sshcmd' failed: $?";
-}
-
 sub pfsync_startup {
+    my ($log) = @_;
     my @cmd = ('/sbin/ifconfig', 'pfsync0',
 	'syncdev', $pfsync_if, 'syncpeer', $pfsync_peer_addr, 'up');
     system(@cmd) and
@@ -437,15 +449,56 @@ sub pfsync_startup {
 	'syncdev', $pfsync_peer_if, 'syncpeer', $pfsync_addr, 'up');
     system(@sshcmd) and
 	die "Command '@sshcmd' failed: $?";
+    print $log "pfsync created\n\n";
 }
 
 sub pfsync_shutdown {
+    my ($log) = @_;
+    print $log "\ndestroying pfsync\n";
     my @cmd = ('/sbin/ifconfig', 'pfsync0', 'destroy');
     system(@cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $pfsync_ssh, '/sbin/ifconfig', 'pfsync0', 'destroy');
     system(@sshcmd) and
-	die "Command '@sshcmd' failed: $?";
+	warn "Command '@sshcmd' failed: $?";
+}
+
+my @tso_ifs;
+sub tso_startup {
+    my ($log) = @_;
+    my @cmd = ('/sbin/ifconfig', '-a');
+    open(my $fh, '-|', @cmd)
+	or die "Open pipe from command '@cmd' failed: $!";
+    @tso_ifs = map { /^((ix|ixl)\d+):/ ? $1 : () } <$fh>;
+    close($fh) or die $! ?
+	"Close pipe from command '@cmd' failed: $!" :
+	"Command '@cmd' failed: $?";
+
+    foreach my $if (@tso_ifs) {
+	my @cmd = ('/sbin/ifconfig', $if, 'tso');
+	system(@cmd) and
+	    die "Command '@cmd' failed: $?";
+	my @sshcmd = ('ssh', $remote_ssh, @cmd);
+	system(@sshcmd) and
+	    warn "Command '@sshcmd' failed: $?";
+    }
+
+    # changing TSO may lose interface link status due to down/up
+    sleep 1;
+    print $log "tso enabled\n\n";
+}
+
+sub tso_shutdown {
+    my ($log) = @_;
+    print $log "\ndisabling tso\n";
+    foreach my $if (@tso_ifs) {
+	my @cmd = ('/sbin/ifconfig', $if, '-tso');
+	system(@cmd) and
+	    die "Command '@cmd' failed: $?";
+	my @sshcmd = ('ssh', $remote_ssh, @cmd);
+	system(@sshcmd) and
+	    die "Command '@sshcmd' failed: $?";
+    }
 }
 
 sub time_parser {
@@ -873,13 +926,17 @@ push @tests, (
 	parser => \&iperf3_parser,
     }
 ) if $testmode{vport6} && $linux_veb_addr6;
-if ($testmode{pfsync}) {
+if ($modify eq 'tso') {
+    $tests[0]{startup} = \&tso_startup;
+    $tests[-1]{shutdown} = \&tso_shutdown;
+}
+if ($modify eq 'pfsync') {
     $tests[0]{startup} = \&pfsync_startup;
     $tests[-1]{shutdown} = \&pfsync_shutdown;
 }
-if ($testmode{nopf}) {
-    $tests[0]{startup} = \&pf_disable;
-    $tests[-1]{shutdown} = \&pf_enable;
+if ($modify eq 'nopf') {
+    $tests[0]{startup} = \&nopf_startup;
+    $tests[-1]{shutdown} = \&nopf_shutdown;
 }
 push @tests, (
     {

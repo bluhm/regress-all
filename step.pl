@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -58,7 +58,6 @@ usage: step.pl [-npv] [-b kstack] -B date [-E date] -h host [-k kernel]
 		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
 		veb, veb4, veb6,
 		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
-		nopf pfsync
 EOF
     exit(2);
 };
@@ -123,7 +122,6 @@ $setupmode{$opts{s}} = 1 if $opts{s};
     frag frag4 frag6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
     veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
-    nopf pfsync
 )} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
@@ -269,7 +267,7 @@ foreach my $current (@steps) {
 
 	if (@repeats) {
 	    unless ($kernelmode{keep} || $repeatdir eq $repeats[-1]) {
-		reboot_hosts(cvsdate => $cvsdate, repeat => $repeatdir,
+		reboot_hosts(cvsdate => $cvsdate, repeatdir => $repeatdir,
 		    release => $release, mode => \%kernelmode);
 	    }
 	    collect_version();

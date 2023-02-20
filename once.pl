@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -31,15 +31,16 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('b:d:D:h:k:N:nP:pr:v', \%opts) or do {
+getopts('b:d:D:h:k:m:N:nP:pr:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: once.pl [-npv] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
-	[-N repeat] [-P patch] [-r release] [test ...]
+	[-m modify] [-N repeat] [-P patch] [-r release] [test ...]
     -b kstack	measure with btrace and create kernel stack map
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for performance test, user defaults to root
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
+    -m modify	modify mode: nopf pfsync tso
     -N repeat	number of build, reboot, test repetitions per step
     -n		do not generate gnuplot files on main release page
     -P patch	apply patch to clean kernel source
@@ -57,13 +58,12 @@ usage: once.pl [-npv] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
 		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
 		veb, veb4, veb6,
 		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
-		nopf pfsync
 EOF
     exit(2);
 };
 my $btrace = $opts{b};
-$btrace && $btrace ne "kstack"
-    and die "Btrace -b '$btrace' not supported, use 'kstack'";
+!$btrace || $btrace eq "kstack"
+    or die "Btrace -b '$btrace' not supported, use 'kstack'";
 $opts{h} or die "No -h specified";
 !$opts{d} || $opts{d} =~ /^(current|latest|latest-\w+)$/ || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
@@ -92,6 +92,9 @@ my %allmodes;
     or die "Unknown kernel mode '$opts{k}'";
 my %kernelmode;
 $kernelmode{$opts{k}} = 1 if $opts{k};
+my $modify = $opts{m};
+!$modify || grep { $_ eq $modify } qw(nopf pfsync tso)
+    or die "Modify -m '$modify' not supported, use any of 'nopf pfsync tso'";
 
 undef %allmodes;
 @allmodes{qw(
@@ -104,7 +107,6 @@ undef %allmodes;
     frag frag4 frag6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
     veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
-    nopf pfsync
 )} = ();
 my %testmode = map {
     die "Unknown test mode: $_" unless exists $allmodes{$_};
@@ -143,6 +145,9 @@ if ($patch) {
 	$resultdir = mkdir_num("$resultdir/$patchdir");
     }
 }
+if ($modify) {
+    $resultdir = mkdir_num("$resultdir/$modify");
+}
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
@@ -168,9 +173,15 @@ END {
 	system(@cmd);
     }
 };
-powerup_hosts(cvsdate => $cvsdate, patch => $patch, release => $release);
-cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch, release => $release,
-    mode => \%kernelmode) unless $kernelmode{keep};
+powerup_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
+    release => $release);
+if ($kernelmode{reboot}) {
+    reboot_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
+	release => $release, mode => \%kernelmode);
+} elsif (!$kernelmode{keep}) {
+    cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
+	release => $release, mode => \%kernelmode);
+}
 collect_version();
 setup_html();
 
@@ -202,6 +213,7 @@ foreach my $repeatdir (@repeats ? @repeats : ".") {
 
     my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl');
     push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
+    push @sshcmd, '-m', $modify if $modify;
     push @sshcmd, '-e', "/root/perform/env-$host.sh", '-v', keys %testmode;
     logcmd(@sshcmd);
 
@@ -211,8 +223,9 @@ foreach my $repeatdir (@repeats ? @repeats : ".") {
 
     if (@repeats) {
 	unless ($kernelmode{keep} || $repeatdir eq $repeats[-1]) {
-	    reboot_hosts(cvsdate => $cvsdate, repeat => $repeatdir,
-		mode => \%kernelmode);
+	    reboot_hosts(cvsdate => $cvsdate, patch => $patch,
+		modify => $modify, repeatdir => $repeatdir,
+		release => $release, mode => \%kernelmode);
 	}
 	collect_version();
 	setup_html();
@@ -222,7 +235,8 @@ foreach my $repeatdir (@repeats ? @repeats : ".") {
     collect_dmesg();
     setup_html();
 }
-powerdown_hosts(cvsdate => $cvsdate, patch => $patch, release => $release)
+powerdown_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
+    release => $release)
     if $opts{p};
 
 # create html output

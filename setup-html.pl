@@ -162,7 +162,8 @@ sub parse_log_files {
 
 	my @cvsdates = grep { -d $_ } (
 	    bsd_glob("*T*", GLOB_NOSORT),
-	    bsd_glob("patch-*", GLOB_NOSORT));
+	    bsd_glob("patch-*", GLOB_NOSORT),
+	    bsd_glob("[a-z]*.[0-9]", GLOB_NOSORT));
 	$D{$date}{cvsdates} = [ @cvsdates ];
 
 	foreach my $cvsdate ("", @cvsdates) {
@@ -373,6 +374,7 @@ sub write_html_setup {
 		if ($cvsdate) {
 		    (my $cvsshort = $cvsdate) =~ s/T.*//;
 		    $cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
+		    $cvsshort =~ s/^(\w+)\.\d+$/$1/;
 		    print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 		} elsif (@cvsdates) {
 		    print $html "    <td></td>\n";
@@ -505,6 +507,7 @@ sub write_html_build {
 	    }
 	    (my $cvsshort = $cvsdate) =~ s/T.*//;
 	    $cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
+	    $cvsshort =~ s/^(\w+)\.\d+$/$1/;
 	    print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 	    my $version = $h->{$host}{version};
 	    my $time = encode_entities($h->{$host}{kerntime});
@@ -629,6 +632,7 @@ sub write_html_reboot {
 	print $html "    <td title=\"$repeat\">$repshort</td>\n";
 	(my $cvsshort = $cvsdate) =~ s/T.*//;
 	$cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
+	$cvsshort =~ s/^(\w+)\.\d+$/$1/;
 	print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 	my $version = $h->{$host}{version};
 	my $time = encode_entities($h->{$host}{kerntime});

@@ -1,6 +1,6 @@
 # functions to control a set of hosts
 
-# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -181,8 +181,9 @@ sub hosts_command {
     my ($command, %args) = @_;
     my $cvsdate = delete $args{cvsdate};
     my $patch = delete $args{patch};
+    my $modify = delete $args{modify};
     my $release = delete $args{release};
-    my $repeat = delete $args{repeat};
+    my $repeatdir = delete $args{repeatdir};
     my %mode = %{delete $args{mode} || {}};
     my @unknown = keys %args;
     croak "Unknown args: @unknown" if @unknown;
@@ -193,8 +194,9 @@ sub hosts_command {
 	push @cmd, '-d', $date if $date;
 	push @cmd, '-D', $cvsdate if $cvsdate;
 	push @cmd, '-P', $patch if $patch;
+	push @cmd, '-m', $modify if $modify;
 	push @cmd, '-r', $release if $release;
-	push @cmd, '-R', $repeat if $repeat;
+	push @cmd, '-R', $repeatdir if $repeatdir;
 	push @cmd, '-v' if $verbose;
 	push @cmd, keys %mode;
 	push @pidcmds, forkcmd(@cmd);

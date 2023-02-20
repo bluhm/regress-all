@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # recompile parts of machine for performance comparison
 
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -33,13 +33,14 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:P:r:v', \%opts) or do {
+getopts('d:D:h:m:P:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: cvsbuild.pl [-v] [-d date] [-D cvsdate] -h host [-P patch] [-r release]
-	[kernel ...]
+usage: cvsbuild.pl [-v] [-d date] [-D cvsdate] -h host [-m modify] [-P patch]
+	[-r release] [kernel ...]
     -d date	set date string and change to sub directory
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
+    -m modify	modify mode
     -P patch	apply patch to clean kernel source, comma separated list
     -r release	change to release sub directory
     -v		verbose
@@ -59,6 +60,7 @@ my $date = $opts{d};
     or die "Invalid -D cvsdate '$opts{D}'";
 my $cvsdate = $opts{D};
 my $patch = $opts{P};
+my $modify = $opts{m};
 my $release;
 if ($opts{r} && $opts{r} ne "current") {
     ($release = $opts{r}) =~ /^\d+\.\d$/
@@ -93,6 +95,11 @@ if ($patch) {
     my $dir = "$resultdir/$patchdir.[0-9]";
     $resultdir = (glob($dir))[-1]
 	or die "Patch directory '$dir' not found";
+}
+if ($modify) {
+    my $dir = "$resultdir/$modify.[0-9]";
+    $resultdir = (glob($dir))[-1]
+	or die "Modify directory '$dir' not found";
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";

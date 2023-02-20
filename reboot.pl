@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # reboot machine for repeated performance test
 
-# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -30,14 +30,16 @@ use Machine;
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('d:D:h:R:r:v', \%opts) or do {
+getopts('d:D:h:m:P:R:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: reboot.pl [-v] [-d date] [-D cvsdate] -h host [-R repeat] [-r release]
-	[kernel ...]
+usage: reboot.pl [-v] [-d date] [-D cvsdate] -h host [-R repeatdir]
+	[-r release] [kernel ...]
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
-    -R repeat	repetition number
+    -m modify	modify mode
+    -P patch	apply patch to clean kernel source, comma separated list
+    -R repdir	repetition number or btrace
     -r release	change to release sub directory
     -v		verbose
     align	relink kernel aligning all object at page size, no randomness
@@ -55,9 +57,11 @@ my $date = $opts{d};
 !$opts{D} || str2time($opts{D})
     or die "Invalid -D cvsdate '$opts{D}'";
 my $cvsdate = $opts{D};
+my $patch = $opts{P};
+my $modify = $opts{m};
 !$opts{R} || $opts{R} =~ /^\d{3}$/
-    or die "Invalid -R repeat '$opts{R}'";
-my $repeat = $opts{R};
+    or die "Invalid -R repeatdir '$opts{R}'";
+my $repeatdir = $opts{R};
 my $release;
 if ($opts{r} && $opts{r} ne "current") {
     ($release = $opts{r}) =~ /^\d+\.\d$/
@@ -86,7 +90,19 @@ if ($date && $date eq "current") {
 }
 $resultdir .= "/$date" if $date;
 $resultdir .= "/$cvsdate" if $date && $cvsdate;
-$resultdir .= "/$repeat" if $date && $cvsdate && $repeat;
+if ($patch) {
+    my $patchdir = "patch-".
+	join(',', map { s,\.[^/]*,,; basename($_) } split(/,/, $patch));
+    my $dir = "$resultdir/$patchdir.[0-9]";
+    $resultdir = (glob($dir))[-1]
+	or die "Patch directory '$dir' not found";
+}
+if ($modify) {
+    my $dir = "$resultdir/$modify.[0-9]";
+    $resultdir = (glob($dir))[-1]
+	or die "Modify directory '$dir' not found";
+}
+$resultdir .= "/$repeatdir" if $repeatdir;
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 

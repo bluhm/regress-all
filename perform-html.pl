@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # convert all performance results to a html table
 
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2018-2019 Moritz Buhl <mbuhl@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -245,15 +245,17 @@ sub parse_result_files {
 	    m,
 		(?:(\d+\.\d)/)?				# release
 		(([^/]+)T[^/]+Z)/			# date
-		([^/]+T[^/]+Z|patch-[^/]+\.\d+)/	# cvsdate or patch
+		([^/]+T[^/]+Z|patch-[^/]+\.\d+|		# cvsdate or patch
+		    nopf\.\d+|pfsync\.\d+|tso\.\d+)/	# modify mode
 		(?:(\d+|btrace-[^/]+\.\d+)/)?		# repeat or btrace
 		test.result				# result file
 	    ,x or next;
-	next if ! $opts{n} && $cvsdate =~ /^patch-/;
+	next if ! $opts{n} && $cvsdate !~ /^.+T.+Z$/;
 	print "." if $verbose;
 	my ($cvsshort, $repshort) = ($cvsdate, $repeat);
 	$cvsshort =~ s/T.+Z$//;
 	$cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
+	$cvsshort =~ s/^(\w+)\.\d+$/$1/;
 	$repshort =~ s/^btrace-(.*)\.\d+$/$1/ if $repeat;
 	my $reldate = "$date";
 	$reldate = "$release/$reldate" if $release;
@@ -504,7 +506,7 @@ sub write_data_files {
 
 	    my $checkout;
 	    foreach my $cvsdate (sort keys %$vt) {
-		my @fhout = $cvsdate =~ /^patch-/ ? $fhs[-1] : @fhs;
+		my @fhout = $cvsdate !~ /^.+T.+Z$/ ? $fhs[-1] : @fhs;
 		my $vc = $vt->{$cvsdate};
 		$checkout = str2time($cvsdate) || $checkout + 1;
 		$vc = { 0 => $vc } if ref $vc ne 'HASH';
