@@ -325,8 +325,14 @@ net/p5-Net-HTTP
 net/p5-Net-IMP
 net/p5-Net-IMP-HTTP
 net/p5-Net-INET6Glue
+net/p5-Net-IP
+net/p5-Net-IP-Minimal
+net/p5-Net-IP-XS
 net/p5-Net-IPTrie
+net/p5-Net-IPv4Addr
+net/p5-Net-IPv6Addr
 net/p5-Net-Inspect
+net/p5-Net-Netmask
 net/p5-Net-Patricia
 net/p5-Net-Pcap
 net/p5-Net-PcapWriter
@@ -394,10 +400,12 @@ textproc/libxml
 textproc/libxslt
 textproc/p5-Encode-Locale
 textproc/p5-File-KDBX
+textproc/p5-List-SomeUtils
 textproc/p5-PDF-API2
 textproc/p5-PDF-Table
 textproc/p5-Pod-LaTeX
 textproc/p5-Pod-Markdown
+textproc/p5-Pod-Parser
 textproc/p5-Regexp-Common
 textproc/p5-String-RewritePrefix
 textproc/p5-Template
