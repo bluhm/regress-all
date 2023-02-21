@@ -165,6 +165,41 @@ sub good {
     $tr->sync();
 }
 
+sub logcmd {
+    my ($log, @cmd) = @_;
+    print $log "@cmd\n";
+    print "@cmd\n" if $opts{v};
+
+    defined(my $pid = open(my $fh, '-|'))
+	or die "Open pipe from '@cmd' failed: $!";
+    if ($pid == 0) {
+	$SIG{__DIE__} = 'DEFAULT';
+	close($fh);
+	open(STDIN, '<', "/dev/null")
+	    or die "Redirect stdin to /dev/null failed: $!";
+	open(STDERR, '>&', \*STDOUT)
+	    or die "Redirect stderr to stdout failed: $!";
+	setsid()
+	    or die "Setsid $$ failed: $!";
+	{
+	    no warnings 'exec';
+	    exec(@cmd);
+	    die "Exec '@cmd' failed: $!";
+	}
+	_exit(126);
+    }
+    local $_;
+    while (<$fh>) {
+	s/[^\s[:print:]]/_/g;
+	print $log $_;
+	print $_ if $opts{v};
+    }
+    $log->sync();
+    close($fh)
+	or $! && die "Close pipe from '@cmd' failed: $!";
+    return $?;
+}
+
 my $local_if = $ENV{LOCAL_IF};
 my $remote_if = $ENV{REMOTE_IF};
 my $remote_ssh = $ENV{REMOTE_SSH}
@@ -382,19 +417,21 @@ sub udpbench_parser {
 sub iked_startup {
     my ($log) = @_;
     my @cmd = ('/etc/rc.d/iked', '-f', 'restart');
-    system(@cmd) and
+    logcmd($log, @cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd) and
+    logcmd($log, @sshcmd) and
 	die "Command '@sshcmd' failed: $?";
     @cmd = ('ping', '-n', '-c1', '-w1',
 	'-I', $local_ipsec_addr, $remote_ipsec_addr);
     foreach (1..20) {
 	sleep 1;
-	system(@cmd) or return;
+	logcmd($log, @cmd) or return;
     }
     die "Command '@cmd' failed for 20 seconds: $?";
+
     print $log "iked started\n\n";
+    print "iked started\n\n" if $opts{v};
 }
 
 sub iked_shutdown {
@@ -402,40 +439,46 @@ sub iked_shutdown {
     # XXX give the iperf3 server on linux host some time to close connection
     sleep 5;
     print $log "\nstopping iked\n";
+    print "\nstopping iked\n" if $opts{v};
+
     my @cmd = ('/etc/rc.d/iked', '-f', 'stop');
-    system(@cmd) and
+    logcmd($log, @cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd) and
+    logcmd($log, @sshcmd) and
 	die "Command '@sshcmd' failed: $?";
     sleep 1;
     @cmd = ('ipsecctl', '-F');
-    system(@cmd) and
+    logcmd($log, @cmd) and
 	die "Command '@cmd' failed: $?";
     @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd) and
+    logcmd($log, @sshcmd) and
 	die "Command '@sshcmd' failed: $?";
 }
 
 sub nopf_startup {
     my ($log) = @_;
     my @cmd = ('/sbin/pfctl', '-d');
-    system(@cmd) and
+    logcmd($log, @cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd) and
+    logcmd($log, @sshcmd) and
 	die "Command '@sshcmd' failed: $?";
+
     print $log "pf disabled\n\n";
+    print "pf disabled\n\n" if $opts{v};
 }
 
 sub nopf_shutdown {
     my ($log) = @_;
     print $log "\nenabling pf\n";
+    print "\nenabling pf\n" if $opts{v};
+
     my @cmd = ('/sbin/pfctl', '-e', '-f', '/etc/pf.conf');
-    system(@cmd) and
+    logcmd($log, @cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $remote_ssh, @cmd);
-    system(@sshcmd) and
+    logcmd($log, @sshcmd) and
 	die "Command '@sshcmd' failed: $?";
 }
 
@@ -443,23 +486,27 @@ sub pfsync_startup {
     my ($log) = @_;
     my @cmd = ('/sbin/ifconfig', 'pfsync0',
 	'syncdev', $pfsync_if, 'syncpeer', $pfsync_peer_addr, 'up');
-    system(@cmd) and
+    logcmd($log, @cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $pfsync_ssh, '/sbin/ifconfig', 'pfsync0',
 	'syncdev', $pfsync_peer_if, 'syncpeer', $pfsync_addr, 'up');
-    system(@sshcmd) and
+    logcmd($log, @sshcmd) and
 	die "Command '@sshcmd' failed: $?";
+
     print $log "pfsync created\n\n";
+    print "pfsync created\n\n" if $opts{v};
 }
 
 sub pfsync_shutdown {
     my ($log) = @_;
     print $log "\ndestroying pfsync\n";
+    print "\ndestroying pfsync\n" if $opts{v};
+
     my @cmd = ('/sbin/ifconfig', 'pfsync0', 'destroy');
-    system(@cmd) and
+    logcmd($log, @cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $pfsync_ssh, '/sbin/ifconfig', 'pfsync0', 'destroy');
-    system(@sshcmd) and
+    logcmd($log, @sshcmd) and
 	warn "Command '@sshcmd' failed: $?";
 }
 
@@ -476,27 +523,30 @@ sub tso_startup {
 
     foreach my $if (@tso_ifs) {
 	my @cmd = ('/sbin/ifconfig', $if, 'tso');
-	system(@cmd) and
+	logcmd($log, @cmd) and
 	    die "Command '@cmd' failed: $?";
 	my @sshcmd = ('ssh', $remote_ssh, @cmd);
-	system(@sshcmd) and
+	logcmd($log, @sshcmd) and
 	    warn "Command '@sshcmd' failed: $?";
     }
 
     # changing TSO may lose interface link status due to down/up
     sleep 1;
     print $log "tso enabled\n\n";
+    print "tso enabled\n\n" if $opts{v};
 }
 
 sub tso_shutdown {
     my ($log) = @_;
     print $log "\ndisabling tso\n";
+    print "\ndisabling tso\n" if $opts{v};
+
     foreach my $if (@tso_ifs) {
 	my @cmd = ('/sbin/ifconfig', $if, '-tso');
-	system(@cmd) and
+	logcmd($log, @cmd) and
 	    die "Command '@cmd' failed: $?";
 	my @sshcmd = ('ssh', $remote_ssh, @cmd);
-	system(@sshcmd) and
+	logcmd($log, @sshcmd) and
 	    die "Command '@sshcmd' failed: $?";
     }
 }
