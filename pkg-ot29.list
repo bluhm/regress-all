@@ -21,7 +21,7 @@ gnutls
 go
 graphviz
 gsed
-gtar
+gtar--
 iperf3
 jansson
 libassuan
@@ -41,7 +41,7 @@ libxslt
 net-snmp
 nghttp2
 npth
-open62541
+open62541--
 openldap-client--
 openldap-server--%openldap
 openssl%1.1

@@ -37,7 +37,7 @@ libxml
 libxslt
 nghttp2
 npth
-open62541
+open62541--
 openldap-server--%openldap
 p11-kit
 p5-CryptX
