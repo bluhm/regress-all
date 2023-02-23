@@ -880,7 +880,8 @@ sub html_repeat_test_row {
     my $dv = $D{$date};
     my $reldate = $dv->{reldate};
     (my $testcmd = $test) =~ s/_/ /g;
-    print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
+    print $html "  <tr>\n";
+    print $html "    <th class=\"desc\" id=\"$test\">$TESTDESC{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $repeat (@repeats) {
 	html_status_data($html, "$reldate/$cvsdate", $repeat, $test,
@@ -1199,7 +1200,8 @@ sub html_cvsdate_test_row {
     my $dv = $D{$date};
     my $reldate = $dv->{reldate};
     (my $testcmd = $test) =~ s/_/ /g;
-    print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
+    print $html "  <tr>\n";
+    print $html "    <th class=\"desc\" id=\"$test\">$TESTDESC{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $cvsdate (@cvsdates) {
 	html_status_data($html, $reldate, $cvsdate, $test, $td->{$cvsdate});
@@ -1435,7 +1437,8 @@ sub html_date_test_head {
 sub html_date_test_row {
     my ($html, $test, $td, $release, @dates) = @_;
     (my $testcmd = $test) =~ s/_/ /g;
-    print $html "  <tr>\n    <th class=\"desc\">$TESTDESC{$test}</th>\n";
+    print $html "  <tr>\n";
+    print $html "    <th class=\"desc\" id=\"$test\">$TESTDESC{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $date (@dates) {
 	if ($release) {
@@ -1468,6 +1471,7 @@ sub html_status_data {
     my $subhtml = "$subdir/perform.html";
     if (-f "$dir/$subhtml") {
 	my $link = uri_escape($subhtml, "^A-Za-z0-9\-\._~/");
+	$link .= "#$test";
 	$href = "<a href=\"$link\">";
     }
     my $enda = $href ? "</a>" : "";
