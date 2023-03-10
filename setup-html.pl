@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # convert test setup details to a html table
 
-# Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -162,7 +162,6 @@ sub parse_log_files {
 
 	my @cvsdates = grep { -d $_ } (
 	    bsd_glob("*T*", GLOB_NOSORT),
-	    bsd_glob("patch-*", GLOB_NOSORT),
 	    bsd_glob("[a-z]*.[0-9]", GLOB_NOSORT));
 	$D{$date}{cvsdates} = [ @cvsdates ];
 
