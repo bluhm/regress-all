@@ -220,12 +220,12 @@ mysystem('ssh', $lnx_r_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
 # configure given interface type
 if ($pseudodev eq 'bridge' || $pseudodev eq 'none') {
     if ($ipv4) {
-	mysystem('ifconfig', $obsd_l_if, 'inet', "${obsd_l_addr}/24");
-	mysystem('ifconfig', $obsd_r_if, 'inet', "${obsd_r_addr}/24");
+	mysystem('ifconfig', $obsd_l_if, 'inet', "${obsd_l_addr}/24") and die "command failed";
+	mysystem('ifconfig', $obsd_r_if, 'inet', "${obsd_r_addr}/24") and die "command failed";
     }
     if ($ipv6) {
-	mysystem('ifconfig', $obsd_l_if, 'inet6', $obsd_l_addr6);
-	mysystem('ifconfig', $obsd_r_if, 'inet6', $obsd_r_addr6);
+	mysystem('ifconfig', $obsd_l_if, 'inet6', $obsd_l_addr6) and die "command failed";
+	mysystem('ifconfig', $obsd_r_if, 'inet6', $obsd_r_addr6) and die "command failed";
     }
 }
 
