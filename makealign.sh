@@ -31,7 +31,8 @@ sed "$(cat <<EOS
 /^[	 ]*\/DISCARD\//,/^[	 ]*}/b
 /^[	 ]*\*(\.[^\)]*) *\$/G
 /^[	 ]*\. = ALIGN(8); *\$/s/8/$PAGE_SIZE/
-EOS)" |
+EOS
+)" |
 sed "$(cat <<EOS
 /^[	 ]*\/DISCARD\//,/^[	 ]*}/b
 /^[	 ]*\*(\.[^\)]*) *\$/,/^OBJECTS$/{
@@ -44,4 +45,5 @@ sed "$(cat <<EOS
     s/ALIGNSECTION\n//
     /^OBJECTS$/d
 }
-EOS)"
+EOS
+)"
