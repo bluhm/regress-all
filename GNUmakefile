@@ -1,9 +1,20 @@
+LISTS =		$(wildcard *.list)
 PLS =		$(wildcard *.pl)
 PMS =		$(wildcard *.pm)
 SHS =		$(wildcard *.sh)
+SORTED =	$(LISTS:.list=.sorted)
 SYNTAX =	$(PMS:.pm=.syntax) $(PLS:.pl=.syntax) $(SHS:.sh=.syntax)
 
-all: syntax
+.PHONY: all copyyear sorted syntax clean
+
+all: syntax sorted copyyear
+
+sorted: ${SORTED}
+
+%.sorted: %.list
+	@sort -uc $<
+	@echo $< sorted unique
+	@date >$@
 
 syntax: ${SYNTAX}
 
@@ -20,5 +31,8 @@ syntax: ${SYNTAX}
 	@echo $< syntax OK
 	@date >$@
 
+copyyear: LICENSE
+	@grep -e "Copyright .*`date +%Y` " LICENSE
+
 clean:
-	rm -f -- *.syntax
+	rm -f -- *.sorted *.syntax
