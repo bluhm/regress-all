@@ -41,16 +41,16 @@ sub canonicalize_key {
 	timeout transition upcall use);
 
     foreach my $sub (@plurales) {
-	$key =~ s/ ${sub}(?=[^e][^s])/ ${sub}es/
-	$key =~ s/^${sub}(?=[^e][^s])/${sub}es/
+	$key =~ s/ ${sub}(?=[^e][^s])/ ${sub}es/;
+	$key =~ s/^${sub}(?=[^e][^s])/${sub}es/;
     }
     foreach my $sub (@pluralys) {
-	$key =~ s/ ${sub}(?=[^i][^e][^s])/ ${sub}ies/
-	$key =~ s/^${sub}(?=[^i][^e][^s])/${sub}ies/
+	$key =~ s/ ${sub}(?=[^i][^e][^s])/ ${sub}ies/;
+	$key =~ s/^${sub}(?=[^i][^e][^s])/${sub}ies/;
     }
     foreach my $sub (@plurals) {
-	$key =~ s/ ${sub}(?=[^s])/ ${sub}s/
-	$key =~ s/^${sub}(?=[^s])/${sub}s/
+	$key =~ s/ ${sub}(?=[^s])/ ${sub}s/;
+	$key =~ s/^${sub}(?=[^s])/${sub}s/;
     }
 
     chomp $key;
