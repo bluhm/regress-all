@@ -1,0 +1,22 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Apt Update
+        run: apt-get update
+      - name: Install Base Packages
+        run: |
+          apt-get install --yes make perl-base
+          apt-get install --yes \
+            libdatetime-format-dateparse-perl \
+            libhtml-parser-perl
+      - name: Make Syntax Check
+        run: make
