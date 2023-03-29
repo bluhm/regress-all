@@ -774,6 +774,11 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
+# OpenBSD 7.3, 2023-03-25Z
+    '2023-03-25T16:42:45' => {
+	comment => "OpenBSD/amd64 7.3 release",
+	release => '7.3',
+    },
 );
 
 #### Patches ####
