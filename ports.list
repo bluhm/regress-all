@@ -11,6 +11,7 @@ converters/p5-Convert-BER
 converters/p5-Convert-BinHex
 converters/p5-Convert-Color
 converters/p5-Convert-Color-XTerm
+converters/p5-Convert-NLS_DATE_FORMAT
 converters/p5-Convert-UUlib
 converters/p5-Cpanel-JSON-XS
 converters/p5-JSON
@@ -28,6 +29,7 @@ databases/p5-DBD-SQLite
 databases/p5-DBD-SQLite2
 databases/p5-DBD-mysql
 databases/p5-DBI
+databases/p5-Rose-DB
 databases/p5-ldap
 devel/p5-Algorithm-Diff
 devel/p5-Alien-Base
@@ -58,6 +60,7 @@ devel/p5-Data-Validate-IP
 devel/p5-Data-Validate-Struct
 devel/p5-Data-Visitor
 devel/p5-Date-ICal
+devel/p5-DateTime-Format-Oracle
 devel/p5-DateTime-Set
 devel/p5-Devel-CheckBin
 devel/p5-Devel-CheckOS
