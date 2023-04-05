@@ -240,8 +240,7 @@ sub generate_diff_netstat_s {
     my $name = "$test.stats-diff-netstat_-s.log";
     open(my $fh, '>', $name)
 	or die "Open '$name' for writing failed: $!";
-    myprint($fh, \%dif)
-	or die "could not write diff: $!";
+    myprint($fh, \%dif);
     unlink("$test.stats-before-netstat_-s.log");
     unlink("$test.stats-after-netstat_-s.log");
 }
