@@ -222,10 +222,15 @@ foreach my $repeatdir (@repeats ? @repeats : ".") {
     collect_result("$opts{h}:/root/perform");
 
     if (@repeats) {
-	unless ($kernelmode{keep} || $repeatdir eq $repeats[-1]) {
+	# align and sort do not change kernel image randomly at each reboot.
+	# This has been done by cvsbuild_hosts(), avoid doing it again.
+	my %rebootmode = %kernelmode;
+	delete @rebootmode{qw(align sort)};
+
+	unless ($rebootmode{keep} || $repeatdir eq $repeats[-1]) {
 	    reboot_hosts(cvsdate => $cvsdate, patch => $patch,
 		modify => $modify, repeatdir => $repeatdir,
-		release => $release, mode => \%kernelmode);
+		release => $release, mode => \%rebootmode);
 	}
 	collect_version();
 	setup_html();
