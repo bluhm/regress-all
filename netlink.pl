@@ -294,7 +294,7 @@ print $tcpbench_rc <<'EOF';
 
 daemon="/usr/bin/tcpbench"
 daemon_flags="-s"
-daemon_user=user
+daemon_user=_iperf3
 
 . /etc/rc.d/rc.subr
 
