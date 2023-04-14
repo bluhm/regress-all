@@ -145,6 +145,10 @@ sub bad {
     print $log "\n$reason\t$test\t$message\n" if $log;
     print "\n$reason\t$test\t$message\n\n" if $opts{v};
     print $tr "$reason\t$test\t$message\n";
+
+    statistics($test, "after");
+    generate_diff_netstat_s($test);
+
     $log->sync() if $log;
     $tr->sync();
     no warnings 'exiting';
@@ -157,6 +161,10 @@ sub good {
     print $log "\nPASS\t$test\tDuration $duration\n" if $log;
     print "\nPASS\t$test\tDuration $duration\n\n" if $opts{v};
     print $tr "PASS\t$test\tDuration $duration\n";
+
+    statistics($test, "after");
+    generate_diff_netstat_s($test);
+
     $log->sync() if $log;
     $tr->sync();
 }
@@ -790,9 +798,6 @@ foreach my $t (@tests) {
 	or bad $test, 'NOEXIT', $! ?
 	"Close pipe from '@runcmd' failed: $!" :
 	"Command '@runcmd' failed: $?", $log;
-
-    statistics($test, "after");
-    generate_diff_netstat_s($test);
 
     eval { $t->{shutdown}($log) if $t->{shutdown}; };
     if ($@) {
