@@ -976,15 +976,15 @@ push @tests, (
 	parser => \&iperf3_parser,
     }
 ) if $testmode{vport6} && $linux_veb_addr6;
-if ($modify eq 'tso') {
+if ($modify && $modify eq 'tso') {
     $tests[0]{startup} = \&tso_startup;
     $tests[-1]{shutdown} = \&tso_shutdown;
 }
-if ($modify eq 'pfsync') {
+if ($modify && $modify eq 'pfsync') {
     $tests[0]{startup} = \&pfsync_startup;
     $tests[-1]{shutdown} = \&pfsync_shutdown;
 }
-if ($modify eq 'nopf') {
+if ($modify && $modify eq 'nopf') {
     $tests[0]{startup} = \&nopf_startup;
     $tests[-1]{shutdown} = \&nopf_shutdown;
 }
