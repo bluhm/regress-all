@@ -20,6 +20,8 @@ converters/p5-JSON-DWIW
 converters/p5-JSON-MaybeXS
 converters/p5-JSON-XS
 converters/p5-Net-IDN-Encode
+converters/p5-Sereal-Decoder
+converters/p5-Sereal-Encoder
 converters/p5-Types-Serialiser
 databases/p5-BerkeleyDB
 databases/p5-CDB_File
@@ -344,6 +346,7 @@ net/p5-Net-PcapWriter
 net/p5-Net-Radius
 net/p5-Net-SNMP
 net/p5-NetAddr-IP
+net/p5-NetPacket
 net/p5-OSPF-LSDB
 net/p5-PlRPC
 net/p5-Socket6
