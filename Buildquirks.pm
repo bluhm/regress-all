@@ -779,6 +779,15 @@ my %quirks = (
 	comment => "OpenBSD/amd64 7.3 release",
 	release => '7.3',
     },
+    '2023-04-16T23:57:59Z' => {
+	comment => "build gapdummy without cf-protection branch",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+	patches => { 'sys-amd64-cfgap' => patch_sys_amd64_cfgap() },
+    },
 );
 
 #### Patches ####
@@ -2141,6 +2150,28 @@ diff -u -p -r1.22 pfvar_priv.h
 PATCH
 }
 
+# gap.o creates .plt section in kernel if built with fcf protection
+# this leads to gaps in kernel image when creating aligned objects
+sub patch_sys_amd64_cfgap {
+	return <<'PATCH';
+Index: sys/arch/amd64/conf/Makefile.amd64
+===================================================================
+RCS file: /mount/openbsd/cvs/src/sys/arch/amd64/conf/Makefile.amd64,v
+retrieving revision 1.131
+diff -u -p -r1.131 Makefile.amd64
+--- sys/arch/amd64/conf/Makefile.amd64	17 Apr 2023 01:14:24 -0000	1.131
++++ sys/arch/amd64/conf/Makefile.amd64	20 Apr 2023 21:25:05 -0000
+@@ -177,7 +177,7 @@ ld.script: ${_machdir}/conf/ld.script
+ 
+ gapdummy.o:
+ 	echo '__asm(".section .rodata,\"a\"");' > gapdummy.c
+-	${CC} -c ${CFLAGS} ${CPPFLAGS} gapdummy.c -o $@
++	${CC} -c ${CFLAGS} ${CPPFLAGS} -fcf-protection=none gapdummy.c -o $@
+ 
+ makegap.sh:
+ 	cp $S/conf/makegap.sh $@
+PATCH
+}
 #### Subs ####
 
 sub quirks {
