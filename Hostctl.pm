@@ -34,7 +34,6 @@ our @EXPORT= qw(
 my %lasthosts = (
     ot1  => "ot4",
     ot10 => "ot11",
-    ot12 => "ot13",
     ot14 => "ot15",
     ot31 => "ot32",
 );
