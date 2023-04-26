@@ -91,9 +91,9 @@ lib/libcrypto/bn
 lib/libcrypto/cast
 lib/libcrypto/certs
 lib/libcrypto/chacha
+lib/libcrypto/c2sp
 lib/libcrypto/cms
 lib/libcrypto/ct
-lib/libcrypto/cts128
 lib/libcrypto/curve25519
 lib/libcrypto/des
 lib/libcrypto/dh
