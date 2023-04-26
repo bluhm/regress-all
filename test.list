@@ -88,10 +88,10 @@ lib/libcrypto/base64
 lib/libcrypto/bf
 lib/libcrypto/bio
 lib/libcrypto/bn
+lib/libcrypto/c2sp
 lib/libcrypto/cast
 lib/libcrypto/certs
 lib/libcrypto/chacha
-lib/libcrypto/c2sp
 lib/libcrypto/cms
 lib/libcrypto/ct
 lib/libcrypto/curve25519

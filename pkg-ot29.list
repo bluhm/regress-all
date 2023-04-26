@@ -8,6 +8,7 @@ bc-gh
 botan2
 brotli
 bzip2
+c2sp-testvectors
 cairo
 cmake
 curl
