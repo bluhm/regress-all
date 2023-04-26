@@ -4,6 +4,7 @@ apache-httpd
 apr
 apr-util--
 aspell
+bc-gh
 botan2
 brotli
 bzip2
