@@ -414,6 +414,7 @@ usr.bin/patch
 usr.bin/pkg-config
 usr.bin/rcs
 usr.bin/rev
+usr.bin/rsync
 usr.bin/sdiff
 usr.bin/sed
 usr.bin/signify
