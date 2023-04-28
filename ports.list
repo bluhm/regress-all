@@ -25,11 +25,9 @@ converters/p5-Sereal-Encoder
 converters/p5-Types-Serialiser
 databases/p5-BerkeleyDB
 databases/p5-CDB_File
-databases/p5-DBD-MariaDB
 databases/p5-DBD-Pg
 databases/p5-DBD-SQLite
 databases/p5-DBD-SQLite2
-databases/p5-DBD-mysql
 databases/p5-DBI
 databases/p5-Rose-DB
 databases/p5-Rose-Object
