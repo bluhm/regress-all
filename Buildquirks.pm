@@ -788,6 +788,10 @@ my %quirks = (
 	],
 	patches => { 'sys-amd64-cfgap' => patch_sys_amd64_cfgap() },
     },
+    '2023-04-26T15:13:59Z' => {
+	comment => "vmm kernel source files moved",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 );
 
 #### Patches ####
