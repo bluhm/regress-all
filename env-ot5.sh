@@ -1,6 +1,9 @@
 export REGRESS_FAIL_EARLY=no
 export TEST_SSH_UNSAFE_PERMISSIONS=yes
 
+export ftp_proxy=http://10.0.1.3:8000/
+export http_proxy=http://10.0.1.3:8000/
+
 LOCAL_IF=em0
 LOCAL_MAC=90:e2:ba:7e:e8:10
 
