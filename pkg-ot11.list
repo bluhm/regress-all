@@ -66,6 +66,7 @@ p5-YAML
 p5-ldap
 perltidy
 pinentry
+pkglocatedb
 posixtestsuite
 py3-sphinx
 py3-tlsfuzzer

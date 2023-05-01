@@ -41,6 +41,7 @@ p5-CryptX
 p5-Devel-MAT
 perltidy
 pinentry
+pkglocatedb
 py3-sphinx
 python%3.9
 qtbase

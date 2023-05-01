@@ -23,6 +23,7 @@ p5-Net-Pcap
 p5-NetPacket
 p5-YAML
 p5-ldap
+pkglocatedb
 rsync--
 rust
 rust-openssl-tests
