@@ -206,7 +206,6 @@ devel/p5-Test-Fatal
 devel/p5-Test-File
 devel/p5-Test-File-Contents
 devel/p5-Test-File-ShareDir
-devel/p5-Test-Group
 devel/p5-Test-HTML-Tidy
 devel/p5-Test-HasVersion
 devel/p5-Test-HexDifferences
@@ -429,6 +428,7 @@ textproc/p5-XML-SAX-ExpatXS
 textproc/p5-XML-SAX-Writer
 textproc/p5-XML-Simple
 textproc/p5-XML-XPath
+www/p5-Apache-Session-Generate-UUID
 www/p5-CGI
 www/p5-CGI-Simple
 www/p5-Dancer2
