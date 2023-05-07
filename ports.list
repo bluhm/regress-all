@@ -20,6 +20,7 @@ converters/p5-JSON-DWIW
 converters/p5-JSON-MaybeXS
 converters/p5-JSON-XS
 converters/p5-Net-IDN-Encode
+converters/p5-Sereal
 converters/p5-Sereal-Decoder
 converters/p5-Sereal-Encoder
 converters/p5-Types-Serialiser
@@ -60,11 +61,14 @@ devel/p5-Data-Validate
 devel/p5-Data-Validate-IP
 devel/p5-Data-Validate-Struct
 devel/p5-Data-Visitor
+devel/p5-Date-Extract
 devel/p5-Date-ICal
 devel/p5-DateTime-Format-Oracle
 devel/p5-DateTime-Set
+devel/p5-Devel-Caller
 devel/p5-Devel-CheckBin
 devel/p5-Devel-CheckOS
+devel/p5-Devel-Cover
 devel/p5-Devel-FindPerl
 devel/p5-Devel-GlobalDestruction
 devel/p5-Devel-MAT
@@ -107,6 +111,7 @@ devel/p5-Log-Log4perl
 devel/p5-MRO-Compat
 devel/p5-Module-Build
 devel/p5-Module-Implementation
+devel/p5-Module-Install
 devel/p5-Module-Pluggable
 devel/p5-Module-Runtime
 devel/p5-Moose
@@ -150,6 +155,7 @@ devel/p5-MooseX-Types-Path-Tiny
 devel/p5-MooseX-Types-Stringlike
 devel/p5-MooseX-Types-Structured
 devel/p5-Net-Server
+devel/p5-POE
 devel/p5-Package-DeprecationManager
 devel/p5-Package-Stash
 devel/p5-Params-Util
@@ -346,6 +352,7 @@ net/p5-NetAddr-IP
 net/p5-NetPacket
 net/p5-OSPF-LSDB
 net/p5-PlRPC
+net/p5-Socket-GetAddrInfo
 net/p5-Socket6
 net/p5-Test-TCP
 productivity/p5-iCal-Parser
