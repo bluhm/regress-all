@@ -792,6 +792,12 @@ my %quirks = (
 	comment => "vmm kernel source files moved",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2023-05-10T12:07:17Z' => {
+	comment => "netstat TSO counter",
+	updatedirs => [ "sys", "usr.bin/netstat" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "usr.bin/netstat" ],
+    },
 );
 
 #### Patches ####
