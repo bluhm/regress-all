@@ -106,7 +106,7 @@ my $obsd_r_addr = "$ip4prefix.${line}2.3";
 my $obsd_r_net6 = "${ip6prefix}${line}2::/64";
 my $obsd_r_addr6 = "${ip6prefix}${line}2::3";
 
-my $lnx_l_if = "enp6s0"; # XXX: make this an env var?
+my $lnx_l_if = "ens2f0";
 my $lnx_l_pdev = "$lnx_l_if.0";
 my $lnx_l_addr = "$ip4prefix.${line}1.1";
 my $lnx_l_addr6 = "${ip6prefix}${line}1::1";
@@ -114,7 +114,7 @@ my $lnx_l_net = "$lnx_l_addr/24";
 my $lnx_l_net6 = "$lnx_l_addr6/64";
 my $lnx_l_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
 
-my $lnx_r_if = "enp6s0"; # XXX
+my $lnx_r_if = "ens2f0";
 my $lnx_r_pdev = "$lnx_r_if.0";
 my $lnx_r_addr = "$ip4prefix.${line}2.4";
 my $lnx_r_addr6 = "${ip6prefix}${line}2::4";
