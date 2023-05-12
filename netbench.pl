@@ -116,7 +116,8 @@ sub start_server {
     my @cmd = ('udpbench');
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-l$opts{l}" if defined($opts{l});
-    push @cmd, ('-t'.($timeout+$repeat+10), '-p0', 'recv', $proc->{addr});
+    my $to = $timeout + ($repeat || 0) + 10;
+    push @cmd, ("-t$to", '-p0', 'recv', $proc->{addr});
     unshift @cmd, ($proc->{ssh}) if $proc->{ssh};
     unshift @cmd, '-M' if $repeat && !$master{$proc->{ssh}}++;
     unshift @cmd, ('ssh', '-nT');
