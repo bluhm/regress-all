@@ -255,8 +255,8 @@ sub parse_log_files {
 	if (-f "test.obj.tgz") {
 	    $D{$date}{objtgz} = "test.obj.tgz";
 	}
-	if (-f "perform.html") {
-	    $D{$date}{result} = "$reldate/perform.html";
+	foreach my $result (qw(perform netlink)) {
+	    $D{$date}{result} = "$reldate/$result.html" if -f "$result.html";
 	}
     }
     return $typename;
@@ -706,7 +706,7 @@ sub write_html_reboot {
 }
 
 sub fill_navigation_links {
-    foreach my $result (qw(regress perform latest run)) {
+    foreach my $result (qw(regress perform netlink latest run)) {
 	$N{$result} = "$result.html" if -f "$result.html";
     }
     foreach my $result (qw(current latest)) {
@@ -721,7 +721,7 @@ sub write_html_run {
     my ($html, $htmlfile) = html_open("run");
     my @nav = (
 	Top     => "../../test.html",
-	All     => $N{regress} || $N{perform},
+	All     => $N{regress} || $N{perform} || $N{netlink},
 	$N{release} ? (Release => $N{release}) : (),
 	$N{current} ? (Current => $N{current}) : (),
 	Latest  => $N{latest},
