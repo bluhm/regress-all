@@ -246,7 +246,7 @@ sub parse_result_files {
 		(?:(\d+\.\d)/)?				# release
 		(([^/]+)T[^/]+Z)/			# date
 		([^/]+T[^/]+Z|patch-[^/]+\.\d+|		# cvsdate or patch
-		    nopf\.\d+|pfsync\.\d+|tso\.\d+)/	# modify mode
+		    (?:lro|nopf|notso|pfsync)\.\d+)/	# modify mode
 		(?:(\d+|btrace-[^/]+\.\d+)/)?		# repeat or btrace
 		test.result				# result file
 	    ,x or next;

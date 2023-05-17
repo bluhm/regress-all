@@ -40,7 +40,7 @@ usage: once.pl [-npv] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for performance test, user defaults to root
     -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
-    -m modify	modify mode: nopf pfsync tso
+    -m modify	modify mode: lro nopf notso pfsync
     -N repeat	number of build, reboot, test repetitions per step
     -n		do not generate gnuplot files on main release page
     -P patch	apply patch to clean kernel source
@@ -93,8 +93,8 @@ my %allmodes;
 my %kernelmode;
 $kernelmode{$opts{k}} = 1 if $opts{k};
 my $modify = $opts{m};
-!$modify || grep { $_ eq $modify } qw(nopf pfsync tso)
-    or die "Modify -m '$modify' not supported, use any of 'nopf pfsync tso'";
+!$modify || grep { $_ eq $modify } qw(lro nopf notso pfsync) or die
+    "Modify -m '$modify' not supported, use any of 'lro nopf notso pfsync'";
 
 undef %allmodes;
 @allmodes{qw(

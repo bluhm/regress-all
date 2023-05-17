@@ -32,7 +32,7 @@ usage: perform.pl [-sv] [-b kstack] [-e environment] [-m modify] [-t timeout]
 	[test ...]
     -b kstack	measure with btrace and create kernel stack map
     -e environ	parse environment for tests from shell script
-    -m modify	modify mode: nopf pfsync tso
+    -m modify	modify mode: lro nopf notso pfsync
     -s		stress test, run tests longer, activate sysctl
     -t timeout	timeout for a single test, default 1 hour
     -v		verbose
@@ -54,8 +54,8 @@ my $btrace = $opts{b};
 !$btrace || $btrace eq "kstack"
     or die "Btrace -b '$btrace' not supported, use 'kstack'";
 my $modify = $opts{m};
-!$modify || grep { $_ eq $modify } qw(nopf pfsync tso)
-    or die "Modify -m '$modify' not supported, use any of 'nopf pfsync tso'";
+!$modify || grep { $_ eq $modify } qw(lro nopf notso pfsync) or die
+    "Modify -m '$modify' not supported, use any of 'lro nopf notso pfsync'";
 my $timeout = $opts{t} || 60*60;
 environment($opts{e}) if $opts{e};
 my $stress = $opts{s};
@@ -456,6 +456,64 @@ sub iked_shutdown {
 	die "Command '@sshcmd' failed: $?";
 }
 
+sub lro_get_ifs {
+    my @cmd = ('/sbin/ifconfig', '-a', 'hwfeatures');
+    unshift @cmd, @_;
+    open(my $fh, '-|', @cmd)
+	or die "Open pipe from command '@cmd' failed: $!";
+    my ($ifname, @ifs);
+    while (<$fh>) {
+	    $ifname = $1 if /^(\w+\d+):/;
+	    push @ifs, $ifname if /hwfeatures=.*\bLRO\b/;
+    }
+    close($fh) or die $! ?
+	"Close pipe from command '@cmd' failed: $!" :
+	"Command '@cmd' failed: $?";
+    return @ifs;
+}
+
+my (@lro_ifs, @remote_lro_ifs);
+sub lro_startup {
+    my ($log) = @_;
+
+    @lro_ifs = lro_get_ifs();
+    foreach my $ifname (@lro_ifs) {
+	my @cmd = ('/sbin/ifconfig', $ifname, 'tcprecvoffload');
+	logcmd($log, @cmd) and
+	    die "Command '@cmd' failed: $?";
+    }
+    @remote_lro_ifs = lro_get_ifs('ssh', $remote_ssh);
+    foreach my $ifname (@remote_lro_ifs) {
+	my @cmd = ('/sbin/ifconfig', $ifname, 'tcprecvoffload');
+	my @sshcmd = ('ssh', $remote_ssh, @cmd);
+	logcmd($log, @sshcmd) and
+	    die "Command '@sshcmd' failed: $?";
+    }
+
+    # changing LRO may lose interface link status due to down/up
+    sleep 1;
+    print $log "lro enabled\n\n";
+    print "lro enabled\n\n" if $opts{v};
+}
+
+sub lro_shutdown {
+    my ($log) = @_;
+    print $log "\ndisabling lro\n";
+    print "\ndisabling lro\n" if $opts{v};
+
+    foreach my $ifname (@lro_ifs) {
+	my @cmd = ('/sbin/ifconfig', $ifname, '-tcprecvoffload');
+	logcmd($log, @cmd) and
+	    die "Command '@cmd' failed: $?";
+    }
+    foreach my $ifname (@remote_lro_ifs) {
+	my @cmd = ('/sbin/ifconfig', $ifname, '-tcprecvoffload');
+	my @sshcmd = ('ssh', $remote_ssh, @cmd);
+	logcmd($log, @sshcmd) and
+	    die "Command '@sshcmd' failed: $?";
+    }
+}
+
 sub nopf_startup {
     my ($log) = @_;
     my @cmd = ('/sbin/pfctl', '-d');
@@ -475,6 +533,32 @@ sub nopf_shutdown {
     print "\nenabling pf\n" if $opts{v};
 
     my @cmd = ('/sbin/pfctl', '-e', '-f', '/etc/pf.conf');
+    logcmd($log, @cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $remote_ssh, @cmd);
+    logcmd($log, @sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+}
+
+sub notso_startup {
+    my ($log) = @_;
+    my @cmd = ('/sbin/sysctl', 'net.inet.tcp.tso=0');
+    logcmd($log, @cmd) and
+	die "Command '@cmd' failed: $?";
+    my @sshcmd = ('ssh', $remote_ssh, @cmd);
+    logcmd($log, @sshcmd) and
+	die "Command '@sshcmd' failed: $?";
+
+    print $log "tso disabled\n\n";
+    print "tso disabled\n\n" if $opts{v};
+}
+
+sub notso_shutdown {
+    my ($log) = @_;
+    print $log "\nenabling tso\n";
+    print "\nenabling tso\n" if $opts{v};
+
+    my @cmd = ('/sbin/sysctl', 'net.inet.tcp.tso=1');
     logcmd($log, @cmd) and
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $remote_ssh, @cmd);
@@ -507,48 +591,7 @@ sub pfsync_shutdown {
 	die "Command '@cmd' failed: $?";
     my @sshcmd = ('ssh', $pfsync_ssh, '/sbin/ifconfig', 'pfsync0', 'destroy');
     logcmd($log, @sshcmd) and
-	warn "Command '@sshcmd' failed: $?";
-}
-
-my @tso_ifs;
-sub tso_startup {
-    my ($log) = @_;
-    my @cmd = ('/sbin/ifconfig', '-a');
-    open(my $fh, '-|', @cmd)
-	or die "Open pipe from command '@cmd' failed: $!";
-    @tso_ifs = map { /^((ix|ixl)\d+):/ ? $1 : () } <$fh>;
-    close($fh) or die $! ?
-	"Close pipe from command '@cmd' failed: $!" :
-	"Command '@cmd' failed: $?";
-
-    foreach my $if (@tso_ifs) {
-	my @cmd = ('/sbin/ifconfig', $if, 'tso');
-	logcmd($log, @cmd) and
-	    die "Command '@cmd' failed: $?";
-	my @sshcmd = ('ssh', $remote_ssh, @cmd);
-	logcmd($log, @sshcmd) and
-	    warn "Command '@sshcmd' failed: $?";
-    }
-
-    # changing TSO may lose interface link status due to down/up
-    sleep 1;
-    print $log "tso enabled\n\n";
-    print "tso enabled\n\n" if $opts{v};
-}
-
-sub tso_shutdown {
-    my ($log) = @_;
-    print $log "\ndisabling tso\n";
-    print "\ndisabling tso\n" if $opts{v};
-
-    foreach my $if (@tso_ifs) {
-	my @cmd = ('/sbin/ifconfig', $if, '-tso');
-	logcmd($log, @cmd) and
-	    die "Command '@cmd' failed: $?";
-	my @sshcmd = ('ssh', $remote_ssh, @cmd);
-	logcmd($log, @sshcmd) and
-	    die "Command '@sshcmd' failed: $?";
-    }
+	die "Command '@sshcmd' failed: $?";
 }
 
 sub time_parser {
@@ -976,17 +1019,21 @@ push @tests, (
 	parser => \&iperf3_parser,
     }
 ) if $testmode{vport6} && $linux_veb_addr6;
-if ($modify && $modify eq 'tso') {
-    $tests[0]{startup} = \&tso_startup;
-    $tests[-1]{shutdown} = \&tso_shutdown;
-}
-if ($modify && $modify eq 'pfsync') {
-    $tests[0]{startup} = \&pfsync_startup;
-    $tests[-1]{shutdown} = \&pfsync_shutdown;
+if ($modify && $modify eq 'lro') {
+    $tests[0]{startup} = \&lro_startup;
+    $tests[-1]{shutdown} = \&lro_shutdown;
 }
 if ($modify && $modify eq 'nopf') {
     $tests[0]{startup} = \&nopf_startup;
     $tests[-1]{shutdown} = \&nopf_shutdown;
+}
+if ($modify && $modify eq 'notso') {
+    $tests[0]{startup} = \&notso_startup;
+    $tests[-1]{shutdown} = \&notso_shutdown;
+}
+if ($modify && $modify eq 'pfsync') {
+    $tests[0]{startup} = \&pfsync_startup;
+    $tests[-1]{shutdown} = \&pfsync_shutdown;
 }
 push @tests, (
     {
