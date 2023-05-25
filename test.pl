@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2016-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -27,13 +27,16 @@ use Hostctl;
 
 my $scriptname = "$0 @ARGV";
 
+my @allsetupmodes = qw(commands keep ports);
+
 my %opts;
 getopts('h:pv', \%opts) or do {
     print STDERR <<"EOF";
-usage: test.pl [-pv] -h host setupmode ...
+usage: test.pl [-pv] -h host setup ...
     -h host	user and host for make test, user defaults to root
     -p		power down after testing
     -v		verbose
+    setup ...	setup mode: @allsetupmodes
     commands	run commands needed for ports tests
     ports	cvs update /usr/ports
     keep	keep installed host as is, skip setup
@@ -42,16 +45,16 @@ EOF
 };
 $opts{h} or die "No -h specified";
 
-my %allmodes;
-@allmodes{qw(commands keep ports)} = ();
 @ARGV or die "No setupmode specified";
-my %setupmode = map {
-    die "Unknown setupmode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
-foreach (qw(keep)) {
-    die "Setupmode must be used solely: $_"
-	if $setupmode{$_} && keys %setupmode != 1;
+my %setupmode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @allsetupmodes
+	or die "Unknown setup mode '$mode'";
+    $setupmode{$mode} = 1;
+}
+foreach my $mode (qw(keep)) {
+    die "Setup mode '$mode' must be used solely"
+	if $setupmode{$mode} && keys %setupmode != 1;
 }
 
 # better get an errno than random kill by SIGPIPE

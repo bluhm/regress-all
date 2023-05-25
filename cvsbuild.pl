@@ -32,6 +32,8 @@ my $now = strftime("%FT%TZ", gmtime);
 
 my $scriptname = "$0 @ARGV";
 
+my @allkernelmodes = qw(align gap sort reorder reboot);
+
 my %opts;
 getopts('d:D:h:m:P:r:v', \%opts) or do {
     print STDERR <<"EOF";
@@ -44,6 +46,7 @@ usage: cvsbuild.pl [-v] [-d date] [-D cvsdate] -h host [-m modify] [-P patch]
     -P patch	apply patch to clean kernel source, comma separated list
     -r release	change to release sub directory
     -v		verbose
+    kernel ...	kernel mode: @allkernelmodes
     align	relink kernel aligning all object at page size, no randomness
     gap		relink kernel sorting object files, but use random gap
     sort	relink kernel sorting object files at fixed position
@@ -67,12 +70,12 @@ if ($opts{r} && $opts{r} ne "current") {
 	or die "Release '$opts{r}' must be major.minor format";
 }
 
-my %allmodes;
-@allmodes{qw(align gap sort reorder reboot)} = ();
-my %kernelmode = map {
-    die "Unknown kernel mode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
+my %kernelmode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @allkernelmodes
+	or die "Unknown kernel mode '$mode'";
+    $kernelmode{$mode} = 1;
+}
 
 my $performdir = dirname($0). "/..";
 chdir($performdir)

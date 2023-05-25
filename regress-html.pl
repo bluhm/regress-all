@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # convert all test results to a html table
 
-# Copyright (c) 2016-2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -29,29 +29,32 @@ use Html;
 
 my $now = strftime("%FT%TZ", gmtime);
 
+my @allregressmodes = qw(src ports release);
+
 my %opts;
 getopts('h:lv', \%opts) or do {
     print STDERR <<"EOF";
-usage: regress-html.pl [-l] [-h host] mode
+usage: regress-html.pl [-l] [-h host] regress
     -h host	user and host for version information, user defaults to root
     -l		create latest.html with one column of the latest results
     -v		verbose
-    mode	src ports release
+    regress	regress mode: @allregressmodes
 EOF
     exit(2);
 };
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 
-my %allmodes;
-@allmodes{qw(src ports release)} = ();
 @ARGV or die "No mode specified";
-my %mode = map {
-    die "Unknown mode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
-foreach (qw(src ports release)) {
-    die "Mode must be used solely: $_" if $mode{$_} && keys %mode != 1;
+my %mode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @allregressmodes
+	or die "Unknown mode '$mode'";
+    $mode{$mode} = 1;
+}
+foreach my $mode (@allregressmodes) {
+    die "Regress mode '$mode' must be used solely"
+	if $mode{$mode} && keys %mode != 1;
 }
 
 my $regressdir = dirname($0). "/..";

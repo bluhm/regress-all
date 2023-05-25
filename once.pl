@@ -30,6 +30,20 @@ my $now = strftime("%FT%TZ", gmtime);
 
 my $scriptname = "$0 @ARGV";
 
+my @allkernelmodes = qw(align gap sort reorder reboot keep);
+my @allmodifymodes = qw(lro nopf notso pfsync);
+my @alltestmodes = qw(
+    all net tcp udp make fs iperf tcpbench udpbench iperftcp
+    iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
+    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
+    localnet localnet4 localnet6
+    linuxnet linuxiperftcp4 linuxiperftcp6
+    forward forward4 forward6 relay relay4 relay6
+    frag frag4 frag6
+    ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
+    veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
+);
+
 my %opts;
 getopts('b:d:D:h:k:m:N:nP:pr:v', \%opts) or do {
     print STDERR <<"EOF";
@@ -39,25 +53,15 @@ usage: once.pl [-npv] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for performance test, user defaults to root
-    -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
-    -m modify	modify mode: lro nopf notso pfsync
+    -k kernel	kernel mode: @allkernelmodes
+    -m modify	modify mode: @allmodifymodes
     -N repeat	number of build, reboot, test repetitions per step
     -n		do not generate gnuplot files on main release page
     -P patch	apply patch to clean kernel source
     -p		power down after testing
     -r release	change to release sub directory
     -v		verbose
-    test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
-		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
-		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
-		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6,
-		localnet, localnet4, localnet6,
-		linuxnet, linuxiperftcp4, linuxiperftcp6,
-		forward, forward4, forward6,
-		relay, relay4, relay6, frag, frag4, frag6,
-		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
-		veb, veb4, veb6,
-		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
+    test ...	test mode: @alltestmodes
 EOF
     exit(2);
 };
@@ -86,32 +90,20 @@ if ($opts{r} && $opts{r} ne "current") {
 my $repeat = $opts{N};
 !$repeat || $repeat >= 1 || $repeat =~ /^\d{3}$/
     or die "Repeat -N repeat must be positive integer or three digit subdir";
-my %allmodes;
-@allmodes{qw(align gap sort reorder reboot keep)} = ();
-!$opts{k} || exists $allmodes{$opts{k}}
+!$opts{k} || grep { $_ eq $opts{k} } @allkernelmodes
     or die "Unknown kernel mode '$opts{k}'";
 my %kernelmode;
 $kernelmode{$opts{k}} = 1 if $opts{k};
 my $modify = $opts{m};
-!$modify || grep { $_ eq $modify } qw(lro nopf notso pfsync) or die
-    "Modify -m '$modify' not supported, use any of 'lro nopf notso pfsync'";
+!$modify || grep { $_ eq $modify } @allmodifymodes
+    or die "Unknown modify mode '$modify'";
 
-undef %allmodes;
-@allmodes{qw(
-    all net tcp udp make fs iperf tcpbench udpbench iperftcp
-    iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
-    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
-    localnet localnet4 localnet6
-    linuxnet linuxiperftcp4 linuxiperftcp6
-    forward forward4 forward6 relay relay4 relay6
-    frag frag4 frag6
-    ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
-    veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
-)} = ();
-my %testmode = map {
-    die "Unknown test mode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
+my %testmode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @alltestmodes
+	or die "Unknown test mode '$mode'";
+    $testmode{$mode} = 1;
+}
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';

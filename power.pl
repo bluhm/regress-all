@@ -29,11 +29,13 @@ use Machine;
 
 my $scriptname = "$0 @ARGV";
 
+my @allpowermodes = qw(down up);
+
 my %opts;
 getopts('d:D:h:m:P:R:r:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: power.pl [-v] [-d date] [-D cvsdate] -h host [-m modify] [-P patch]
-	[-R repeatdir] [-r release] down|up
+	[-R repeatdir] [-r release] power
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	root\@openbsd-test-machine, login per ssh
@@ -42,6 +44,7 @@ usage: power.pl [-v] [-d date] [-D cvsdate] -h host [-m modify] [-P patch]
     -R repdir	repetition number or btrace
     -r release	change to release sub directory
     -v		verbose
+    power	power mode: @allpowermodes
     down	shutdown and power off machine
     up		machine is up or power cycle
 EOF
@@ -65,14 +68,17 @@ if ($opts{r} && $opts{r} ne "current") {
 	or die "Release '$opts{r}' must be major.minor format";
 }
 
-my %allmodes;
-@allmodes{qw(down up)} = ();
 @ARGV or die "No mode specified";
-my %mode = map {
-    die "Unknown mode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
-die "Mode must be used solely" if keys %mode != 1;
+my %mode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @allpowermodes
+	or die "Unknown power mode '$mode'";
+    $mode{$mode} = 1;
+}
+foreach my $mode (@allpowermodes) {
+    die "Power mode '$mode' must be used solely"
+	if $mode{$mode} && keys %mode != 1;
+}
 
 my $performdir = dirname($0). "/..";
 chdir($performdir)

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # collect cvs logs between certain dates for sub branches
 
-# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2018-2019 Moritz Buhl <mbuhl@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -28,7 +28,7 @@ use Time::Local;
 use lib dirname($0);
 use Buildquirks;
 use Html;
-use Testvars qw(%TESTDESC);
+use Testvars qw(@PLOTORDER %TESTDESC);
 
 my %opts;
 getopts('vnB:d:E:LN:p:r:X:x:Y:y:', \%opts) or do {
@@ -42,7 +42,7 @@ usage: gnuplot.pl [-Lnv] [-B date] [-d date] [-E date] [-N numbers] -p plot
     -E date	end date of x range, inclusive
     -L		create LaTeX and EPS output instead of PNG and HTML
     -N numbers	list of test numbers
-    -p plot	(tcp|tcp6|udp|udp6|linux|linux6|forward|forward6|ipsec|make|fs)
+    -p plot	plot name: @PLOTORDER
     -r release	OpenBSD version number
     -x min	x range minimum
     -X max	x range maximum
@@ -103,6 +103,8 @@ if (defined $opts{N}) {
 }
 my $plot = $opts{p}
     or die "Option -p plot missing";
+grep { $_ eq $plot } @PLOTORDER
+    or die "Unknown plot '$plot'";
 @ARGV and die "No arguments allowed";
 
 # better get an errno than random kill by SIGPIPE

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # setup machine for regress test
 
-# Copyright (c) 2016-2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -30,16 +30,22 @@ use Buildquirks;
 
 my $scriptname = "$0 @ARGV";
 
+my @allsetupmodes = qw(
+    build commands cvs install kernel keep ports tools restart
+    sysupgrade upgrade
+);
+
 my %opts;
 getopts('d:h:P:pr:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: setup.pl [-pv] [-d date] -h host [-P patch] [-r release] mode ...
+usage: setup.pl [-pv] [-d date] -h host [-P patch] [-r release] setup ...
     -d date	set date string and change to sub directory
     -h host	root\@openbsd-test-machine, login per ssh
     -P patch	apply patch to clean kernel source, comma separated list
     -p		power down after setup
     -r release	use release for install and cvs checkout, X.Y or current
     -v		verbose
+    setup ...	setup mode: @allsetupmodes
     build	build system from source /usr/src and reboot
     commands	run commands needed for some tests
     cvs		clean cvs update /usr/src and make obj
@@ -60,14 +66,13 @@ $opts{h} or die "No -h specified";
 my $date = $opts{d};
 my $patch = $opts{P};
 
-my %allmodes;
-@allmodes{qw(build commands cvs install kernel keep ports tools restart
-    sysupgrade upgrade)} = ();
 @ARGV or die "No mode specified";
-my %mode = map {
-    die "Unknown mode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
+my %mode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @allsetupmodes
+	or die "Unknown setup mode '$mode'";
+    $mode{$mode} = 1;
+}
 my $release;
 if ($opts{r} && $opts{r} ne "current") {
     die "Upgrade to release not supported"
@@ -180,7 +185,8 @@ sub copy_scripts {
     runcmd(@scpcmd);
 
     @copy = grep { -f $_ }
-	("netlink.pl", "Netstat.pm", "netbench.pl", "env-$host.sh", "pkg-$host.list");
+	("netlink.pl", "Netstat.pm", "netbench.pl",
+	"env-$host.sh", "pkg-$host.list");
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$user\@$host:/root/netlink");

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # Copyright (c) 2022 Moritz Buhl <mbuhl@genua.de>
-# Copyright (c) 2018-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -27,65 +27,65 @@ use Time::HiRes;
 use lib dirname($0);
 use Netstat;
 
-my @alltests = sort qw(all fragment icmp ipopts pathmtu tcp udp);
-my @allpseudodevs = sort qw(aggr bridge carp none trunk veb vlan);
-my @allifs = sort qw(em igc ix ixl);
+my @allifaces = qw(em igc ix ixl);
+my @allpseudos = qw(aggr bridge carp none trunk veb vlan);
+my @alltestmodes = sort qw(all fragment icmp ipopts pathmtu tcp udp);
 
 my %opts;
 getopts('c:e:i:l:r:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: netlink.pl [-v] [-c pseudo-dev] [-e environment] [-i interface]
+usage: netlink.pl [-v] [-c pseudo] [-e environment] [-i iface]
 	[-l index] [-r index] [-t timeout] [test ...]
-    -c pseudo-dev	@{[ join ', ', @allpseudodevs ]}
-    -e environ		parse environment for tests from shell script
-    -i interface	@{[ join ', ', @allifs ]}
-    -l index		interface index, default 0
-    -r index		interface index, default 1
-    -t timeout		timeout for a single test, default 60 seconds
-    -v			verbose
-    test		@{[ join ', ', @alltests ]}
-			appending 4 or 6 to a test restricts the IP version.
+    -c pseudo	pseudo network device: @allpseudos
+    -e environ	parse environment for tests from shell script
+    -i iface	interface: @allifaces
+    -l index	interface index, default 0
+    -r index	interface index, default 1
+    -t timeout	timeout for a single test, default 60 seconds
+    -v		verbose
+    test ...	test mode: @alltestmodes
+		appending 4 or 6 to a test restricts the IP version.
 EOF
     exit(2);
 };
 my $verbose = $opts{v};
 my $timeout = $opts{t} || 20;
 environment($opts{e}) if $opts{e};
-my $pseudodev = $opts{c} || 'none';
-my $interface = $opts{i} || "em";
+my $pseudo = $opts{c} || "none";
+my $iface = $opts{i} || "em";
 
 my $line = $ENV{NETLINK_LINE} || die "NETLINK_LINE is not in env";
 my $management_if = $ENV{MANAGEMENT_IF} || die "MANAGEMENT_IF is not in env";
 
 # ifN if N is even then it is left, odd means right.
-my $left_ifidx = $opts{l} || ("${interface}0" eq $management_if? 2 : 0);
-my $right_ifidx = $opts{r} || ("${interface}1" eq $management_if? 3 : 1);
+my $left_ifidx = $opts{l} || ("${iface}0" eq $management_if? 2 : 0);
+my $right_ifidx = $opts{r} || ("${iface}1" eq $management_if? 3 : 1);
 
 warn "left interface should be in the wrong network" if ($left_ifidx % 2);
 warn "right interface should be in the wrong network" if (!$right_ifidx % 2);
 
-die "Unknown interface: $interface" unless grep { $_ eq $interface } @allifs;
-if (!grep { $_ eq $pseudodev} @allpseudodevs && $pseudodev) {
-    die "Unknown pseudo-device: $pseudodev";
-}
+grep { $_ eq $iface } @allifaces
+    or die "Unknown interface '$iface'";
+grep { $_ eq $pseudo } @allpseudos
+    or die "Unknown pseudo network device '$pseudo'";
 
-my %allmodes;
-@allmodes{($_, $_ . '4' , $_ . '6')} = () foreach @alltests;
-my %testmode = map {
-    die "Unknown test mode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
+@alltestmodes = map { ($_, "${_}4", "${_}6") } @alltestmodes;
+my %testmode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @alltestmodes
+	or die "Unknown test mode '$mode'";
+    $testmode{$mode} = 1;
+}
 $testmode{all} = 1 unless @ARGV;
 $testmode{all4} = $testmode{all6} = 1 if ($testmode{all});
 if ($testmode{all4}) {
-    $testmode{$_} = 1 foreach (map { $_ . '4' } @alltests);
+    $testmode{$_} = 1 foreach map { "${_}4" } @alltestmodes;
 }
 if ($testmode{all6}) {
-    $testmode{$_} = 1 foreach (map { $_ . '6' } @alltests);
+    $testmode{$_} = 1 foreach map { "${_}6" } @alltestmodes;
 }
-
 foreach (keys %testmode) {
-    $testmode{$_ . '4'} = $testmode{$_ . '6'} = 1 if ($_ =~ /[^46]$/);
+    $testmode{"${_}4"} = $testmode{"${_}6"} = 1 if $_ =~ /[^46]$/;
 }
 
 my $ipv4 = (join '', keys %testmode) =~ /4/;
@@ -94,13 +94,13 @@ my $ipv6 = (join '', keys %testmode) =~ /6/;
 my $ip4prefix = '10.10';
 my $ip6prefix = 'fdd7:e83e:66bd:10';
 
-my $obsd_l_if = $interface . $left_ifidx;
+my $obsd_l_if = $iface . $left_ifidx;
 my $obsd_l_net = "$ip4prefix.${line}1.0/24";
 my $obsd_l_addr = "$ip4prefix.${line}1.2";
 my $obsd_l_net6 = "${ip6prefix}${line}1::/64";
 my $obsd_l_addr6 = "${ip6prefix}${line}1::2";
 
-my $obsd_r_if = $interface . $right_ifidx;
+my $obsd_r_if = $iface . $right_ifidx;
 my $obsd_r_net = "$ip4prefix.${line}2.0/24";
 my $obsd_r_addr = "$ip4prefix.${line}2.3";
 my $obsd_r_net6 = "${ip6prefix}${line}2::/64";
@@ -176,7 +176,7 @@ foreach my $ifn (@allinterfaces) {
     unless ($ifn =~ m{^(lo|enc|pflog|${management_if})}) {
 	mysystem('ifconfig', $ifn, '-inet', '-inet6', 'down');
     }
-    my $pdevre = join '|', @allpseudodevs;
+    my $pdevre = join '|', @allpseudos;
     mysystem('ifconfig', $ifn, 'destroy') if ($ifn =~ m{^($pdevre)});
 }
 
@@ -226,7 +226,7 @@ mysystem('ssh', $lnx_r_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
     $lnx_r_pdev);
 
 # configure given interface type
-if ($pseudodev eq 'bridge' || $pseudodev eq 'none') {
+if ($pseudo eq 'bridge' || $pseudo eq 'none') {
     if ($ipv4) {
 	mysystem('ifconfig', $obsd_l_if, 'inet', "${obsd_l_addr}/24")
 	    and do { warn "command failed: $?"; exit 0; };
@@ -317,7 +317,7 @@ mysystem('chmod', '555', '/etc/rc.d/tcpbench');
 
 my $configure_linux = 1;
 
-if ($pseudodev eq 'aggr') {
+if ($pseudo eq 'aggr') {
     # XXX: multiple interfaces in one aggr
     mysystem('ifconfig', 'aggr0', 'create');
     mysystem('ifconfig', 'aggr1', 'create');
@@ -338,17 +338,17 @@ if ($pseudodev eq 'aggr') {
 
     mysystem('ifconfig', 'aggr0', 'up');
     mysystem('ifconfig', 'aggr1', 'up');
-} elsif ($pseudodev eq 'bridge') {
+} elsif ($pseudo eq 'bridge') {
     # XXX: vether
     mysystem('ifconfig', 'bridge0', 'create');
     mysystem('ifconfig', 'bridge0', 'add', $obsd_l_if);
     mysystem('ifconfig', 'bridge0', 'add', $obsd_r_if);
     mysystem('ifconfig', 'bridge0', 'up');
-} elsif ($pseudodev eq 'carp') {
+} elsif ($pseudo eq 'carp') {
     # XXX
-} elsif ($pseudodev eq 'trunk') {
+} elsif ($pseudo eq 'trunk') {
     # XXX
-} elsif ($pseudodev eq 'veb') {
+} elsif ($pseudo eq 'veb') {
     mysystem('ifconfig', 'veb0', 'create');
     mysystem('ifconfig', 'vport0', 'create');
     mysystem('ifconfig', 'vport1', 'create');
@@ -371,7 +371,7 @@ if ($pseudodev eq 'aggr') {
     mysystem('ifconfig', 'veb0', 'add', 'vport0');
     mysystem('ifconfig', 'veb0', 'add', 'vport1');
     mysystem('ifconfig', 'veb0', 'up');
-} elsif ($pseudodev eq 'vlan') {
+} elsif ($pseudo eq 'vlan') {
     $configure_linux = 0; # all necessary config is below
     my $vlanl = 252;
     my $vlanr = 253;

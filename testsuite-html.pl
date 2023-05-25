@@ -2,7 +2,7 @@
 # collect all os-test and posixtestsuite results and create a html table
 # os-test and posixtestsuite package must be installed
 
-# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -23,14 +23,16 @@ use File::Basename;
 use File::Path qw(make_path);
 use Getopt::Std;
 
+my @allsuitemodes = qw(os-test posixtestsuite);
+
 my %opts;
 getopts('h:p:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: testsuite-html.pl [-h host] -p publish [mode ...]
+usage: testsuite-html.pl [-h host] -p publish [suite ...]
     -h host	user and host for version information, user defaults to root
     -p publish	directory where the test suite results are created
     -v		verbose
-    mode	os-test posixtestsuite
+    suite ...	test suite: @allsuitemodes
 EOF
     exit(2);
 };
@@ -39,13 +41,14 @@ $| = 1 if $verbose;
 my $publish = $opts{p} or die "No -p specified";
 $publish = getcwd(). "/". $publish if substr($publish, 0, 1) ne "/";
 
-my %allmodes;
-@allmodes{qw(os-test posixtestsuite)} = ();
-@ARGV or @ARGV = keys %allmodes;
-my %mode = map {
-    die "Unknown mode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
+@ARGV or @ARGV = @allsuitemodes;
+
+my %mode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @allsuitemodes
+	or die "Unknown suite mode '$mode'";
+    $mode{$mode} = 1;
+}
 
 my $regressdir = dirname($0). "/..";
 chdir($regressdir)

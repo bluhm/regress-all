@@ -30,6 +30,20 @@ use Hostctl;
 
 my $scriptname = "$0 @ARGV";
 
+my @allkernelmodes = qw(align gap sort reorder reboot keep);
+my @allsetupmodes = qw(build cvs install keep);
+my @alltestmodes = qw(
+    all net tcp udp make fs iperf tcpbench udpbench iperftcp
+    iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
+    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
+    localnet localnet4 localnet6
+    linuxnet linuxiperftcp4 linuxiperftcp6
+    forward forward4 forward6 relay relay4 relay6
+    frag frag4 frag6
+    ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
+    veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
+);
+
 my %opts;
 getopts('b:B:E:h:k:N:npr:S:s:v', \%opts) or do {
     print STDERR <<"EOF";
@@ -39,25 +53,15 @@ usage: step.pl [-npv] [-b kstack] -B date [-E date] -h host [-k kernel]
     -B date	begin date, inclusive
     -E date	end date, inclusive
     -h host	user and host for performance test, user defaults to root
-    -k kernel	kernel mode: align, gap, sort, reorder, reboot, keep
+    -k kernel	kernel mode: @allkernelmodes
     -N repeat	number of build, reboot, test repetitions per step
     -n		do not generate gnuplot files on main release page
     -p		power down after testing
     -r release	use release for install and cvs checkout, X.Y or current
     -S interval	step in sec, min, hour, day, week, month, year
-    -s setup	setup mode: install, cvs, build, keep
+    -s setup	setup mode: @allsetupmodes
     -v		verbose
-    test ...	test mode: all, net, tcp, udp, make, fs, iperf, tcpbench,
-		udpbench, iperftcp, iperfudp, net4, tcp4, udp4, iperf4,
-		tcpbench4, udpbench4, iperftcp4, iperfudp4, net6, tcp6,
-		udp6, iperf6, tcpbench6, udpbench6, iperftcp6, iperfudp6,
-		localnet, localnet4, localnet6,
-		linuxnet, linuxiperftcp4, linuxiperftcp6,
-		forward, forward4, forward6,
-		relay, relay4, relay6, frag, frag4, frag6,
-		ipsec, ipsec4, ipsec6, ipsec44, ipsec46, ipsec64, ipsec66,
-		veb, veb4, veb6,
-		vbridge, vbridge4, vbridge6, vport, vport4, vport6,
+    test ...	test mode: @alltestmodes
 EOF
     exit(2);
 };
@@ -98,35 +102,22 @@ $end == $begin || $unit eq "commit" || $step > 0
 $repeat = $opts{N};
 !$repeat || $repeat >= 1
     or die "Repeat '$opts{N}' must be positive integer";
-my %allmodes;
-@allmodes{qw(align gap sort reorder reboot keep)} = ();
-!$opts{k} || exists $allmodes{$opts{k}}
+!$opts{k} || grep { $_ eq $opts{k} } @allkernelmodes
     or die "Unknown kernel mode '$opts{k}'";
 my %kernelmode;
 $kernelmode{$opts{k}} = 1 if $opts{k};
 
-undef %allmodes;
-@allmodes{qw(build cvs install keep)} = ();
-!$opts{s} || exists $allmodes{$opts{s}}
+!$opts{s} || grep { $_ eq $opts{k} } @allsetupmodes
     or die "Unknown setup mode '$opts{s}'";
 my %setupmode;
 $setupmode{$opts{s}} = 1 if $opts{s};
 
-@allmodes{qw(
-    all net tcp udp make fs iperf tcpbench udpbench iperftcp
-    iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
-    net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
-    localnet localnet4 localnet6
-    linuxnet linuxiperftcp4 linuxiperftcp6
-    forward forward4 forward6 relay relay4 relay6
-    frag frag4 frag6
-    ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
-    veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
-)} = ();
-my %testmode = map {
-    die "Unknown test mode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
+my %testmode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @alltestmodes
+	or die "Unknown test mode '$mode'";
+    $testmode{$mode} = 1;
+}
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';

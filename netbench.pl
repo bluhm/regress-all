@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2022-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -22,6 +22,8 @@ use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 use File::Basename;
 use Getopt::Std;
 
+my @alltestmodes = qw(all udpbench);
+
 my %opts;
 getopts('a:B:b:c:l:P:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
@@ -36,7 +38,7 @@ usage: netbench.pl [-v] -a address [-B bitrate] [-b bufsize] [-c client]
     -s sever	connect via ssh to start packet consumer
     -t timeout	send duration and receive timeout, default 1
     -v		verbose
-    test ...	test mode: all iperf3 tcpbench udpbench
+    test ...	test mode: @alltestmodes
 EOF
     exit(2);
 };
@@ -51,12 +53,12 @@ my $client_ssh = $opts{c};
 my $server_ssh = $opts{s};
 my $timeout = $opts{t} || 1;
 
-my %allmodes;
-@allmodes{qw(all udpbench)} = ();
-my %testmode = map {
-    die "Unknown test mode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
+my %testmode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @alltestmodes
+	or die "Unknown test mode '$mode'";
+    $testmode{$mode} = 1;
+}
 $testmode{all} = 1 unless @ARGV;
 @testmode{qw(udpbench)} = 1..1 if $testmode{all};
 

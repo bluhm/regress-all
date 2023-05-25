@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2016-2021 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -23,19 +23,27 @@ use Getopt::Std;
 use POSIX;
 use Time::HiRes;
 
+my @allsteps = qw(clean obj build sysmerge dev destdir reldir release chkflist);
+
 my %opts;
 getopts('e:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: release.pl [-v] [-e environment] [-t timeout] [steps ...]
+usage: release.pl [-v] [-e environment] [-t timeout] [step ...]
     -e environ	parse environment for tests from shell script
     -t timeout	timeout for a single test, default 1 hour
     -v		verbose
-    steps ...	clean obj build sysmerge dev destdir reldir release chkflist
+    step ...	build step: @allsteps
 EOF
     exit(2);
 };
 my $timeout = $opts{t} || 5*24*60*60;
 environment($opts{e}) if $opts{e};
+my %steps;
+foreach my $step (@ARGV) {
+    grep { $_ eq $step } @allsteps
+	or die "Unknown step '$step'";
+    $steps{$step} = 1;
+}
 @ARGV and warn "Make release restricted to build steps, for debugging only\n";
 
 my $dir = dirname($0);
@@ -104,9 +112,8 @@ my @tests = (
 foreach (@tests) {
     my ($test, $cmd) = @$_;
 
-    if (@ARGV) {
-	next unless grep { $_ eq $test } @ARGV;
-    }
+    next if keys %steps && ! $steps{$test};
+
     my $prev = "";
     my $begin = Time::HiRes::time();
     my $date = strftime("%FT%TZ", gmtime($begin));

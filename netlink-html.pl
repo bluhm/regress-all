@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # convert netlink test results to a html tables
 
-# Copyright (c) 2016-2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -166,7 +166,8 @@ sub html_hier_test_row {
 	my $enda = $href ? "</a>" : "";
 	my $stats = $tv->{stats};
 	my $stats_link = uri_escape($stats, "^A-Za-z0-9\-\._~/");
-	my $stats_href = $stats ? "<a style='float: right' href=\"../$stats_link\">stats</a>" : "";
+	my $stats_href = $stats ?
+	    "<a style='float: right' href=\"../$stats_link\">stats</a>" : "";
 
 	print $html "    <td$class$title>$href$status$enda$stats_href</td>\n";
     }

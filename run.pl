@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # run regression tests on machine
 
-# Copyright (c) 2016-2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -28,14 +28,17 @@ use Hostctl;
 
 my $scriptname = "$0 @ARGV";
 
+my @allsetupmodes = qw(build cvs install keep kernel reboot sysupgrade upgrade);
+
 my %opts;
 getopts('h:P:pv', \%opts) or do {
     print STDERR <<"EOF";
-usage: run.pl [-pv] -h host [-P patch] setupmode ...
+usage: run.pl [-pv] -h host [-P patch] setup ...
     -h host	user and host for make regress, user defaults to root
     -P patch	apply patch to clean kernel source
     -p		power down after testing
     -v		verbose
+    setup ...	setup mode: @allsetupmodes
     build	build system from source /usr/src and reboot
     cvs		cvs update /usr/src and make obj
     install	install from snapshot
@@ -50,16 +53,16 @@ EOF
 $opts{h} or die "No -h specified";
 my $patch = $opts{P};
 
-my %allmodes;
-@allmodes{qw(build cvs install keep kernel reboot sysupgrade upgrade)} = ();
 @ARGV or die "No mode specified";
-my %setupmode = map {
-    die "Unknown setupmode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
-foreach (qw(install keep reboot sysupgrade upgrade)) {
-    die "Setupmode must be used solely: $_"
-	if $setupmode{$_} && keys %setupmode != 1;
+my %setupmode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @allsetupmodes
+	or die "Unknown setup mode '$mode'";
+    $setupmode{$mode} = 1;
+}
+foreach my $mode (qw(install keep reboot sysupgrade upgrade)) {
+    die "Setup mode '$mode' must be used solely"
+	if $setupmode{$mode} && keys %setupmode != 1;
 }
 
 # better get an errno than random kill by SIGPIPE

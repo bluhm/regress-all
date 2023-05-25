@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2022 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -30,24 +30,29 @@ my $now = strftime("%FT%TZ", gmtime);
 
 my $scriptname = "$0 @ARGV";
 
+my @allifaces = qw(em igc ix ixl);
+my @allpseudos = qw(aggr bridge carp trunk veb vlan);
+my @allsetupmodes = (qw(build install upgrade sysupgrade keep kernel reboot
+    tools), "cvs,build", "cvs,kernel");
+my @alltestmodes = qw(all fragment icmp ipopts pathmtu tcp udp);
+
 my %opts;
 getopts('b:c:d:D:h:i:N:P:ps:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: net.pl [-pv] [-b kstack] [-c pseudo] [-d date] [-D cvsdate] -h host
 	[-i iface] [-N repeat] [-P patch] [-s setup] [test ...]
 #    -b kstack	measure with btrace and create kernel stack map
-    -c pseudo	ifconfig create pseudo network device
+    -c pseudo	list of pseudo network devices: all @allpseudos
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for network link test, user defaults to root
-    -i iface	network interface
+    -i iface	list of interfaces: all @allifaces
     -N repeat	number of build, reboot, test repetitions per step
     -P patch	apply patch to clean kernel source
-    -s setup	setup mode: build install upgrade sysupgrade
-		keep kernel reboot tools cvs-build cvs-kernel
+    -s setup	setup mode: @allsetupmodes
     -p		power down after testing
     -v		verbose
-    test ...	test mode: all, fragment, icmp, ipopts, pathmtu, tcp, udp
+    test ...	test mode: @alltestmodes
 EOF
     exit(2);
 };
@@ -72,10 +77,7 @@ my $btrace = $opts{b};
 $btrace && $btrace ne "kstack"
     and die "Btrace -b '$btrace' not supported, use 'kstack'";
 
-my %allmodes;
-@allmodes{qw(build install upgrade sysupgrade keep kernel reboot tools
-    cvs-build cvs-kernel)} = ();
-!$opts{s} || exists $allmodes{$opts{s}}
+!$opts{s} || grep { $_ eq $opts{s} } @allsetupmodes
     or die "Unknown setup mode '$opts{s}'";
 my %setupmode;
 $setupmode{$_} = 1 foreach split(/,/, $opts{s} || "");
@@ -85,14 +87,12 @@ keys %setupmode && $opts{d}
 keys %setupmode && $patch
     and die "Cannot combine -s setup and -P patch";
 
-undef %allmodes;
-@allmodes{qw(
-    all fragment icmp ipopts pathmtu tcp udp
-)} = ();
-my %testmode = map {
-    die "Unknown test mode: $_" unless exists $allmodes{$_};
-    $_ => 1;
-} @ARGV;
+my %testmode;
+foreach my $mode (@ARGV) {
+    grep { $_ eq $mode } @alltestmodes
+	or die "Unknown test mode '$mode'";
+    $testmode{$mode} = 1;
+}
 
 # better get an errno than random kill by SIGPIPE
 $SIG{PIPE} = 'IGNORE';
@@ -184,13 +184,23 @@ collect_version();
 
 my @ifaces;
 if ($iface) {
-    $iface =~ s/^all$/em,igc,ix,ixl/;
-    @ifaces = map { "iface-$_" } split(/,/, $iface);
+    $iface = join(",", @allifaces) if $iface eq "all";
+    @ifaces = split(/,/, $iface);
+    foreach my $if (@ifaces) {
+	grep { $_ eq $if } @allifaces
+	    or die "Unknown interface '$if'";
+	$if = "iface-$if";
+    }
 }
 my @pseudos;
 if ($pseudo) {
-    $pseudo =~ s/^all$/aggr,bridge,carp,trunk,veb,vlan/;
-    @pseudos = map { "pseudo-$_" } split(/,/, $pseudo);
+    $pseudo = join(",", @allpseudos) if $pseudo eq "all";
+    @pseudos = split(/,/, $pseudo);
+    foreach my $ps (@pseudos) {
+	grep { $_ eq $ps } @allpseudos
+	    or die "Unknown pseudo network device '$ps'";
+	$ps = "pseudo-$ps";
+    }
 }
 my @repeats;
 push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1)
