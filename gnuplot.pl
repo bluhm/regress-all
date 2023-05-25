@@ -104,7 +104,7 @@ if (defined $opts{N}) {
 my $plot = $opts{p}
     or die "Option -p plot missing";
 grep { $_ eq $plot } @PLOTORDER
-    or die "Unknown plot '$plot'";
+    or die "Unknown plot name '$plot'";
 @ARGV and die "No arguments allowed";
 
 # better get an errno than random kill by SIGPIPE

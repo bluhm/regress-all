@@ -107,7 +107,7 @@ $repeat = $opts{N};
 my %kernelmode;
 $kernelmode{$opts{k}} = 1 if $opts{k};
 
-!$opts{s} || grep { $_ eq $opts{k} } @allsetupmodes
+!$opts{s} || grep { $_ eq $opts{s} } @allsetupmodes
     or die "Unknown setup mode '$opts{s}'";
 my %setupmode;
 $setupmode{$opts{s}} = 1 if $opts{s};

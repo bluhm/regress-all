@@ -41,7 +41,7 @@ environment($opts{e}) if $opts{e};
 my %steps;
 foreach my $step (@ARGV) {
     grep { $_ eq $step } @allsteps
-	or die "Unknown step '$step'";
+	or die "Unknown build step '$step'";
     $steps{$step} = 1;
 }
 @ARGV and warn "Make release restricted to build steps, for debugging only\n";

@@ -46,7 +46,7 @@ $publish = getcwd(). "/". $publish if substr($publish, 0, 1) ne "/";
 my %mode;
 foreach my $mode (@ARGV) {
     grep { $_ eq $mode } @allsuitemodes
-	or die "Unknown suite mode '$mode'";
+	or die "Unknown test suite '$mode'";
     $mode{$mode} = 1;
 }
 

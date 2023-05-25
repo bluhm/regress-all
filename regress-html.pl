@@ -49,7 +49,7 @@ $| = 1 if $verbose;
 my %mode;
 foreach my $mode (@ARGV) {
     grep { $_ eq $mode } @allregressmodes
-	or die "Unknown mode '$mode'";
+	or die "Unknown regress mode '$mode'";
     $mode{$mode} = 1;
 }
 foreach my $mode (@allregressmodes) {
