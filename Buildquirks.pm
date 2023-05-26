@@ -808,9 +808,19 @@ my %quirks = (
 	],
 	patches => { 'sys-amd64-cfgap' => patch_sys_amd64_cfgap() },
     },
+    '2023-04-26T06:52:45Z' => {
+	comment => "sendsyslog declared in syslog.h",
+	updatedirs => [ "sys", "lib/libc" ],
+	prebuildcommands => [ "make includes" ],
+    },
     '2023-04-26T15:13:59Z' => {
 	comment => "vmm kernel source files moved",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
+    '2023-04-27T23:16:18Z' => {
+	comment => "use __size_t in sus/syslog.h",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [ "make includes" ],
     },
     '2023-05-10T07:58:06Z' => {
 	comment => "libc malloc mmap unlocked, away with unlock-lock dance",
