@@ -779,6 +779,26 @@ my %quirks = (
 	comment => "OpenBSD/amd64 7.3 release",
 	release => '7.3',
     },
+    '2023-03-25T15:22:06Z' => {
+	comment => "libc malloc chunk sizes fine grained",
+	updatedirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
+    '2023-04-01T18:47:51Z' => {
+	comment => "libc malloc check chunks in delayed free list",
+	updatedirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
+    '2023-04-05T06:25:38Z' => {
+	comment => "libc malloc variation in location of junked bytes",
+	updatedirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
+    '2023-04-16T19:46:17Z' => {
+	comment => "libc malloc dump leak info using utrace",
+	updatedirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
     '2023-04-16T23:57:59Z' => {
 	comment => "build gapdummy without cf-protection branch",
 	updatedirs => [ "sys" ],
@@ -792,8 +812,19 @@ my %quirks = (
 	comment => "vmm kernel source files moved",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2023-05-10T07:58:06Z' => {
+	comment => "libc malloc mmap unlocked, away with unlock-lock dance",
+	updatedirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
     '2023-05-10T12:07:17Z' => {
 	comment => "netstat TSO counter",
+	updatedirs => [ "sys", "usr.bin/netstat" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "usr.bin/netstat" ],
+    },
+    '2023-05-23T09:16:16Z' => {
+	comment => "netstat LRO counter",
 	updatedirs => [ "sys", "usr.bin/netstat" ],
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "usr.bin/netstat" ],
