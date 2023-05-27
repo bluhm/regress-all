@@ -818,7 +818,7 @@ my %quirks = (
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
     '2023-04-27T23:16:18Z' => {
-	comment => "use __size_t in sus/syslog.h",
+	comment => "use __size_t in sys/syslog.h",
 	updatedirs => [ "sys" ],
 	prebuildcommands => [ "make includes" ],
     },
@@ -838,6 +838,12 @@ my %quirks = (
 	updatedirs => [ "sys", "usr.bin/netstat" ],
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "usr.bin/netstat" ],
+    },
+    '2023-05-27T04:33:00Z' => {
+	comment => "libc malloc remove interposition",
+	updatedirs => [ "sys", "lib/libc" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "lib/libc" ],
     },
 );
 
