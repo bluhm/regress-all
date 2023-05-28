@@ -31,7 +31,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my @allifaces = qw(em igc ix ixl);
-my @allpseudos = qw(aggr bridge carp trunk veb vlan);
+my @allpseudos = qw(aggr bridge carp none trunk veb vlan);
 my @allsetupmodes = (qw(build install upgrade sysupgrade keep kernel reboot
     tools), "cvs,build", "cvs,kernel");
 my @alltestmodes = qw(all fragment icmp ipopts pathmtu tcp udp);
@@ -223,7 +223,6 @@ foreach my $ifacedir (@ifaces ? @ifaces : ".") {
 		or die "Make directory '$pseudodir' failed: $!";
 	    chdir($pseudodir)
 		or die "Change directory to '$pseudodir' failed: $!";
-	    ($pseudo = $pseudodir) =~ s/.*-//;
 	}
 
 	foreach my $repeatdir (@repeats ? @repeats : ".") {
@@ -241,7 +240,7 @@ foreach my $ifacedir (@ifaces ? @ifaces : ".") {
 	    # run network link tests remotely
 
 	    my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/netlink/netlink.pl');
-	    push @sshcmd, '-c', $pseudo if $pseudo;
+	    push @sshcmd, '-c', $1 if $pseudodir =~ /-(.+)/;
 	    push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
 	    push @sshcmd, '-e', "/root/netlink/env-$host.sh";
 	    push @sshcmd, '-i', $iface if $iface;
