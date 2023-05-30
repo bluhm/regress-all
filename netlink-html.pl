@@ -215,7 +215,9 @@ sub write_html_hier_files {
 	html_hier_top($html, $date, @$hv);
 
 	print $html "<table>\n";
+	print $html "  <thead>\n";
 	html_hier_test_head($html, @$hv);
+	print $html "  </thead>\n  <tbody>\n";
 
 	my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
 	    keys %T;
@@ -224,6 +226,7 @@ sub write_html_hier_files {
 		or next;
 	    html_hier_test_row($html, $test, $td, @$hv);
 	}
+	print $html "  </tbody>\n";
 	print $html "</table>\n";
 
 	html_status_table($html, "netlink");
@@ -262,6 +265,7 @@ HEADER
     print "." if $verbose;
     my @dates = reverse sort keys %D;
     print $html "<table>\n";
+    print $html "  <thead>\n";
     print $html "  <tr>\n    <th></th>\n    <th>pass rate</th>\n";
     foreach my $date (@dates) {
 	my $passrate = $D{$date}{pass};
@@ -315,6 +319,7 @@ HEADER
 	print $html "    <th>$href$hostname$enda</th>\n";
     }
     print $html "  </tr>\n";
+    print $html "  </thead>\n  <tbody>\n";
 
     my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
 	keys %T;
@@ -339,6 +344,7 @@ HEADER
 	}
 	print $html "  </tr>\n";
     }
+    print $html "  </tbody>\n";
     print $html "</table>\n";
 
     html_status_table($html, "netlink");
