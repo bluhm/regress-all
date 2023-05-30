@@ -65,7 +65,7 @@ chdir($resultdir)
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
 
-my @HIERARCHY = qw(date cvsdate patch iface pseudo repeat btrace);
+my @HIERARCHY = qw(date cvsdate patch modify iface pseudo repeat btrace);
 my (%T, %D, %H, %V);
 
 # %T
@@ -375,6 +375,10 @@ sub glob_result_files {
 	}
 	if (defined && /^patch-/) {
 	    $f{patch} = $_;
+	    $_ = shift @dirs;
+	}
+	if (defined && /^modify-/) {
+	    $f{modify} = $_;
 	    $_ = shift @dirs;
 	}
 	if (defined && /^iface-/) {
