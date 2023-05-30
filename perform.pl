@@ -26,6 +26,7 @@ use Time::HiRes;
 my $startdir = getcwd();
 my @startcmd = ($0, @ARGV);
 
+my @allmodifymodes = qw(lro nopf notso pfsync);
 my @alltestmodes = qw(
     all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
@@ -44,7 +45,7 @@ usage: perform.pl [-sv] [-b kstack] [-e environment] [-m modify] [-t timeout]
 	[test ...]
     -b kstack	measure with btrace and create kernel stack map
     -e environ	parse environment for tests from shell script
-    -m modify	modify mode: lro nopf notso pfsync
+    -m modify	modify mode: @allmodifymodes
     -s		stress test, run tests longer, activate sysctl
     -t timeout	timeout for a single test, default 1 hour
     -v		verbose
@@ -56,8 +57,8 @@ my $btrace = $opts{b};
 !$btrace || $btrace eq "kstack"
     or die "Btrace -b '$btrace' not supported, use 'kstack'";
 my $modify = $opts{m};
-!$modify || grep { $_ eq $modify } qw(lro nopf notso pfsync) or die
-    "Modify -m '$modify' not supported, use any of 'lro nopf notso pfsync'";
+!$modify || grep { $_ eq $modify } @allmodifymodes
+    or die "Unknnown modify mode '$modify'";
 my $timeout = $opts{t} || 60*60;
 environment($opts{e}) if $opts{e};
 my $stress = $opts{s};

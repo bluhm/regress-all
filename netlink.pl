@@ -28,18 +28,20 @@ use lib dirname($0);
 use Netstat;
 
 my @allifaces = qw(em igc ix ixl);
+my @allmodifymodes = qw(lro nopf notso);
 my @allpseudos = qw(aggr bridge carp none trunk veb vlan);
 my @alltestmodes = sort qw(all fragment icmp ipopts pathmtu tcp udp);
 
 my %opts;
-getopts('c:e:i:l:r:t:v', \%opts) or do {
+getopts('c:e:i:l:m:r:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: netlink.pl [-v] [-c pseudo] [-e environment] [-i iface]
-	[-l index] [-r index] [-t timeout] [test ...]
+	[-l index] [-m modify] [-r index] [-t timeout] [test ...]
     -c pseudo	pseudo network device: @allpseudos
     -e environ	parse environment for tests from shell script
     -i iface	interface: @allifaces
     -l index	interface index, default 0
+    -m modify	modify mode: @allmodifymodes
     -r index	interface index, default 1
     -t timeout	timeout for a single test, default 60 seconds
     -v		verbose
@@ -53,6 +55,7 @@ my $timeout = $opts{t} || 20;
 environment($opts{e}) if $opts{e};
 my $pseudo = $opts{c} || "none";
 my $iface = $opts{i} || "em";
+my $modify = $opts{m};
 
 my $line = $ENV{NETLINK_LINE} || die "NETLINK_LINE is not in env";
 my $management_if = $ENV{MANAGEMENT_IF} || die "MANAGEMENT_IF is not in env";
@@ -66,6 +69,8 @@ warn "right interface should be in the wrong network" if (!$right_ifidx % 2);
 
 grep { $_ eq $iface } @allifaces
     or die "Unknown interface '$iface'";
+!$modify || grep { $_ eq $modify } @allmodifymodes
+    or die "Unknnown modify mode '$modify'";
 grep { $_ eq $pseudo } @allpseudos
     or die "Unknown pseudo network device '$pseudo'";
 
@@ -531,6 +536,125 @@ sub udpbench_parser {
     return 1;
 }
 
+sub logcmd {
+    my ($log, @cmd) = @_;
+    print $log "@cmd\n";
+    print "@cmd\n" if $opts{v};
+
+    defined(my $pid = open(my $fh, '-|'))
+	or die "Open pipe from '@cmd' failed: $!";
+    if ($pid == 0) {
+	$SIG{__DIE__} = 'DEFAULT';
+	close($fh);
+	open(STDIN, '<', "/dev/null")
+	    or die "Redirect stdin to /dev/null failed: $!";
+	open(STDERR, '>&', \*STDOUT)
+	    or die "Redirect stderr to stdout failed: $!";
+	setsid()
+	    or die "Setsid $$ failed: $!";
+	{
+	    no warnings 'exec';
+	    exec(@cmd);
+	    die "Exec '@cmd' failed: $!";
+	}
+	_exit(126);
+    }
+    local $_;
+    while (<$fh>) {
+	s/[^\s[:print:]]/_/g;
+	print $log $_;
+	print $_ if $opts{v};
+    }
+    $log->sync();
+    close($fh)
+	or $! && die "Close pipe from '@cmd' failed: $!";
+    return $?;
+}
+
+sub lro_get_ifs {
+    my @cmd = ('/sbin/ifconfig', '-a', 'hwfeatures');
+    open(my $fh, '-|', @cmd)
+	or die "Open pipe from command '@cmd' failed: $!";
+    my ($ifname, @ifs);
+    while (<$fh>) {
+	    $ifname = $1 if /^(\w+\d+):/;
+	    push @ifs, $ifname if /hwfeatures=.*\bLRO\b/;
+    }
+    close($fh) or die $! ?
+	"Close pipe from command '@cmd' failed: $!" :
+	"Command '@cmd' failed: $?";
+    return @ifs;
+}
+
+my @lro_ifs;
+sub lro_startup {
+    my ($log) = @_;
+
+    @lro_ifs = lro_get_ifs();
+    foreach my $ifname (@lro_ifs) {
+	my @cmd = ('/sbin/ifconfig', $ifname, 'tcprecvoffload');
+	logcmd($log, @cmd) and
+	    die "Command '@cmd' failed: $?";
+    }
+
+    # changing LRO may lose interface link status due to down/up
+    sleep 1;
+    print $log "lro enabled\n\n";
+    print "lro enabled\n\n" if $opts{v};
+}
+
+sub lro_shutdown {
+    my ($log) = @_;
+    print $log "\ndisabling lro\n";
+    print "\ndisabling lro\n" if $opts{v};
+
+    foreach my $ifname (@lro_ifs) {
+	my @cmd = ('/sbin/ifconfig', $ifname, '-tcprecvoffload');
+	logcmd($log, @cmd) and
+	    die "Command '@cmd' failed: $?";
+    }
+}
+
+sub nopf_startup {
+    my ($log) = @_;
+    my @cmd = ('/sbin/pfctl', '-d');
+    logcmd($log, @cmd) and
+	die "Command '@cmd' failed: $?";
+
+    print $log "pf disabled\n\n";
+    print "pf disabled\n\n" if $opts{v};
+}
+
+sub nopf_shutdown {
+    my ($log) = @_;
+    print $log "\nenabling pf\n";
+    print "\nenabling pf\n" if $opts{v};
+
+    my @cmd = ('/sbin/pfctl', '-e', '-f', '/etc/pf.conf');
+    logcmd($log, @cmd) and
+	die "Command '@cmd' failed: $?";
+}
+
+sub notso_startup {
+    my ($log) = @_;
+    my @cmd = ('/sbin/sysctl', 'net.inet.tcp.tso=0');
+    logcmd($log, @cmd) and
+	die "Command '@cmd' failed: $?";
+
+    print $log "tso disabled\n\n";
+    print "tso disabled\n\n" if $opts{v};
+}
+
+sub notso_shutdown {
+    my ($log) = @_;
+    print $log "\nenabling tso\n";
+    print "\nenabling tso\n" if $opts{v};
+
+    my @cmd = ('/sbin/sysctl', 'net.inet.tcp.tso=1');
+    logcmd($log, @cmd) and
+	die "Command '@cmd' failed: $?";
+}
+
 my @tests;
 push @tests, (
     {
@@ -722,6 +846,19 @@ my @stats = (
 	statcmd => [ 'vmstat', '-iz' ],
     },
 );
+
+if ($modify && $modify eq 'lro') {
+    $tests[0]{startup} = \&lro_startup;
+    $tests[-1]{shutdown} = \&lro_shutdown;
+}
+if ($modify && $modify eq 'nopf') {
+    $tests[0]{startup} = \&nopf_startup;
+    $tests[-1]{shutdown} = \&nopf_shutdown;
+}
+if ($modify && $modify eq 'notso') {
+    $tests[0]{startup} = \&notso_startup;
+    $tests[-1]{shutdown} = \&notso_shutdown;
+}
 
 TEST:
 foreach my $t (@tests) {
