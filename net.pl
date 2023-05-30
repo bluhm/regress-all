@@ -31,22 +31,24 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my @allifaces = qw(em igc ix ixl);
+my @allmodifymodes = qw(lro none nopf notso);
 my @allpseudos = qw(aggr bridge carp none trunk veb vlan);
 my @allsetupmodes = (qw(build install upgrade sysupgrade keep kernel reboot
     tools), "cvs,build", "cvs,kernel");
 my @alltestmodes = qw(all fragment icmp ipopts pathmtu tcp udp);
 
 my %opts;
-getopts('b:c:d:D:h:i:N:P:ps:v', \%opts) or do {
+getopts('b:c:d:D:h:i:m:N:P:ps:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: net.pl [-pv] [-b kstack] [-c pseudo] [-d date] [-D cvsdate] -h host
-	[-i iface] [-N repeat] [-P patch] [-s setup] [test ...]
+	[-i iface] [-m modify] [-N repeat] [-P patch] [-s setup] [test ...]
 #    -b kstack	measure with btrace and create kernel stack map
     -c pseudo	list of pseudo network devices: all @allpseudos
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for network link test, user defaults to root
     -i iface	list of interfaces: all @allifaces
+    -m modify	list of modify modes: all @allmodifymodes
     -N repeat	number of build, reboot, test repetitions per step
     -P patch	apply patch to clean kernel source
     -s setup	setup mode: @allsetupmodes
@@ -69,6 +71,7 @@ if ($opts{D}) {
 }
 my $patch = $opts{P};
 my $iface = $opts{i};
+my $modify = $opts{m};
 my $pseudo = $opts{c};
 my $repeat = $opts{N};
 !$repeat || $repeat >= 1
@@ -174,7 +177,8 @@ if (($cvsdate && ! -f "$resultdir/cvsbuild-$host.log") || $patch) {
     cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch);
     collect_version();
     setup_html();
-} elsif ($cvsdate && !($patch || $iface || $pseudo || $repeat || $btrace)) {
+} elsif ($cvsdate &&
+    !($patch || $iface || $modify || $pseudo || $repeat || $btrace)) {
 	die "Directory '$resultdir' exists and no subdir given";
 }
 
@@ -190,6 +194,16 @@ if ($iface) {
 	grep { $_ eq $if } @allifaces
 	    or die "Unknown interface '$if'";
 	$if = "iface-$if";
+    }
+}
+my @modifies;
+if ($modify) {
+    $modify = join(",", @allmodifymodes) if $modify eq "all";
+    @modifies = split(/,/, $modify);
+    foreach my $md (@modifies) {
+	grep { $_ eq $md } @allmodifymodes
+	    or die "Unknown modify mode '$md'";
+	$md = "modify-$md";
     }
 }
 my @pseudos;
@@ -208,63 +222,77 @@ push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1)
 # after all regular repeats, make one with btrace turned on
 push @repeats, "btrace-$btrace" if $btrace;
 
-foreach my $ifacedir (@ifaces ? @ifaces : ".") {
-    if (@ifaces) {
-	-d $ifacedir || mkdir $ifacedir
-	    or die "Make directory '$ifacedir' failed: $!";
-	chdir($ifacedir)
-	    or die "Change directory to '$ifacedir' failed: $!";
-	($iface = $ifacedir) =~ s/.*-//;
+foreach my $modifydir (@modifies ? @modifies : ".") {
+    if (@modifies) {
+	-d $modifydir || mkdir $modifydir
+	    or die "Make directory '$modifydir' failed: $!";
+	chdir($modifydir)
+	    or die "Change directory to '$modifydir' failed: $!";
     }
 
-    foreach my $pseudodir (@pseudos ? @pseudos : ".") {
-	if (@pseudos) {
-	    -d $pseudodir || mkdir $pseudodir
-		or die "Make directory '$pseudodir' failed: $!";
-	    chdir($pseudodir)
-		or die "Change directory to '$pseudodir' failed: $!";
+    foreach my $ifacedir (@ifaces ? @ifaces : ".") {
+	if (@ifaces) {
+	    -d $ifacedir || mkdir $ifacedir
+		or die "Make directory '$ifacedir' failed: $!";
+	    chdir($ifacedir)
+		or die "Change directory to '$ifacedir' failed: $!";
 	}
 
-	foreach my $repeatdir (@repeats ? @repeats : ".") {
-	    if (@repeats) {
-		if ($repeatdir =~ /^btrace-/) {
-		    $repeatdir = mkdir_num($repeatdir);
-		} else {
-		    -d $repeatdir || mkdir $repeatdir
-			or die "Make directory '$repeatdir' failed: $!";
-		}
-		chdir($repeatdir)
-		    or die "Change directory to '$repeatdir' failed: $!";
+	foreach my $pseudodir (@pseudos ? @pseudos : ".") {
+	    if (@pseudos) {
+		-d $pseudodir || mkdir $pseudodir
+		    or die "Make directory '$pseudodir' failed: $!";
+		chdir($pseudodir)
+		    or die "Change directory to '$pseudodir' failed: $!";
 	    }
 
-	    # run network link tests remotely
+	    foreach my $repeatdir (@repeats ? @repeats : ".") {
+		if (@repeats) {
+		    if ($repeatdir =~ /^btrace-/) {
+			$repeatdir = mkdir_num($repeatdir);
+		    } else {
+			-d $repeatdir || mkdir $repeatdir
+			    or die "Make directory '$repeatdir' failed: $!";
+		    }
+		    chdir($repeatdir)
+			or die "Change directory to '$repeatdir' failed: $!";
+		}
 
-	    my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/netlink/netlink.pl');
-	    push @sshcmd, '-c', $1 if $pseudodir =~ /-(.+)/;
-	    push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
-	    push @sshcmd, '-e', "/root/netlink/env-$host.sh";
-	    push @sshcmd, '-i', $iface if $iface;
-	    push @sshcmd, '-v' if $opts{v};
-	    push @sshcmd, keys %testmode;
-	    logcmd(@sshcmd);
+		# run network link tests remotely
 
-	    # get result and logs
+		my @sshcmd = ('ssh', $opts{h}, 'perl',
+		    '/root/netlink/netlink.pl');
+		push @sshcmd, '-c', $1 if $pseudodir =~ /-(.+)/;
+		push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
+		push @sshcmd, '-e', "/root/netlink/env-$host.sh";
+		push @sshcmd, '-i', $1 if $ifacedir =~ /-(.+)/;
+		push @sshcmd, '-m', $1 if $modifydir =~ /-(.+)/;
+		push @sshcmd, '-v' if $opts{v};
+		push @sshcmd, keys %testmode;
+		logcmd(@sshcmd);
 
-	    collect_result("$opts{h}:/root/netlink");
-	    collect_version();
-	    setup_html();
+		# get result and logs
 
-	    if (@repeats) {
+		collect_result("$opts{h}:/root/netlink");
+		collect_version();
+		setup_html();
+
+		if (@repeats) {
+		    chdir("..")
+			or die "Change directory to '..' failed: $!";
+		}
+	    }
+	    if (@pseudos) {
 		chdir("..")
 		    or die "Change directory to '..' failed: $!";
 	    }
 	}
-	if (@pseudos) {
+	if (@ifaces) {
 	    chdir("..")
 		or die "Change directory to '..' failed: $!";
 	}
     }
-    if (@ifaces) {
+    if (@modifies) {
 	chdir("..")
 	    or die "Change directory to '..' failed: $!";
     }
