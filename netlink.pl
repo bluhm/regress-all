@@ -127,6 +127,11 @@ my $lnx_r_net = "$lnx_r_addr/24";
 my $lnx_r_net6 = "$lnx_r_addr6/64";
 my $lnx_r_ssh = 'root@lt43'; #$ENV{LINUXR_SSH};
 
+my @lnx_r_addrs = map { "$ip4prefix.${line}2.4$_" } 0..9;
+my @lnx_r_nets = map { "$_/24" } @lnx_r_addrs;
+my @lnx_r_addr6s = map { "$ip6prefix${line}2::4$_" } 0..9;
+my @lnx_r_net6s = map { "$_/64" } @lnx_r_addr6s;
+
 my $dir = dirname($0);
 chdir($dir)
     or die "Change directory to '$dir' failed: $!";
@@ -203,6 +208,16 @@ mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net, 'dev',
     $lnx_r_if);
 mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net6, 'dev',
     $lnx_r_if);
+
+foreach my $net (@lnx_r_nets) {
+    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_pdev);
+    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_if);
+}
+
+foreach my $net (@lnx_r_net6s) {
+    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_pdev);
+    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_if);
+}
 
 mysystem('ssh', $lnx_l_ssh, 'ip', 'route', 'del', $obsd_r_net);
 mysystem('ssh', $lnx_r_ssh, 'ip', 'route', 'del', $obsd_l_net);
@@ -441,6 +456,9 @@ if ($configure_linux) {
 
 	@sshcmd = ('ssh', $lnx_r_ssh);
 	mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net, 'dev', $lnx_r_if);
+	foreach my $net (@lnx_r_nets) {
+	    mysystem(@sshcmd, 'ip', 'addr', 'add', $net, 'dev', $lnx_r_if);
+	}
 	mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_r_if, 'up');
 	mysystem(@sshcmd, 'ip', 'route', 'add', $obsd_l_net, 'via',
 	    $obsd_r_addr, 'dev', "$lnx_r_if");
@@ -453,6 +471,9 @@ if ($configure_linux) {
 
 	@sshcmd = ('ssh', $lnx_r_ssh);
 	mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net6, 'dev', $lnx_r_if);
+	foreach my $net (@lnx_r_net6s) {
+	    mysystem(@sshcmd, 'ip', 'addr', 'add', $net, 'dev', $lnx_r_if);
+	}
 	mysystem(@sshcmd, 'ip', '-6', 'route', 'add', $obsd_l_net6, 'via',
 	    $obsd_r_addr6, 'dev', "$lnx_r_if");
     }
