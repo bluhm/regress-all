@@ -794,7 +794,7 @@ my @frag = (
 	address => '$linux_forward_addr',
     },
 );
-foreach my $payload (0, 1500 - 28, 1500 - 28 - 4 + 1500 - 20, 2**16 - 1 - 28) {
+foreach my $payload (0, 1500 - 28, 1500 - 28 + 1500 - 20, 2**16 - 1 - 28) {
     push @tests, map {
 	{
 	    testcmd => [$netbench,
