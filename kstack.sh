@@ -11,3 +11,5 @@ ssh "$host" cat "$file.dt" | \
     $fg/stackcollapse-bpftrace.pl | \
     $fg/flamegraph.pl > \
     /data/test/files/"$host-$file.svg"
+
+echo http://bluhm.genua.de/files/"$host-$file.svg"
