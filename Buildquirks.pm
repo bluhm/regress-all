@@ -845,6 +845,11 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "lib/libc" ],
     },
+    '2023-06-04T06:58:33Z' => {
+	comment => "libc malloc thorough write-after-free checks",
+	updatedirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
 );
 
 #### Patches ####
