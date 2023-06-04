@@ -25,14 +25,15 @@ use Getopt::Std;
 my @alltestmodes = qw(all udpbench);
 
 my %opts;
-getopts('a:B:b:c:l:P:s:t:v', \%opts) or do {
+getopts('a:B:b:c:l:N:P:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: netbench.pl [-v] -a address [-B bitrate] [-b bufsize] [-c client]
 	[-l length] [-P packetrate] [-s server] [-t timeout] [test ...]
-    -a address	IP address for packet destination, comma repeat count
+    -a address	IP address for packet destination
     -B bitrate	bits per seconds send rate
     -b bufsize	set size of send and receive buffer
     -c client	connect via ssh to start packet generator
+    -N repeat	run instances in parallel with incremented address
     -P packet	packets per seconds send rate
     -l length	set length of udp payload
     -s sever	connect via ssh to start packet consumer
@@ -44,11 +45,9 @@ EOF
 };
 my $addr = $opts{a}
     or die "IP Address required";
-$addr =~ /^([0-9]+\.[0-9.]+)(?:,(\d+))?$/ ||
-    $addr =~ /^([0-9a-fA-F:]+)(?:,(\d+))?$/
+$addr =~ /^([0-9]+\.[0-9.]+|[0-9a-fA-F:]+)$/
     or die "Address must be IPv4 or IPv6";
-$addr = $1;
-my $repeat = $2;
+my $repeat = $opts{N};
 my $client_ssh = $opts{c};
 my $server_ssh = $opts{s};
 my $timeout = $opts{t} || 1;
