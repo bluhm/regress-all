@@ -136,7 +136,9 @@ start_client($_) foreach (@clients);
 
 set_nonblock($_) foreach (@clients, @servers);
 
-select_output(@clients, @servers);
+collect_output(@clients, @servers);
+
+print_status();
 
 exit;
 
@@ -207,7 +209,7 @@ sub set_nonblock {
 	or die "Proc $proc->{name} fcntl F_SETFL O_NONBLOCK failed: $!\n";
 }
 
-sub select_output {
+sub collect_output {
     my @procs = @_;
 
     while (my @fhs = map { $_->{fh} || () } @procs) {
@@ -224,6 +226,7 @@ sub select_output {
     }
 }
 
+my %status;
 sub read_output {
     my ($proc, $rout) = @_;
 
@@ -238,11 +241,30 @@ sub read_output {
 	$_ = $proc->{prev}. $_ if defined($proc->{prev});
 	$proc->{prev} = /\n$/ ? undef : $_;
 	print if !$opts{v} && /^(send|recv):.*\n/;
+	if (/^(send|recv):.*
+	    \spackets\s([0-9]+),.*\sether\s([0-9]+),.*
+	    \sbegin\s([0-9.]+),.*\send\s([0-9.]+),.*/x) {
+	    $status{$1}{etherlen} = ($status{$1}{etherlen} || 0) + $2 * $3;
+	    $status{$1}{begin} = $4
+		if !$status{$1}{begin} || $4 < $status{$1}{begin};
+	    $status{$1}{end} = $5
+		if !$status{$1}{end} || $status{$1}{end} < $5;;
+	}
+	
     }
     unless ($!{EWOULDBLOCK}) {
 	close($proc->{fh}) or warn $! ?
 	    "Close pipe from proc $proc->{name} '@{$proc->{cmd}}' failed: $!" :
 	    "Proc $proc->{name} '@{$proc->{cmd}}' failed: $?";
 	delete $proc->{fh};
+    }
+}
+
+sub print_status {
+    foreach (qw(send recv)) {
+	printf("%sall: etherlen %d, begin %f, end %f, duration %f, bit/s %g\n",
+	    $_, $status{$_}{etherlen}, $status{$_}{begin}, $status{$_}{end},
+	    $status{$_}{end} - $status{$_}{begin},
+	    $status{$_}{etherlen} * 8 / ($status{$_}{end} - $status{$_}{begin}));
     }
 }
