@@ -25,13 +25,14 @@ use Getopt::Std;
 my @alltestmodes = qw(all udpbench);
 
 my %opts;
-getopts('a:B:b:c:l:N:P:s:t:v', \%opts) or do {
+getopts('a:B:b:c:f:l:N:P:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: netbench.pl [-v] -a address [-B bitrate] [-b bufsize] [-c client]
 	[-l length] [-P packetrate] [-s server] [-t timeout] [test ...]
     -a address	IP address for packet destination
     -B bitrate	bits per seconds send rate
     -b bufsize	set size of send and receive buffer
+    -f frames	calculate udp payload to fragment packet into frames
     -c client	connect via ssh to start packet generator
     -N repeat	run instances in parallel with incremented address
     -P packet	packets per seconds send rate
@@ -44,7 +45,7 @@ EOF
     exit(2);
 };
 my $addr = $opts{a}
-    or die "IP Address required";
+    or die "IP address required";
 $addr =~ /^([0-9]+\.[0-9.]+|[0-9a-fA-F:]+)$/
     or die "Address must be IPv4 or IPv6";
 my $repeat = $opts{N};
@@ -79,6 +80,35 @@ if ($repeat) {
     }
 } else {
     push @addrs, $addr;
+}
+
+my $paylen = $opts{l};
+if (defined($opts{f})) {
+    !defined($paylen)
+	or die "Use either -f frames or -l lenght";
+    $opts{f} =~ /\d+$/
+	or die "Frames must be number";
+    if ($addr =~ /:/) {
+	if ($opts{f} <= 1) {
+	    # ether frame minus ip6 header
+	    $paylen = (1500 - 40) * $opts{f};
+	} else {
+	    # ether frame minus ip6 header minus fragment header minus round
+	    $paylen = (1500 - 40 - 8 - 4) * $opts{f};
+	}
+    } else {
+	# ether frame minus ip header
+	$paylen = (1500 - 20) * $opts{f};
+    }
+    # minus udp header
+    $paylen = $paylen < 8 ? 0 : $paylen - 8;
+    if ($addr =~ /:/) {
+	# maximux ip6 payload length
+	$paylen = 2**16 - 1 - 8 if $paylen > 2**16 - 1 - 8;
+    } else {
+	# maximum ip packet length
+	$paylen = 2**16 - 1 - 20 - 8 if $paylen > 2**16 - 1 - 20 - 8;
+    }
 }
 
 my (@servers, @clients);
@@ -116,7 +146,7 @@ sub start_server {
 
     my @cmd = ('udpbench');
     push @cmd, "-b$opts{b}" if defined($opts{b});
-    push @cmd, "-l$opts{l}" if defined($opts{l});
+    push @cmd, "-l$paylen" if defined($paylen);
     my $to = $timeout + ($repeat || 0) + 10;
     push @cmd, ("-t$to", '-p0', 'recv', $proc->{addr});
     unshift @cmd, ($proc->{ssh}) if $proc->{ssh};
@@ -133,7 +163,7 @@ sub start_client {
     my @cmd = ('udpbench');
     push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
-    push @cmd, "-l$opts{l}" if defined($opts{l});
+    push @cmd, "-l$paylen" if defined($paylen);
     push @cmd, "-P$opts{P}" if defined($opts{P});
     push @cmd, ("-t$timeout", "-p$proc->{port}", 'send', $proc->{addr});
     unshift @cmd, ($proc->{ssh}) if $proc->{ssh};
