@@ -25,15 +25,17 @@ use Getopt::Std;
 my @alltestmodes = qw(all udpbench);
 
 my %opts;
-getopts('a:B:b:c:f:l:N:P:s:t:v', \%opts) or do {
+getopts('a:B:b:c:f:l:m:N:P:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: netbench.pl [-v] -a address [-B bitrate] [-b bufsize] [-c client]
-	[-l length] [-P packetrate] [-s server] [-t timeout] [test ...]
+	[-l length] [-m mmsglen] [-P packetrate] [-s server] [-t timeout]
+	[test ...]
     -a address	IP address for packet destination
     -B bitrate	bits per seconds send rate
     -b bufsize	set size of send and receive buffer
     -f frames	calculate udp payload to fragment packet into frames
     -c client	connect via ssh to start packet generator
+    -m mmsglen	number of mmsghdr for sendmmsg or recvmmsg
     -N repeat	run instances in parallel with incremented address
     -P packet	packets per seconds send rate
     -l length	set length of udp payload
@@ -149,6 +151,7 @@ sub start_server {
     my @cmd = ('udpbench');
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-l$paylen" if defined($paylen);
+    push @cmd, "-m$opts{m}" if defined($opts{m});
     my $to = $timeout + ($repeat || 0) + 10;
     push @cmd, ("-t$to", '-p0', 'recv', $proc->{addr});
     unshift @cmd, ($proc->{ssh}) if $proc->{ssh};
@@ -166,6 +169,7 @@ sub start_client {
     push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-l$paylen" if defined($paylen);
+    push @cmd, "-m$opts{m}" if defined($opts{m});
     push @cmd, "-P$opts{P}" if defined($opts{P});
     push @cmd, ("-t$timeout", "-p$proc->{port}", 'send', $proc->{addr});
     unshift @cmd, ($proc->{ssh}) if $proc->{ssh};
@@ -250,7 +254,6 @@ sub read_output {
 	    $status{$1}{end} = $5
 		if !$status{$1}{end} || $status{$1}{end} < $5;;
 	}
-	
     }
     unless ($!{EWOULDBLOCK}) {
 	close($proc->{fh}) or warn $! ?
@@ -265,6 +268,7 @@ sub print_status {
 	printf("%sall: etherlen %d, begin %f, end %f, duration %f, bit/s %g\n",
 	    $_, $status{$_}{etherlen}, $status{$_}{begin}, $status{$_}{end},
 	    $status{$_}{end} - $status{$_}{begin},
-	    $status{$_}{etherlen} * 8 / ($status{$_}{end} - $status{$_}{begin}));
+	    $status{$_}{etherlen} * 8 /
+	    ($status{$_}{end} - $status{$_}{begin}));
     }
 }
