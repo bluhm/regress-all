@@ -84,7 +84,7 @@ sub filter_udpbench {
     shift;
     local @ARGV = @_;
     my %opts;
-    getopts('b:d:l:p:t:', \%opts)
+    getopts('B:b:DHl:m:P:p:t:', \%opts)
 	or die "Parsing udpbench options failed.\n";
     @ARGV >= 1 && $ARGV[0] =~ /^(send|recv)$/
 	or die "Action send or recv for udpbench must be present.\n";
