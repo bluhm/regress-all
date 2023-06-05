@@ -794,12 +794,12 @@ my @frag = (
 	address => '$linux_forward_addr',
     },
 );
-foreach my $payload (0, 1500 - 28, 1500 - 28 + 1500 - 20, 2**16 - 1 - 28) {
+foreach my $frame (0, 1, 2, 99) {
     push @tests, map {
 	{
 	    testcmd => [$netbench,
 		'-b1000000',
-		"-l$payload",
+		"-f$frame",
 		 $_->{client} ? ("-c$_->{client}") : (),
 		 $_->{server} ? ("-s$_->{server}") : (),
 		'-a'. eval "$_->{address}",
@@ -808,13 +808,11 @@ foreach my $payload (0, 1500 - 28, 1500 - 28 + 1500 - 20, 2**16 - 1 - 28) {
 	    parser => \&udpbench_parser,
 	}
     } @frag if $testmode{frag4};
-}
-foreach my $payload (0, 1500 - 48, 1500 - 56 + 1500 - 48 - 8, 2**16 - 1 - 8) {
     push @tests, map {
 	{
 	    testcmd => [$netbench,
 		'-b1000000',
-		"-l$payload",
+		"-f$frame",
 		 $_->{client} ? ("-c$_->{client}") : (),
 		 $_->{server} ? ("-s$_->{server}") : (),
 		'-a'. eval "$_->{address}6",
