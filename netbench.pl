@@ -154,9 +154,11 @@ sub start_server {
     push @cmd, "-m$opts{m}" if defined($opts{m});
     my $to = $timeout + ($repeat || 0) + 10;
     push @cmd, ("-t$to", '-p0', 'recv', $proc->{addr});
-    unshift @cmd, ($proc->{ssh}) if $proc->{ssh};
-    unshift @cmd, '-M' if $repeat && !$master{$proc->{ssh}}++;
-    unshift @cmd, ('ssh', '-nT');
+    if ($proc->{ssh}) {
+	unshift @cmd, $proc->{ssh};
+	unshift @cmd, '-M' if $repeat && !$master{$proc->{ssh}}++;
+	unshift @cmd, ('ssh', '-nT');
+    }
     $proc->{cmd} = \@cmd;
 
     open_pipe($proc);
@@ -172,9 +174,11 @@ sub start_client {
     push @cmd, "-m$opts{m}" if defined($opts{m});
     push @cmd, "-P$opts{P}" if defined($opts{P});
     push @cmd, ("-t$timeout", "-p$proc->{port}", 'send', $proc->{addr});
-    unshift @cmd, ($proc->{ssh}) if $proc->{ssh};
-    unshift @cmd, '-M' if $repeat && !$master{$proc->{ssh}}++;
-    unshift @cmd, ('ssh', '-nT') if $proc->{ssh};
+    if ($proc->{ssh}) {
+	unshift @cmd, $proc->{ssh};
+	unshift @cmd, '-M' if $repeat && !$master{$proc->{ssh}}++;
+	unshift @cmd, ('ssh', '-nT') if $proc->{ssh};
+    }
     $proc->{cmd} = \@cmd;
 
     open_pipe($proc);
