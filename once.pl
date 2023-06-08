@@ -155,12 +155,10 @@ usehosts(bindir => "$performdir/bin", date => $date,
 # do not run end block until initialized, date may change later
 my $odate = $date;
 END {
-    if ($odate) {
-	bsdcons_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
-	    release => $release);
-	my @cmd = ("$performdir/bin/running-html.pl");
-	system(@cmd);
-    }
+    bsdcons_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
+	release => $release) if $odate;
+    my @cmd = ("$performdir/bin/running-html.pl");
+    system(@cmd);
 };
 powerup_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
     release => $release);
@@ -232,6 +230,9 @@ foreach my $repeatdir (@repeats ? @repeats : ".") {
 powerdown_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
     release => $release)
     if $opts{p};
+bsdcons_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
+    release => $release);
+undef $odate;
 
 # create html output
 

@@ -172,11 +172,9 @@ usehosts(bindir => "$performdir/bin", date => $date,
 # do not run end block until initialized, date may change later
 my $odate = $date;
 END {
-    if ($odate) {
-	bsdcons_hosts(release => $release);
-	my @cmd = ("$performdir/bin/running-html.pl");
-	system(@cmd);
-    }
+    bsdcons_hosts(release => $release) if $odate;
+    my @cmd = ("$performdir/bin/running-html.pl");
+    system(@cmd);
 };
 setup_hosts(release => $release, mode => \%setupmode) if !$setupmode{keep};
 powerup_hosts(release => $release) if $setupmode{keep};
@@ -272,6 +270,8 @@ foreach my $current (@steps) {
     setup_html();
 }
 powerdown_hosts(release => $release) if $opts{p};
+bsdcons_hosts(release => $release);
+undef $odate;
 
 # create html output
 

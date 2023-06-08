@@ -103,11 +103,9 @@ usehosts(bindir => "$regressdir/bin", date => $date,
 # do not run end block until initialized, date may change later
 my $odate = $date;
 END {
-    if ($odate) {
-	bsdcons_hosts();
-	my @cmd = ("$regressdir/bin/running-html.pl");
-	system(@cmd);
-    }
+    bsdcons_hosts() if $odate;
+    my @cmd = ("$regressdir/bin/running-html.pl");
+    system(@cmd);
 };
 setup_hosts(patch => $patch, mode => \%setupmode)
     if $patch || !($setupmode{keep} || $setupmode{reboot});
@@ -158,6 +156,8 @@ chdir($resultdir)
 collect_dmesg();
 setup_html();
 powerdown_hosts() if $opts{p};
+bsdcons_hosts();
+undef $odate;
 
 # create html output
 
