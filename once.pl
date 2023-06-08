@@ -157,8 +157,10 @@ my $odate = $date;
 END {
     bsdcons_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
 	release => $release) if $odate;
-    my @cmd = ("$performdir/bin/running-html.pl");
-    system(@cmd);
+    my @cmd = ("$performdir/bin/setup-html.pl");
+    system(@cmd) if $performdir;
+    @cmd = ("$performdir/bin/running-html.pl");
+    system(@cmd) if $performdir;
 };
 powerup_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
     release => $release);

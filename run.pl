@@ -104,8 +104,10 @@ usehosts(bindir => "$regressdir/bin", date => $date,
 my $odate = $date;
 END {
     bsdcons_hosts() if $odate;
-    my @cmd = ("$regressdir/bin/running-html.pl");
-    system(@cmd);
+    my @cmd = ("$regressdir/bin/setup-html.pl");
+    system(@cmd) if $regressdir;
+    @cmd = ("$regressdir/bin/running-html.pl");
+    system(@cmd) if $regressdir;
 };
 setup_hosts(patch => $patch, mode => \%setupmode)
     if $patch || !($setupmode{keep} || $setupmode{reboot});

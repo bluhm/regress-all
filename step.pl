@@ -173,8 +173,10 @@ usehosts(bindir => "$performdir/bin", date => $date,
 my $odate = $date;
 END {
     bsdcons_hosts(release => $release) if $odate;
-    my @cmd = ("$performdir/bin/running-html.pl");
-    system(@cmd);
+    my @cmd = ("$performdir/bin/setup-html.pl");
+    system(@cmd) if $performdir;
+    @cmd = ("$performdir/bin/running-html.pl");
+    system(@cmd) if $performdir;
 };
 setup_hosts(release => $release, mode => \%setupmode) if !$setupmode{keep};
 powerup_hosts(release => $release) if $setupmode{keep};
