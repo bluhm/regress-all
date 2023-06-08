@@ -26,8 +26,8 @@ use Machine;
 use parent 'Exporter';
 our @EXPORT= qw(
     usehosts setup_hosts
-    collect_version collect_bsdcons collect_dmesg collect_result
-    cvsbuild_hosts powerdown_hosts powerup_hosts reboot_hosts
+    collect_version collect_dmesg collect_result
+    bsdcons_hosts cvsbuild_hosts powerdown_hosts powerup_hosts reboot_hosts
     setup_html
 );
 
@@ -120,15 +120,6 @@ sub collect_version {
     }
 }
 
-sub collect_bsdcons {
-    return if !$bindir;
-    for (my $host = $firsthost; $host le $lasthost; $host++) {
-	createhost($user, $host);
-	logeval { get_bsdcons() };
-	last if $@;
-    }
-}
-
 sub collect_dmesg {
     for (my $host = $firsthost; $host le $lasthost; $host++) {
 	my $dmesg = "dmesg-$host.txt";
@@ -207,6 +198,10 @@ sub hosts_command {
 
 	waitcmd(@pidcmds);
     }
+}
+
+sub bsdcons_hosts {
+    hosts_command("bsdcons.pl", @_);
 }
 
 sub cvsbuild_hosts {

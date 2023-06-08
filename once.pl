@@ -156,12 +156,9 @@ usehosts(bindir => "$performdir/bin", date => $date,
 my $odate = $date;
 END {
     if ($odate) {
-	my @cmd = ("$performdir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
-	push @cmd, "-r", $release if $release;
-	system(@cmd);
-	@cmd = ("$performdir/bin/setup-html.pl");
-	system(@cmd);
-	@cmd = ("$performdir/bin/running-html.pl");
+	bsdcons_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
+	    release => $release);
+	my @cmd = ("$performdir/bin/running-html.pl");
 	system(@cmd);
     }
 };

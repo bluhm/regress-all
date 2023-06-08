@@ -104,11 +104,8 @@ usehosts(bindir => "$regressdir/bin", date => $date,
 my $odate = $date;
 END {
     if ($odate) {
-	my @cmd = ("$regressdir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
-	system(@cmd);
-	@cmd = ("$regressdir/bin/setup-html.pl");
-	system(@cmd);
-	@cmd = ("$regressdir/bin/running-html.pl");
+	bsdcons_hosts();
+	my @cmd = ("$regressdir/bin/running-html.pl");
 	system(@cmd);
     }
 };
