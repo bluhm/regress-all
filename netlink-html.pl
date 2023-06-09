@@ -211,12 +211,12 @@ sub write_html_hier_files {
 	    "OpenBSD netlink $short test results",
 	    @nav);
 
-	my $hv = $H{$date};
-	html_hier_top($html, $date, @$hv);
+	my @hv = sort { $a->{key} cmp $b->{key} } @{$H{$date}};
+	html_hier_top($html, $date, @hv);
 
 	print $html "<table>\n";
 	print $html "  <thead>\n";
-	html_hier_test_head($html, @$hv);
+	html_hier_test_head($html, @hv);
 	print $html "  </thead>\n  <tbody>\n";
 
 	my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
@@ -224,7 +224,7 @@ sub write_html_hier_files {
 	foreach my $test (@tests) {
 	    my $td = $T{$test}{$date}
 		or next;
-	    html_hier_test_row($html, $test, $td, @$hv);
+	    html_hier_test_row($html, $test, $td, @hv);
 	}
 	print $html "  </tbody>\n";
 	print $html "</table>\n";
