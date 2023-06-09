@@ -65,7 +65,7 @@ chdir($resultdir)
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
 
-my @HIERARCHY = qw(date cvsdate patch modify iface pseudo repeat btrace);
+my @HIERARCHY = qw(date cvsdate patch modify iface pseudo);
 my (%T, %D, %H, %V);
 
 # %T
