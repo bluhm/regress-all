@@ -101,6 +101,9 @@ my $obsd_l_addr = "$ip4prefix.${line}1.2";
 my $obsd_l_net6 = "${ip6prefix}${line}1::/64";
 my $obsd_l_addr6 = "${ip6prefix}${line}1::2";
 
+my @obsd_l_addrs = map { "$ip4prefix.${line}1.2$_" } 0..9;
+my @obsd_l_addr6s = map { "${ip6prefix}${line}1::2$_" } 0..9;
+
 my $obsd_r_if = $iface . $right_ifidx;
 my $obsd_r_net = "$ip4prefix.${line}2.0/24";
 my $obsd_r_addr = "$ip4prefix.${line}2.3";
@@ -245,11 +248,19 @@ mysystem('ssh', $lnx_r_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
 if ($pseudo eq 'bridge' || $pseudo eq 'none') {
     mysystem('ifconfig', $obsd_l_if, 'inet', "${obsd_l_addr}/24")
 	and do { warn "command failed: $?"; exit 0; };
+    foreach my $addr (@obsd_l_addrs) {
+	mysystem('ifconfig', $obsd_l_if, 'inet', "${addr}/32", 'alias')
+	    and do { warn "command failed: $?"; exit 0; };
+    }
     mysystem('ifconfig', $obsd_r_if, 'inet', "${obsd_r_addr}/24")
 	and do { warn "command failed: $?"; exit 0; };
 
     mysystem('ifconfig', $obsd_l_if, 'inet6', $obsd_l_addr6)
 	and do { warn "command failed: $?"; exit 0; };
+    foreach my $addr (@obsd_l_addr6s) {
+	mysystem('ifconfig', $obsd_l_if, 'inet6', "${addr}/128", 'alias')
+	    and do { warn "command failed: $?"; exit 0; };
+    }
     mysystem('ifconfig', $obsd_r_if, 'inet6', $obsd_r_addr6)
 	and do { warn "command failed: $?"; exit 0; };
 }
@@ -340,11 +351,17 @@ if ($pseudo eq 'aggr') {
     mysystem('ifconfig', 'aggr0', 'trunkport', $obsd_l_if);
     mysystem('ifconfig', 'aggr1', 'trunkport', $obsd_r_if);
 
-    mysystem('ifconfig', 'aggr0', "${obsd_l_addr}/24");
-    mysystem('ifconfig', 'aggr1', "${obsd_r_addr}/24");
+    mysystem('ifconfig', 'aggr0', 'inet', "${obsd_l_addr}/24");
+    foreach my $addr (@obsd_l_addrs) {
+	mysystem('ifconfig', 'aggr0', 'inet', "${addr}/32", 'alias');
+    }
+    mysystem('ifconfig', 'aggr1', 'inet', "${obsd_r_addr}/24");
 
-    mysystem('ifconfig', 'aggr0', $obsd_l_addr6);
-    mysystem('ifconfig', 'aggr1', $obsd_r_addr6);
+    mysystem('ifconfig', 'aggr0', 'inet6', $obsd_l_addr6);
+    foreach my $addr (@obsd_l_addr6s) {
+	mysystem('ifconfig', 'aggr0', 'inet6', "${addr}/128", 'alias');
+    }
+    mysystem('ifconfig', 'aggr1', 'inet6', $obsd_r_addr6);
 
     mysystem('ifconfig', 'aggr0', 'up');
     mysystem('ifconfig', 'aggr1', 'up');
@@ -364,9 +381,15 @@ if ($pseudo eq 'aggr') {
     mysystem('ifconfig', 'vport1', 'create');
 
     mysystem('ifconfig', 'vport0', 'inet', "${obsd_l_addr}/24");
+    foreach my $addr (@obsd_l_addrs) {
+	mysystem('ifconfig', 'vport0', 'inet', "${addr}/32", 'alias');
+    }
     mysystem('ifconfig', 'vport1', 'inet', "${obsd_r_addr}/24");
 
     mysystem('ifconfig', 'vport0', 'inet6', $obsd_l_addr6);
+    foreach my $addr (@obsd_l_addr6s) {
+	mysystem('ifconfig', 'vport0', 'inet6', "${addr}/128", 'alias');
+    }
     mysystem('ifconfig', 'vport1', 'inet6', $obsd_r_addr6);
 
     mysystem('ifconfig', 'vport0', 'up');
@@ -403,6 +426,9 @@ if ($pseudo eq 'aggr') {
     mysystem('ifconfig', 'vlan1', 'parent', $obsd_r_if, 'vnetid', $vlanr);
 
     mysystem('ifconfig', 'vlan0', 'inet', "${obsd_l_addr}/24", 'up');
+    foreach my $addr (@obsd_l_addrs) {
+	mysystem('ifconfig', 'vlan0', 'inet', "${addr}/32", 'alias');
+    }
     mysystem('ifconfig', 'vlan1', 'inet', "${obsd_r_addr}/24", 'up');
 
     mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net, 'dev',
@@ -416,6 +442,9 @@ if ($pseudo eq 'aggr') {
 	$obsd_r_addr, 'dev', "$lnx_r_pdev");
 
     mysystem('ifconfig', 'vlan0', 'inet6', $obsd_l_addr6, 'up');
+    foreach my $addr (@obsd_l_addr6s) {
+	mysystem('ifconfig', 'vlan0', 'inet6', "${addr}/128", 'alias');
+    }
     mysystem('ifconfig', 'vlan1', 'inet6', $obsd_r_addr6, 'up');
 
     mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net6, 'dev',
