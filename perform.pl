@@ -473,13 +473,13 @@ sub lro_startup {
 
     @lro_ifs = lro_get_ifs();
     foreach my $ifname (@lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, 'tcprecvoffload');
+	my @cmd = ('/sbin/ifconfig', $ifname, 'tcplro');
 	logcmd($log, @cmd) and
 	    die "Command '@cmd' failed: $?";
     }
     @remote_lro_ifs = lro_get_ifs('ssh', $remote_ssh);
     foreach my $ifname (@remote_lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, 'tcprecvoffload');
+	my @cmd = ('/sbin/ifconfig', $ifname, 'tcplro');
 	my @sshcmd = ('ssh', $remote_ssh, @cmd);
 	logcmd($log, @sshcmd) and
 	    die "Command '@sshcmd' failed: $?";
@@ -497,12 +497,12 @@ sub lro_shutdown {
     print "\ndisabling lro\n" if $opts{v};
 
     foreach my $ifname (@lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, '-tcprecvoffload');
+	my @cmd = ('/sbin/ifconfig', $ifname, '-tcplro');
 	logcmd($log, @cmd) and
 	    die "Command '@cmd' failed: $?";
     }
     foreach my $ifname (@remote_lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, '-tcprecvoffload');
+	my @cmd = ('/sbin/ifconfig', $ifname, '-tcplro');
 	my @sshcmd = ('ssh', $remote_ssh, @cmd);
 	logcmd($log, @sshcmd) and
 	    die "Command '@sshcmd' failed: $?";

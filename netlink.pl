@@ -621,7 +621,7 @@ sub lro_startup {
 
     @lro_ifs = lro_get_ifs();
     foreach my $ifname (@lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, 'tcprecvoffload');
+	my @cmd = ('/sbin/ifconfig', $ifname, 'tcplro');
 	logcmd($log, @cmd) and
 	    die "Command '@cmd' failed: $?";
     }
@@ -638,7 +638,7 @@ sub lro_shutdown {
     print "\ndisabling lro\n" if $opts{v};
 
     foreach my $ifname (@lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, '-tcprecvoffload');
+	my @cmd = ('/sbin/ifconfig', $ifname, '-tcplro');
 	logcmd($log, @cmd) and
 	    die "Command '@cmd' failed: $?";
     }
