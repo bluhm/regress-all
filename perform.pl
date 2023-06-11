@@ -726,38 +726,38 @@ push @tests, (
 ) if $testmode{iperfudp6};
 push @tests, (
     {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh,
+	testcmd => ['udpbench', '-l36', '-t10', "-r$remote_ssh",
 	    'send', $remote_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $remote_ssh,
+	testcmd => ['udpbench', '-l36', '-t10', "-r$remote_ssh",
 	    'recv', $local_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1472', '-t10', '-r', $remote_ssh,
+	testcmd => ['udpbench', '-l1472', '-t10', "-r$remote_ssh",
 	    'send', $remote_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1472', '-t10', '-r', $remote_ssh,
+	testcmd => ['udpbench', '-l1472', '-t10', "-r$remote_ssh",
 	    'recv', $local_addr],
 	parser => \&udpbench_parser,
     }
 ) if $testmode{udpbench4};
 push @tests, (
     {
-	testcmd => ['udpbench', '-l16', '-t10', '-r', $remote_ssh,
+	testcmd => ['udpbench', '-l16', '-t10', "-r$remote_ssh",
 	    'send', $remote_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l16', '-t10', '-r', $remote_ssh,
+	testcmd => ['udpbench', '-l16', '-t10', "-r$remote_ssh",
 	    'recv', $local_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1452', '-t10', '-r', $remote_ssh,
+	testcmd => ['udpbench', '-l1452', '-t10', "-r$remote_ssh",
 	    'send', $remote_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1452', '-t10', '-r', $remote_ssh,
+	testcmd => ['udpbench', '-l1452', '-t10', "-r$remote_ssh",
 	    'recv', $local_addr6],
 	parser => \&udpbench_parser,
     }
