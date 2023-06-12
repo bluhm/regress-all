@@ -92,6 +92,8 @@ sub html_header {
     td.status, td.status a {color: black;}
     td.outlier {color: red;}
     iframe {width: 100%; border: none; min-height: 1200px;}
+    .utilization thead th { white-space: initial; }
+    .utilization td { text-align: right; }
   </style>
 </head>
 

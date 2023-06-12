@@ -65,7 +65,7 @@ chdir($resultdir)
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
 
-my @HIERARCHY = qw(date cvsdate patch modify iface pseudo);
+my @HIERARCHY = qw(date iface cvsdate patch modify pseudo);
 my (%T, %D, %H, %V);
 
 # %T
@@ -193,6 +193,68 @@ sub html_hier_test_row {
     }
 }
 
+sub html_hier_test_row_util {
+    my ($html, $test, $td, @hiers) = @_;
+
+    (my $testcmd = $test) =~ s/_/ /g;
+    my $testdesc = $TESTDESC{$test} || "";
+    my $vt = $V{$test};
+    my $maxval = max map { scalar @{$_ || []} } values %$vt;
+
+    my $valsum = 0;
+    foreach my $hv (@hiers) {
+	my $value = 0;
+	my $status = "";
+	for (my $i = 0; $i < $maxval; $i++) {
+	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
+	    if ($value0->{name} eq "recv" || $maxval == 1) {
+		my $tv = $td->{$hv->{key}};
+		my $vv = $vt->{$hv->{key}};
+		$status = $tv->{status} || "NONE";
+		if ($tv && ($status eq 'PASS')) {
+		    $value = $vv->[$i]{number};
+		}
+	    }
+	}
+	$valsum += $value;
+    }
+    return if ($valsum == 0);
+
+    print $html "  <tr>\n";
+    print $html "    <th class=\"desc\">$testdesc</th>\n";
+    foreach my $hv (@hiers) {
+	my $value = 0;
+	my $status = "";
+	my $unit = "";
+	my $iface = "";
+	for (my $i = 0; $i < $maxval; $i++) {
+	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
+	    if ($value0->{name} eq "recv" || $maxval == 1) {
+		my $tv = $td->{$hv->{key}};
+		my $vv = $vt->{$hv->{key}};
+		$status = $tv->{status} || "NONE";
+		$unit = $value0->{unit} || "";
+		$iface = $hv->{iface};
+		if ($tv && ($status eq 'PASS')) {
+		    $value = $vv->[$i]{number};
+		}
+	    }
+	}
+	my $title = " title=\"$value $unit\"";
+	my $class = " class=\"status $status\"";
+	my %linerates = (
+	    "iface-em"	=> 10 ** 9,
+	    "iface-igc"	=> 2.5 * 10 ** 9,
+	    "iface-ix"	=> 10 * 10 ** 9,
+	    "iface-ixl"	=> 10 * 10 ** 9);
+	my $linerate = $linerates{$iface} || 10 ** 9;
+	my $rate = $value / $linerate;
+	my $style = sprintf(" style=\"background-color: rgba(128, 255, 128, %.1f)\"", $rate);
+	printf $html "    <td$class$style$title>%.1f%%</td>\n", $rate * 100;
+    }
+    print $html "  </tr>\n";
+}
+
 sub write_html_hier_files {
     my @dates = list_dates(shift);
 
@@ -225,6 +287,27 @@ sub write_html_hier_files {
 	    my $td = $T{$test}{$date}
 		or next;
 	    html_hier_test_row($html, $test, $td, @hv);
+	}
+	print $html "  </tbody>\n";
+	print $html "</table>\n";
+
+	print $html "<table class='utilization'>\n";
+	print $html "  <thead>\n  <tr>\n    <th>";
+	print $html join(' ', @HIERARCHY);
+	print $html "</th>\n";
+	foreach my $hvi (@hv) {
+	    my $name  = "";
+	    foreach my $hier (@HIERARCHY) {
+		$name .= " $hvi->{$hier}" if ($hvi->{$hier});
+	    }
+	    print $html "    <th>$name</th>\n";
+	}
+	print $html "  </tr>\n  </thead>\n  <tbody>\n";
+
+	foreach my $test (@tests) {
+	    my $td = $T{$test}{$date}
+		or next;
+	    html_hier_test_row_util($html, $test, $td, @hv);
 	}
 	print $html "  </tbody>\n";
 	print $html "</table>\n";
