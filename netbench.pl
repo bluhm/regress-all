@@ -25,15 +25,17 @@ use Getopt::Std;
 my @alltestmodes = qw(all udpbench);
 
 my %opts;
-getopts('a:B:b:c:f:l:m:N:P:s:t:v', \%opts) or do {
+getopts('a:B:b:c:d:f:i:l:m:N:P:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: netbench.pl [-v] -a address [-B bitrate] [-b bufsize] [-c client]
-	[-l length] [-m mmsglen] [-P packetrate] [-s server] [-t timeout]
-	[test ...]
+	[-d delay] [-f frames] [-i idle] [-l length] [-m mmsglen]
+	[-P packetrate] [-s server] [-t timeout] [test ...]
     -a address	IP address for packet destination
     -B bitrate	bits per seconds send rate
     -b bufsize	set size of send and receive buffer
+    -d delay	wait for setup before sending
     -f frames	calculate udp payload to fragment packet into frames
+    -i idle	idle timeout before receiving stops
     -c client	connect via ssh to start packet generator
     -m mmsglen	number of mmsghdr for sendmmsg or recvmmsg
     -N repeat	run instances in parallel with incremented address
@@ -50,10 +52,8 @@ my $addr = $opts{a}
     or die "IP address required";
 $addr =~ /^([0-9]+\.[0-9.]+|[0-9a-fA-F:]+)$/
     or die "Address must be IPv4 or IPv6";
-my $repeat = $opts{N};
 my $client_ssh = $opts{c};
 my $server_ssh = $opts{s};
-my $timeout = $opts{t} || 1;
 
 my %testmode;
 foreach my $mode (@ARGV) {
@@ -69,20 +69,6 @@ chdir($dir)
     or die "Change directory to '$dir' failed: $!";
 my $netbenchdir = getcwd();
 $| = 1;
-
-my @addrs;
-if ($repeat) {
-    my ($net, $sep, $host) = $addr =~ /(.*)([.:])(.*)/;
-    my $hostnum = $sep eq ':' ? hex($host || 0) : $host;
-    foreach (1..$repeat) {
-	$host = $sep eq ':' ? sprintf("%x", $hostnum) : $hostnum;
-	push @addrs, "$net$sep$host";
-	$hostnum++;
-	$hostnum = $sep eq ':' ? ($hostnum & 0xffff) : ($hostnum & 0xff);
-    }
-} else {
-    push @addrs, $addr;
-}
 
 my $paylen = $opts{l};
 if (defined($opts{f})) {
@@ -114,25 +100,21 @@ if (defined($opts{f})) {
 }
 
 my (@servers, @clients);
-for (my $num = 0; $num < @addrs; $num++) {
-    my $suffix = $repeat ? " $num" : "";
-    my %server = (
-	name	=> "server$suffix",
-	ssh	=> $server_ssh,
-	addr	=> $addrs[$num],
-    );
-    start_server(\%server);
-    print "netbench$suffix: $server{addr} $server{port}\n" if $opts{v};
+my %server = (
+    name	=> "server",
+    ssh		=> $server_ssh,
+    addr	=> $addr,
+);
+start_server(\%server);
 
-    my %client = (
-	name	=> "client$suffix",
-	ssh	=> $client_ssh,
-	addr	=> $server{addr},
-	port	=> $server{port},
-    );
-    push @servers, \%server;
-    push @clients, \%client;
-}
+my %client = (
+    name	=> "client",
+    ssh		=> $client_ssh,
+    addr	=> $server{addr},
+    port	=> $server{port},
+);
+push @servers, \%server;
+push @clients, \%client;
 
 start_client($_) foreach (@clients);
 
@@ -149,16 +131,18 @@ sub start_server {
     my ($proc) = @_;
 
     my @cmd = ('udpbench');
+    push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
+    push @cmd, "-d$opts{d}" if defined($opts{d});
+    push @cmd, "-i$opts{i}" if defined($opts{i});
     push @cmd, "-l$paylen" if defined($paylen);
     push @cmd, "-m$opts{m}" if defined($opts{m});
-    my $to = $timeout + ($repeat || 0) + 10;
-    push @cmd, ("-t$to", '-p0', 'recv', $proc->{addr});
-    if ($proc->{ssh}) {
-	unshift @cmd, $proc->{ssh};
-	unshift @cmd, '-M' if $repeat && !$master{$proc->{ssh}}++;
-	unshift @cmd, ('ssh', '-nT');
-    }
+    push @cmd, "-N$opts{N}" if defined($opts{N});
+    push @cmd, "-P$opts{P}" if defined($opts{P});
+    push @cmd, '-p0';
+    push @cmd, "-t$opts{t}" if defined($opts{t});
+    push @cmd, ('recv', $proc->{addr});
+    unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
     $proc->{cmd} = \@cmd;
 
     open_pipe($proc);
@@ -170,15 +154,16 @@ sub start_client {
     my @cmd = ('udpbench');
     push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
+    push @cmd, "-d$opts{d}" if defined($opts{d});
+    push @cmd, "-i$opts{i}" if defined($opts{i});
     push @cmd, "-l$paylen" if defined($paylen);
     push @cmd, "-m$opts{m}" if defined($opts{m});
+    push @cmd, "-N$opts{N}" if defined($opts{N});
     push @cmd, "-P$opts{P}" if defined($opts{P});
-    push @cmd, ("-t$timeout", "-p$proc->{port}", 'send', $proc->{addr});
-    if ($proc->{ssh}) {
-	unshift @cmd, $proc->{ssh};
-	unshift @cmd, '-M' if $repeat && !$master{$proc->{ssh}}++;
-	unshift @cmd, ('ssh', '-nT') if $proc->{ssh};
-    }
+    push @cmd, "-p$proc->{port}";
+    push @cmd, "-t$opts{t}" if defined($opts{t});
+    push @cmd, ('send', $proc->{addr});
+    unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
     $proc->{cmd} = \@cmd;
 
     open_pipe($proc);
