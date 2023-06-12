@@ -765,85 +765,85 @@ push @tests, (
 ) if ($testmode{tcp6});
 push @tests, (
     {
-	testcmd => ['udpbench', '-l36', '-t10', "-r$lnx_l_ssh",
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_l_ssh,
 	    'recv', $obsd_l_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1472', '-t10', "-r$lnx_l_ssh",
+	testcmd => ['udpbench', '-l1472', '-t10', '-r', $lnx_l_ssh,
 	    'recv', $obsd_l_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l36', '-t10', "-r$lnx_r_ssh",
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_r_ssh,
 	    'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1472', '-t10', "-r$lnx_r_ssh",
+	testcmd => ['udpbench', '-l1472', '-t10', '-r', $lnx_r_ssh,
 	    'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }, {
 	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l36', '-t10',
-	    "-r$lnx_r_ssh", 'send', $lnx_r_addr],
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }, {
 	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1472', '-t10',
-	    "-r$lnx_r_ssh", 'send', $lnx_r_addr],
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{udp4});
 push @tests, (
     {
-	testcmd => ['udpbench', '-l36', '-t10', "-r$lnx_l_ssh",
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_l_ssh,
 	    'recv', $obsd_l_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1452', '-t10', "-r$lnx_l_ssh",
+	testcmd => ['udpbench', '-l1452', '-t10', '-r', $lnx_l_ssh,
 	    'recv', $obsd_l_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l36', '-t10', "-r$lnx_r_ssh",
+	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_r_ssh,
 	    'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1452', '-t10', "-r$lnx_r_ssh",
+	testcmd => ['udpbench', '-l1452', '-t10', '-r', $lnx_r_ssh,
 	    'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }, {
 	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l36', '-t10',
-	    "-r$lnx_r_ssh", 'send', $lnx_r_addr6],
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }, {
 	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1452', '-t10',
-	    "-r$lnx_r_ssh", 'send', $lnx_r_addr6],
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{udp6});
 push @tests, (
     {
-	testcmd => ['udpbench', '-l1473', '-t10', "-r$lnx_l_ssh",
+	testcmd => ['udpbench', '-l1473', '-t10', '-r', $lnx_l_ssh,
 	    'recv', $obsd_l_addr],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1473', '-t10', "-r$lnx_r_ssh",
+	testcmd => ['udpbench', '-l1473', '-t10', '-r', $lnx_r_ssh,
 	    'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }, {
 	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1473', '-t10',
-	    "-r$lnx_r_ssh", 'send', $lnx_r_addr],
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr],
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{fragment4});
 push @tests, (
     {
-	testcmd => ['udpbench', '-l1453', '-t10', "-r$lnx_l_ssh",
+	testcmd => ['udpbench', '-l1453', '-t10', '-r', $lnx_l_ssh,
 	    'recv', $obsd_l_addr6],
 	parser => \&udpbench_parser,
     }, {
-	testcmd => ['udpbench', '-l1453', '-t10', "-r$lnx_r_ssh",
+	testcmd => ['udpbench', '-l1453', '-t10', '-r', $lnx_r_ssh,
 	    'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }, {
 	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1453', '-t10',
-	    "-r$lnx_r_ssh", 'send', $lnx_r_addr6],
+	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr6],
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{fragment6});
