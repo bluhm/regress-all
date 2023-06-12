@@ -417,6 +417,7 @@ usr.bin/rev
 usr.bin/rsync
 usr.bin/sdiff
 usr.bin/sed
+usr.bin/seq
 usr.bin/signify
 usr.bin/snmp
 usr.bin/sort
