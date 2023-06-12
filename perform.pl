@@ -245,6 +245,11 @@ my $pfsync_peer_if = $ENV{PFSYNC_PEER_IF};
 my $pfsync_peer_addr = $ENV{PFSYNC_PEER_ADDR};
 my $pfsync_ssh = $ENV{PFSYNC_SSH};
 
+my $local_addr_range = $ENV{LOCAL_ADDR_RANGE};
+my $local_addr6_range = $ENV{LOCAL_ADDR6_RANGE};
+my $linux_addr_range = $ENV{LINUX_ADDR_RANGE};
+my $linux_addr6_range = $ENV{LINUX_ADDR6_RANGE};
+
 my $netbench = "$performdir/netbench.pl";
 
 # tcpdump as workaround for missing workaround in ix(4) for 82598
@@ -767,42 +772,54 @@ my @frag = (
 	# local send, other OpenBSD recv
 	client => undef,
 	server => $remote_ssh,
-	address => '$remote_addr',
+	address => $remote_addr,
+	address6 => $remote_addr6,
     },
     {
 	# local recv, other OpenBSD send
 	client => $remote_ssh,
 	server => undef,
-	address => '$local_addr',
+	address => $local_addr,
+	address6 => $local_addr6,
     },
     {
 	# local recv, Linux send
 	client => $linux_ssh,
 	server => undef,
-	address => '$linux_relay_addr',
+	address => $local_addr_range,
+	address6 => $local_addr6_range,
+	parallel => 10,
     },
     {
 	# local send, other Linux recv
 	client => undef,
 	server => $linux_other_ssh,
-	address => '$linux_forward_addr',
+	address => $linux_addr_range,
+	address6 => $linux_addr6_range,
+	parallel => 10,
     },
     {
 	# Linux send, local forward, other Linux recv
 	client => $linux_ssh,
 	server => $linux_other_ssh,
-	address => '$linux_forward_addr',
+	address => $linux_addr_range,
+	address6 => $linux_addr6_range,
+	parallel => 10,
     },
 );
 foreach my $frame (0, 1, 2, 99) {
     push @tests, map {
 	{
 	    testcmd => [$netbench,
+		($_->{parallel} ? ('-B'.(10000000000 / $_->{parallel})) : ()),
 		'-b1000000',
+		($_->{parallel} ? ('-d1') : ()),
 		"-f$frame",
-		 $_->{client} ? ("-c$_->{client}") : (),
-		 $_->{server} ? ("-s$_->{server}") : (),
-		'-a'. eval "$_->{address}",
+		($_->{parallel} ? ('-i3') : ()),
+		($_->{parallel} ? ("-N$_->{parallel}") : ()),
+		($_->{client} ? ("-c$_->{client}") : ()),
+		($_->{server} ? ("-s$_->{server}") : ()),
+		"-a$_->{address}",
 		'-t10',
 		'udpbench'],
 	    parser => \&udpbench_parser,
@@ -811,11 +828,15 @@ foreach my $frame (0, 1, 2, 99) {
     push @tests, map {
 	{
 	    testcmd => [$netbench,
+		($_->{parallel} ? ('-B'.(10000000000 / $_->{parallel})) : ()),
 		'-b1000000',
+		($_->{parallel} ? ('-d1') : ()),
 		"-f$frame",
-		 $_->{client} ? ("-c$_->{client}") : (),
-		 $_->{server} ? ("-s$_->{server}") : (),
-		'-a'. eval "$_->{address}6",
+		($_->{parallel} ? ('-i3') : ()),
+		($_->{parallel} ? ("-N$_->{parallel}") : ()),
+		($_->{client} ? ("-c$_->{client}") : ()),
+		($_->{server} ? ("-s$_->{server}") : ()),
+		"-a$_->{address6}",
 		'-t10',
 		'udpbench'],
 	    parser => \&udpbench_parser,
