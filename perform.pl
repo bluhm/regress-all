@@ -414,6 +414,16 @@ sub udpbench_parser {
     return 1;
 }
 
+sub netbench_parser {
+    my ($line, $log) = @_;
+    if ($line =~ m{^(send|recv)all: .*, bit/s ([\d.e+]+)$}) {
+	my $direction = $1;
+	my $value = 0 + $2;
+	print $tr "VALUE $value bits/sec $direction\n";
+    }
+    return 1;
+}
+
 sub iked_startup {
     my ($log) = @_;
     my @cmd = ('/etc/rc.d/iked', '-f', 'restart');
@@ -822,7 +832,7 @@ foreach my $frame (0, 1, 2, 99) {
 		"-a$_->{address}",
 		'-t10',
 		'udpbench'],
-	    parser => \&udpbench_parser,
+	    parser => \&netbench_parser,
 	}
     } @frag if $testmode{frag4};
     push @tests, map {
@@ -839,7 +849,7 @@ foreach my $frame (0, 1, 2, 99) {
 		"-a$_->{address6}",
 		'-t10',
 		'udpbench'],
-	    parser => \&udpbench_parser,
+	    parser => \&netbench_parser,
 	}
     } @frag if $testmode{frag6};
 }
