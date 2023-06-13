@@ -172,7 +172,10 @@ usehosts(bindir => "$performdir/bin", date => $date,
 # do not run end block until initialized, date may change later
 my $odate = $date;
 END {
-    bsdcons_hosts(release => $release) if $odate;
+    if ($odate) {
+	bsdcons_hosts(release => $release);
+	relogdie();
+    }
     my @cmd = ("$performdir/bin/setup-html.pl");
     system(@cmd) if $performdir;
     @cmd = ("$performdir/bin/running-html.pl");

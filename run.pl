@@ -103,7 +103,10 @@ usehosts(bindir => "$regressdir/bin", date => $date,
 # do not run end block until initialized, date may change later
 my $odate = $date;
 END {
-    bsdcons_hosts() if $odate;
+    if ($odate) {
+	bsdcons_hosts();
+	relogdie();
+    }
     my @cmd = ("$regressdir/bin/setup-html.pl");
     system(@cmd) if $regressdir;
     @cmd = ("$regressdir/bin/running-html.pl");

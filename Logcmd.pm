@@ -23,10 +23,11 @@ use File::Copy;
 use POSIX;
 
 use parent 'Exporter';
-our @EXPORT= qw(createlog logmsg logeval runcmd forkcmd waitcmd logcmd loggrep);
+our @EXPORT= qw(createlog relogdie logmsg logeval runcmd forkcmd waitcmd logcmd
+    loggrep);
 use subs qw(logmsg);
 
-my ($fh, $file, $verbose);
+my ($fh, $file, $verbose, @diemsg);
 sub createlog {
     my %args = @_;
     $file = $args{file};
@@ -39,8 +40,15 @@ sub createlog {
 
     $SIG{__DIE__} = sub {
 	print $fh @_ if $fh;
+	@diemsg = @_;
 	die @_;
     };
+}
+
+sub relogdie {
+    return unless @diemsg;
+    print $fh @diemsg if $fh;
+    print @diemsg if $verbose;
 }
 
 sub logmsg {
