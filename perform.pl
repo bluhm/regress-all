@@ -778,20 +778,28 @@ push @tests, (
     }
 ) if $testmode{udpbench6};
 my @frag = (
-    {
-	# local send, other OpenBSD recv
-	client => undef,
-	server => $remote_ssh,
-	address => $remote_addr,
-	address6 => $remote_addr6,
-    },
-    {
-	# local recv, other OpenBSD send
-	client => $remote_ssh,
-	server => undef,
-	address => $local_addr,
-	address6 => $local_addr6,
-    },
+# disable non-linux udp tests, they don't run in parallel, too many tests
+#    {
+#	# local send, local recv, loopback
+#	client => undef,
+#	server => undef,
+#	address => '127.0.0.1',
+#	address6 => '::1',
+#    },
+#    {
+#	# local send, other OpenBSD recv
+#	client => undef,
+#	server => $remote_ssh,
+#	address => $remote_addr,
+#	address6 => $remote_addr6,
+#    },
+#    {
+#	# local recv, other OpenBSD send
+#	client => $remote_ssh,
+#	server => undef,
+#	address => $local_addr,
+#	address6 => $local_addr6,
+#    },
     {
 	# local recv, Linux send
 	client => $linux_ssh,
