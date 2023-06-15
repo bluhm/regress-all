@@ -829,6 +829,7 @@ foreach my $frame (0, 1, 2, 99) {
     push @tests, map {
 	{
 	    testcmd => [$netbench,
+		'-v',
 		($_->{parallel} ? ('-B'.(10000000000 / $_->{parallel})) : ()),
 		'-b1000000',
 		($_->{parallel} ? ('-d1') : ()),
@@ -846,6 +847,7 @@ foreach my $frame (0, 1, 2, 99) {
     push @tests, map {
 	{
 	    testcmd => [$netbench,
+		'-v',
 		($_->{parallel} ? ('-B'.(10000000000 / $_->{parallel})) : ()),
 		'-b1000000',
 		($_->{parallel} ? ('-d1') : ()),
