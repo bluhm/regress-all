@@ -863,6 +863,40 @@ foreach my $frame (0, 1, 2, 99) {
 	}
     } @frag if $testmode{frag6};
 }
+foreach my $frame (0, 1) {
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B10000000000',
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i3',
+	    "-c$linux_ssh",
+	    "-s$linux_other_ssh",
+	    "-A$local_addr_range",
+	    "-a$linux_addr_range",
+	    '-t10',
+	    'udpsplice'],
+	parser => \&netbench_parser,
+    } if $testmode{udpsplice4};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B10000000000',
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i3',
+	    "-c$linux_ssh",
+	    "-s$linux_other_ssh",
+	    "-A$local_addr6_range",
+	    "-a$linux_addr6_range",
+	    '-t10',
+	    'udpsplice'],
+	parser => \&netbench_parser,
+    } if $testmode{udpsplice6};
+}
 push @tests, (
     {
 	initialize => \&iperf3_initialize,

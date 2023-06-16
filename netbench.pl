@@ -22,14 +22,15 @@ use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 use File::Basename;
 use Getopt::Std;
 
-my @alltestmodes = qw(all udpbench);
+my @alltestmodes = qw(all udpbench udpsplice);
 
 my %opts;
-getopts('a:B:b:c:d:f:i:l:m:N:P:s:t:v', \%opts) or do {
+getopts('A:a:B:b:c:d:f:i:l:m:N:P:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: netbench.pl [-v] -a address [-B bitrate] [-b bufsize] [-c client]
-	[-d delay] [-f frames] [-i idle] [-l length] [-m mmsglen]
+usage: netbench.pl [-v] [-A address] -a address [-B bitrate] [-b bufsize]
+	[-c client] [-d delay] [-f frames] [-i idle] [-l length] [-m mmsglen]
 	[-P packetrate] [-s server] [-t timeout] [test ...]
+    -A address	IP address of relay
     -a address	IP address for packet destination
     -B bitrate	bits per seconds send rate
     -b bufsize	set size of send and receive buffer
@@ -52,6 +53,9 @@ my $addr = $opts{a}
     or die "IP address required";
 $addr =~ /^([0-9]+\.[0-9.]+|[0-9a-fA-F:]+)$/
     or die "Address must be IPv4 or IPv6";
+my $relay_addr = $opts{A};
+!$relay_addr || $relay_addr =~ /^([0-9]+\.[0-9.]+|[0-9a-fA-F:]+)$/
+    or die "Relay address must be IPv4 or IPv6";
 my $client_ssh = $opts{c};
 my $server_ssh = $opts{s};
 
@@ -99,7 +103,7 @@ if (defined($opts{f})) {
     }
 }
 
-my (@servers, @clients);
+my (@servers, @clients, @relays);
 my %server = (
     name	=> "server",
     ssh		=> $server_ssh,
@@ -107,20 +111,35 @@ my %server = (
 );
 start_server(\%server);
 
+my (%relay, $client_addr, $client_port);
+if ($testmode{udpsplice}) {
+    %relay = (
+	name	=> "relay",
+	listen	=> $relay_addr,
+	connect	=> $server{addr},
+	port	=> $server{port},
+    );
+    start_relay(\%relay);
+    ($client_addr, $client_port) = (@relay{qw(addr port)});
+} else {
+    ($client_addr, $client_port) = (@server{qw(addr port)});
+}
+
 my %client = (
     name	=> "client",
     ssh		=> $client_ssh,
-    addr	=> $server{addr},
-    port	=> $server{port},
+    addr	=> $client_addr,
+    port	=> $client_port,
 );
 push @servers, \%server;
+push @relays, \%relay if %relay;
 push @clients, \%client;
 
 start_client($_) foreach (@clients);
 
-set_nonblock($_) foreach (@clients, @servers);
+set_nonblock($_) foreach (@clients, @relays, @servers);
 
-collect_output(@clients, @servers);
+collect_output(@clients, @relays, @servers);
 
 print_status();
 
@@ -169,9 +188,28 @@ sub start_client {
     open_pipe($proc);
 }
 
-sub open_pipe {
+sub start_relay {
     my ($proc) = @_;
 
+    my @cmd = ('splicebench');
+    push @cmd, '-u';
+    push @cmd, "-b$opts{b}" if defined($opts{b});
+    #push @cmd, "-i$opts{i}" if defined($opts{i});
+    #push @cmd, "-N$opts{N}" if defined($opts{N});
+    push @cmd, "-t$opts{t}" if defined($opts{t});
+    push @cmd, "[$proc->{listen}]:0";
+    push @cmd, "[$proc->{connect}]:$proc->{port}";
+    unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
+    $proc->{cmd} = \@cmd;
+
+    open_pipe($proc, "listen sockname");
+}
+
+sub open_pipe {
+    my ($proc, $sockname) = @_;
+    $sockname ||= "sockname";
+
+    print "command: @{$proc->{cmd}}\n" if $opts{v};
     $proc->{pid} = open(my $fh, '-|', @{$proc->{cmd}})
 	or die "Open pipe from proc $proc->{name} '@{$proc->{cmd}}' failed: $!";
     $proc->{fh} = $fh;
@@ -179,7 +217,7 @@ sub open_pipe {
     local $_;
     while (<$fh>) {
 	print if $opts{v};
-	if (/^sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
+	if (/^$sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
 	    $proc->{addr} = $1;
 	    $proc->{port} = $2;
 	    last;
