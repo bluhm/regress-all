@@ -71,10 +71,10 @@ foreach my $mode (@ARGV) {
 }
 $testmode{all} = 1 unless @ARGV;
 @testmode{qw(net make fs)} = 1..3 if $testmode{all};
-@testmode{qw(net4 net6 forward relay ipsec veb)} = 1..6 if $testmode{net};
-@testmode{qw(tcp4 udp4 forward4 relay4 ipsec4 ipsec44 veb4)} = 1..7
+@testmode{qw(net4 net6 forward relay frag ipsec veb)} = 1..7 if $testmode{net};
+@testmode{qw(tcp4 udp4 forward4 relay4 frag4 ipsec4 ipsec44 veb4)} = 1..8
     if $testmode{net4};
-@testmode{qw(tcp6 udp6 forward6 relay6 ipsec6 ipsec66 veb6)} = 1..7
+@testmode{qw(tcp6 udp6 forward6 relay6 frag6 ipsec6 ipsec66 veb6)} = 1..8
     if $testmode{net6};
 @testmode{qw(localnet4 localnet6)} = 1..2 if $testmode{localnet};
 @testmode{qw(iperftcp4 iperfudp4 tcpbench4 udpbench4)} = 1..4
@@ -89,8 +89,8 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(iperftcp4 tcpbench4 linuxiperftcp4)} = 1..3 if $testmode{tcp4};
 @testmode{qw(iperftcp6 tcpbench6 linuxiperftcp6)} = 1..3 if $testmode{tcp6};
 @testmode{qw(udp4 udp6)} = 1..2 if $testmode{udp};
-@testmode{qw(iperfudp4 udpbench4)} = 1..2 if $testmode{udp4};
-@testmode{qw(iperfudp6 udpbench6)} = 1..2 if $testmode{udp6};
+@testmode{qw(iperfudp4 udpbench4 frag4)} = 1..3 if $testmode{udp4};
+@testmode{qw(iperfudp6 udpbench6 frag6)} = 1..3 if $testmode{udp6};
 @testmode{qw(tcpbench4 tcpbench6)} = 1..2 if $testmode{tcpbench};
 @testmode{qw(udpbench4 udpbench6)} = 1..2 if $testmode{udpbench};
 @testmode{qw(iperftcp4 iperftcp6)} = 1..2 if $testmode{iperftcp};
