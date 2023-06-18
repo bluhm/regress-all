@@ -34,6 +34,7 @@ my @alltestmodes = qw(
     localnet localnet4 localnet6
     linuxnet linuxiperftcp4 linuxiperftcp6
     forward forward4 forward6 relay relay4 relay6 frag frag4 frag6
+    splice udpsplice splice4 udpsplice4 splice6 udpsplice6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
     veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
 );
@@ -98,6 +99,10 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(forward4 forward6)} = 1..2 if $testmode{forward};
 @testmode{qw(relay4 relay6)} = 1..2 if $testmode{relay};
 @testmode{qw(frag4 frag6)} = 1..2 if $testmode{frag};
+@testmode{qw(splice4 splice6)} = 1..2 if $testmode{splice};
+@testmode{qw(udpsplice4)} = 1..1 if $testmode{splice4};
+@testmode{qw(udpsplice6)} = 1..1 if $testmode{splice6};
+@testmode{qw(udpsplice4 udpsplice6)} = 1..2 if $testmode{udpsplice};
 @testmode{qw(ipsec4 ipsec44 ipsec46 ipsec6 ipsec64 ipsec66)} = 1..6
     if $testmode{ipsec};
 @testmode{qw(veb4 veb6)} = 1..2 if $testmode{veb};
