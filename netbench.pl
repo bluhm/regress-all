@@ -194,8 +194,8 @@ sub start_relay {
     my @cmd = ('splicebench');
     push @cmd, '-u';
     push @cmd, "-b$opts{b}" if defined($opts{b});
-    #push @cmd, "-i$opts{i}" if defined($opts{i});
-    #push @cmd, "-N$opts{N}" if defined($opts{N});
+    push @cmd, "-i$opts{i}" if defined($opts{i});
+    push @cmd, "-N$opts{N}" if defined($opts{N});
     push @cmd, "-t$opts{t}" if defined($opts{t});
     push @cmd, "[$proc->{listen}]:0";
     push @cmd, "[$proc->{connect}]:$proc->{port}";
