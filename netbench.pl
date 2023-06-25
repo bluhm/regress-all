@@ -59,6 +59,7 @@ my $relay_addr = $opts{A};
 my $client_ssh = $opts{c};
 my $server_ssh = $opts{s};
 
+@ARGV or die "No test mode specified";
 my %testmode;
 foreach my $mode (@ARGV) {
     grep { $_ eq $mode } @alltestmodes

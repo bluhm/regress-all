@@ -45,7 +45,7 @@ EOF
 };
 $opts{h} or die "No -h specified";
 
-@ARGV or die "No setupmode specified";
+@ARGV or die "No setup mode specified";
 my %setupmode;
 foreach my $mode (@ARGV) {
     grep { $_ eq $mode } @allsetupmodes
