@@ -21,8 +21,12 @@ use Errno;
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 use File::Basename;
 use Getopt::Std;
+use List::Util qw(sum);
 
-my @alltestmodes = qw(udpbench udpsplice udpcopy);
+my @alltestmodes = qw(
+    tcpbench
+    udpbench udpsplice udpcopy
+);
 
 my %opts;
 getopts('A:a:B:b:c:d:f:i:l:m:N:P:s:t:v', \%opts) or do {
@@ -70,6 +74,10 @@ foreach my $mode (@alltestmodes) {
     die "Test mode '$mode' must be used solely"
 	if $testmode{$mode} && keys %testmode != 1;
 }
+$testmode{tcp} = 1
+    if $testmode{tcpbench} || $testmode{tcpsplice} || $testmode{tcpcopy};
+$testmode{udp} = 1
+    if $testmode{udpbench} || $testmode{udpsplice} || $testmode{udpcopy};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -112,7 +120,8 @@ my %server = (
     ssh		=> $server_ssh,
     addr	=> $addr,
 );
-start_server(\%server);
+start_server_tcp(\%server) if $testmode{tcp};
+start_server_udp(\%server) if $testmode{udp};
 
 my (%relay, $client_addr, $client_port);
 if ($testmode{udpsplice} || $testmode{udpcopy}) {
@@ -138,18 +147,52 @@ push @servers, \%server;
 push @relays, \%relay if %relay;
 push @clients, \%client;
 
-start_client($_) foreach (@clients);
+start_client_tcp(\%client) if $testmode{tcp};
+start_client_udp(\%client) if $testmode{udp};
 
 set_nonblock($_) foreach (@clients, @relays, @servers);
 
 collect_output(@clients, @relays, @servers);
 
-print_status();
+print_status_tcp() if $testmode{tcp};
+print_status_udp() if $testmode{udp};
 
 exit;
 
-my %master;
-sub start_server {
+sub start_server_tcp {
+    my ($proc) = @_;
+
+    $proc->{port} = "12345";
+    my $timeout = 2;
+    $timeout += $opts{t} if defined($opts{t});
+    my @cmd = ('tcpbench', '-s');
+    unshift @cmd, ('timeout', $timeout) if $opts{t};
+    push @cmd, "-p$proc->{port}";
+    push @cmd, "-S$opts{b}" if defined($opts{b});
+    unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
+    $proc->{cmd} = \@cmd;
+    $proc->{conn} = "recv";
+
+    open_pipe($proc);
+}
+
+sub start_client_tcp {
+    my ($proc) = @_;
+
+    my @cmd = ('tcpbench');
+    push @cmd, "-n$opts{N}" if defined($opts{N});
+    push @cmd, "-p$proc->{port}";
+    push @cmd, "-S$opts{b}" if defined($opts{b});
+    push @cmd, "-t$opts{t}" if defined($opts{t});
+    push @cmd, $proc->{addr};
+    unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
+    $proc->{cmd} = \@cmd;
+    $proc->{conn} = "send";
+
+    open_pipe($proc);
+}
+
+sub start_server_udp {
     my ($proc) = @_;
 
     my @cmd = ('udpbench');
@@ -167,10 +210,10 @@ sub start_server {
     unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
     $proc->{cmd} = \@cmd;
 
-    open_pipe($proc);
+    open_pipe($proc, "sockname");
 }
 
-sub start_client {
+sub start_client_udp {
     my ($proc) = @_;
 
     my @cmd = ('udpbench');
@@ -188,7 +231,7 @@ sub start_client {
     unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
     $proc->{cmd} = \@cmd;
 
-    open_pipe($proc);
+    open_pipe($proc, "sockname");
 }
 
 sub start_relay {
@@ -199,7 +242,7 @@ sub start_relay {
     $timeout += $opts{d} if defined($opts{d});
     my @cmd = ('splicebench');
     push @cmd, '-c' if $testmode{udpcopy};
-    push @cmd, '-u';
+    push @cmd, '-u' if $testmode{udp};
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-i$opts{i}" if defined($opts{i});
     push @cmd, "-N$opts{N}" if defined($opts{N});
@@ -214,7 +257,6 @@ sub start_relay {
 
 sub open_pipe {
     my ($proc, $sockname) = @_;
-    $sockname ||= "sockname";
 
     print "command: @{$proc->{cmd}}\n" if $opts{v};
     $proc->{pid} = open(my $fh, '-|', @{$proc->{cmd}})
@@ -224,17 +266,19 @@ sub open_pipe {
     local $_;
     while (<$fh>) {
 	print if $opts{v};
-	if (/^$sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
+	if ($sockname && /^$sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
 	    $proc->{addr} = $1;
 	    $proc->{port} = $2;
 	    last;
 	}
+	last unless $sockname;
     }
     unless (defined) {
 	close($fh) or die $! ?
 	    "Close pipe from proc $proc->{name} '@{$proc->{cmd}}' failed: $!" :
 	    "Proc $proc->{name} Client '@{$proc->{cmd}}' failed: $?";
 	delete $proc->{fh};
+	delete $proc->{pid};
     }
 }
 
@@ -251,6 +295,14 @@ sub collect_output {
     my @procs = @_;
 
     while (my @fhs = map { $_->{fh} || () } @procs) {
+
+	if ($testmode{tcp}) {
+	    my @pids = map { $_->{pid} || () } @clients;
+	    unless (@pids) {
+		@pids = map { $_->{pid} || () } @servers;
+		kill 'TERM', @pids;
+	    }
+	}
 	my $rin = '';
 	vec($rin, fileno($_), 1) = 1 foreach @fhs;
 
@@ -278,7 +330,7 @@ sub read_output {
 	# handle short reads
 	$_ = $proc->{prev}. $_ if defined($proc->{prev});
 	$proc->{prev} = /\n$/ ? undef : $_;
-	print if !$opts{v} && /^(send|recv):.*\n/;
+	print if !$opts{v} && /^(send|recv|Conn):.*\n/;
 	if (/^(send|recv):.*
 	    \spackets\s([0-9]+),.*\sether\s([0-9]+),.*
 	    \sbegin\s([0-9.]+),.*\send\s([0-9.]+),.*/x) {
@@ -288,16 +340,41 @@ sub read_output {
 	    $status{$1}{end} = $5
 		if !$status{$1}{end} || $status{$1}{end} < $5;;
 	}
+	if (/^Conn:.*\s([kmgt]?)bps:\s+([\d.]+)\s/i) {
+	    my $value = $2;
+	    my $unit = lc($1);
+	    if ($unit eq '') {
+	    } elsif ($unit eq 'k') {
+		$value *= 1000;
+	    } elsif ($unit eq 'm') {
+		$value *= 1000*1000;
+	    } elsif ($unit eq 'g') {
+		$value *= 1000*1000*1000;
+	    } elsif ($unit eq 't') {
+		$value *= 1000*1000*1000*1000;
+	    } else {
+		die "Unit '$1' unknown";
+	    }
+	    push @{$status{$proc->{conn}}{bits} ||= []}, $value;
+	}
     }
     unless ($!{EWOULDBLOCK}) {
 	close($proc->{fh}) or warn $! ?
 	    "Close pipe from proc $proc->{name} '@{$proc->{cmd}}' failed: $!" :
 	    "Proc $proc->{name} '@{$proc->{cmd}}' failed: $?";
 	delete $proc->{fh};
+	delete $proc->{pid};
     }
 }
 
-sub print_status {
+sub print_status_tcp {
+    foreach (qw(send recv)) {
+	my @values = @{$status{$_}{bits}};
+	printf("%sall: bit/s %g\n",
+	    $_, sum(@values) / scalar(@values));
+    }
+}
+sub print_status_udp {
     foreach (qw(send recv)) {
 	printf("%sall: etherlen %d, begin %f, end %f, duration %f, bit/s %g\n",
 	    $_, $status{$_}{etherlen}, $status{$_}{begin}, $status{$_}{end},
