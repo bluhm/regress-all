@@ -26,7 +26,7 @@ our @EXPORT_OK = qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
 ########################################################################
 
 our @PLOTORDER;
-@PLOTORDER = qw(tcp tcp6 udp udp6 linux linux6 forward forward6 frag frag6 bridge ipsec ipsec-aesni make fs);
+@PLOTORDER = qw(tcp tcp6 udp udp6 linux linux6 forward forward6 frag frag6 splice splice6 bridge ipsec ipsec-aesni make fs);
 
 our %TESTPLOT;
 my @testplot = (
@@ -254,6 +254,14 @@ my @testplot = (
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f99_-i3_-N10_-cperform@lt13_-afdd7:e83e:66bc:616::10_-t10_udpbench'			=> "frag6",
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f99_-i3_-N10_-sperform@lt16_-afdd7:e83e:66bc:616::60_-t10_udpbench'			=> "frag6",
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f99_-i3_-N10_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:616::60_-t10_udpbench'	=> "frag6",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.3.46.40_-a10.3.46.60_-t10_udpsplice'				=> "splice",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.3.46.40_-a10.3.46.60_-t10_udpsplice'				=> "splice",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:346::40_-afdd7:e83e:66bc:346::60_-t10_udpsplice'	=> "splice6",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:346::40_-afdd7:e83e:66bc:346::60_-t10_udpsplice'	=> "splice6",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.6.16.10_-a10.6.16.60_-t10_udpsplice'				=> "splice",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.6.16.10_-a10.6.16.60_-t10_udpsplice'				=> "splice",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:616::10_-afdd7:e83e:66bc:616::60_-t10_udpsplice'	=> "splice6",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:616::10_-afdd7:e83e:66bc:616::60_-t10_udpsplice'	=> "splice6",
     'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10'			=> "ipsec-aesni",
     'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10_-R'			=> "ipsec-aesni",
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10'	=> "ipsec-aesni",
@@ -616,6 +624,14 @@ my @testorder = (
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f99_-i3_-N10_-cperform@lt13_-afdd7:e83e:66bc:616::10_-t10_udpbench'			=> 1622646,
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f99_-i3_-N10_-sperform@lt16_-afdd7:e83e:66bc:616::60_-t10_udpbench'			=> 1622647,
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f99_-i3_-N10_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:616::60_-t10_udpbench'	=> 1622648,
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.3.46.40_-a10.3.46.60_-t10_udpsplice'				=> "613531",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.3.46.40_-a10.3.46.60_-t10_udpsplice'				=> "613511",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:346::40_-afdd7:e83e:66bc:346::60_-t10_udpsplice'	=> "623531",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:346::40_-afdd7:e83e:66bc:346::60_-t10_udpsplice'	=> "623511",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.6.16.10_-a10.6.16.60_-t10_udpsplice'				=> "1613531",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.6.16.10_-a10.6.16.60_-t10_udpsplice'				=> "1613511",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:616::10_-afdd7:e83e:66bc:616::60_-t10_udpsplice'	=> "1623531",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:616::10_-afdd7:e83e:66bc:616::60_-t10_udpsplice'	=> "1623511",
     'ssh_perform@lt13_iperf3_-c10.6.16.36_-P10_-t10'			=> 1612151,
     'ssh_perform@lt13_iperf3_-c10.6.16.36_-P10_-t10_-R'			=> 1612161,
     'ssh_perform@lt13_iperf3_-c10.6.31.51_-P10_-t10'			=> 1613151,
@@ -937,6 +953,14 @@ my @testdesc = (
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f99_-i3_-N10_-cperform@lt13_-afdd7:e83e:66bc:616::10_-t10_udpbench'			=> "linux-openbsd-max-frag6-ot31",
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f99_-i3_-N10_-sperform@lt16_-afdd7:e83e:66bc:616::60_-t10_udpbench'			=> "openbsd-linux-max-frag6-ot31",
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f99_-i3_-N10_-cperform@lt13_-sperform@lt16_-afdd7:e83e:66bc:616::60_-t10_udpbench'	=> "linux-openbsd-linux-max-frag6-ot31",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.3.46.40_-a10.3.46.60_-t10_udpsplice'				=> "linux-openbsd-linux-splice-empty-udp",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.3.46.40_-a10.3.46.60_-t10_udpsplice'				=> "linux-openbsd-linux-splice-full-udp",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:346::40_-afdd7:e83e:66bc:346::60_-t10_udpsplice'	=> "linux-openbsd-linux-splice-empty-udp6",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:346::40_-afdd7:e83e:66bc:346::60_-t10_udpsplice'	=> "linux-openbsd-linux-splice-full-udp6",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.6.16.10_-a10.6.16.60_-t10_udpsplice'				=> "linux-openbsd-linux-splice-empty-udp-ot31",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-A10.6.16.10_-a10.6.16.60_-t10_udpsplice'				=> "linux-openbsd-linux-splice-full-udp-ot31",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:616::10_-afdd7:e83e:66bc:616::60_-t10_udpsplice'	=> "linux-openbsd-linux-splice-empty-udp6-ot31",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-cperform@lt13_-sperform@lt16_-Afdd7:e83e:66bc:616::10_-afdd7:e83e:66bc:616::60_-t10_udpsplice'	=> "linux-openbsd-linux-splice-full-udp6-ot31",
     'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10'			=> "linux-openbsd-ipsec-tunnel4-tcp-ip3fwd-ot31",
     'ssh_perform@lt13_iperf3_-c10.7.26.36_-P10_-t10_-R'			=> "linux-openbsd-ipsec-tunnel4-tcp-ip3rev-ot31",
     'ssh_perform@lt13_iperf3_-6_-cfdd7:e83e:66bc:0726::36_-P10_-t10'	=> "linux-openbsd-ipsec-tunnel4-tcp6-ip3fwd-ot31",
