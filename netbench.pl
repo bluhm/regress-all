@@ -24,7 +24,7 @@ use Getopt::Std;
 use List::Util qw(sum);
 
 my @alltestmodes = qw(
-    tcpbench
+    tcpbench tcpsplice tcpcopy
     udpbench udpsplice udpcopy
 );
 
@@ -78,6 +78,10 @@ $testmode{tcp} = 1
     if $testmode{tcpbench} || $testmode{tcpsplice} || $testmode{tcpcopy};
 $testmode{udp} = 1
     if $testmode{udpbench} || $testmode{udpsplice} || $testmode{udpcopy};
+$testmode{splice} = 1
+    if $testmode{tcpsplice} || $testmode{udpsplice};
+$testmode{copy} = 1
+    if $testmode{tcpcopy} || $testmode{udpcopy};
 
 my $dir = dirname($0);
 chdir($dir)
@@ -124,7 +128,7 @@ start_server_tcp(\%server) if $testmode{tcp};
 start_server_udp(\%server) if $testmode{udp};
 
 my (%relay, $client_addr, $client_port);
-if ($testmode{udpsplice} || $testmode{udpcopy}) {
+if ($testmode{splice} || $testmode{copy}) {
     %relay = (
 	name	=> "relay",
 	listen	=> $relay_addr,
@@ -238,10 +242,10 @@ sub start_relay {
     my ($proc) = @_;
 
     my $timeout = 1;
-    $timeout = $opts{t} if defined($opts{t});
+    $timeout += $opts{t} if defined($opts{t});
     $timeout += $opts{d} if defined($opts{d});
     my @cmd = ('splicebench');
-    push @cmd, '-c' if $testmode{udpcopy};
+    push @cmd, '-c' if $testmode{copy};
     push @cmd, '-u' if $testmode{udp};
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-i$opts{i}" if defined($opts{i});
