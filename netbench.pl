@@ -249,7 +249,8 @@ sub start_relay {
     push @cmd, '-u' if $testmode{udp};
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-i$opts{i}" if defined($opts{i});
-    push @cmd, "-N$opts{N}" if defined($opts{N});
+    push @cmd, "-N$opts{N}" if defined($opts{N}) && $testmode{udp};
+    push @cmd, "-n$opts{N}" if defined($opts{N}) && $testmode{tcp};
     push @cmd, "-t$timeout" if defined($opts{t});
     push @cmd, "[$proc->{listen}]:0";
     push @cmd, "[$proc->{connect}]:$proc->{port}";
