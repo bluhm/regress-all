@@ -90,8 +90,8 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(iperftcp4 tcpbench4 linuxiperftcp4)} = 1..3 if $testmode{tcp4};
 @testmode{qw(iperftcp6 tcpbench6 linuxiperftcp6)} = 1..3 if $testmode{tcp6};
 @testmode{qw(udp4 udp6)} = 1..2 if $testmode{udp};
-@testmode{qw(iperfudp4 udpbench4 frag4)} = 1..3 if $testmode{udp4};
-@testmode{qw(iperfudp6 udpbench6 frag6)} = 1..3 if $testmode{udp6};
+@testmode{qw(iperfudp4 udpbench4 frag4 udpsplice4)} = 1..4 if $testmode{udp4};
+@testmode{qw(iperfudp6 udpbench6 frag6 udpsplice6)} = 1..4 if $testmode{udp6};
 @testmode{qw(tcpbench4 tcpbench6)} = 1..2 if $testmode{tcpbench};
 @testmode{qw(udpbench4 udpbench6)} = 1..2 if $testmode{udpbench};
 @testmode{qw(iperftcp4 iperftcp6)} = 1..2 if $testmode{iperftcp};
@@ -872,11 +872,12 @@ foreach my $frame (0, 1) {
     push @tests, {
 	testcmd => [$netbench,
 	    '-v',
-	    '-B10000000000',
+	    '-B1000000000',
 	    '-b1000000',
 	    '-d1',
 	    "-f$frame",
 	    '-i3',
+	    '-N10',
 	    "-c$linux_ssh",
 	    "-s$linux_other_ssh",
 	    "-A$local_addr_range",
@@ -888,11 +889,12 @@ foreach my $frame (0, 1) {
     push @tests, {
 	testcmd => [$netbench,
 	    '-v',
-	    '-B10000000000',
+	    '-B1000000000',
 	    '-b1000000',
 	    '-d1',
 	    "-f$frame",
 	    '-i3',
+	    '-N10',
 	    "-c$linux_ssh",
 	    "-s$linux_other_ssh",
 	    "-A$local_addr6_range",
