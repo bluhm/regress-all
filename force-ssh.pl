@@ -29,7 +29,9 @@ foreach (@ARGV) {
     /^([0-9A-Za-z]+)$/
 	or die "Invalid characters in force argument.\n";
     $filter{iperf3} = \&filter_iperf3 if /^iperf3$/;
+    $filter{tcpbench} = \&filter_tcpbench if /^tcpbench$/;
     $filter{udpbench} = \&filter_udpbench if /^udpbench$/;
+    $filter{timeout} = \&filter_timeout if /^timeout$/;
 }
 my @allowed = sort keys %filter;
 
@@ -49,7 +51,7 @@ if ($cmd eq "pkill") {
     $filter{$args[1]}
 	or die "Only pkill '@allowed' allowed.\n";
 } else {
-    # Filter untrusted options of iperf3 or udpbench.
+    # Filter untrusted options of iperf3, tcpbench, or udpbench.
     my $sub = $filter{$cmd}
 	or die "Only command '@allowed' allowed.\n";
     $sub->(@args);
@@ -79,6 +81,20 @@ sub filter_iperf3 {
 	or die "Too many arguments for iperf3.\n";
 }
 
+# Filter out debug, kernel, unix, and rtable options.
+sub filter_tcpbench {
+    shift;
+    local @ARGV = @_;
+    my %opts;
+    getopts('46b:B:n:p:Rr:sS:t:T:uv', \%opts)
+	or die "Parsing tcpbench options failed.\n";
+    @ARGV < 1 || $ARGV[0] =~ /^10\.[0-9.]+$/ ||
+	$ARGV[0] =~ /^f[cd][0-9a-f]{2}:[0-9a-f:]+$/i
+	or die "Host address for tcpbench must be local.\n";
+    @ARGV <= 1
+	or die "Too many arguments for tcpbench.\n";
+}
+
 # Filter out remote and divert options.
 sub filter_udpbench {
     shift;
@@ -93,4 +109,23 @@ sub filter_udpbench {
 	or die "Host address for udpbench must be local.\n";
     @ARGV <= 2
 	or die "Too many arguments for udpbench.\n";
+}
+
+# Filter timeout duration.
+sub filter_timeout {
+    my $cmd = shift;
+    delete $filter{$cmd};
+    @allowed = sort keys %filter;
+
+    my $duration = shift;
+    defined($duration) && $duration =~ /^\d+$/
+	or die "Numeric duration for timeout must be present.\n";
+
+    my @args = @_
+	or die "Missing command for timeout.\n";
+    $cmd = $args[0];
+    # Filter untrusted options of iperf3, tcpbench, or udpbench.
+    my $sub = $filter{$cmd}
+	or die "Only command '@allowed' allowed.\n";
+    $sub->(@args);
 }
