@@ -33,8 +33,12 @@ my @alltestmodes = qw(
     net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
     localnet localnet4 localnet6
     linuxnet linuxiperftcp4 linuxiperftcp6
-    forward forward4 forward6 relay relay4 relay6 frag frag4 frag6
-    splice udpsplice splice4 udpsplice4 splice6 udpsplice6
+    forward forward4 forward6
+    relay relay4 relay6
+    frag frag4 frag6
+    splice splice4 splice6
+    tcpsplice tcpsplice4 tcpsplice6
+    udpsplice udpsplice4 udpsplice6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
     veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
 );
@@ -87,8 +91,10 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(iperftcp4 iperfudp4 linuxiperftcp4)} = 1..3 if $testmode{iperf4};
 @testmode{qw(iperftcp6 iperfudp6 linuxiperftcp6)} = 1..3 if $testmode{iperf6};
 @testmode{qw(tcp4 tcp6)} = 1..2 if $testmode{tcp};
-@testmode{qw(iperftcp4 tcpbench4 linuxiperftcp4)} = 1..3 if $testmode{tcp4};
-@testmode{qw(iperftcp6 tcpbench6 linuxiperftcp6)} = 1..3 if $testmode{tcp6};
+@testmode{qw(iperftcp4 tcpbench4 linuxiperftcp4 tcpsplice4)} = 1..4
+    if $testmode{tcp4};
+@testmode{qw(iperftcp6 tcpbench6 linuxiperftcp6 tcpsplice6)} = 1..4
+    if $testmode{tcp6};
 @testmode{qw(udp4 udp6)} = 1..2 if $testmode{udp};
 @testmode{qw(iperfudp4 udpbench4 frag4 udpsplice4)} = 1..4 if $testmode{udp4};
 @testmode{qw(iperfudp6 udpbench6 frag6 udpsplice6)} = 1..4 if $testmode{udp6};
@@ -100,8 +106,9 @@ $testmode{all} = 1 unless @ARGV;
 @testmode{qw(relay4 relay6)} = 1..2 if $testmode{relay};
 @testmode{qw(frag4 frag6)} = 1..2 if $testmode{frag};
 @testmode{qw(splice4 splice6)} = 1..2 if $testmode{splice};
-@testmode{qw(udpsplice4)} = 1..1 if $testmode{splice4};
-@testmode{qw(udpsplice6)} = 1..1 if $testmode{splice6};
+@testmode{qw(tcpsplice4 udpsplice4)} = 1..2 if $testmode{splice4};
+@testmode{qw(tcpsplice6 udpsplice6)} = 1..2 if $testmode{splice6};
+@testmode{qw(tcpsplice4 tcpsplice6)} = 1..2 if $testmode{tcpsplice};
 @testmode{qw(udpsplice4 udpsplice6)} = 1..2 if $testmode{udpsplice};
 @testmode{qw(ipsec4 ipsec44 ipsec46 ipsec6 ipsec64 ipsec66)} = 1..6
     if $testmode{ipsec};
@@ -903,6 +910,34 @@ foreach my $frame (0, 1) {
 	    'udpsplice'],
 	parser => \&netbench_parser,
     } if $testmode{udpsplice6};
+}
+foreach my $mode (qw(tcpsplice tcpcopy)) {
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-b1000000',
+	    '-N10',
+	    "-c$linux_ssh",
+	    "-s$linux_other_ssh",
+	    "-A$local_addr_range",
+	    "-a$linux_addr_range",
+	    '-t10',
+	    $mode],
+	parser => \&netbench_parser,
+    } if $testmode{tcpsplice4};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-b1000000',
+	    '-N10',
+	    "-c$linux_ssh",
+	    "-s$linux_other_ssh",
+	    "-A$local_addr6_range",
+	    "-a$linux_addr6_range",
+	    '-t10',
+	    $mode],
+	parser => \&netbench_parser,
+    } if $testmode{tcpsplice6};
 }
 push @tests, (
     {

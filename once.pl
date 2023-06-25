@@ -38,9 +38,12 @@ my @alltestmodes = qw(
     net6 tcp6 udp6 iperf6 tcpbench6 udpbench6 iperftcp6 iperfudp6
     localnet localnet4 localnet6
     linuxnet linuxiperftcp4 linuxiperftcp6
-    forward forward4 forward6 relay relay4 relay6
+    forward forward4 forward6
+    relay relay4 relay6
     frag frag4 frag6
-    splice udpsplice splice4 udpsplice4 splice6 udpsplice6
+    splice splice4 splice6
+    tcpsplice tcpsplice4 tcpsplice6
+    udpsplice udpsplice4 udpsplice6
     ipsec ipsec4 ipsec6 ipsec44 ipsec46 ipsec64 ipsec66
     veb veb4 veb6 vbridge vbridge4 vbridge6 vport vport4 vport6
 );
