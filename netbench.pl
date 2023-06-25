@@ -22,7 +22,7 @@ use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 use File::Basename;
 use Getopt::Std;
 
-my @alltestmodes = qw(all udpbench udpsplice);
+my @alltestmodes = qw(udpbench udpsplice udpcopy);
 
 my %opts;
 getopts('A:a:B:b:c:d:f:i:l:m:N:P:s:t:v', \%opts) or do {
@@ -65,8 +65,10 @@ foreach my $mode (@ARGV) {
 	or die "Unknown test mode '$mode'";
     $testmode{$mode} = 1;
 }
-$testmode{all} = 1 unless @ARGV;
-@testmode{qw(udpbench)} = 1..1 if $testmode{all};
+foreach my $mode (@alltestmodes) {
+    die "Test mode '$mode' must be used solely"
+	if $testmode{$mode} && keys %testmode != 1;
+}
 
 my $dir = dirname($0);
 chdir($dir)
@@ -112,7 +114,7 @@ my %server = (
 start_server(\%server);
 
 my (%relay, $client_addr, $client_port);
-if ($testmode{udpsplice}) {
+if ($testmode{udpsplice} || $testmode{udpcopy}) {
     %relay = (
 	name	=> "relay",
 	listen	=> $relay_addr,
@@ -195,6 +197,7 @@ sub start_relay {
     $timeout = $opts{t} if defined($opts{t});
     $timeout += $opts{d} if defined($opts{d});
     my @cmd = ('splicebench');
+    push @cmd, '-c' if $testmode{udpcopy};
     push @cmd, '-u';
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-i$opts{i}" if defined($opts{i});
