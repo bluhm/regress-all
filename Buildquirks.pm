@@ -850,6 +850,11 @@ my %quirks = (
 	updatedirs => [ "lib/libc" ],
 	builddirs => [ "lib/libc" ],
     },
+    '2023-06-30T06:24:58Z' => {
+	comment => "libc malloc deeper callers for leak reports",
+	updatedirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
 );
 
 #### Patches ####
