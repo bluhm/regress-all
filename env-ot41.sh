@@ -1,4 +1,4 @@
-export MANAGEMENT_IF=em4
+export MANAGEMENT_IF=em2
 export NETLINK_LINE=1
 
 # allow to manually run perform tests frag and splice on netlink hosts
