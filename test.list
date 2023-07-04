@@ -13,6 +13,7 @@ etc/MAKEDEV
 gnu/egcs/gcc-bounds
 gnu/egcs/gcc-builtins
 gnu/lib/libexecinfo
+gnu/usr.bin/perl
 include/bitstring
 lib/csu
 lib/libagentx
