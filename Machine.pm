@@ -88,7 +88,7 @@ sub get_bsdcons {
 
 sub get_version {
     my @sshcmd = (('ssh', "$user\@$host", 'sysctl'),
-	qw(kern.version hw.machine hw.ncpu));
+	qw(kern.version hw.machine hw.ncpu hw.ncpuonline));
     logmsg "Command '@sshcmd' started.\n";
     open(my $ctl, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
@@ -205,7 +205,7 @@ sub make_kernel {
     $version =~ m{:(?:/usr/src)?/sys/([\w./]+)$}m
 	or die "No kernel path in version: $version";
     my $path = $1;
-    my $ncpu = $sysctl{'hw.ncpu'};
+    my $ncpu = $sysctl{'hw.ncpuonline'};
     my $jflag = $ncpu > 1 ? " -j ".($ncpu+1) : "";
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make config");
     logcmd('ssh', "$user\@$host", "cd /usr/src/sys/$path && make clean")
@@ -220,7 +220,7 @@ sub make_kernel {
 }
 
 sub make_build {
-    my $ncpu = $sysctl{'hw.ncpu'};
+    my $ncpu = $sysctl{'hw.ncpuonline'};
     my $jflag = $ncpu > 1 ? " -j ".($ncpu+1) : "";
     logcmd('ssh', "$user\@$host", "cd /usr/src && time nice make$jflag build");
 }

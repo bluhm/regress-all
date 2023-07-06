@@ -2298,7 +2298,7 @@ sub quirk_commands {
 	    push @c, "cd /usr/src && make -C $dir clean";
 	}
 	foreach my $dir (@{$v->{builddirs} || []}) {
-	    my $ncpu = $sysctl->{'hw.ncpu'};
+	    my $ncpu = $sysctl->{'hw.ncpuonline'};
 	    push @c, "cd /usr/src && make -C $dir obj";
 	    push @c, "cd /usr/src && nice make -C $dir -j $ncpu all";
 	    push @c, "cd /usr/src && make -C $dir install";

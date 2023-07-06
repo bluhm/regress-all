@@ -93,7 +93,7 @@ sub logmsg {
     $$prev = $message;
 }
 
-my $ncpu = `sysctl -n hw.ncpu`;
+my $ncpu = `sysctl -n hw.ncpuonline`;
 chomp($ncpu);
 
 my @tests = (
