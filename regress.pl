@@ -33,7 +33,7 @@ usage: regress.pl [-v] [-e environment] [-t timeout] [test ...]
 EOF
     exit(2);
 };
-my $timeout = $opts{t} || 60*60;
+my $timeout = $opts{t} || 2*60*60;
 environment($opts{e}) if $opts{e};
 
 my $dir = dirname($0);
