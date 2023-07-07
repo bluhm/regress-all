@@ -57,6 +57,7 @@ devel/p5-Data-Dump-Streamer
 devel/p5-Data-HexDump
 devel/p5-Data-OptList
 devel/p5-Data-Random
+devel/p5-Data-Section
 devel/p5-Data-Validate
 devel/p5-Data-Validate-IP
 devel/p5-Data-Validate-Struct
@@ -164,6 +165,7 @@ devel/p5-Path-Tiny
 devel/p5-Pod-Constant
 devel/p5-Regexp-IPv6
 devel/p5-Set-Infinite
+devel/p5-Software-License
 devel/p5-String-Tagged
 devel/p5-String-Tagged-Terminal
 devel/p5-Sub-Attribute
