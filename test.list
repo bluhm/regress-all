@@ -175,6 +175,7 @@ lib/libssl/record_layer
 lib/libssl/rust-openssl
 lib/libssl/server
 lib/libssl/ssl
+lib/libssl/symbols
 lib/libssl/tls
 lib/libssl/tlsext
 lib/libssl/tlsfuzzer
