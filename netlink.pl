@@ -29,8 +29,8 @@ use Netstat;
 
 my @allifaces = qw(em igc ix ixl);
 my @allmodifymodes = qw(lro nopf notso);
-my @allpseudos = qw(aggr bridge carp none trunk veb vlan);
-my @alltestmodes = sort qw(all fragment icmp ipopts pathmtu tcp udp);
+my @allpseudos = qw(aggr bridge none veb vlan);
+my @alltestmodes = sort qw(all fragment icmp tcp udp);
 
 my %opts;
 getopts('c:e:i:l:m:r:t:v', \%opts) or do {
