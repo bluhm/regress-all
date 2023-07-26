@@ -116,13 +116,19 @@ logmsg("Script '$scriptname' started at $now.\n");
 createhost($user, $host);
 
 my %sysctl = get_version();
-my $before;
+my ($before, $clean);
 if ($sysctl{'kern.version'} =~
     /#cvs : D(\d{4}).(\d\d).(\d\d).(\d\d).(\d\d).(\d\d):/) {
+    # date format is from CVS/Tag
+    # OpenBSD 7.3-current (GENERIC.MP) #cvs : D2023.07.18.00.00.00: \
+    #    Wed Jul 19 11:28:11 CEST 2023
     $before = "$1-$2-${3}T$4:$5:${6}Z";
 } elsif ($sysctl{'kern.version'} =~
     /: (\w{3} \w{3}  ?\d?\d \d\d:\d\d:\d\d \w+ \d{4})\n/) {
+    # date format is from snapshot
+    # OpenBSD 7.3-current (GENERIC.MP) #1314: Tue Jul 25 17:02:17 MDT 2023
     $before = $1;
+    $clean = "C";
 }
 if ($before && $cvsdate) {
     my %q = quirks($before, $cvsdate);
@@ -140,9 +146,9 @@ if ($before && $cvsdate) {
     }
 }
 
-update_cvs(undef, $cvsdate, "sys") if $cvsdate;
+$clean = "C" if $patch;
+update_cvs(undef, $cvsdate, "sys", $clean) if $cvsdate;
 if ($patch) {
-    clean_cvs("sys");
     patch_cvs($_, "sys") foreach split(/,/, $patch);
 }
 make_kernel();

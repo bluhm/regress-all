@@ -139,11 +139,12 @@ sub update_cvs {
 }
 
 sub cvs_update {
-    my ($repo, $release, $date, $path) = @_;
+    my ($repo, $release, $date, $path, $flags) = @_;
     my $tag = $release || "";
     $tag =~ s/(\d+)\.(\d+)/ -rOPENBSD_${1}_${2}_BASE/;
     $tag = strftime(" -D%FZ%T", gmtime(str2time($date))) if $date;
     $tag ||= "AC";  # for step checkouts per date preserve quirk patches
+    $tag = "$flags$tag" if $flags;
     $path = $path ? " $path" : "";
     logcmd('ssh', "$user\@$host", "cd /usr/$repo && cvs -qR up -Pd$tag$path");
 }
