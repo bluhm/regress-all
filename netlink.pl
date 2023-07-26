@@ -167,12 +167,22 @@ sub bad {
 sub good {
     my ($test, $diff, $log) = @_;
     my $duration = sprintf("%dm%02d.%02ds", $diff/60, $diff%60, 100*$diff%100);
-    print $log "\nPASS\t$test\tDuration $duration\n" if $log;
-    print "\nPASS\t$test\tDuration $duration\n\n" if $opts{v};
-    print $tr "PASS\t$test\tDuration $duration\n";
 
     statistics($test, "after");
     generate_diff_netstat_s($test);
+
+    my $pass = "PASS";
+    my $netstat = "$test.stats-diff-netstat_-s.log";
+
+    open(FH, $netstat) or die("Could not open '$netstat'");
+    while(my $line = <FH>) {
+        $pass = "XPASS" if ($line =~ /error/);
+    }
+    close(FH);
+
+    print $log "\n$pass\t$test\tDuration $duration\n" if $log;
+    print "\n$pass\t$test\tDuration $duration\n\n" if $opts{v};
+    print $tr "$pass\t$test\tDuration $duration\n";
 
     $log->sync() if $log;
     $tr->sync();
