@@ -162,6 +162,8 @@ if (keys %setupmode) {
     reboot_hosts() if $setupmode{reboot};
     collect_version();
     setup_html();
+} else {
+    powerup_hosts();
 }
 $resultdir .= "/$cvsdate" if $cvsdate;
 if (($cvsdate && ! -f "$resultdir/cvsbuild-$host.log") || $patch) {
