@@ -149,6 +149,7 @@ if ($before && $cvsdate) {
 $clean = "C" if $patch;
 update_cvs(undef, $cvsdate, "sys", $clean) if $cvsdate;
 if ($patch) {
+    clean_cvs("sys") unless $cvsdate;
     patch_cvs($_, "sys") foreach split(/,/, $patch);
 }
 make_kernel();
