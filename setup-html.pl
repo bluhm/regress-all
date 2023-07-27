@@ -710,6 +710,7 @@ sub fill_navigation_links {
 	$N{$result} = "$result.html" if -f "$result.html";
     }
     foreach my $result (qw(current latest)) {
+	$N{$result} = "$result/netlink.html" if -f "$result/netlink.html";
 	$N{$result} = "$result/perform.html" if -f "$result/perform.html";
     }
     if (my @releases = glob("[0-9]*.[0-9]/perform.html")) {

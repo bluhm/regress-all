@@ -20,6 +20,7 @@ use warnings;
 use Cwd;
 use File::Basename;
 use File::Find;
+use File::Glob qw(:bsd_glob);
 use HTML::Entities;
 use Getopt::Std;
 use List::Util qw(first max min sum);
@@ -33,9 +34,10 @@ use Testvars qw(%TESTDESC);
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('h:lv', \%opts) or do {
+getopts('d:h:lv', \%opts) or do {
     print STDERR <<"EOF";
-usage: netlink-html.pl [-l] [-h host]
+usage: netlink-html.pl [-lv] [-d date] [-h host]
+    -d date	run date of netlink test, may be current or latest host
     -h host	user and host for version information, user defaults to root
     -l		create latest.html with one column of the latest results
     -v		verbose
@@ -93,12 +95,16 @@ my (%T, %D, %H, %V);
 # $D{$date}{ncpu}		sysctl hardware ncpu cores
 
 print "glob_result_files" if $verbose;
-my @result_files = glob_result_files();
+my @result_files = glob_result_files($date);
 print "\nparse result files" if $verbose;
 parse_result_files(@result_files);
 print "\ncreate html hier files" if $verbose;
 write_html_hier_files($date);
 print "\nwrite html date file" if $verbose;
+if ($opts{d}) {
+    print "\n" if $verbose;
+    exit;
+}
 write_html_date_file();
 print "\n" if $verbose;
 
@@ -111,7 +117,10 @@ sub list_dates {
 
 sub html_hier_top {
     my ($html, $date, @cvsdates) = @_;
-    my $dv = $D{$date};
+    my $setup = $D{$date}{setup};
+    my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
+    my $href = $setup ? "<a href=\"../$link\">" : "";
+    my $enda = $href ? "</a>" : "";
     print $html <<"HEADER";
 <table>
   <tr>
@@ -122,8 +131,12 @@ sub html_hier_top {
     <th>run at</th>
     <td><a href="../$date/netlink.html">$date</a></td>
   </tr>
+  <tr>
+    <th>setup</th>
+    <th>${href}info$enda</th>
+  </tr>
+</table>
 HEADER
-    print $html "</table>\n";
 }
 
 sub html_hier_test_head {
@@ -267,7 +280,8 @@ sub write_html_hier_files {
 	my @nav = (
 	    Top      => "../../../test.html",
 	    All      => "../netlink.html",
-	    Latest   => "../latest/netlink.html",
+	    Current  => "../current/netlink.html",
+	    Latest   => "../latest.html",
 	    Running  => "../run.html");
 	html_header($html, "OpenBSD Netlink Hierarchie",
 	    "OpenBSD netlink $short test results",
@@ -329,6 +343,7 @@ sub write_html_date_file {
     my @nav = (
 	Top     => "../../test.html",
 	All     => ($opts{l} || $host ? "netlink.html" : undef),
+	Current => "current/netlink.html",
 	Latest  => ($opts{l} ? undef :
 	    $host ? "latest-$host/netlink.html" : "latest/netlink.html"),
 	Running => "run.html");
@@ -436,6 +451,8 @@ HEADER
 }
 
 sub glob_result_files {
+    my ($date) = @_;
+
     print "." if $verbose;
 
     my @files;
@@ -503,7 +520,10 @@ sub glob_result_files {
 	return sort { $a->{dir} cmp $b->{dir} } @files;
     }
 
-    find($wanted, ".");
+    # create the html files only for a single date
+    my $dateglob = $date ? $date : "*T*Z";
+
+    find($wanted, bsd_glob($dateglob, GLOB_NOSORT));
     if ($host) {
 	return sort { $a->{dir} cmp $b->{dir} }
 	    grep { -f "$_->{date}/version-$host.txt" } @files;
