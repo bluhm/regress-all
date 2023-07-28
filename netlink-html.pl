@@ -217,7 +217,7 @@ sub html_hier_test_row_util {
     my $valsum = 0;
     foreach my $hv (@hiers) {
 	my $value = 0;
-	my $status = "";
+	my $status;
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
 	    if ($value0->{name} eq "recv" || $maxval == 1) {
@@ -236,10 +236,7 @@ sub html_hier_test_row_util {
     print $html "  <tr>\n";
     print $html "    <th class=\"desc\">$testdesc</th>\n";
     foreach my $hv (@hiers) {
-	my $value = 0;
-	my $status = "";
-	my $unit = "";
-	my $iface = "";
+	my ($status, $unit, $iface, $value);
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
 	    if ($value0->{name} eq "recv" || $maxval == 1) {
@@ -252,6 +249,10 @@ sub html_hier_test_row_util {
 		    $value = $vv->[$i]{number};
 		}
 	    }
+	}
+	unless (defined $value) {
+	    printf $html "    <td></td>\n";
+	    next;
 	}
 	my $title = " title=\"$value $unit\"";
 	my $class = " class=\"status $status\"";
