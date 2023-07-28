@@ -262,7 +262,8 @@ sub html_hier_test_row_util {
 	    "iface-ixl"	=> 10 * 10 ** 9);
 	my $linerate = $linerates{$iface} || 10 ** 9;
 	my $rate = $value / $linerate;
-	my $style = sprintf(" style=\"background-color: rgba(128, 255, 128, %.1f)\"", $rate);
+	my $style = sprintf(
+	    " style=\"background-color: rgba(128, 255, 128, %.1f)\"", $rate);
 	printf $html "    <td$class$style$title>%.1f%%</td>\n", $rate * 100;
     }
     print $html "  </tr>\n";
@@ -295,8 +296,8 @@ sub write_html_hier_files {
 	html_hier_test_head($html, @hv);
 	print $html "  </thead>\n  <tbody>\n";
 
-	my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
-	    keys %T;
+	my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} ||
+	    $TESTDESC{$a} cmp $TESTDESC{$b} } keys %T;
 	foreach my $test (@tests) {
 	    my $td = $T{$test}{$date}
 		or next;
@@ -305,19 +306,21 @@ sub write_html_hier_files {
 	print $html "  </tbody>\n";
 	print $html "</table>\n";
 
+	my @hiernodate = @HIERARCHY;
+	shift @hiernodate;
 	print $html "<table class='utilization'>\n";
 	print $html "  <thead>\n  <tr>\n    <th>";
-	print $html join(' ', @HIERARCHY);
+	print $html join(' ', @hiernodate);
 	print $html "</th>\n";
 	foreach my $hvi (@hv) {
+	    print $html "    <th>";
 	    my $name  = "";
-	    foreach my $hier (@HIERARCHY) {
-		$name .= " $hvi->{$hier}" if ($hvi->{$hier});
-	    }
-	    print $html "    <th>$name</th>\n";
+	    print $html join(' ', map { $hvi->{$_} || "" } @hiernodate);
+	    print $html "</th>\n";
 	}
 	print $html "  </tr>\n  </thead>\n  <tbody>\n";
 
+	@tests = sort { $TESTDESC{$a} cmp $TESTDESC{$b} } keys %T;
 	foreach my $test (@tests) {
 	    my $td = $T{$test}{$date}
 		or next;
