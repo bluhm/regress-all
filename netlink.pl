@@ -29,7 +29,7 @@ use Netstat;
 
 my @allifaces = qw(em igc ix ixl);
 my @allmodifymodes = qw(lro nopf notso);
-my @allpseudos = qw(aggr bridge none veb vlan);
+my @allpseudos = qw(bridge none veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp);
 
 my %opts;
@@ -351,6 +351,7 @@ mysystem('chmod', '555', '/etc/rc.d/tcpbench');
 my $configure_linux = 1;
 
 if ($pseudo eq 'aggr') {
+    # XXX: does now work as switch is not configured
     # XXX: multiple interfaces in one aggr
     mysystem('ifconfig', 'aggr0', 'create');
     mysystem('ifconfig', 'aggr1', 'create');

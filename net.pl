@@ -32,7 +32,7 @@ my $scriptname = "$0 @ARGV";
 
 my @allifaces = qw(em igc ix ixl);
 my @allmodifymodes = qw(lro none nopf notso);
-my @allpseudos = qw(aggr bridge none veb vlan);
+my @allpseudos = qw(bridge none veb vlan);
 my @allsetupmodes = (qw(build install upgrade sysupgrade keep kernel reboot
     tools), "cvs,build", "cvs,kernel");
 my @alltestmodes = qw(all fragment icmp tcp udp);
