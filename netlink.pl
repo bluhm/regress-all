@@ -175,7 +175,7 @@ sub good {
     my $netstat = "$test.stats-diff-netstat_-s.log";
 
     open(my $fh, '<', $netstat) or die("Could not open '$netstat'");
-    while(my $line = <$fh>) {
+    while(<$fh>) {
         $pass = "XPASS" if /error/;
     }
 
