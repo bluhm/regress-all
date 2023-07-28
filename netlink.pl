@@ -174,11 +174,10 @@ sub good {
     my $pass = "PASS";
     my $netstat = "$test.stats-diff-netstat_-s.log";
 
-    open(FH, $netstat) or die("Could not open '$netstat'");
-    while(my $line = <FH>) {
-        $pass = "XPASS" if ($line =~ /error/);
+    open(my $fh, '<', $netstat) or die("Could not open '$netstat'");
+    while(my $line = <$fh>) {
+        $pass = "XPASS" if /error/;
     }
-    close(FH);
 
     print $log "\n$pass\t$test\tDuration $duration\n" if $log;
     print "\n$pass\t$test\tDuration $duration\n\n" if $opts{v};
