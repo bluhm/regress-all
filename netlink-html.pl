@@ -133,7 +133,7 @@ sub html_hier_top {
   </tr>
   <tr>
     <th>setup</th>
-    <th>${href}info$enda</th>
+    <td>${href}info$enda</td>
   </tr>
 </table>
 HEADER
