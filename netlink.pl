@@ -176,7 +176,7 @@ sub good {
 
     open(my $fh, '<', $netstat) or die("Could not open '$netstat'");
     while(<$fh>) {
-        $pass = "XPASS" if /error/;
+	$pass = "XPASS" if /error/;
     }
 
     print $log "\n$pass\t$test\tDuration $duration\n" if $log;
@@ -721,11 +721,13 @@ push @tests, (
 ) if ($testmode{icmp6});
 push @tests, (
     {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', $obsd_l_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
+	    $obsd_l_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $obsd_l_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100',
+	    $obsd_l_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
@@ -737,22 +739,26 @@ push @tests, (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', $lnx_r_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
+	    $lnx_r_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $lnx_r_addr],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
+	    '-n100', $lnx_r_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }
 ) if ($testmode{tcp4});
 push @tests, (
     {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', $obsd_l_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
+	    $obsd_l_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $obsd_l_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
+	    '-n100', $obsd_l_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
@@ -764,11 +770,13 @@ push @tests, (
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', $lnx_r_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
+	    $lnx_r_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100', $lnx_r_addr6],
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
+	    '-n100', $lnx_r_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }
