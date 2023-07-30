@@ -108,9 +108,11 @@ END {
 	system(@cmd);
     }
 };
-setup_hosts(patch => $patch, mode => \%setupmode)
-    if $patch || !$setupmode{keep};
-powerup_hosts() if $setupmode{keep};
+if ($patch || !$setupmode{keep}) {
+    setup_hosts(patch => $patch, mode => \%setupmode)
+} else {
+    powerup_hosts(patch => $patch);
+}
 collect_version();
 setup_html();
 
@@ -155,7 +157,7 @@ chdir($resultdir)
 
 collect_dmesg();
 setup_html();
-powerdown_hosts() if $opts{p};
+powerdown_hosts(patch => $patch) if $opts{p};
 
 # create html output
 

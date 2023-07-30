@@ -155,27 +155,30 @@ END {
 	system(@cmd);
     }
 };
+$resultdir .= "/$cvsdate" if $cvsdate;
+-d $resultdir || mkdir $resultdir
+    or die "Make directory '$resultdir' failed: $!";
+if ($patch) {
+    my $patchdir = "patch-".
+	join(',', map { s,\.[^/]*,,; basename($_) } split(/,/, $patch));
+    $resultdir = mkdir_num("$resultdir/$patchdir");
+}
+chdir($resultdir)
+    or die "Change directory to '$resultdir' failed: $!";
 if (keys %setupmode) {
-    setup_hosts(patch => $patch, mode => \%setupmode)
-	if $patch || !($setupmode{keep} || $setupmode{reboot});
-    powerup_hosts() if $setupmode{keep} && !$setupmode{reboot};
-    reboot_hosts() if $setupmode{reboot};
+    if ($patch || !($setupmode{keep} || $setupmode{reboot})) {
+	setup_hosts(patch => $patch, mode => \%setupmode);
+    } elsif (!$setupmode{reboot}) {
+	powerup_hosts(cvsdate => $cvsdate, patch => $patch);
+    } else {
+	reboot_hosts(cvsdate => $cvsdate, patch => $patch);
+    }
     collect_version();
     setup_html();
 } else {
-    powerup_hosts();
+    powerup_hosts(cvsdate => $cvsdate, patch => $patch);
 }
-$resultdir .= "/$cvsdate" if $cvsdate;
 if (($cvsdate && ! -f "$resultdir/cvsbuild-$host.log") || $patch) {
-    -d $resultdir || mkdir $resultdir
-	or die "Make directory '$resultdir' failed: $!";
-    if ($patch) {
-	my $patchdir = "patch-".
-	    join(',', map { s,\.[^/]*,,; basename($_) } split(/,/, $patch));
-	$resultdir = mkdir_num("$resultdir/$patchdir");
-    }
-    chdir($resultdir)
-	or die "Change directory to '$resultdir' failed: $!";
     cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch);
     collect_version();
     setup_html();
@@ -184,8 +187,6 @@ if (($cvsdate && ! -f "$resultdir/cvsbuild-$host.log") || $patch) {
 	die "Directory '$resultdir' exists and no subdir given";
 }
 
-chdir($resultdir)
-    or die "Change directory to '$resultdir' failed: $!";
 collect_version();
 
 my @ifaces;

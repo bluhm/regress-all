@@ -112,10 +112,13 @@ END {
     @cmd = ("$regressdir/bin/running-html.pl");
     system(@cmd) if $regressdir;
 };
-setup_hosts(patch => $patch, mode => \%setupmode)
-    if $patch || !($setupmode{keep} || $setupmode{reboot});
-powerup_hosts() if $setupmode{keep} && !$setupmode{reboot};
-reboot_hosts(mode => \%setupmode) if $setupmode{reboot};
+if ($patch || !($setupmode{keep} || $setupmode{reboot})) {
+    setup_hosts(patch => $patch, mode => \%setupmode);
+} elsif (!$setupmode{reboot}) {
+    powerup_hosts(patch => $patch);
+} else {
+    reboot_hosts(patch => $patch);
+}
 collect_version();
 setup_html();
 
@@ -160,7 +163,7 @@ chdir($resultdir)
 
 collect_dmesg();
 setup_html();
-powerdown_hosts() if $opts{p};
+powerdown_hosts(patch => $patch) if $opts{p};
 bsdcons_hosts();
 undef $odate;
 

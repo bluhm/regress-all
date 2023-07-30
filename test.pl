@@ -104,8 +104,11 @@ END {
 	system(@cmd);
     }
 };
-setup_hosts(mode => \%setupmode) if !$setupmode{keep};
-powerup_hosts() if $setupmode{keep};
+if (!$setupmode{keep}) {
+    setup_hosts(mode => \%setupmode);
+} else {
+    powerup_hosts();
+}
 collect_version();
 setup_html();
 

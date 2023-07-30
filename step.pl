@@ -185,8 +185,11 @@ END {
     @cmd = ("$performdir/bin/running-html.pl");
     system(@cmd) if $performdir;
 };
-setup_hosts(release => $release, mode => \%setupmode) if !$setupmode{keep};
-powerup_hosts(release => $release) if $setupmode{keep};
+if (!$setupmode{keep}) {
+    setup_hosts(release => $release, mode => \%setupmode);
+} else {
+    powerup_hosts(release => $release);
+}
 collect_version();
 setup_html();
 

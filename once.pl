@@ -237,8 +237,7 @@ foreach my $repeatdir (@repeats ? @repeats : ".") {
     setup_html();
 }
 powerdown_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
-    release => $release)
-    if $opts{p};
+    release => $release) if $opts{p};
 bsdcons_hosts(cvsdate => $cvsdate, patch => $patch, modify => $modify,
     release => $release);
 undef $odate;
