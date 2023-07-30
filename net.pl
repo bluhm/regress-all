@@ -191,13 +191,23 @@ collect_version();
 
 my @ifaces;
 if ($iface) {
+    open($fh, '<', "dmesg-boot-$host.txt")
+	or die "Open 'dmesg-boot-$host.txt' for reading failed: $!";
+    my @dmesg = <$fh>;
     $iface = join(",", @allifaces) if $iface eq "all";
-    @ifaces = split(/,/, $iface);
-    foreach my $if (@ifaces) {
+    foreach my $if (split(/,/, $iface)) {
 	grep { $_ eq $if } @allifaces
 	    or die "Unknown interface '$if'";
-	$if = "iface-$if";
+	unless (grep { /^$if\d+ at / } @dmesg) {
+	    if ($opts{i} eq "all") {
+		next;
+	    } else {
+		die "Interface '$if' does not exist in dmesg";
+	    }
+	}
+	push @ifaces, "iface-$if";
     }
+    @ifaces or die "No suitable interfaces in '$iface' found";
 }
 my @modifies;
 if ($modify) {
