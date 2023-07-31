@@ -855,6 +855,15 @@ my %quirks = (
 	updatedirs => [ "lib/libc" ],
 	builddirs => [ "lib/libc" ],
     },
+    '2023-07-31T04:01:07Z' => {
+	comment => "kernel eIBRS disable retpoline",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 );
 
 #### Patches ####
