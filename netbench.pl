@@ -345,7 +345,7 @@ sub read_output {
 	    $status{$1}{end} = $5
 		if !$status{$1}{end} || $status{$1}{end} < $5;;
 	}
-	if (/^Conn:.*\s([kmgt]?)bps:\s+([\d.]+)\s/i) {
+	if (/^Conn:\s+\d+\s+([kmgt]?)bps:\s+([\d.]+)\s/i) {
 	    my $value = $2;
 	    my $unit = lc($1);
 	    if ($unit eq '') {
