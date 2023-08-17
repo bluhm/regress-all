@@ -781,7 +781,9 @@ my %quirks = (
     },
     '2023-03-25T15:22:06Z' => {
 	comment => "libc malloc chunk sizes fine grained",
-	updatedirs => [ "lib/libc" ],
+	updatedirs => [ "sys", "lib/libc" ],
+	prebuildcommands => [ "make includes" ],
+	cleandirs => [ "lib/libc" ],
 	builddirs => [ "lib/libc" ],
     },
     '2023-04-01T18:47:51Z' => {
