@@ -115,7 +115,7 @@ copy_scripts();
 checkout_cvs($release) if $mode{install} || $mode{upgrade} ||
     $mode{sysupgrade};
 update_cvs($release, undef, $cvspath) if $mode{cvs};
-clean_cvs($cvspath) if $mode{restart} || $patch;
+clean_cvs($cvspath) if ($mode{restart} && !$mode{cvs}) || $patch;
 if ($patch) {
     patch_cvs($_, $cvspath) foreach split(/,/, $patch);
 }
