@@ -30,6 +30,7 @@ databases/p5-DBD-Pg
 databases/p5-DBD-SQLite
 databases/p5-DBD-SQLite2
 databases/p5-DBI
+databases/p5-Data-RandomPerson
 databases/p5-Rose-DB
 databases/p5-Rose-Object
 databases/p5-ldap
@@ -38,6 +39,7 @@ devel/p5-Alien-Base
 devel/p5-AnyEvent
 devel/p5-B-COW
 devel/p5-B-Hooks-EndOfScope
+devel/p5-B-Keywords
 devel/p5-BSD-Resource
 devel/p5-BSD-arc4random
 devel/p5-BSD-stat
@@ -52,6 +54,7 @@ devel/p5-Class-Load-XS
 devel/p5-Class-XSAccessor
 devel/p5-Commandable
 devel/p5-Coro
+devel/p5-Curses
 devel/p5-Data-Compare
 devel/p5-Data-Dump-Streamer
 devel/p5-Data-HexDump
@@ -89,11 +92,13 @@ devel/p5-File-Find-Object-Rule
 devel/p5-File-Find-Rule
 devel/p5-File-Listing
 devel/p5-File-Modified
+devel/p5-File-NCopy
 devel/p5-File-Share
 devel/p5-File-Slurp
 devel/p5-File-TreeCreate
 devel/p5-Forest
 devel/p5-Hash-Util-FieldHash-Compat
+devel/p5-IO-AIO
 devel/p5-IO-BufferedSelect
 devel/p5-IO-Interactive
 devel/p5-IO-KQueue
@@ -350,6 +355,7 @@ net/p5-Net-Pcap
 net/p5-Net-PcapWriter
 net/p5-Net-Radius
 net/p5-Net-SNMP
+net/p5-Net-Twitter
 net/p5-NetAddr-IP
 net/p5-NetPacket
 net/p5-OSPF-LSDB
@@ -415,6 +421,8 @@ textproc/libxslt
 textproc/p5-Encode-Locale
 textproc/p5-File-KDBX
 textproc/p5-List-SomeUtils
+textproc/p5-List-Util-WeightedChoice
+textproc/p5-Number-Format
 textproc/p5-PDF-API2
 textproc/p5-PDF-Table
 textproc/p5-Pod-LaTeX
