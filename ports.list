@@ -59,6 +59,7 @@ devel/p5-Data-Compare
 devel/p5-Data-Dump-Streamer
 devel/p5-Data-HexDump
 devel/p5-Data-OptList
+devel/p5-Data-Printer
 devel/p5-Data-Random
 devel/p5-Data-Section
 devel/p5-Data-Validate
