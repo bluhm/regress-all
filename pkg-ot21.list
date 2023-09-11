@@ -393,7 +393,6 @@ p5-Test-Fatal
 p5-Test-File
 p5-Test-File-Contents
 p5-Test-File-ShareDir
-p5-Test-Group
 p5-Test-HTML-Tidy
 p5-Test-HTTP-LocalServer
 p5-Test-HTTP-Server-Simple
