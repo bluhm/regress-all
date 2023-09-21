@@ -89,10 +89,17 @@ my %l;
 my $state = "header";
 my $file;
 my %commit;
-while (<$cvs>) {
+for ((local $_, my $preview) = (scalar <$cvs>, scalar <$cvs>);
+    defined($_);
+    ($_, $preview) = ($preview, scalar <$cvs>)) {
+
     print if $verbose;
     chomp;
-    if ($_ eq $startcommit || $_ eq $finishcommit) {
+    # some commit messages contain ----------------------------
+    # use more context to detect real commits with heuristics
+    if (($_ eq $startcommit && $preview =~ /^revision 1\./) ||
+	$_ eq $finishcommit) {
+
 	$file or die "No file before commit: $_";
 	if ($state eq "header") {
 	    my @keys = keys %commit;
