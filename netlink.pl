@@ -28,7 +28,7 @@ use lib dirname($0);
 use Netstat;
 
 my @allifaces = qw(em igc ix ixl);
-my @allmodifymodes = qw(lro nopf notso);
+my @allmodifymodes = qw(nolro nopf notso);
 my @allpseudos = qw(bridge none veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp);
 
@@ -626,29 +626,29 @@ sub lro_get_ifs {
 }
 
 my @lro_ifs;
-sub lro_startup {
+sub nolro_startup {
     my ($log) = @_;
 
     @lro_ifs = lro_get_ifs();
     foreach my $ifname (@lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, 'tcplro');
+	my @cmd = ('/sbin/ifconfig', $ifname, '-tcplro');
 	logcmd($log, @cmd) and
 	    die "Command '@cmd' failed: $?";
     }
 
     # changing LRO may lose interface link status due to down/up
     sleep 1;
-    print $log "lro enabled\n\n";
-    print "lro enabled\n\n" if $opts{v};
+    print $log "lro disabled\n\n";
+    print "lro disabled\n\n" if $opts{v};
 }
 
-sub lro_shutdown {
+sub nolro_shutdown {
     my ($log) = @_;
-    print $log "\ndisabling lro\n";
-    print "\ndisabling lro\n" if $opts{v};
+    print $log "\nenabling lro\n";
+    print "\nenabling lro\n" if $opts{v};
 
     foreach my $ifname (@lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, '-tcplro');
+	my @cmd = ('/sbin/ifconfig', $ifname, 'tcplro');
 	logcmd($log, @cmd) and
 	    die "Command '@cmd' failed: $?";
     }
@@ -894,9 +894,9 @@ my @stats = (
     },
 );
 
-if ($modify && $modify eq 'lro') {
-    $tests[0]{startup} = \&lro_startup;
-    $tests[-1]{shutdown} = \&lro_shutdown;
+if ($modify && $modify eq 'nolro') {
+    $tests[0]{startup} = \&nolro_startup;
+    $tests[-1]{shutdown} = \&nolro_shutdown;
 }
 if ($modify && $modify eq 'nopf') {
     $tests[0]{startup} = \&nopf_startup;

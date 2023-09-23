@@ -31,7 +31,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my @allkernelmodes = qw(align gap sort reorder reboot keep);
-my @allmodifymodes = qw(lro nopf notso pfsync);
+my @allmodifymodes = qw(nolro nopf notso pfsync);
 my @alltestmodes = qw(
     all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4

@@ -26,7 +26,7 @@ use Time::HiRes;
 my $startdir = getcwd();
 my @startcmd = ($0, @ARGV);
 
-my @allmodifymodes = qw(lro nopf notso pfsync);
+my @allmodifymodes = qw(nolro nopf notso pfsync);
 my @alltestmodes = qw(
     all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
@@ -495,18 +495,18 @@ sub lro_get_ifs {
 }
 
 my (@lro_ifs, @remote_lro_ifs);
-sub lro_startup {
+sub nolro_startup {
     my ($log) = @_;
 
     @lro_ifs = lro_get_ifs();
     foreach my $ifname (@lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, 'tcplro');
+	my @cmd = ('/sbin/ifconfig', $ifname, '-tcplro');
 	logcmd($log, @cmd) and
 	    die "Command '@cmd' failed: $?";
     }
     @remote_lro_ifs = lro_get_ifs('ssh', $remote_ssh);
     foreach my $ifname (@remote_lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, 'tcplro');
+	my @cmd = ('/sbin/ifconfig', $ifname, '-tcplro');
 	my @sshcmd = ('ssh', $remote_ssh, @cmd);
 	logcmd($log, @sshcmd) and
 	    die "Command '@sshcmd' failed: $?";
@@ -514,22 +514,22 @@ sub lro_startup {
 
     # changing LRO may lose interface link status due to down/up
     sleep 1;
-    print $log "lro enabled\n\n";
-    print "lro enabled\n\n" if $opts{v};
+    print $log "lro disabled\n\n";
+    print "lro disabled\n\n" if $opts{v};
 }
 
-sub lro_shutdown {
+sub nolro_shutdown {
     my ($log) = @_;
-    print $log "\ndisabling lro\n";
-    print "\ndisabling lro\n" if $opts{v};
+    print $log "\nenabling lro\n";
+    print "\nenabling lro\n" if $opts{v};
 
     foreach my $ifname (@lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, '-tcplro');
+	my @cmd = ('/sbin/ifconfig', $ifname, 'tcplro');
 	logcmd($log, @cmd) and
 	    die "Command '@cmd' failed: $?";
     }
     foreach my $ifname (@remote_lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, '-tcplro');
+	my @cmd = ('/sbin/ifconfig', $ifname, 'tcplro');
 	my @sshcmd = ('ssh', $remote_ssh, @cmd);
 	logcmd($log, @sshcmd) and
 	    die "Command '@sshcmd' failed: $?";
@@ -1130,8 +1130,8 @@ push @tests, (
     }
 ) if $testmode{vport6} && $linux_veb_addr6;
 if ($modify && $modify eq 'lro') {
-    $tests[0]{startup} = \&lro_startup;
-    $tests[-1]{shutdown} = \&lro_shutdown;
+    $tests[0]{startup} = \&nolro_startup;
+    $tests[-1]{shutdown} = \&nolro_shutdown;
 }
 if ($modify && $modify eq 'nopf') {
     $tests[0]{startup} = \&nopf_startup;
