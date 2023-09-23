@@ -1175,6 +1175,7 @@ my @stats = (
     },
 );
 
+local $SIG{ALRM} = 'IGNORE';
 TEST:
 foreach my $t (@tests) {
     my @runcmd = @{$t->{testcmd}};
