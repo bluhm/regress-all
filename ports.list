@@ -98,6 +98,7 @@ devel/p5-File-Share
 devel/p5-File-Slurp
 devel/p5-File-TreeCreate
 devel/p5-Forest
+devel/p5-Hash-Ordered
 devel/p5-Hash-Util-FieldHash-Compat
 devel/p5-IO-AIO
 devel/p5-IO-BufferedSelect
@@ -329,6 +330,7 @@ misc/open62541
 misc/p5-File-LibMagic
 misc/p5-File-MMagic
 misc/p5-OPCUA-Open62541
+misc/p5-User-Identity
 net/p5-BSD-Socket-Splice
 net/p5-DNS-ZoneParse
 net/p5-IO-Interface
