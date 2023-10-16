@@ -29,7 +29,7 @@ our @EXPORT= qw(quirks quirk_patches quirk_commands quirk_releases
 #### Quirks ####
 
 my %quirks = (
-# OpenBSD 6.2, 2017-10-04Z
+# OpenBSD 6.2, newvers 2017-10-04Z
     '2017-10-04T03:27:49Z' => {
 	comment => "OpenBSD/amd64 6.2 release",
 	release => '6.2',
@@ -93,7 +93,7 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
-# OpenBSD 6.3, 2018-03-24Z
+# OpenBSD 6.3, 2018-03-24Z, newvers 2018-03-27Z
     '2018-03-24T20:27:40Z' => {
 	comment => "OpenBSD/amd64 6.3 release",
 	release => '6.3',
@@ -203,7 +203,7 @@ my %quirks = (
 	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
-# OpenBSD 6.4, 2018-10-11Z
+# OpenBSD 6.4, 2018-10-11Z, newvers 2018-09-29Z
     '2018-10-11T19:37:31Z' => {
 	comment => "OpenBSD/amd64 6.4 release",
 	release => '6.4',
@@ -308,7 +308,7 @@ my %quirks = (
 	],
 	builddirs => [ "share/mk", "gnu/usr.bin/clang" ],
     },
-# OpenBSD 6.5, 2019-04-13Z
+# OpenBSD 6.5, newvers 2019-04-13Z
     '2019-04-13T20:56:59Z' => {
 	comment => "OpenBSD/amd64 6.5 release",
 	release => '6.5',
@@ -376,7 +376,7 @@ my %quirks = (
 	],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
-# OpenBSD 6.6, 2019-10-12Z
+# OpenBSD 6.6, newvers 2019-10-12Z
     '2019-10-12T17:05:22Z' => {
 	comment => "OpenBSD/amd64 6.6 release",
 	release => '6.6',
@@ -403,7 +403,7 @@ my %quirks = (
 	updatedirs => [ "libexec/ld.so" ],
 	builddirs => [ "libexec/ld.so" ],
     },
-# OpenBSD 6.7, 2020-05-07Z
+# OpenBSD 6.7, newvers 2020-05-07Z
     '2020-05-07T17:20:22Z' => {
 	comment => "OpenBSD/amd64 6.7 release",
 	release => '6.7',
@@ -484,7 +484,7 @@ my %quirks = (
 	builddirs => [ "sbin/pfctl" ],
 	patches => { 'sys-pf-rdomain' => patch_sys_pf_rdomain() },
     },
-# OpenBSD 6.8, 2020-09-27Z
+# OpenBSD 6.8, 2020-09-27Z, newvers 2020-09-30Z
     '2020-10-05T00:22:38Z' => {
 	comment => "OpenBSD/amd64 6.8 release",
 	release => '6.8',
@@ -503,7 +503,7 @@ my %quirks = (
 	    "cvs -qR up -C -r1.1 sys/dev/softraid_raid1c.c",
 	],
     },
-# OpenBSD 6.9, 2021-04-18Z
+# OpenBSD 6.9, newvers 2021-04-18Z
     '2021-04-19T16:48:56Z' => {
 	comment => "OpenBSD/amd64 6.9 release",
 	release => '6.9',
@@ -554,7 +554,7 @@ my %quirks = (
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	builddirs => [ "gnu/usr.bin/clang" ],
     },
-# OpenBSD 7.0, 2021-09-22Z
+# OpenBSD 7.0, newvers 2021-09-22Z
     '2021-09-30T20:34:00Z' => {
 	comment => "OpenBSD/amd64 7.0 release",
 	release => '7.0',
@@ -652,7 +652,7 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-scsi-link' => patch_sys_scsi_link() },
     },
-# OpenBSD 7.1, 2022-04-05Z
+# OpenBSD 7.1, newvers 2022-04-05Z
     '2022-04-12T00:10:09Z' => {
 	comment => "OpenBSD/amd64 7.1 release",
 	release => '7.1',
@@ -663,7 +663,7 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "lib/libc" ],
     },
-# OpenBSD 7.2, 2022-09-27Z
+# OpenBSD 7.2, newvers 2022-09-27Z
     '2022-09-27T18:03:44Z' => {
 	comment => "OpenBSD/amd64 7.2 release",
 	release => '7.2',
@@ -774,7 +774,7 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl" ],
     },
-# OpenBSD 7.3, 2023-03-25Z
+# OpenBSD 7.3, newvers 2023-03-25Z
     '2023-03-25T16:42:45' => {
 	comment => "OpenBSD/amd64 7.3 release",
 	release => '7.3',
@@ -865,6 +865,11 @@ my %quirks = (
 	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
 	],
 	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
+# OpenBSD 7.4, newvers 2023-10-04Z
+    '2023-10-10T15:08:35Z' => {
+	comment => "OpenBSD/amd64 7.4 release",
+	release => '7.4',
     },
 );
 
