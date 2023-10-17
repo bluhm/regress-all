@@ -179,7 +179,7 @@ TABLE
     <td>$topic skipped itself, string SKIPPED in test output</td>
   </tr>
 TABLE
-    print $html <<"TABLE" if $type eq "perform";
+    print $html <<"TABLE" if $type =~ /^(perform|netlink)$/;
   <tr>
     <td class="status FAIL">FAIL</td>
     <td>$topic failed to produce value</td>
@@ -199,7 +199,13 @@ TABLE
     <td>make build failed, cannot test</td>
   </tr>
 TABLE
-    print $html <<"TABLE" if $type =~ /^(regress|perform|release)$/;
+    print $html <<"TABLE" if $type eq "netlink";
+  <tr>
+    <td class="status XPASS">XPASS</td>
+    <td>$topic passed, error in netstat output</td>
+  </tr>
+TABLE
+    print $html <<"TABLE" if $type =~ /^(regress|perform|release|netlink)$/;
   <tr>
     <td class="status NOEXIT">NOEXIT</td>
     <td>$topic did not exit with code 0, $tool failed</td>
