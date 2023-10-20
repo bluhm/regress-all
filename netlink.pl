@@ -30,7 +30,7 @@ use Netstat;
 my @allifaces = qw(em igc ix ixl);
 my @allmodifymodes = qw(nolro nopf notso);
 my @allpseudos = qw(bridge none veb vlan);
-my @alltestmodes = sort qw(all fragment icmp tcp udp);
+my @alltestmodes = sort qw(all fragment icmp tcp udp splice);
 
 my %opts;
 getopts('c:e:i:l:m:r:t:v', \%opts) or do {
@@ -89,7 +89,7 @@ if ($testmode{all6}) {
     $testmode{$_} = 1 foreach map { "${_}6" } @alltestmodes;
 }
 foreach (keys %testmode) {
-    $testmode{"${_}4"} = $testmode{"${_}6"} = 1 if $_ =~ /[^46]$/;
+    $testmode{"${_}4"} = $testmode{"${_}6"} = 1 if $_ !~ /[46]$/;
 }
 
 my $ip4prefix = '10.10';
@@ -500,6 +500,8 @@ if ($configure_linux) {
 # wait for linux
 sleep(3);
 
+my $netbench = "$netlinkdir/netbench.pl";
+
 # tcpbench tests
 
 if ($testmode{tcp4} || $testmode{tcp6}) {
@@ -568,6 +570,16 @@ sub tcpbench_finalize {
 sub udpbench_parser {
     my ($line, $log) = @_;
     if ($line =~ m{^(send|recv): .*, bit/s ([\d.e+]+)$}) {
+	my $direction = $1;
+	my $value = 0 + $2;
+	print $tr "VALUE $value bits/sec $direction\n";
+    }
+    return 1;
+}
+
+sub netbench_parser {
+    my ($line, $log) = @_;
+    if ($line =~ m{^(send|recv)all:.* bit/s ([\d.e+]+)$}) {
 	my $direction = $1;
 	my $value = 0 + $2;
 	print $tr "VALUE $value bits/sec $direction\n";
@@ -865,6 +877,58 @@ push @tests, (
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{fragment6});
+push @tests, (
+    {
+	testcmd => [$netbench,
+	    '-v',
+	    '-b1000000',
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-A$obsd_l_addr_range[0]",
+	    "-a$lnx_r_addr_range[0]",
+	    '-t10',
+	    'tcpsplice'],
+	parser => \&netbench_parser,
+    }, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-b1000000',
+	    '-N10',
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-A$obsd_l_addr_range[0]",
+	    "-a$lnx_r_addr_range[0]",
+	    '-t10',
+	    'tcpsplice'],
+	parser => \&netbench_parser,
+    }
+) if $testmode{splice4};
+push @tests, (
+    {
+	testcmd => [$netbench,
+	    '-v',
+	    '-b1000000',
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-A$obsd_l_addr6_range[0]",
+	    "-a$lnx_r_addr6_range[0]",
+	    '-t10',
+	    'tcpsplice'],
+	parser => \&netbench_parser,
+    }, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-b1000000',
+	    '-N10',
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-A$obsd_l_addr6_range[0]",
+	    "-a$lnx_r_addr6_range[0]",
+	    '-t10',
+	    'tcpsplice'],
+	parser => \&netbench_parser,
+    }
+) if $testmode{splice6};
 
 my @stats = (
     {
