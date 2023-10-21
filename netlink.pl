@@ -931,6 +931,42 @@ foreach my $mode (qw(tcpsplice tcpcopy)) {
 	}
     ) if $testmode{splice6};
 }
+foreach my $frame (0, 1) {
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B1000000000',
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i3',
+	    '-N10',
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-A$obsd_l_addr_range[0]",
+	    "-a$lnx_r_addr_range[0]",
+	    '-t10',
+	    'udpsplice'],
+	parser => \&netbench_parser,
+    } if $testmode{splice4};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B1000000000',
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i3',
+	    '-N10',
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-A$obsd_l_addr6_range[0]",
+	    "-a$lnx_r_addr6_range[0]",
+	    '-t10',
+	    'udpsplice'],
+	parser => \&netbench_parser,
+    } if $testmode{splice6};
+}
 
 my @stats = (
     {

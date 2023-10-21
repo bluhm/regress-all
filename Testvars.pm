@@ -1041,6 +1041,10 @@ my @testdesc = (
     'netbench.pl_-v_-b1000000_-N10_-croot@lt40_-sroot@lt43_-Afdd7:e83e:66bd:1011::20_-afdd7:e83e:66bd:1012::40_-t10_tcpcopy'	=> "linux-openbsd-linux-tcp6copy-parallel",
     'netbench.pl_-v_-b1000000_-croot@lt40_-sroot@lt43_-A10.10.11.20_-a10.10.12.40_-t10_tcpcopy'					=> "linux-openbsd-linux-tcp4copy-single",
     'netbench.pl_-v_-b1000000_-croot@lt40_-sroot@lt43_-Afdd7:e83e:66bd:1011::20_-afdd7:e83e:66bd:1012::40_-t10_tcpcopy'		=> "linux-openbsd-linux-tcp6copy-single",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-croot@lt40_-sroot@lt43_-A10.10.11.20_-a10.10.12.40_-t10_udpsplice'				=> "linux-openbsd-linux-udp4splice-empty",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-croot@lt40_-sroot@lt43_-Afdd7:e83e:66bd:1011::20_-afdd7:e83e:66bd:1012::40_-t10_udpsplice'	=> "linux-openbsd-linux-udp6splice-empty",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-croot@lt40_-sroot@lt43_-A10.10.11.20_-a10.10.12.40_-t10_udpsplice'				=> "linux-openbsd-linux-udp4splice-full",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-croot@lt40_-sroot@lt43_-Afdd7:e83e:66bd:1011::20_-afdd7:e83e:66bd:1012::40_-t10_udpsplice'	=> "linux-openbsd-linux-udp6splice-full",
     'ping6_-qfc10000_fdd7:e83e:66bd:1022::4'						=> "openbsd-linux-icmp6",
     'ping_-qfc10000_10.10.22.4'								=> "openbsd-linux-icmp4",
     'ssh_root@lt40_ping6_-qfc10000_fdd7:e83e:66bd:1021::2'				=> "linux-openbsd-icmp6",
@@ -1085,6 +1089,10 @@ my @testdesc = (
     'netbench.pl_-v_-b1000000_-N10_-croot@lt40_-sroot@lt43_-Afdd7:e83e:66bd:1021::20_-afdd7:e83e:66bd:1022::40_-t10_tcpcopy'	=> "linux-openbsd-linux-tcp6copy-parallel",
     'netbench.pl_-v_-b1000000_-croot@lt40_-sroot@lt43_-A10.10.21.20_-a10.10.22.40_-t10_tcpcopy'					=> "linux-openbsd-linux-tcp4copy-single",
     'netbench.pl_-v_-b1000000_-croot@lt40_-sroot@lt43_-Afdd7:e83e:66bd:1021::20_-afdd7:e83e:66bd:1022::40_-t10_tcpcopy'		=> "linux-openbsd-linux-tcp6copy-single",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-croot@lt40_-sroot@lt43_-A10.10.21.20_-a10.10.22.40_-t10_udpsplice'				=> "linux-openbsd-linux-udp4splice-empty",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i3_-N10_-croot@lt40_-sroot@lt43_-Afdd7:e83e:66bd:1021::20_-afdd7:e83e:66bd:1022::40_-t10_udpsplice'	=> "linux-openbsd-linux-udp6splice-empty",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-croot@lt40_-sroot@lt43_-A10.10.21.20_-a10.10.22.40_-t10_udpsplice'				=> "linux-openbsd-linux-udp4splice-full",
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-croot@lt40_-sroot@lt43_-Afdd7:e83e:66bd:1021::20_-afdd7:e83e:66bd:1022::40_-t10_udpsplice'	=> "linux-openbsd-linux-udp6splice-full",
 );
 
 %TESTDESC = @testdesc;
