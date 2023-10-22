@@ -171,6 +171,7 @@ sub start_server_tcp {
     $timeout += $opts{t} if defined($opts{t});
     my @cmd = ('tcpbench', '-s');
     unshift @cmd, ('timeout', $timeout) if $opts{t};
+    push @cmd, "-b$proc->{addr}";
     push @cmd, "-p$proc->{port}";
     push @cmd, "-S$opts{b}" if defined($opts{b});
     unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
