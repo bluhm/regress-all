@@ -342,6 +342,10 @@ daemon_user=user
 rc_reload=NO
 rc_bg=YES
 
+rc_start() {
+	rc_exec "${daemon} ${daemon_flags}" &
+}
+
 rc_cmd $1
 EOF
 close($tcpbench_rc);
@@ -504,20 +508,26 @@ my $netbench = "$netlinkdir/netbench.pl";
 
 # tcpbench tests
 
-if ($testmode{tcp4} || $testmode{tcp6}) {
+sub tcpbench_server_startup {
     # requires echo 1 > /proc/sys/net/ipv6/bindv6only
-    my @cmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'start');
-    mysystem(@cmd)
-	and die "Start tcpbench server with '@cmd' failed: $?";
+    my @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'start');
+    mysystem(@sshcmd)
+	and die "Start linux tcpbench server with '@sshcmd' failed: $?";
 
-    @cmd = ('rcctl', '-f', 'start', 'tcpbench');
-    defined(my $pid = fork())
-	or die "Fork failed: $!";
-    unless ($pid) {
-	exec(@cmd);
-	warn "Exec '@cmd' failed: $!";
-	_exit(126);
-    }
+    my @cmd = ('rcctl', '-f', 'start', 'tcpbench');
+    mysystem(@cmd)
+	and die "Start local tcpbench server with '@cmd' failed: $?";
+}
+
+sub tcpbench_server_shutdown {
+    # requires echo 1 > /proc/sys/net/ipv6/bindv6only
+    my @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'stop');
+    mysystem(@sshcmd)
+	and die "Stop linux tcpbench server with '@sshcmd' failed: $?";
+
+    my @cmd = ('rcctl', '-f', 'stop', 'tcpbench');
+    mysystem(@cmd)
+	and die "Stop local tcpbench server with '@cmd' failed: $?";
 }
 
 my @tcpbench_subvalues;
@@ -731,6 +741,9 @@ push @tests, (
 	parser => \&ping_f_parser,
     }
 ) if ($testmode{icmp6});
+push @tests, {
+    testcmd => \&tcpbench_server_startup,
+} if ($testmode{tcp4} || $testmode{tcp6});
 push @tests, (
     {
 	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
@@ -877,6 +890,10 @@ push @tests, (
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{fragment6});
+push @tests, {
+    testcmd => \&tcpbench_server_shutdown,
+} if ($testmode{tcp4} || $testmode{tcp6} ||
+    $testmode{splice4} || $testmode{splice6});
 foreach my $mode (qw(tcpsplice tcpcopy)) {
     push @tests, (
 	{
@@ -1012,6 +1029,11 @@ if ($modify && $modify eq 'notso') {
 local $SIG{ALRM} = 'IGNORE';
 TEST:
 foreach my $t (@tests) {
+    if (ref $t->{testcmd} eq 'CODE') {
+	$t->{testcmd}->();
+	next;
+    }
+
     my @runcmd = @{$t->{testcmd}};
     (my $test = join("_", @runcmd)) =~ s,/.*/,,;
 
