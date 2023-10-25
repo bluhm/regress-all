@@ -871,6 +871,11 @@ my %quirks = (
 	comment => "OpenBSD/amd64 7.4 release",
 	release => '7.4',
     },
+    '2023-10-25T20:05:43Z' => {
+	comment => "patch fix unveil patchfile",
+	updatedirs => [ "usr.bin/patch" ],
+	builddirs => [ "usr.bin/patch" ],
+    },
 );
 
 #### Patches ####
