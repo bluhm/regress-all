@@ -876,6 +876,13 @@ my %quirks = (
 	updatedirs => [ "usr.bin/patch" ],
 	builddirs => [ "usr.bin/patch" ],
     },
+    '2023-10-26T17:59:16Z' => {
+	comment => "libc malloc micro optimizations",
+	updatedirs => [ "sys", "lib/libc" ],
+	prebuildcommands => [ "make includes" ],
+	cleandirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
 );
 
 #### Patches ####
