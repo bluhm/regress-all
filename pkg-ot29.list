@@ -48,6 +48,7 @@ openldap-client--
 openldap-server--%openldap
 openssl%1.1
 openssl%3.0
+openssl%3.1
 openssl-ruby-tests
 os-test
 p11-kit
