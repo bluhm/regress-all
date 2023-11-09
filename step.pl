@@ -31,7 +31,7 @@ use Hostctl;
 my $scriptname = "$0 @ARGV";
 
 my @allkernelmodes = qw(align gap sort reorder reboot keep);
-my @allsetupmodes = qw(build cvs install keep);
+my @allsetupmodes = qw(build cvs install upgrade keep);
 my @alltestmodes = qw(
     all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
