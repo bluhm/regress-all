@@ -180,10 +180,12 @@ END {
 	bsdcons_hosts(release => $release);
 	relogdie();
     }
-    my @cmd = ("$performdir/bin/setup-html.pl");
-    system(@cmd) if $performdir;
-    @cmd = ("$performdir/bin/running-html.pl");
-    system(@cmd) if $performdir;
+    if ($performdir) {
+	my @cmd = ("$performdir/bin/setup-html.pl");
+	system(@cmd);
+	@cmd = ("$performdir/bin/running-html.pl");
+	system(@cmd);
+    }
 };
 if (!$setupmode{keep}) {
     setup_hosts(release => $release, mode => \%setupmode);

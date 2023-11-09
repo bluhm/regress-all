@@ -98,7 +98,9 @@ END {
     if ($odate) {
 	my @cmd = ("$regressdir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
 	system(@cmd);
-	@cmd = ("$regressdir/bin/setup-html.pl");
+    }
+    if ($regressdir) {
+	my @cmd = ("$regressdir/bin/setup-html.pl");
 	system(@cmd);
 	@cmd = ("$regressdir/bin/running-html.pl");
 	system(@cmd);

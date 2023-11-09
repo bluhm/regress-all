@@ -149,7 +149,9 @@ END {
     if ($odate) {
 	my @cmd = ("$netlinkdir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
 	system(@cmd);
-	@cmd = ("$netlinkdir/bin/setup-html.pl");
+    }
+    if ($netlinkdir) {
+	my @cmd = ("$netlinkdir/bin/setup-html.pl");
 	system(@cmd);
 	@cmd = ("$netlinkdir/bin/running-html.pl");
 	system(@cmd);

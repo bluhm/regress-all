@@ -107,10 +107,12 @@ END {
 	bsdcons_hosts();
 	relogdie();
     }
-    my @cmd = ("$regressdir/bin/setup-html.pl");
-    system(@cmd) if $regressdir;
-    @cmd = ("$regressdir/bin/running-html.pl");
-    system(@cmd) if $regressdir;
+    if ($regressdir) {
+	my @cmd = ("$regressdir/bin/setup-html.pl");
+	system(@cmd);
+	@cmd = ("$regressdir/bin/running-html.pl");
+	system(@cmd);
+    }
 };
 if ($patch || !($setupmode{keep} || $setupmode{reboot})) {
     setup_hosts(patch => $patch, mode => \%setupmode);
