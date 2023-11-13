@@ -132,7 +132,6 @@ lib/libcrypto/symbols
 lib/libcrypto/utf8
 lib/libcrypto/wycheproof
 lib/libcrypto/x509
-lib/libcsi
 lib/libedit
 lib/libevent
 lib/libexpat
