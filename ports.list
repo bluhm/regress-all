@@ -30,9 +30,11 @@ databases/p5-DBD-Pg
 databases/p5-DBD-SQLite
 databases/p5-DBD-SQLite2
 databases/p5-DBI
+databases/p5-DBM-Deep
 databases/p5-Data-RandomPerson
 databases/p5-Rose-DB
 databases/p5-Rose-Object
+databases/p5-SQL-Abstract-More
 databases/p5-ldap
 devel/p5-Algorithm-Diff
 devel/p5-Alien-Base
