@@ -70,7 +70,10 @@ devel/p5-Data-Validate-Struct
 devel/p5-Data-Visitor
 devel/p5-Date-Extract
 devel/p5-Date-ICal
+devel/p5-DateTime-Format-ICal
+devel/p5-DateTime-Format-Natural
 devel/p5-DateTime-Format-Oracle
+devel/p5-DateTime-HiRes
 devel/p5-DateTime-Set
 devel/p5-Devel-Caller
 devel/p5-Devel-CheckBin
@@ -477,6 +480,7 @@ www/p5-Test-HTTP-LocalServer
 www/p5-Test-HTTP-Server-Simple
 www/p5-Test-LWP-UserAgent
 www/p5-URI
+www/p5-URI-Query
 www/p5-WWW-Form-UrlEncoded-XS
 www/p5-WWW-Mechanize
 www/p5-WWW-Mechanize-FormFiller
