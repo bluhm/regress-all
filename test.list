@@ -345,6 +345,7 @@ sys/net/vxlan
 sys/net/wg
 sys/netinet/arp
 sys/netinet/autoport
+sys/netinet/bindconnect
 sys/netinet/broadcast_bind
 sys/netinet/carp
 sys/netinet/frag
