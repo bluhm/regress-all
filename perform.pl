@@ -837,7 +837,8 @@ my @frag = (
 	parallel => 10,
     },
 );
-foreach my $frame (0, 1, 2, 99) {
+# disable udp fragment full 99 tests, they live lock ot31
+foreach my $frame (0, 1, 2) {
     push @tests, map {
 	{
 	    testcmd => [$netbench,
