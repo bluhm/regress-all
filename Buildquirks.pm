@@ -883,6 +883,38 @@ my %quirks = (
 	cleandirs => [ "lib/libc" ],
 	builddirs => [ "lib/libc" ],
     },
+    '2023-11-12T14:41:41Z' => {
+	comment => "login.conf bump datasize for clang",
+	updatedirs => [ "etc/etc.amd64" ],
+	command => [ "cp /usr/src/etc/etc.amd64/login.conf /etc/" ],
+    },
+    '2023-11-20T10:11:03Z' => {
+	comment => "clang, libc++, and libc++abi update LLVM to 16.0.6",
+	updatedirs => [
+	    "gnu/llvm",
+	    "gnu/usr.bin/clang",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	],
+	cleandirs => [
+	    "gnu/usr.bin/clang",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [
+	    "gnu/usr.bin/clang",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	],
+    },
+    '2023-12-04T07:01:45Z' => {
+	comment => "libc malloc backtrace",
+	updatedirs => [ "sys", "lib/libc" ],
+	prebuildcommands => [ "make includes" ],
+	cleandirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
 );
 
 #### Patches ####
