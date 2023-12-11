@@ -886,7 +886,7 @@ my %quirks = (
     '2023-11-12T14:41:41Z' => {
 	comment => "login.conf bump datasize for clang",
 	updatedirs => [ "etc/etc.amd64" ],
-	command => [ "cp /usr/src/etc/etc.amd64/login.conf /etc/" ],
+	commands => [ "cp /usr/src/etc/etc.amd64/login.conf /etc/" ],
     },
     '2023-11-20T10:11:03Z' => {
 	comment => "clang, libc++, and libc++abi update LLVM to 16.0.6",
