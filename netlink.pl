@@ -27,7 +27,7 @@ use Time::HiRes;
 use lib dirname($0);
 use Netstat;
 
-my @allifaces = qw(em igc ix ixl);
+my @allifaces = qw(em igc ix ixl bnxt);
 my @allmodifymodes = qw(nolro nopf notso);
 my @allpseudos = qw(bridge none veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp splice);

@@ -257,10 +257,12 @@ sub html_hier_test_row_util {
 	my $title = " title=\"$value $unit\"";
 	my $class = " class=\"status $status\"";
 	my %linerates = (
-	    "iface-em"	=> 10 ** 9,
-	    "iface-igc"	=> 2.5 * 10 ** 9,
-	    "iface-ix"	=> 10 * 10 ** 9,
-	    "iface-ixl"	=> 10 * 10 ** 9);
+	    "iface-em"   =>       10 ** 9,
+	    "iface-igc"  => 2.5 * 10 ** 9,
+	    "iface-ix"   =>  10 * 10 ** 9,
+	    "iface-ixl"  =>  10 * 10 ** 9,
+	    "iface-bnxt" =>  10 * 10 ** 9,
+	);
 	my $linerate = $linerates{$iface} || 10 ** 9;
 	my $rate = $value / $linerate;
 	my $style = sprintf(
