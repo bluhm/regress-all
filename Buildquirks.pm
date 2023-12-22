@@ -915,6 +915,43 @@ my %quirks = (
 	cleandirs => [ "lib/libc" ],
 	builddirs => [ "lib/libc" ],
     },
+    '2023-12-04T14:24:29Z' => {
+	comment => "clang fixes after LLVM update",
+	updatedirs => [
+	    "gnu/llvm",
+	    "gnu/usr.bin/clang",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	],
+	cleandirs => [
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [
+	    "gnu/usr.bin/clang",
+	],
+    },
+    '2023-12-07T14:00:16Z' => {
+	comment => "kernel pinsyscalls(2) stub",
+	updatedirs => [
+	    "sys",
+	    "lib/libc",
+	    "libexec/ld.so",
+	],
+	prebuildcommands => [
+	    "make includes",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	commands => [ "reboot" ],
+    },
+    '2023-12-19T06:59:28Z' => {
+	comment => "libc malloc bytes cleanup",
+	updatedirs => [ "sys", "lib/libc" ],
+	prebuildcommands => [ "make includes" ],
+	cleandirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
 );
 
 #### Patches ####
