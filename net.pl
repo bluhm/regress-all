@@ -20,6 +20,7 @@ use Cwd;
 use Date::Parse;
 use File::Basename;
 use Getopt::Std;
+use List::Util qw(pairkeys);
 use POSIX;
 
 use lib dirname($0);
@@ -214,12 +215,21 @@ if ($iface) {
 		die "Interface type '$if' does not exist in dmesg";
 	    }
 	}
-	my $numre = defined($num) ? qr/$num/ : qr/[0-9]*[02468]+/;
-	foreach my $ifnum (map { /^$iftype($numre) at / ? $1 : () } @dmesg) {
-	    if (($iftype.($ifnum + 0)) eq $management_if ||
-		($iftype.($ifnum + 1)) eq $management_if) {
+	my %ifnums;
+	@ifnums{
+	    map { /^$iftype(\d+)$/ }
+	    grep { ! /^($management_if)$/ }
+	    map { /^($iftype\d+) at / ? $1 : () }
+	    @dmesg} = ();
+	foreach my $ifnum (defined($num) ? ($num + 0) :
+	    pairkeys sort { $a <=> $b } keys %ifnums) {
+	    if (($iftype.($ifnum + 0)) =~ /^($management_if)$/ ||
+		($iftype.($ifnum + 1)) =~ /^($management_if)$/) {
+		die "Cannot use inferface '$if', conflicts management";
+	    }
+	    if (!exists($ifnums{$ifnum + 0}) || !exists($ifnums{$ifnum + 1})) {
 		if (defined($num)) {
-		    die "Cannot use inferface '$if', conflicts management";
+		    die "Interface pair '$if' does not exist in dmesg";
 		} else {
 		    next;
 		}
