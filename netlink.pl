@@ -300,17 +300,18 @@ defined(my $pid = open(my $lnx_tcpbench_service, '|-'))
 if ($pid == 0) {
     my @sshcmd = ('ssh', $lnx_r_ssh, 'cat', '-', '>',
 	'/etc/systemd/system/tcpbench.service');
+    print "@sshcmd\n" if $verbose;
     exec(@sshcmd);
     warn "Exec '@sshcmd' failed: $!";
     _exit(126);
 }
-print $lnx_tcpbench_service <<'EOF' if ($testmode{tcp4} || $testmode{tcp6});
+print $lnx_tcpbench_service <<'EOF';
 [Unit]
 Description=OpenBSD tcpbench server
 After=network.target auditd.service
 
 [Service]
-ExecStart=/usr/local/bin/tcpbench -s
+ExecStart=/usr/bin/tcpbench -s
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 Restart=on-failure
@@ -1297,6 +1298,6 @@ sub ping_f_parser {
 
 sub mysystem {
     my @cmd = @_;
-    print(join ' ', @cmd, "\n") if $verbose;
+    print "@cmd\n" if $verbose;
     system(@cmd);
 }
