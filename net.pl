@@ -47,7 +47,7 @@ usage: net.pl [-pv] [-b kstack] [-c pseudo] [-d date] [-D cvsdate] -h host
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for network link test, user defaults to root
-    -i iface	list of interfaces: all @allifaces
+    -i iface	list of interfaces, may contain number: all @allifaces
     -m modify	list of modify modes: all @allmodifymodes
     -N repeat	number of build, reboot, test repetitions per step
     -P patch	apply patch to clean kernel source
@@ -138,6 +138,11 @@ print $fh "SETUPMODES ", join(" ", sort keys %setupmode), "\n";
 print $fh "TESTMODES ", join(" ", sort keys %testmode), "\n";
 close($fh);
 
+delete $ENV{MANAGEMENT_IF};
+environment("$netlinkdir/bin/env-$host.sh");
+my $management_if = $ENV{MANAGEMENT_IF}
+    or die "MANAGEMENT_IF is not in 'env-$host.sh'";
+
 # setup remote machines
 
 usehosts(bindir => "$netlinkdir/bin", date => $date,
@@ -198,16 +203,29 @@ if ($iface) {
     my @dmesg = <$fh>;
     $iface = join(",", @allifaces) if $iface eq "all";
     foreach my $if (split(/,/, $iface)) {
-	grep { $_ eq $if } @allifaces
+	my ($iftype, $num) = $if =~ /^([a-z]+)([0-9]+)?$/
+	    or die "Invalid interface '$if'";
+	grep { $_ eq $iftype } @allifaces
 	    or die "Unknown interface '$if'";
-	unless (grep { /^$if\d+ at / } @dmesg) {
+	unless (grep { /^$iftype\d+ at / } @dmesg) {
 	    if ($opts{i} eq "all") {
 		next;
 	    } else {
-		die "Interface '$if' does not exist in dmesg";
+		die "Interface type '$if' does not exist in dmesg";
 	    }
 	}
-	push @ifaces, "iface-$if";
+	my $numre = defined($num) ? qr/$num/ : qr/[0-9]*[02468]+/;
+	foreach my $ifnum (map { /^$iftype($numre) at / ? $1 : () } @dmesg) {
+	    if (($iftype.($ifnum + 0)) eq $management_if ||
+		($iftype.($ifnum + 1)) eq $management_if) {
+		if (defined($num)) {
+		    die "Cannot use inferface '$if', conflicts management";
+		} else {
+		    next;
+		}
+	    }
+	    push @ifaces, "iface-$iftype$ifnum";
+	}
     }
     @ifaces or die "No suitable interfaces in '$iface' found";
 }
@@ -338,6 +356,31 @@ $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $now.\n");
 
 exit;
+
+# parse shell script that is setting environment for some tests
+# FOO=bar
+# FOO="bar"
+# export FOO=bar
+# export FOO BAR
+sub environment {
+    my $file = shift;
+
+    open(my $fh, '<', $file)
+	or die "Open '$file' for reading failed: $!";
+    while (<$fh>) {
+	chomp;
+	s/#.*$//;
+	s/\s+$//;
+	s/^export\s+(?=\w+=)//;
+	s/^export\s+\w+.*//;
+	next if /^$/;
+	if (/^(\w+)=(\S+)$/ or /^(\w+)="([^"]*)"/ or /^(\w+)='([^']*)'/) {
+	    $ENV{$1}=$2;
+	} else {
+	    die "Unknown environment line in '$file': $_";
+	}
+    }
+}
 
 sub mkdir_num {
     my ($path) = @_;

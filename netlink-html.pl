@@ -263,6 +263,7 @@ sub html_hier_test_row_util {
 	    "iface-ixl"  =>  10 * 10 ** 9,
 	    "iface-bnxt" =>  10 * 10 ** 9,
 	);
+	$iface =~ s/\d+$//;
 	my $linerate = $linerates{$iface} || 10 ** 9;
 	my $rate = $value / $linerate;
 	my $style = sprintf(

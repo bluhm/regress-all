@@ -33,16 +33,14 @@ my @allpseudos = qw(bridge none veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp splice);
 
 my %opts;
-getopts('c:e:i:l:m:r:t:v', \%opts) or do {
+getopts('c:e:i:m:t:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: netlink.pl [-v] [-c pseudo] [-e environment] [-i iface]
-	[-l index] [-m modify] [-r index] [-t timeout] [test ...]
+usage: netlink.pl [-v] [-c pseudo] [-e environment] [-i iface] [-m modify]
+    [-t timeout] [test ...]
     -c pseudo	pseudo network device: @allpseudos
     -e environ	parse environment for tests from shell script
-    -i iface	interface: @allifaces
-    -l index	interface index, default 0
+    -i iface	interface, may contain number: @allifaces
     -m modify	modify mode: @allmodifymodes
-    -r index	interface index, default 1
     -t timeout	timeout for a single test, default 60 seconds
     -v		verbose
     test ...	test mode: @alltestmodes
@@ -58,17 +56,33 @@ my $iface = $opts{i} || "em";
 my $modify = $opts{m};
 
 my $line = $ENV{NETLINK_LINE} || die "NETLINK_LINE is not in env";
-my $management_if = $ENV{MANAGEMENT_IF} || die "MANAGEMENT_IF is not in env";
+my $management_if = $ENV{MANAGEMENT_IF}
+    or die "MANAGEMENT_IF is not in env";
 
-# ifN if N is even then it is left, odd means right.
-my $left_ifidx = $opts{l} || ("${iface}0" eq $management_if? 2 : 0);
-my $right_ifidx = $opts{r} || ("${iface}1" eq $management_if? 3 : 1);
+my ($iftype, $ifnum) = $iface =~ /^([a-z]+)([0-9]+)?$/;
+grep { $_ eq $iftype } @allifaces
+    or die "Unknown interface '$iface'";
+my ($left_ifidx, $right_ifidx);
+if (defined($ifnum)) {
+    $left_ifidx = $ifnum + 0;
+    $right_ifidx = $ifnum + 1;
+} else {
+    $left_ifidx = 0;
+    $right_ifidx = 1;
+}
+if (($iftype.$left_ifidx) eq $management_if ||
+    ($iftype.$right_ifidx) eq $management_if) {
+    if (defined($ifnum)) {
+	die "Cannot use inferface '$iface', conflicts management";
+    } else {
+	$left_ifidx = 2;
+	$right_ifidx = 3;
+    }
+}
 
 warn "left interface should be in the wrong network" if ($left_ifidx % 2);
 warn "right interface should be in the wrong network" if (!$right_ifidx % 2);
 
-grep { $_ eq $iface } @allifaces
-    or die "Unknown interface '$iface'";
 !$modify || grep { $_ eq $modify } @allmodifymodes
     or die "Unknnown modify mode '$modify'";
 grep { $_ eq $pseudo } @allpseudos
@@ -95,7 +109,7 @@ foreach (keys %testmode) {
 my $ip4prefix = '10.10';
 my $ip6prefix = 'fdd7:e83e:66bd:10';
 
-my $obsd_l_if = $iface . $left_ifidx;
+my $obsd_l_if = $iftype . $left_ifidx;
 my $obsd_l_net = "$ip4prefix.${line}1.0/24";
 my $obsd_l_addr = "$ip4prefix.${line}1.2";
 my $obsd_l_net6 = "${ip6prefix}${line}1::/64";
@@ -104,7 +118,7 @@ my $obsd_l_addr6 = "${ip6prefix}${line}1::2";
 my @obsd_l_addr_range = map { "$ip4prefix.${line}1.2$_" } 0..9;
 my @obsd_l_addr6_range = map { "${ip6prefix}${line}1::2$_" } 0..9;
 
-my $obsd_r_if = $iface . $right_ifidx;
+my $obsd_r_if = $iftype . $right_ifidx;
 my $obsd_r_net = "$ip4prefix.${line}2.0/24";
 my $obsd_r_addr = "$ip4prefix.${line}2.3";
 my $obsd_r_net6 = "${ip6prefix}${line}2::/64";
