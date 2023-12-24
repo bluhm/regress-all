@@ -142,7 +142,7 @@ close($fh);
 delete $ENV{SKIP_IF};
 environment("$netlinkdir/bin/env-$host.sh");
 my $skip_if = $ENV{SKIP_IF} || "";
-$skip_if =~ s/,/|/;
+$skip_if =~ s/,/|/g;
 
 # setup remote machines
 
