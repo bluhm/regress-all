@@ -124,8 +124,8 @@ my $obsd_r_addr = "$ip4prefix.${line}2.3";
 my $obsd_r_net6 = "${ip6prefix}${line}2::/64";
 my $obsd_r_addr6 = "${ip6prefix}${line}2::3";
 
-my $lnx_if = "ens2f0";
-my $lnx_pdev = "$lnx_if.0";
+my $lnx_if = "ens2f" . ($line % 2);
+my $lnx_pdev = "$lnx_if.$line";
 my $lnx_ipdev = $lnx_if;
 
 my $lnx_l_addr = "$ip4prefix.${line}1.1";
@@ -215,11 +215,11 @@ foreach my $if (@allinterfaces) {
 # unconfigure linux interfaces
 foreach my $if ($lnx_if, $lnx_pdev) {
     foreach my $net ($lnx_l_net, $lnx_l_net6) {
-	printcmd('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $net, 'dev', $if);
+	printcmd('ssh', $lnx_l_ssh, 'ip', 'addr', 'delete', $net, 'dev', $if);
     }
     foreach my $net ($lnx_r_net, $lnx_r_net6,
 	@lnx_r_net_range, @lnx_r_net6_range) {
-	printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $if);
+	printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'delete', $net, 'dev', $if);
     }
 }
 
@@ -238,6 +238,9 @@ foreach my $if ($lnx_if, $lnx_pdev) {
 		'dev', $if);
 	}
     }
+}
+foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+    printcmd('ssh', $ssh, 'ip', 'link', 'delete', 'dev', $lnx_pdev);
 }
 
 # configure given interface type
@@ -402,8 +405,8 @@ if ($pseudo eq 'aggr') {
     printcmd('ifconfig', 'veb0', 'add', 'vport1');
     printcmd('ifconfig', 'veb0', 'up');
 } elsif ($pseudo eq 'vlan') {
-    my $vlan_l_id = 252;
-    my $vlan_r_id = 253;
+    my $vlan_l_id = "2${line}1";
+    my $vlan_r_id = "2${line}2";
 
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	printcmd('ssh', $ssh, 'modprobe', '8021q');
@@ -441,22 +444,20 @@ if ($pseudo eq 'aggr') {
 foreach my $net ($lnx_l_net, $lnx_l_net6) {
     printcmd('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $net, 'dev', $lnx_ipdev);
 }
+foreach my $net ($lnx_r_net, $lnx_r_net6, @lnx_r_net_range) {
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $net, 'dev', $lnx_ipdev);
+}
+foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+    printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_ipdev, 'up');
+}
 printcmd('ssh', $lnx_l_ssh, 'ip', '-4', 'route', 'add', $obsd_r_net,
     'via', $obsd_l_addr, 'dev', $lnx_ipdev);
 printcmd('ssh', $lnx_l_ssh, 'ip', '-6', 'route', 'add', $obsd_r_net6,
     'via', $obsd_l_addr6, 'dev', $lnx_ipdev);
-
-foreach my $net ($lnx_r_net, $lnx_r_net6, @lnx_r_net_range) {
-    printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $net, 'dev', $lnx_ipdev);
-}
 printcmd('ssh', $lnx_r_ssh, 'ip', '-4', 'route', 'add', $obsd_l_net,
     'via', $obsd_r_addr, 'dev', $lnx_ipdev);
 printcmd('ssh', $lnx_r_ssh, 'ip', '-6', 'route', 'add', $obsd_l_net6,
     'via', $obsd_r_addr6, 'dev', $lnx_ipdev);
-
-foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
-    printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_ipdev, 'up');
-}
 
 # wait for linux
 sleep(3);
