@@ -628,11 +628,8 @@ sub logcmd {
 	    or die "Redirect stderr to stdout failed: $!";
 	setsid()
 	    or die "Setsid $$ failed: $!";
-	{
-	    no warnings 'exec';
-	    exec(@cmd);
-	    die "Exec '@cmd' failed: $!";
-	}
+	exec(@cmd);
+	warn "Exec '@cmd' failed: $!";
 	_exit(126);
     }
     local $_;
