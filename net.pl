@@ -139,10 +139,10 @@ print $fh "SETUPMODES ", join(" ", sort keys %setupmode), "\n";
 print $fh "TESTMODES ", join(" ", sort keys %testmode), "\n";
 close($fh);
 
-delete $ENV{MANAGEMENT_IF};
+delete $ENV{SKIP_IF};
 environment("$netlinkdir/bin/env-$host.sh");
-my $management_if = $ENV{MANAGEMENT_IF}
-    or die "MANAGEMENT_IF is not in 'env-$host.sh'";
+my $skip_if = $ENV{SKIP_IF} || "";
+$skip_if =~ s/,/|/;
 
 # setup remote machines
 
@@ -218,14 +218,14 @@ if ($iface) {
 	my %ifnums;
 	@ifnums{
 	    map { /^$iftype(\d+)$/ }
-	    grep { ! /^($management_if)$/ }
+	    grep { ! /^($skip_if)$/ }
 	    map { /^($iftype\d+) at / ? $1 : () }
 	    @dmesg} = ();
 	foreach my $ifnum (defined($num) ? ($num + 0) :
 	    pairkeys sort { $a <=> $b } keys %ifnums) {
-	    if (($iftype.($ifnum + 0)) =~ /^($management_if)$/ ||
-		($iftype.($ifnum + 1)) =~ /^($management_if)$/) {
-		die "Cannot use inferface '$if', conflicts management";
+	    if (($iftype.($ifnum + 0)) =~ /^($skip_if)$/ ||
+		($iftype.($ifnum + 1)) =~ /^($skip_if)$/) {
+		die "Cannot use inferface '$if', conflicts skip interface";
 	    }
 	    if (!exists($ifnums{$ifnum + 0}) || !exists($ifnums{$ifnum + 1})) {
 		if (defined($num)) {

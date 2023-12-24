@@ -70,8 +70,8 @@ if (defined($ifnum)) {
     $left_ifidx = 0;
     $right_ifidx = 1;
 }
-if (($iftype.$left_ifidx) =~ /^($management_if$/ ||
-    ($iftype.$right_ifidx) =~ /^($management_if$/) {
+if (($iftype.$left_ifidx) eq $management_if ||
+    ($iftype.$right_ifidx) eq $management_if) {
     if (defined($ifnum)) {
 	die "Cannot use inferface '$iface', conflicts management";
     } else {

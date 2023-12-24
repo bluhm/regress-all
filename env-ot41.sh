@@ -1,4 +1,6 @@
+# em2 is management, em3 and em4 have no link to switch
 export MANAGEMENT_IF=em2
+export SKIP_IF=em2,em3,em4
 export NETLINK_LINE=1
 
 # allow to manually run perform tests frag and splice on netlink hosts
@@ -11,7 +13,7 @@ REMOTE_ADDR=undef
 REMOTE_ADDR6=undef
 REMOTE_SSH=undef
 export LOCAL_ADDR LOCAL_NET LOCAL_ADDR6 LOCAL_NET6
-export  REMOTE_ADDR REMOTE_ADDR6 REMOTE_SSH
+export REMOTE_ADDR REMOTE_ADDR6 REMOTE_SSH
 
 LOCAL_ADDR_RANGE=10.10.11.20
 LOCAL_ADDR6_RANGE=fdd7:e83e:66bd:1011::20
