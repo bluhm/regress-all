@@ -55,7 +55,8 @@ my $pseudo = $opts{c} || "none";
 my $iface = $opts{i} || "em";
 my $modify = $opts{m};
 
-my $line = $ENV{NETLINK_LINE} || die "NETLINK_LINE is not in env";
+my $line = $ENV{NETLINK_LINE}
+    or die "NETLINK_LINE is not in env";
 my $management_if = $ENV{MANAGEMENT_IF}
     or die "MANAGEMENT_IF is not in env";
 
