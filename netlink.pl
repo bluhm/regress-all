@@ -48,7 +48,6 @@ usage: netlink.pl [-v] [-c pseudo] [-e environment] [-i iface] [-m modify]
 EOF
     exit(2);
 };
-my $verbose = $opts{v};
 my $timeout = $opts{t} || 20;
 environment($opts{e}) if $opts{e};
 my $pseudo = $opts{c} || "none";
@@ -207,106 +206,106 @@ my @allinterfaces = map { m{^([a-z]+\d+):} } `ifconfig`;
 
 foreach my $ifn (@allinterfaces) {
     unless ($ifn =~ m{^(lo|enc|pflog|${management_if})}) {
-	mysystem('ifconfig', $ifn, '-inet', '-inet6', 'down');
+	printcmd('ifconfig', $ifn, '-inet', '-inet6', 'down');
     }
     my $pdevre = join '|', @allpseudos;
-    mysystem('ifconfig', $ifn, 'destroy') if ($ifn =~ m{^($pdevre)});
+    printcmd('ifconfig', $ifn, 'destroy') if ($ifn =~ m{^($pdevre)});
 }
 
 # unconfigure linux interfaces
-mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net, 'dev',
+printcmd('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net, 'dev',
     $lnx_l_pdev);
-mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net6, 'dev',
+printcmd('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net6, 'dev',
     $lnx_l_pdev);
-mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net, 'dev',
+printcmd('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net, 'dev',
     $lnx_l_if);
-mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net6, 'dev',
+printcmd('ssh', $lnx_l_ssh, 'ip', 'addr', 'del', $lnx_l_net6, 'dev',
     $lnx_l_if);
 
-mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net, 'dev',
+printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net, 'dev',
     $lnx_r_pdev);
-mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net6, 'dev',
+printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net6, 'dev',
     $lnx_r_pdev);
-mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net, 'dev',
+printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net, 'dev',
     $lnx_r_if);
-mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net6, 'dev',
+printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $lnx_r_net6, 'dev',
     $lnx_r_if);
 
 foreach my $net (@lnx_r_net_range) {
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_pdev);
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_if);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_pdev);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_if);
 }
 
 foreach my $net (@lnx_r_net6_range) {
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_pdev);
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_if);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_pdev);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'del', $net, 'dev', $lnx_r_if);
 }
 
-mysystem('ssh', $lnx_l_ssh, 'ip', 'route', 'del', $obsd_r_net);
-mysystem('ssh', $lnx_r_ssh, 'ip', 'route', 'del', $obsd_l_net);
-mysystem('ssh', $lnx_l_ssh, 'ip', '-6', 'route', 'del', $obsd_r_net6);
-mysystem('ssh', $lnx_r_ssh, 'ip', '-6', 'route', 'del', $obsd_l_net6);
+printcmd('ssh', $lnx_l_ssh, 'ip', 'route', 'del', $obsd_r_net);
+printcmd('ssh', $lnx_r_ssh, 'ip', 'route', 'del', $obsd_l_net);
+printcmd('ssh', $lnx_l_ssh, 'ip', '-6', 'route', 'del', $obsd_r_net6);
+printcmd('ssh', $lnx_r_ssh, 'ip', '-6', 'route', 'del', $obsd_l_net6);
 
-mysystem('arp', '-da');
-mysystem('ndp', '-c');
+printcmd('arp', '-da');
+printcmd('ndp', '-c');
 
-mysystem('ssh', $lnx_l_ssh, 'ip', 'neigh', 'flush', 'all', 'dev',
+printcmd('ssh', $lnx_l_ssh, 'ip', 'neigh', 'flush', 'all', 'dev',
     $lnx_l_if);
-mysystem('ssh', $lnx_l_ssh, 'ip', 'neigh', 'flush', 'all', 'dev',
+printcmd('ssh', $lnx_l_ssh, 'ip', 'neigh', 'flush', 'all', 'dev',
     $lnx_l_pdev);
-mysystem('ssh', $lnx_l_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
+printcmd('ssh', $lnx_l_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
     $lnx_l_if);
-mysystem('ssh', $lnx_l_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
+printcmd('ssh', $lnx_l_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
     $lnx_l_pdev);
 
-mysystem('ssh', $lnx_r_ssh, 'ip', 'neigh', 'flush', 'all', 'dev',
+printcmd('ssh', $lnx_r_ssh, 'ip', 'neigh', 'flush', 'all', 'dev',
     $lnx_r_if);
-mysystem('ssh', $lnx_r_ssh, 'ip', 'neigh', 'flush', 'all', 'dev',
+printcmd('ssh', $lnx_r_ssh, 'ip', 'neigh', 'flush', 'all', 'dev',
     $lnx_r_pdev);
-mysystem('ssh', $lnx_r_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
+printcmd('ssh', $lnx_r_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
     $lnx_r_if);
-mysystem('ssh', $lnx_r_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
+printcmd('ssh', $lnx_r_ssh, 'ip', '-6', 'neigh', 'flush', 'all', 'dev',
     $lnx_r_pdev);
 
 # configure given interface type
 if ($pseudo eq 'bridge' || $pseudo eq 'none') {
-    mysystem('ifconfig', $obsd_l_if, 'inet', "${obsd_l_addr}/24")
+    printcmd('ifconfig', $obsd_l_if, 'inet', "${obsd_l_addr}/24")
 	and do { warn "command failed: $?"; exit 0; };
     foreach my $addr (@obsd_l_addr_range) {
-	mysystem('ifconfig', $obsd_l_if, 'inet', "${addr}/32", 'alias')
+	printcmd('ifconfig', $obsd_l_if, 'inet', "${addr}/32", 'alias')
 	    and do { warn "command failed: $?"; exit 0; };
     }
-    mysystem('ifconfig', $obsd_r_if, 'inet', "${obsd_r_addr}/24")
+    printcmd('ifconfig', $obsd_r_if, 'inet', "${obsd_r_addr}/24")
 	and do { warn "command failed: $?"; exit 0; };
 
-    mysystem('ifconfig', $obsd_l_if, 'inet6', "${obsd_l_addr6}/64")
+    printcmd('ifconfig', $obsd_l_if, 'inet6', "${obsd_l_addr6}/64")
 	and do { warn "command failed: $?"; exit 0; };
     foreach my $addr (@obsd_l_addr6_range) {
-	mysystem('ifconfig', $obsd_l_if, 'inet6', "${addr}/128", 'alias')
+	printcmd('ifconfig', $obsd_l_if, 'inet6', "${addr}/128", 'alias')
 	    and do { warn "command failed: $?"; exit 0; };
     }
-    mysystem('ifconfig', $obsd_r_if, 'inet6', "${obsd_r_addr6}/64")
+    printcmd('ifconfig', $obsd_r_if, 'inet6', "${obsd_r_addr6}/64")
 	and do { warn "command failed: $?"; exit 0; };
 }
 
-mysystem('ifconfig', $obsd_l_if, 'up');
-mysystem('ifconfig', $obsd_r_if, 'up');
+printcmd('ifconfig', $obsd_l_if, 'up');
+printcmd('ifconfig', $obsd_r_if, 'up');
 
-mysystem('sysctl net.inet.ip.forwarding=1');
-mysystem('sysctl net.inet6.ip6.forwarding=1');
+printcmd('sysctl net.inet.ip.forwarding=1');
+printcmd('sysctl net.inet6.ip6.forwarding=1');
 
 # allow tcpbench to bind on ipv6 addresses without explicitly providing it
-mysystem('ssh', $lnx_l_ssh, 'sysctl','net.ipv6.bindv6only=1');
-mysystem('ssh', $lnx_r_ssh, 'sysctl','net.ipv6.bindv6only=1');
+printcmd('ssh', $lnx_l_ssh, 'sysctl','net.ipv6.bindv6only=1');
+printcmd('ssh', $lnx_r_ssh, 'sysctl','net.ipv6.bindv6only=1');
 
 # allow fragment reassembly to use up to 1GiB of memory
-mysystem('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv6.ip6frag_high_thresh=1073741824')
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv6.ip6frag_high_thresh=1073741824')
     if ($testmode{fragment6});
-mysystem('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv6.ip6frag_high_thresh=1073741824')
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv6.ip6frag_high_thresh=1073741824')
     if ($testmode{fragment6});
-mysystem('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
     if ($testmode{fragment4});
-mysystem('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
     if ($testmode{fragment4});
 
 # install tcpbench service
@@ -315,7 +314,7 @@ defined(my $pid = open(my $lnx_tcpbench_service, '|-'))
 if ($pid == 0) {
     my @sshcmd = ('ssh', $lnx_r_ssh, 'cat', '-', '>',
 	'/etc/systemd/system/tcpbench.service');
-    print "@sshcmd\n" if $verbose;
+    print "@sshcmd\n";
     exec(@sshcmd);
     warn "Exec '@sshcmd' failed: $!";
     _exit(126);
@@ -366,154 +365,154 @@ rc_cmd $1
 EOF
 close($tcpbench_rc);
 
-mysystem('chmod', '555', '/etc/rc.d/tcpbench');
+printcmd('chmod', '555', '/etc/rc.d/tcpbench');
 
 my $configure_linux = 1;
 
 if ($pseudo eq 'aggr') {
     # XXX: does now work as switch is not configured
     # XXX: multiple interfaces in one aggr
-    mysystem('ifconfig', 'aggr0', 'create');
-    mysystem('ifconfig', 'aggr1', 'create');
+    printcmd('ifconfig', 'aggr0', 'create');
+    printcmd('ifconfig', 'aggr1', 'create');
 
-    mysystem('ifconfig', $obsd_l_if, 'up');
-    mysystem('ifconfig', $obsd_r_if, 'up');
-    mysystem('ifconfig', 'aggr0', 'trunkport', $obsd_l_if);
-    mysystem('ifconfig', 'aggr1', 'trunkport', $obsd_r_if);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    printcmd('ifconfig', 'aggr0', 'trunkport', $obsd_l_if);
+    printcmd('ifconfig', 'aggr1', 'trunkport', $obsd_r_if);
 
-    mysystem('ifconfig', 'aggr0', 'inet', "${obsd_l_addr}/24");
+    printcmd('ifconfig', 'aggr0', 'inet', "${obsd_l_addr}/24");
     foreach my $addr (@obsd_l_addr_range) {
-	mysystem('ifconfig', 'aggr0', 'inet', "${addr}/32", 'alias');
+	printcmd('ifconfig', 'aggr0', 'inet', "${addr}/32", 'alias');
     }
-    mysystem('ifconfig', 'aggr1', 'inet', "${obsd_r_addr}/24");
+    printcmd('ifconfig', 'aggr1', 'inet', "${obsd_r_addr}/24");
 
-    mysystem('ifconfig', 'aggr0', 'inet6', "${obsd_l_addr6}/64");
+    printcmd('ifconfig', 'aggr0', 'inet6', "${obsd_l_addr6}/64");
     foreach my $addr (@obsd_l_addr6_range) {
-	mysystem('ifconfig', 'aggr0', 'inet6', "${addr}/128", 'alias');
+	printcmd('ifconfig', 'aggr0', 'inet6', "${addr}/128", 'alias');
     }
-    mysystem('ifconfig', 'aggr1', 'inet6', "${obsd_r_addr6}/64");
+    printcmd('ifconfig', 'aggr1', 'inet6', "${obsd_r_addr6}/64");
 
-    mysystem('ifconfig', 'aggr0', 'up');
-    mysystem('ifconfig', 'aggr1', 'up');
+    printcmd('ifconfig', 'aggr0', 'up');
+    printcmd('ifconfig', 'aggr1', 'up');
 } elsif ($pseudo eq 'bridge') {
     # XXX: vether
-    mysystem('ifconfig', 'bridge0', 'create');
-    mysystem('ifconfig', 'bridge0', 'add', $obsd_l_if);
-    mysystem('ifconfig', 'bridge0', 'add', $obsd_r_if);
-    mysystem('ifconfig', 'bridge0', 'up');
+    printcmd('ifconfig', 'bridge0', 'create');
+    printcmd('ifconfig', 'bridge0', 'add', $obsd_l_if);
+    printcmd('ifconfig', 'bridge0', 'add', $obsd_r_if);
+    printcmd('ifconfig', 'bridge0', 'up');
 } elsif ($pseudo eq 'carp') {
     # XXX
 } elsif ($pseudo eq 'trunk') {
     # XXX
 } elsif ($pseudo eq 'veb') {
-    mysystem('ifconfig', 'veb0', 'create');
-    mysystem('ifconfig', 'vport0', 'create');
-    mysystem('ifconfig', 'vport1', 'create');
+    printcmd('ifconfig', 'veb0', 'create');
+    printcmd('ifconfig', 'vport0', 'create');
+    printcmd('ifconfig', 'vport1', 'create');
 
-    mysystem('ifconfig', 'vport0', 'inet', "${obsd_l_addr}/24");
+    printcmd('ifconfig', 'vport0', 'inet', "${obsd_l_addr}/24");
     foreach my $addr (@obsd_l_addr_range) {
-	mysystem('ifconfig', 'vport0', 'inet', "${addr}/32", 'alias');
+	printcmd('ifconfig', 'vport0', 'inet', "${addr}/32", 'alias');
     }
-    mysystem('ifconfig', 'vport1', 'inet', "${obsd_r_addr}/24");
+    printcmd('ifconfig', 'vport1', 'inet', "${obsd_r_addr}/24");
 
-    mysystem('ifconfig', 'vport0', 'inet6', "${obsd_l_addr6}/64");
+    printcmd('ifconfig', 'vport0', 'inet6', "${obsd_l_addr6}/64");
     foreach my $addr (@obsd_l_addr6_range) {
-	mysystem('ifconfig', 'vport0', 'inet6', "${addr}/128", 'alias');
+	printcmd('ifconfig', 'vport0', 'inet6', "${addr}/128", 'alias');
     }
-    mysystem('ifconfig', 'vport1', 'inet6', "${obsd_r_addr6}/64");
+    printcmd('ifconfig', 'vport1', 'inet6', "${obsd_r_addr6}/64");
 
-    mysystem('ifconfig', 'vport0', 'up');
-    mysystem('ifconfig', 'vport1', 'up');
-    mysystem('ifconfig', $obsd_l_if, 'up');
-    mysystem('ifconfig', $obsd_r_if, 'up');
-    mysystem('ifconfig', 'veb0', 'add', $obsd_l_if);
-    mysystem('ifconfig', 'veb0', 'add', $obsd_r_if);
-    mysystem('ifconfig', 'veb0', 'add', 'vport0');
-    mysystem('ifconfig', 'veb0', 'add', 'vport1');
-    mysystem('ifconfig', 'veb0', 'up');
+    printcmd('ifconfig', 'vport0', 'up');
+    printcmd('ifconfig', 'vport1', 'up');
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    printcmd('ifconfig', 'veb0', 'add', $obsd_l_if);
+    printcmd('ifconfig', 'veb0', 'add', $obsd_r_if);
+    printcmd('ifconfig', 'veb0', 'add', 'vport0');
+    printcmd('ifconfig', 'veb0', 'add', 'vport1');
+    printcmd('ifconfig', 'veb0', 'up');
 } elsif ($pseudo eq 'vlan') {
     $configure_linux = 0; # all necessary config is below
     my $vlanl = 252;
     my $vlanr = 253;
 
-    mysystem('ssh', $lnx_l_ssh, 'modprobe', '8021q');
-    mysystem('ssh', $lnx_r_ssh, 'modprobe', '8021q');
+    printcmd('ssh', $lnx_l_ssh, 'modprobe', '8021q');
+    printcmd('ssh', $lnx_r_ssh, 'modprobe', '8021q');
 
-    mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'link', $lnx_l_if,
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'link', $lnx_l_if,
 	'name', $lnx_l_pdev, 'type', 'vlan', 'id', $vlanl);
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'link', $lnx_r_if,
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'link', $lnx_r_if,
 	'name', $lnx_r_pdev, 'type', 'vlan', 'id', $vlanr);
 
-    mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'set', 'dev', $lnx_l_if, 'up');
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'set', 'dev', $lnx_r_if, 'up');
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'set', 'dev', $lnx_l_if, 'up');
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'set', 'dev', $lnx_r_if, 'up');
 
-    mysystem('ssh', $lnx_l_ssh, 'ip', 'link', 'set', 'dev', $lnx_l_pdev, 'up');
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'link', 'set', 'dev', $lnx_r_pdev, 'up');
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'set', 'dev', $lnx_l_pdev, 'up');
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'set', 'dev', $lnx_r_pdev, 'up');
 
-    mysystem('ifconfig', 'vlan0', 'create');
-    mysystem('ifconfig', 'vlan1', 'create');
-    mysystem('ifconfig', 'vlan0', 'parent', $obsd_l_if, 'vnetid', $vlanl);
-    mysystem('ifconfig', 'vlan1', 'parent', $obsd_r_if, 'vnetid', $vlanr);
+    printcmd('ifconfig', 'vlan0', 'create');
+    printcmd('ifconfig', 'vlan1', 'create');
+    printcmd('ifconfig', 'vlan0', 'parent', $obsd_l_if, 'vnetid', $vlanl);
+    printcmd('ifconfig', 'vlan1', 'parent', $obsd_r_if, 'vnetid', $vlanr);
 
-    mysystem('ifconfig', 'vlan0', 'inet', "${obsd_l_addr}/24", 'up');
+    printcmd('ifconfig', 'vlan0', 'inet', "${obsd_l_addr}/24", 'up');
     foreach my $addr (@obsd_l_addr_range) {
-	mysystem('ifconfig', 'vlan0', 'inet', "${addr}/32", 'alias');
+	printcmd('ifconfig', 'vlan0', 'inet', "${addr}/32", 'alias');
     }
-    mysystem('ifconfig', 'vlan1', 'inet', "${obsd_r_addr}/24", 'up');
+    printcmd('ifconfig', 'vlan1', 'inet', "${obsd_r_addr}/24", 'up');
 
-    mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net, 'dev',
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net, 'dev',
 	$lnx_l_pdev);
-    mysystem('ssh', $lnx_l_ssh, 'ip', 'route', 'add', $obsd_r_net, 'via',
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'route', 'add', $obsd_r_net, 'via',
 	$obsd_l_addr, 'dev', "$lnx_l_pdev");
 
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $lnx_r_net, 'dev',
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $lnx_r_net, 'dev',
 	$lnx_r_pdev);
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'route', 'add', $obsd_l_net, 'via',
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'route', 'add', $obsd_l_net, 'via',
 	$obsd_r_addr, 'dev', "$lnx_r_pdev");
 
-    mysystem('ifconfig', 'vlan0', 'inet6', "${obsd_l_addr6}/64", 'up');
+    printcmd('ifconfig', 'vlan0', 'inet6', "${obsd_l_addr6}/64", 'up');
     foreach my $addr (@obsd_l_addr6_range) {
-	mysystem('ifconfig', 'vlan0', 'inet6', "${addr}/128", 'alias');
+	printcmd('ifconfig', 'vlan0', 'inet6', "${addr}/128", 'alias');
     }
-    mysystem('ifconfig', 'vlan1', 'inet6', "${obsd_r_addr6}/64", 'up');
+    printcmd('ifconfig', 'vlan1', 'inet6', "${obsd_r_addr6}/64", 'up');
 
-    mysystem('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net6, 'dev',
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'addr', 'add', $lnx_l_net6, 'dev',
 	$lnx_l_pdev);
-    mysystem('ssh', $lnx_l_ssh, 'ip', '-6', 'route', 'add', $obsd_r_net6, 'via',
+    printcmd('ssh', $lnx_l_ssh, 'ip', '-6', 'route', 'add', $obsd_r_net6, 'via',
 	$obsd_l_addr6, 'dev', "$lnx_l_pdev");
 
-    mysystem('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $lnx_r_net6, 'dev',
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'addr', 'add', $lnx_r_net6, 'dev',
 	$lnx_r_pdev);
-    mysystem('ssh', $lnx_r_ssh, 'ip', '-6', 'route', 'add', $obsd_l_net6, 'via',
+    printcmd('ssh', $lnx_r_ssh, 'ip', '-6', 'route', 'add', $obsd_l_net6, 'via',
 	$obsd_r_addr6, 'dev', "$lnx_r_pdev");
 }
 # XXX: tpmr, nipsec, gre?
 
 if ($configure_linux) {
     my @sshcmd = ('ssh', $lnx_l_ssh);
-    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net, 'dev', $lnx_l_if);
-    mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_l_if, 'up');
-    mysystem(@sshcmd, 'ip', 'route', 'add', $obsd_r_net, 'via',
+    printcmd(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net, 'dev', $lnx_l_if);
+    printcmd(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_l_if, 'up');
+    printcmd(@sshcmd, 'ip', 'route', 'add', $obsd_r_net, 'via',
 	$obsd_l_addr, 'dev', "$lnx_l_if");
 
-    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net6, 'dev', $lnx_l_if);
-    mysystem(@sshcmd, 'ip', '-6', 'route', 'add', $obsd_r_net6, 'via',
+    printcmd(@sshcmd, 'ip', 'addr', 'add', $lnx_l_net6, 'dev', $lnx_l_if);
+    printcmd(@sshcmd, 'ip', '-6', 'route', 'add', $obsd_r_net6, 'via',
 	$obsd_l_addr6, 'dev', "$lnx_l_if");
 
     @sshcmd = ('ssh', $lnx_r_ssh);
-    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net, 'dev', $lnx_r_if);
+    printcmd(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net, 'dev', $lnx_r_if);
     foreach my $net (@lnx_r_net_range) {
-	mysystem(@sshcmd, 'ip', 'addr', 'add', $net, 'dev', $lnx_r_if);
+	printcmd(@sshcmd, 'ip', 'addr', 'add', $net, 'dev', $lnx_r_if);
     }
-    mysystem(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_r_if, 'up');
-    mysystem(@sshcmd, 'ip', 'route', 'add', $obsd_l_net, 'via',
+    printcmd(@sshcmd, 'ip', 'link', 'set', 'dev', $lnx_r_if, 'up');
+    printcmd(@sshcmd, 'ip', 'route', 'add', $obsd_l_net, 'via',
 	$obsd_r_addr, 'dev', "$lnx_r_if");
 
-    mysystem(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net6, 'dev', $lnx_r_if);
+    printcmd(@sshcmd, 'ip', 'addr', 'add', $lnx_r_net6, 'dev', $lnx_r_if);
     foreach my $net (@lnx_r_net6_range) {
-	mysystem(@sshcmd, 'ip', 'addr', 'add', $net, 'dev', $lnx_r_if);
+	printcmd(@sshcmd, 'ip', 'addr', 'add', $net, 'dev', $lnx_r_if);
     }
-    mysystem(@sshcmd, 'ip', '-6', 'route', 'add', $obsd_l_net6, 'via',
+    printcmd(@sshcmd, 'ip', '-6', 'route', 'add', $obsd_l_net6, 'via',
 	$obsd_r_addr6, 'dev', "$lnx_r_if");
 }
 
@@ -527,22 +526,22 @@ my $netbench = "$netlinkdir/netbench.pl";
 sub tcpbench_server_startup {
     # requires echo 1 > /proc/sys/net/ipv6/bindv6only
     my @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'start');
-    mysystem(@sshcmd)
+    printcmd(@sshcmd)
 	and die "Start linux tcpbench server with '@sshcmd' failed: $?";
 
     my @cmd = ('rcctl', '-f', 'start', 'tcpbench');
-    mysystem(@cmd)
+    printcmd(@cmd)
 	and die "Start local tcpbench server with '@cmd' failed: $?";
 }
 
 sub tcpbench_server_shutdown {
     # requires echo 1 > /proc/sys/net/ipv6/bindv6only
     my @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'stop');
-    mysystem(@sshcmd)
+    printcmd(@sshcmd)
 	and die "Stop linux tcpbench server with '@sshcmd' failed: $?";
 
     my @cmd = ('rcctl', '-f', 'stop', 'tcpbench');
-    mysystem(@cmd)
+    printcmd(@cmd)
 	and die "Stop local tcpbench server with '@cmd' failed: $?";
 }
 
@@ -1142,15 +1141,15 @@ chdir($netlinkdir)
 # kill remote commands or ssh will hang forever
 if ($testmode{tcp4} || $testmode{tcp6}) {
     my @sshcmd = ('ssh', $lnx_r_ssh, 'pkill', 'tcpbench');
-    mysystem(@sshcmd);
-    mysystem('pkill', 'tcpbench');
+    printcmd(@sshcmd);
+    printcmd('pkill', 'tcpbench');
 }
 
 # create a tgz file with all log files
 my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$netlinkdir/test.log.tgz");
 push @paxcmd, '-v' if $opts{v};
 push @paxcmd, ("-s,^$logdir/,,", "-s,^$logdir,,", $logdir);
-mysystem(@paxcmd)
+printcmd(@paxcmd)
     and die "Command '@paxcmd' failed: $?";
 
 close($tr)
@@ -1311,8 +1310,8 @@ sub ping_f_parser {
     return 1;
 }
 
-sub mysystem {
+sub printcmd {
     my @cmd = @_;
-    print "@cmd\n" if $verbose;
+    print "@cmd\n";
     system(@cmd);
 }
