@@ -30,12 +30,12 @@ my $scriptname = "$0 @ARGV";
 my %opts;
 getopts('d:m:nvw:y:', \%opts) or do {
     print STDERR <<"EOF";
-usage: cleanup.pl [-nv] [-m months] [-w weeks]
+usage: cleanup.pl [-nv] [-d days] [-m months] [-w weeks] [-y years]
     -d days	remove log and obj tgz older than days, default 3
     -m months	thin out directories older than months, default 1
     -n		do not clean, just display obsolete directories
     -v		verbose
-    -w weeks	remove setup and run log than weeks, default 4
+    -w weeks	remove setup and run log older than weeks, default 4
     -y years	remove all directories older than years, default 1
 EOF
     exit(2);
