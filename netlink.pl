@@ -220,13 +220,14 @@ foreach my $if (@allinterfaces) {
 printcmd('ssh', $lnx_l_ssh, qw(
     for if in), $lnx_if, $lnx_pdev, qw(; do
 	for net in), $lnx_l_net, $lnx_l_net6, qw(; do
-	    ip addr delete $net dev $if ;
+	    ip address delete $net dev $if ;
 	done ;
     done));
 printcmd('ssh', $lnx_r_ssh, qw(
     for if in), $lnx_if, $lnx_pdev, qw(; do
-	for net in), $lnx_r_net, $lnx_r_net6, qw(; do
-	    ip addr delete $net dev $if ;
+	for net in),
+	$lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range, qw(; do
+	    ip address delete $net dev $if ;
 	done ;
     done));
 
@@ -435,12 +436,12 @@ printcmd('ifconfig', $obsd_r_ipdev, 'up');
 
 printcmd('ssh', $lnx_l_ssh, qw(
     for net in), $lnx_l_net, $lnx_l_net6, qw(; do
-	ip addr add $net dev), $lnx_ipdev, qw(;
+	ip address add $net dev), $lnx_ipdev, qw(;
     done));
 printcmd('ssh', $lnx_r_ssh, qw(
     for net in),
     $lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range, qw(; do
-	ip addr add $net dev), $lnx_ipdev, qw(;
+	ip address add $net dev), $lnx_ipdev, qw(;
     done));
 foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
     printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_ipdev, 'up');
