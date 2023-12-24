@@ -321,11 +321,11 @@ if ($testmode{make}) {
     my @cmd = ('make', "-C/usr/src/sys/arch/$machine/compile/$kconf");
     push @cmd, '-s' unless $opts{v};
     push @cmd, 'clean', 'config';
-    system(@cmd)
+    printcmd(@cmd)
 	and die "Clean kernel with '@cmd' failed: $?";
 }
 
-system('sync');
+printcmd('sync');
 sleep 1;
 
 my %iperf3_ids;
@@ -1366,7 +1366,7 @@ if ($testmode{tcpbench4} || $testmode{tcpbench6}) {
 my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$performdir/test.log.tgz");
 push @paxcmd, '-v' if $opts{v};
 push @paxcmd, ("-s,^$logdir/,,", "-s,^$logdir,,", $logdir);
-system(@paxcmd)
+printcmd(@paxcmd)
     and die "Command '@paxcmd' failed: $?";
 
 close($tr)
@@ -1430,4 +1430,10 @@ sub statistics {
 	$? == 0
 	    or die "Command '@statcmd' failed: $?";
     }
+}
+
+sub printcmd {
+    my @cmd = @_;
+    print "@cmd\n";
+    system(@cmd);
 }
