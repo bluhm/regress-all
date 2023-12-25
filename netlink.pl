@@ -479,11 +479,6 @@ sub tcpbench_server_startup {
 }
 
 sub tcpbench_server_shutdown {
-    # requires echo 1 > /proc/sys/net/ipv6/bindv6only
-    my @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'stop');
-    printcmd(@sshcmd)
-	and die "Stop linux tcpbench server with '@sshcmd' failed: $?";
-
     my @cmd = ('rcctl', '-f', 'stop', 'tcpbench');
     printcmd(@cmd)
 	and die "Stop local tcpbench server with '@cmd' failed: $?";
@@ -1078,13 +1073,6 @@ foreach my $t (@tests) {
 
 chdir($netlinkdir)
     or die "Change directory to '$netlinkdir' failed: $!";
-
-# kill remote commands or ssh will hang forever
-if ($testmode{tcp4} || $testmode{tcp6}) {
-    my @sshcmd = ('ssh', $lnx_r_ssh, 'pkill', 'tcpbench');
-    printcmd(@sshcmd);
-    printcmd('pkill', 'tcpbench');
-}
 
 # create a tgz file with all log files
 my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$netlinkdir/test.log.tgz");
