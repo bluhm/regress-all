@@ -272,7 +272,7 @@ printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
 
 # install tcpbench service
 defined(my $pid = open(my $lnx_tcpbench_service, '|-'))
-    or die "fork failed";
+    or die "Open pipe for writing tcpbench service failed: $!";
 if ($pid == 0) {
     my @sshcmd = ('ssh', $lnx_r_ssh, 'cat', '-', '>',
 	'/etc/systemd/system/tcpbench.service');
@@ -301,11 +301,11 @@ EOF
 
 close($lnx_tcpbench_service)
     or die ($! ?
-    "Close pipe failed: $!" :
+    "Close pipe after writing tcpbench service failed: $!" :
     "Command failed: $?");
 
 open(my $tcpbench_rc, '>', '/etc/rc.d/tcpbench')
-    or die 'Could not open /etc/rc.d/tcpbench';
+    or die "Open '/etc/rc.d/tcpbench' for writing failed: $!";
 
 print $tcpbench_rc <<'EOF';
 #!/bin/ksh
@@ -325,7 +325,8 @@ rc_start() {
 
 rc_cmd $1
 EOF
-close($tcpbench_rc);
+close($tcpbench_rc)
+    or die "Close '/etc/rc.d/tcpbench' after writing failed: $!";
 
 printcmd('chmod', '555', '/etc/rc.d/tcpbench');
 
