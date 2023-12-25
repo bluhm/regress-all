@@ -361,11 +361,28 @@ if ($pseudo eq 'aggr') {
     printcmd('ifconfig', 'aggr0', 'trunkport', $obsd_l_if);
     printcmd('ifconfig', 'aggr1', 'trunkport', $obsd_r_if);
 } elsif ($pseudo eq 'bridge') {
-    # XXX: vether
     printcmd('ifconfig', 'bridge0', 'create');
+    printcmd('ifconfig', 'vether0', 'create');
     printcmd('ifconfig', 'bridge0', 'add', $obsd_l_if);
     printcmd('ifconfig', 'bridge0', 'add', $obsd_r_if);
+    printcmd('ifconfig', 'bridge0', 'add', 'vether0');
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
     printcmd('ifconfig', 'bridge0', 'up');
+
+    # OpenBSD bridge port has only one vether interface
+    $obsd_l_ipdev = "vether0";
+    $obsd_r_ipdev = undef;
+    ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
+
+    # left and rigt network is flat by reducing prefix length
+    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
+	($obsd_l_net_flat, $obsd_l_prefix_flat,
+	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
+    ($lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range) =
+	($lnx_r_net_flat, $lnx_r_net6_flat,
+	@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
 } elsif ($pseudo eq 'carp') {
     # XXX
 } elsif ($pseudo eq 'trunk') {
