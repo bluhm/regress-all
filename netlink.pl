@@ -504,6 +504,10 @@ sub tcpbench_server_startup {
 }
 
 sub tcpbench_server_shutdown {
+    my @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'stop');
+    printcmd(@sshcmd)
+	and die "Stop linux tcpbench server with '@sshcmd' failed: $?";
+
     my @cmd = ('rcctl', '-f', 'stop', 'tcpbench');
     printcmd(@cmd)
 	and die "Stop local tcpbench server with '@cmd' failed: $?";
