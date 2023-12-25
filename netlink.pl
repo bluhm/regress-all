@@ -27,7 +27,7 @@ use Time::HiRes;
 use lib dirname($0);
 use Netstat;
 
-my @allifaces = qw(em igc ix ixl bnxt);
+my @allifaces = qw(em igc ix ixl bnxt none);
 my @allmodifymodes = qw(nolro nopf notso);
 my @allpseudos = qw(bridge none veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp splice);
@@ -346,6 +346,9 @@ close($tcpbench_rc)
     or die "Close '/etc/rc.d/tcpbench' after writing failed: $!";
 
 printcmd('chmod', '555', '/etc/rc.d/tcpbench');
+
+# only run generic setup code, basically destroys interface config
+exit if $iface eq "none";
 
 if ($pseudo eq 'aggr') {
     # XXX: does now work as switch is not configured
