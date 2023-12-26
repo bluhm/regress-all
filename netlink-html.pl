@@ -143,7 +143,7 @@ sub html_hier_test_head {
     my ($html, @hiers) = @_;
 
     foreach my $hier (@HIERARCHY) {
-	print $html "  <tr>\n    <th></th>\n";
+	print $html "  <tr>\n";
 	print $html "    <th>$hier</th>\n";
 	foreach my $hv (@hiers) {
 	    my $title = "";
@@ -155,7 +155,7 @@ sub html_hier_test_head {
 	    }
 	    print $html "    <th$title>$name</th>\n";
 	}
-	print $html "  </tr>\n";
+	print $html "    <th></th>\n  </tr>\n";
     }
 }
 
@@ -165,8 +165,7 @@ sub html_hier_test_row {
     (my $testcmd = $test) =~ s/_/ /g;
     my $testdesc = $TESTDESC{$test} || "";
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\">$testdesc</th>\n";
-    print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
+    print $html "    <th class=\"desc\" title=\"$testcmd\">$testdesc</th>\n";
     foreach my $hv (@hiers) {
 	my $tv = $td->{$hv->{key}};
 	my $status = $tv->{status} || "";
@@ -184,6 +183,7 @@ sub html_hier_test_row {
 
 	print $html "    <td$class$title>$href$status$enda$stats_href</td>\n";
     }
+    print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     print $html "  </tr>\n";
 
     my $vt = $V{$test};
@@ -191,7 +191,7 @@ sub html_hier_test_row {
     for (my $i = 0; $i < $maxval; $i++) {
 	my $value0 = first { $_ } map { $_->[$i] } values %$vt;
 	my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
-	print $html "  <tr>\n    <th></th>\n";
+	print $html "  <tr>\n";
 	print $html "    <th>$name0</th>\n";
 	foreach my $hv (@hiers) {
 	    my $tv = $td->{$hv->{key}};
@@ -202,7 +202,7 @@ sub html_hier_test_row {
 		print $html "    <td></td>\n";
 	    }
 	}
-	print $html "  </tr>\n";
+	print $html "    <th></th>\n  </tr>\n";
     }
 }
 
@@ -234,7 +234,7 @@ sub html_hier_test_row_util {
     return if ($valsum == 0);
 
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\">$testdesc</th>\n";
+    print $html "    <th class=\"desc\" title=\"$testcmd\">$testdesc</th>\n";
     foreach my $hv (@hiers) {
 	my ($status, $unit, $iface, $value);
 	for (my $i = 0; $i < $maxval; $i++) {
@@ -371,7 +371,7 @@ HEADER
     my @dates = reverse sort keys %D;
     print $html "<table>\n";
     print $html "  <thead>\n";
-    print $html "  <tr>\n    <th></th>\n    <th>pass rate</th>\n";
+    print $html "  <tr>\n    <th>pass rate</th>\n";
     foreach my $date (@dates) {
 	my $passrate = $D{$date}{pass};
 	$passrate /= $D{$date}{total} if $D{$date}{total};
@@ -379,7 +379,7 @@ HEADER
 	$percent = sprintf("%d%%", 100 * $passrate) if defined $passrate;
 	print $html "    <th>$percent</th>\n";
     }
-    print $html "  <tr>\n    <th></th>\n    <th>run at date</th>\n";
+    print $html "    <th></th>\n  <tr>\n    <th>run at date</th>\n";
     foreach my $date (@dates) {
 	my $short = $D{$date}{short};
 	my $time = encode_entities($date);
@@ -389,12 +389,12 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$time\">$href$short$enda</th>\n";
     }
-    print $html "  <tr>\n    <th></th>\n    <th>sub runs</th>\n";
+    print $html "    <th></th>\n  <tr>\n    <th>sub runs</th>\n";
     foreach my $date (@dates) {
 	my $num = @{$H{$date}};
 	print $html "    <th>$num</th>\n";
     }
-    print $html "  <tr>\n    <th></th>\n    <th>machine</th>\n";
+    print $html "    <th></th>\n  <tr>\n    <th>machine</th>\n";
     foreach my $date (@dates) {
 	my $setup = $D{$date}{setup};
 	my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
@@ -402,7 +402,7 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>${href}setup info$enda</th>\n";
     }
-    print $html "  <tr>\n    <th></th>\n    <th>architecture</th>\n";
+    print $html "    <th></th>\n  <tr>\n    <th>architecture</th>\n";
     foreach my $date (@dates) {
 	my $arch = $D{$date}{arch};
 	my $dmesg = $D{$date}{dmesg};
@@ -411,7 +411,7 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>$href$arch$enda</th>\n";
     }
-    print $html "  <tr>\n    <th></th>\n    <th>host</th>\n";
+    print $html "    <th></th>\n  <tr>\n    <th>host</th>\n";
     foreach my $date (@dates) {
 	my $hostname = $D{$date}{host};
 	my $hostlink;
@@ -423,7 +423,7 @@ HEADER
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>$href$hostname$enda</th>\n";
     }
-    print $html "  </tr>\n";
+    print $html "    <th></th>\n  </tr>\n";
     print $html "  </thead>\n  <tbody>\n";
 
     my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
@@ -433,8 +433,8 @@ HEADER
 	(my $testcmd = $test) =~ s/_/ /g;
 	my $testdesc = $TESTDESC{$test} || "";
 	print $html "  <tr>\n";
-	print $html "    <th class=\"desc\">$testdesc</th>\n";
-	print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
+	print $html
+	    "    <th class=\"desc\" title=\"$testcmd\">$testdesc</th>\n";
 	foreach my $date (@dates) {
 	    my $tv = $T{$test}{$date};
 	    my $status = $tv->{status} || "";
@@ -447,6 +447,7 @@ HEADER
 	    my $enda = $href ? "</a>" : "";
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
+	print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
 	print $html "  </tr>\n";
     }
     print $html "  </tbody>\n";
