@@ -27,9 +27,9 @@ use Time::HiRes;
 use lib dirname($0);
 use Netstat;
 
-my @allifaces = qw(em igc ix ixl bnxt none);
-my @allmodifymodes = qw(nolro nopf notso);
-my @allpseudos = qw(bridge none veb vlan);
+my @allifaces = qw(none em igc ix ixl bnxt);
+my @allmodifymodes = qw(none nolro nopf notso);
+my @allpseudos = qw(none aggr bridge veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp splice);
 
 my %opts;
@@ -51,8 +51,8 @@ EOF
 my $timeout = $opts{t} || 20;
 environment($opts{e}) if $opts{e};
 my $pseudo = $opts{c} || "none";
-my $iface = $opts{i} || "em";
-my $modify = $opts{m};
+my $iface = $opts{i} || "none";
+my $modify = $opts{m} || "none";
 
 my $line = $ENV{NETLINK_LINE}
     or die "NETLINK_LINE is not in env";
@@ -83,7 +83,7 @@ if (($iftype.$left_ifidx) eq $management_if ||
 warn "left interface should be in the wrong network" if ($left_ifidx % 2);
 warn "right interface should be in the wrong network" if (!$right_ifidx % 2);
 
-!$modify || grep { $_ eq $modify } @allmodifymodes
+grep { $_ eq $modify } @allmodifymodes
     or die "Unknnown modify mode '$modify'";
 grep { $_ eq $pseudo } @allpseudos
     or die "Unknown pseudo network device '$pseudo'";
@@ -993,15 +993,15 @@ my @stats = (
     },
 );
 
-if ($modify && $modify eq 'nolro') {
+if ($modify eq 'nolro') {
     $tests[0]{startup} = \&nolro_startup;
     $tests[-1]{shutdown} = \&nolro_shutdown;
 }
-if ($modify && $modify eq 'nopf') {
+if ($modify eq 'nopf') {
     $tests[0]{startup} = \&nopf_startup;
     $tests[-1]{shutdown} = \&nopf_shutdown;
 }
-if ($modify && $modify eq 'notso') {
+if ($modify eq 'notso') {
     $tests[0]{startup} = \&notso_startup;
     $tests[-1]{shutdown} = \&notso_shutdown;
 }
