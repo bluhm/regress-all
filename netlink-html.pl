@@ -196,7 +196,7 @@ sub html_hier_test_row {
 	foreach my $hv (@hiers) {
 	    my $tv = $td->{$hv->{key}};
 	    my $vv = $vt->{$hv->{key}};
-	    if ($tv && ($tv->{status} eq 'PASS')) {
+	    if ($tv && ($tv->{status} =~ /^X?PASS$/)) {
 		print $html "    <td>$vv->[$i]{number}</td>\n";
 	    } else {
 		print $html "    <td></td>\n";
