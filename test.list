@@ -102,7 +102,6 @@ lib/libcrypto/dsa
 lib/libcrypto/ec
 lib/libcrypto/ecdh
 lib/libcrypto/ecdsa
-lib/libcrypto/engine
 lib/libcrypto/evp
 lib/libcrypto/free
 lib/libcrypto/gcm128
