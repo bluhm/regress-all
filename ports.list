@@ -86,6 +86,7 @@ devel/p5-Devel-MAT-Dumper
 devel/p5-Devel-NYTProf
 devel/p5-Devel-OverloadInfo
 devel/p5-Devel-StackTrace
+devel/p5-EV
 devel/p5-Eval-Closure
 devel/p5-Exporter-Tiny
 devel/p5-FFI-CheckLib
@@ -112,6 +113,7 @@ devel/p5-IO-KQueue
 devel/p5-IO-Tty
 devel/p5-IO-stringy
 devel/p5-IPC-Run
+devel/p5-IPC-Shareable
 devel/p5-Importer
 devel/p5-Iterator-Simple
 devel/p5-Lchown
@@ -434,6 +436,7 @@ textproc/p5-List-Util-WeightedChoice
 textproc/p5-Number-Format
 textproc/p5-PDF-API2
 textproc/p5-PDF-Table
+textproc/p5-PPIx-Regexp
 textproc/p5-Pod-LaTeX
 textproc/p5-Pod-Markdown
 textproc/p5-Pod-Parser
@@ -443,6 +446,7 @@ textproc/p5-String-RewritePrefix
 textproc/p5-Template
 textproc/p5-Text-Diff
 textproc/p5-Text-Flow
+textproc/p5-XML-Generator
 textproc/p5-XML-LibXML
 textproc/p5-XML-LibXSLT
 textproc/p5-XML-NamespaceSupport
