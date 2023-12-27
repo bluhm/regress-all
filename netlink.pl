@@ -29,7 +29,7 @@ use Netstat;
 
 my @allifaces = qw(none em igc ix ixl bnxt);
 my @allmodifymodes = qw(none nolro nopf notso);
-my @allpseudos = qw(none aggr bridge veb vlan);
+my @allpseudos = qw(none bridge veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp splice);
 
 my %opts;
