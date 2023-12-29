@@ -358,9 +358,11 @@ unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
 
-runcmd("bin/netlink-html.pl", "-l");
-runcmd("bin/netlink-html.pl", "-h", $host);
-runcmd("bin/netlink-html.pl");
+my @cmd = ("bin/netlink-html.pl");
+push @cmd, "-v" if $opts{v};
+runcmd(@cmd, "-l");
+runcmd(@cmd, "-h", $host);
+runcmd(@cmd);
 
 $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $now.\n");

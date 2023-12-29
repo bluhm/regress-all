@@ -257,7 +257,9 @@ foreach my $current (@steps) {
 
 	my @sshcmd = ('ssh', $opts{h}, 'perl', '/root/perform/perform.pl');
 	push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
-	push @sshcmd, '-e', "/root/perform/env-$host.sh", '-v', keys %testmode;
+	push @sshcmd, '-e', "/root/perform/env-$host.sh";
+	push @sshcmd, '-v' if $opts{v};
+	push @sshcmd, keys %testmode;
 	logcmd(@sshcmd);
 
 	# get result and logs
