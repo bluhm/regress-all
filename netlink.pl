@@ -268,6 +268,7 @@ foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	    done ;
 	done));
     printcmd('ssh', $ssh, 'ip', 'link', 'delete', 'dev', $lnx_pdev);
+    printcmd('ssh', $ssh, 'ip', 'link', 'set', $lnx_if, 'up');
 }
 
 printcmd('sysctl net.inet.ip.forwarding=1');
@@ -355,11 +356,12 @@ if ($pseudo eq 'aggr') {
     # XXX: multiple interfaces in one aggr
     printcmd('ifconfig', 'aggr0', 'create');
     printcmd('ifconfig', 'aggr1', 'create');
-
-    printcmd('ifconfig', $obsd_l_if, 'up');
-    printcmd('ifconfig', $obsd_r_if, 'up');
     printcmd('ifconfig', 'aggr0', 'trunkport', $obsd_l_if);
     printcmd('ifconfig', 'aggr1', 'trunkport', $obsd_r_if);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    $obsd_l_ipdev = "aggr0";
+    $obsd_r_ipdev = "aggr1";
 } elsif ($pseudo eq 'bridge') {
     printcmd('ifconfig', 'bridge0', 'create');
     printcmd('ifconfig', 'vether0', 'create');
