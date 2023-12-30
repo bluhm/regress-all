@@ -271,8 +271,8 @@ foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
     printcmd('ssh', $ssh, 'ip', 'link', 'set', $lnx_if, 'up');
 }
 
-printcmd('sysctl net.inet.ip.forwarding=1');
-printcmd('sysctl net.inet6.ip6.forwarding=1');
+printcmd('sysctl', 'net.inet.ip.forwarding=1');
+printcmd('sysctl', 'net.inet6.ip6.forwarding=1');
 
 # allow tcpbench to bind on ipv6 addresses without explicitly providing it
 printcmd('ssh', $lnx_l_ssh, 'sysctl','net.ipv6.bindv6only=1');
@@ -348,8 +348,35 @@ close($tcpbench_rc)
 
 printcmd('chmod', '555', '/etc/rc.d/tcpbench');
 
+if ($modify eq 'nopf') {
+    printcmd('/sbin/pfctl', '-d');
+} else {
+    printcmd('/sbin/pfctl', '-e', '-f', '/etc/pf.conf');
+}
+if ($modify eq 'notso') {
+    printcmd('sysctl', 'net.inet.tcp.tso=0');
+} else {
+    printcmd('sysctl', 'net.inet.tcp.tso=1');
+}
+
 # only run generic setup code, basically destroys interface config
 exit if $iface eq "none";
+
+foreach my $if ($obsd_l_if, $obsd_r_if) {
+    my @cmd = ('/sbin/ifconfig', $if, 'hwfeatures');
+    open(my $fh, '-|', @cmd)
+	or die "Open pipe from command '@cmd' failed: $!";
+    my @hwfeatures = grep { /^\s*hwfeatures=/ } <$fh>;
+    close($fh) or die $! ?
+	"Close pipe from command '@cmd' failed: $!" :
+	"Command '@cmd' failed: $?";
+    next unless grep { /\bLRO\b/ } @hwfeatures;
+    if ($modify eq 'nolro') {
+	printcmd('/sbin/ifconfig', $if, '-tcplro');
+    } else {
+	printcmd('/sbin/ifconfig', $if, 'tcplro');
+    }
+}
 
 if ($pseudo eq 'aggr') {
     # XXX: does now work as switch is not configured
@@ -580,122 +607,6 @@ sub netbench_parser {
 	print $tr "VALUE $value bits/sec $direction\n";
     }
     return 1;
-}
-
-sub logcmd {
-    my ($log, @cmd) = @_;
-    print $log "@cmd\n";
-    print "@cmd\n" if $opts{v};
-
-    defined(my $pid = open(my $fh, '-|'))
-	or die "Open pipe from '@cmd' failed: $!";
-    if ($pid == 0) {
-	$SIG{__DIE__} = 'DEFAULT';
-	close($fh);
-	open(STDIN, '<', "/dev/null")
-	    or die "Redirect stdin to /dev/null failed: $!";
-	open(STDERR, '>&', \*STDOUT)
-	    or die "Redirect stderr to stdout failed: $!";
-	setsid()
-	    or die "Setsid $$ failed: $!";
-	exec(@cmd);
-	warn "Exec '@cmd' failed: $!";
-	_exit(126);
-    }
-    local $_;
-    while (<$fh>) {
-	s/[^\s[:print:]]/_/g;
-	print $log $_;
-	print $_ if $opts{v};
-    }
-    $log->sync();
-    close($fh)
-	or $! && die "Close pipe from '@cmd' failed: $!";
-    return $?;
-}
-
-sub lro_get_ifs {
-    my @cmd = ('/sbin/ifconfig', '-a', 'hwfeatures');
-    open(my $fh, '-|', @cmd)
-	or die "Open pipe from command '@cmd' failed: $!";
-    my ($ifname, @ifs);
-    while (<$fh>) {
-	    $ifname = $1 if /^(\w+\d+):/;
-	    push @ifs, $ifname if /hwfeatures=.*\bLRO\b/;
-    }
-    close($fh) or die $! ?
-	"Close pipe from command '@cmd' failed: $!" :
-	"Command '@cmd' failed: $?";
-    return @ifs;
-}
-
-my @lro_ifs;
-sub nolro_startup {
-    my ($log) = @_;
-
-    @lro_ifs = lro_get_ifs();
-    foreach my $ifname (@lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, '-tcplro');
-	logcmd($log, @cmd) and
-	    die "Command '@cmd' failed: $?";
-    }
-
-    # changing LRO may lose interface link status due to down/up
-    sleep 1;
-    print $log "lro disabled\n\n";
-    print "lro disabled\n\n" if $opts{v};
-}
-
-sub nolro_shutdown {
-    my ($log) = @_;
-    print $log "\nenabling lro\n";
-    print "\nenabling lro\n" if $opts{v};
-
-    foreach my $ifname (@lro_ifs) {
-	my @cmd = ('/sbin/ifconfig', $ifname, 'tcplro');
-	logcmd($log, @cmd) and
-	    die "Command '@cmd' failed: $?";
-    }
-}
-
-sub nopf_startup {
-    my ($log) = @_;
-    my @cmd = ('/sbin/pfctl', '-d');
-    logcmd($log, @cmd) and
-	die "Command '@cmd' failed: $?";
-
-    print $log "pf disabled\n\n";
-    print "pf disabled\n\n" if $opts{v};
-}
-
-sub nopf_shutdown {
-    my ($log) = @_;
-    print $log "\nenabling pf\n";
-    print "\nenabling pf\n" if $opts{v};
-
-    my @cmd = ('/sbin/pfctl', '-e', '-f', '/etc/pf.conf');
-    logcmd($log, @cmd) and
-	die "Command '@cmd' failed: $?";
-}
-
-sub notso_startup {
-    my ($log) = @_;
-    my @cmd = ('/sbin/sysctl', 'net.inet.tcp.tso=0');
-    logcmd($log, @cmd) and
-	die "Command '@cmd' failed: $?";
-
-    print $log "tso disabled\n\n";
-    print "tso disabled\n\n" if $opts{v};
-}
-
-sub notso_shutdown {
-    my ($log) = @_;
-    print $log "\nenabling tso\n";
-    print "\nenabling tso\n" if $opts{v};
-
-    my @cmd = ('/sbin/sysctl', 'net.inet.tcp.tso=1');
-    logcmd($log, @cmd) and
-	die "Command '@cmd' failed: $?";
 }
 
 my @tests;
@@ -994,19 +905,6 @@ my @stats = (
 	statcmd => [ 'vmstat', '-iz' ],
     },
 );
-
-if ($modify eq 'nolro') {
-    $tests[0]{startup} = \&nolro_startup;
-    $tests[-1]{shutdown} = \&nolro_shutdown;
-}
-if ($modify eq 'nopf') {
-    $tests[0]{startup} = \&nopf_startup;
-    $tests[-1]{shutdown} = \&nopf_shutdown;
-}
-if ($modify eq 'notso') {
-    $tests[0]{startup} = \&notso_startup;
-    $tests[-1]{shutdown} = \&notso_shutdown;
-}
 
 local $SIG{ALRM} = 'IGNORE';
 TEST:
