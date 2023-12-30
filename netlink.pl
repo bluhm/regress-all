@@ -28,7 +28,7 @@ use lib dirname($0);
 use Netstat;
 
 my @allifaces = qw(none em igc ix ixl bnxt);
-my @allmodifymodes = qw(none nolro nopf notso);
+my @allmodifymodes = qw(none jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp splice);
 
@@ -140,6 +140,7 @@ my $lnx_if = "ens2f" . ($line % 2);
 my $lnx_pdev = "$lnx_if.$line";
 my $lnx_ipdev = $lnx_if;
 
+my $lnx_l_mtu = 1500;
 my $lnx_l_addr = "$ip4prefix.${line}1.1";
 my $lnx_l_net = "$lnx_l_addr/24";
 my $lnx_l_net_flat = "$lnx_l_addr/21";
@@ -148,6 +149,7 @@ my $lnx_l_net6 = "$lnx_l_addr6/64";
 my $lnx_l_net6_flat = "$lnx_l_addr6/60";
 my $lnx_l_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
 
+my $lnx_r_mtu = 1500;
 my $lnx_r_addr = "$ip4prefix.${line}2.4";
 my $lnx_r_net = "$lnx_r_addr/24";
 my $lnx_r_net_flat = "$lnx_r_addr/21";
@@ -362,20 +364,39 @@ if ($modify eq 'notso') {
 # only run generic setup code, basically destroys interface config
 exit if $iface eq "none";
 
+my %hwfeatures;
 foreach my $if ($obsd_l_if, $obsd_r_if) {
     my @cmd = ('/sbin/ifconfig', $if, 'hwfeatures');
     open(my $fh, '-|', @cmd)
 	or die "Open pipe from command '@cmd' failed: $!";
-    my @hwfeatures = grep { /^\s*hwfeatures=/ } <$fh>;
+    my @hwf = grep { /^\thwfeatures=/ } <$fh>;
     close($fh) or die $! ?
 	"Close pipe from command '@cmd' failed: $!" :
 	"Command '@cmd' failed: $?";
-    next unless grep { /\bLRO\b/ } @hwfeatures;
-    if ($modify eq 'nolro') {
-	printcmd('/sbin/ifconfig', $if, '-tcplro');
-    } else {
-	printcmd('/sbin/ifconfig', $if, 'tcplro');
+    @hwf
+	or next;
+    @hwf == 1
+	or die "Hardware features of '$if' not unique: @hwf";
+    $hwfeatures{$if} = $hwf[0];
+}
+foreach my $if (sort keys %hwfeatures) {
+    my $hwf = $hwfeatures{$if};
+    my $hwlro = ($hwf =~ /\bLRO\b/);
+    if ($hwlro) {
+	if ($modify eq 'nolro') {
+	    printcmd('/sbin/ifconfig', $if, '-tcplro');
+	} else {
+	    printcmd('/sbin/ifconfig', $if, 'tcplro');
+	}
     }
+    my ($hwhardmtu) = ($hwf =~ /\bhardmtu (\d+)\b/);
+    my $mtu = 1500;
+    if ($modify eq 'jumbo' && $hwhardmtu) {
+	($mtu = $hwhardmtu) =~ s/...$/000/ if $hwhardmtu >= 2000;
+	$lnx_l_mtu = $mtu if $if eq $obsd_l_if;
+	$lnx_r_mtu = $mtu if $if eq $obsd_r_if;
+    }
+    printcmd('/sbin/ifconfig', $if, 'mtu', $mtu);
 }
 
 if ($pseudo eq 'aggr') {
@@ -476,17 +497,25 @@ foreach my $addr (@obsd_l_addr_range) {
 foreach my $addr (@obsd_l_addr6_range) {
     printcmd('ifconfig', $obsd_l_ipdev, 'inet6', "$addr/128", 'alias');
 }
+printcmd('ifconfig', $obsd_l_ipdev, 'mtu', $lnx_l_mtu)
+    if $obsd_l_ipdev ne $obsd_l_if && $lnx_l_mtu != 1500;
 printcmd('ifconfig', $obsd_l_ipdev, 'up');
 if ($obsd_r_ipdev) {
     printcmd('ifconfig', $obsd_r_ipdev, 'inet',
 	"$obsd_r_addr/$obsd_r_prefix");
     printcmd('ifconfig', $obsd_r_ipdev, 'inet6',
 	"$obsd_r_addr6/$obsd_r_prefix6");
+    printcmd('ifconfig', $obsd_r_ipdev, 'mtu', $lnx_r_mtu)
+	if $obsd_r_ipdev ne $obsd_r_if && $lnx_r_mtu != 1500;
     printcmd('ifconfig', $obsd_r_ipdev, 'up');
 }
 
 # configure Linux addresses and routes
 
+printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'set', 'mtu', $lnx_l_mtu,
+    'dev', $lnx_if);
+printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'set', 'mtu', $lnx_r_mtu,
+    'dev', $lnx_if);
 printcmd('ssh', $lnx_l_ssh, qw(
     for net in), $lnx_l_net, $lnx_l_net6, qw(; do
 	ip address add $net dev), $lnx_ipdev, qw(;
