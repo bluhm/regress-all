@@ -53,6 +53,7 @@ devel/p5-Class-Data-Inheritable
 devel/p5-Class-Date
 devel/p5-Class-Load
 devel/p5-Class-Load-XS
+devel/p5-Class-Trigger
 devel/p5-Class-XSAccessor
 devel/p5-Commandable
 devel/p5-Coro
@@ -98,6 +99,7 @@ devel/p5-File-Find-Object
 devel/p5-File-Find-Object-Rule
 devel/p5-File-Find-Rule
 devel/p5-File-Listing
+devel/p5-File-MimeInfo
 devel/p5-File-Modified
 devel/p5-File-NCopy
 devel/p5-File-Share
@@ -337,6 +339,7 @@ misc/open62541
 misc/p5-File-LibMagic
 misc/p5-File-MMagic
 misc/p5-OPCUA-Open62541
+misc/p5-Spreadsheet-ParseExcel
 misc/p5-User-Identity
 net/p5-BSD-Socket-Splice
 net/p5-DNS-ZoneParse
