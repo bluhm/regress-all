@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# collect cvs logs between certain dates for sub branches
+# generate gnuplot graphics for perform html
 
 # Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2018-2019 Moritz Buhl <mbuhl@genua.de>

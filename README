@@ -12,33 +12,53 @@ run date, cvs checkout date, and repetitions.  The tests are run
 multiple times to detect deviations.  Tests consist of iperf3,
 tcpbench, and kernel compile time.
 
+Additional features are running ports tests, building release, and
+testing network interfaces in multiple configurations.
+
 Buildquirks.pm	- create tool chain to compile kernel from certain date
 Hostctl.pm	- run commands on all tests hosts to configure them
+Html.pm		- utility functions to create html pages with results
 Logcmd.pm	- common log funtions for run.pl, setp.pl, and setup.pl
 Machine.pm	- functions to setup a single machine
+Netstat.pm	- parse netstat statistics and show coounter differences
+Testvars.pm	- variables with test names for perform and netlink
 bsdcons.pl	- collect kernel output from console of selected machine
+build-ot14.list	- setup builds special tools needed on test machine ot14
 cleanup.pl	- remove old test logs to recover disk space
+cmd-ot1.list	- setup executes commands after installation of ot1
 cvsbuild.pl	- checkout kernel at certain cvs date and install it
 cvslog.pl	- collect all cvs commit messages between two dates
 env-ot1.sh	- environment variables to be set on the test machine ot1
-force-iperf3.pl	- restrict ssh command to iperf3 in client mode
+favicon.ink.svg	- favicon for bluhm.genua.de created with inkscape
+favicon.svg	- favicon converted to small SVG
+force-ssh.pl	- restrict ssh commands on linux perform servers
+gnuplot.pl	- generate gnuplot graphics for perform html
+keys.sh		- generate gnuplot icons for legend in html graphics
+		  this is started by gnuplot.pl
 mktestlist.pl	- find possible names of tests in regress directory
+make.pl		- run make build and release
+makealign.sh	- align object files of kernel on perform machine
+mktestlist.pl	- print the Makefile leaves of the regress directory
 net.pl		- run network regression tests
+netlink-html.pl	- convert netlink test results into html table
 netlink.pl	- set up and run one network regression test on test machine
 		  this is started by net.pl
 once.pl		- run performance test once, used for manual testing
 perform-html.pl	- convert performance test results into html table
 perform.pl	- run one set up performace test on test machine,
-		  this is started by step.pl
+		  this is started by step.pl or once.pl
+pkg-ot1.list	- setup installs packages on test machine ot1
+plot.gp		- gnuplot script used by gnuplot.pl
+ports.list	- list of /usr/ports subdirectories that should be tested
 portstest.pl	- run port test for set of ports on test machine
 		  this is started by test.pl
-pkg-ot1.list	- list of packages that must be installed on test machine ot1
-pkg-ot2.list	- list of packages that must be installed on test machine ot2
-ports.list	- list of /usr/ports subdirectories that should be tested
+power.pl	- power up and down machine to save cooling power
 reboot.pl	- reboot machine, after optionally reordering kernel
 regress-html.pl	- convert all regression test results into html table
 regress.pl	- run one openbsd regression test on test machine,
 		  this is started by run.pl
+release.pl	- build release from /usr/src
+		  this is started by make.pl
 run.pl		- do regression tests, add this to cron job
 running-html.pl	- create html table with all tests currently running
 setup-html.pl	- convert machine setup logs into html table

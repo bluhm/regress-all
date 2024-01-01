@@ -1,4 +1,5 @@
 #!/bin/sh
+# generate gnuplot icons for legend in html graphics
 
 set -eu
 
