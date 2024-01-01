@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2023 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2024 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -159,6 +159,8 @@ sub bad {
     $log->sync() if $log;
     $tr->sync();
     no warnings 'exiting';
+    # the local and eval around the signal handler behave unexpectedly
+    alarm(0);
     next TEST;
 }
 
