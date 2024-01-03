@@ -76,8 +76,13 @@ sub html_header {
   <style>
     thead { background-color: #ffffff; position: sticky; top:0; }
     thead > tr > th { outline: solid #ffffff; }
+    thead > tr > td { outline: solid #ffffff; }
+    .utilization td { text-align: right; }
     th { text-align: left; white-space: nowrap; }
+    th.hier { text-align: center; white-space: nowrap; }
+    td.hier { text-align: center; }
     th.desc { text-align: left; white-space: nowrap; }
+    td.desc { text-align: left; white-space: nowrap; }
     th.test { text-align: left; white-space: nowrap; }
     td.test { text-align: left; white-space: nowrap; }
     tr:hover {background-color: #e0e0e0;}
@@ -92,8 +97,6 @@ sub html_header {
     td.status, td.status a {color: black;}
     td.outlier {color: red;}
     iframe {width: 100%; border: none; min-height: 1200px;}
-    .utilization thead th { white-space: initial; }
-    .utilization td { text-align: right; }
   </style>
 </head>
 

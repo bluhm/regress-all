@@ -153,9 +153,30 @@ sub html_hier_test_head {
 		$title = "  title=\"$time\"";
 		$name =~ s/T.*//;
 	    }
-	    print $html "    <th$title>$name</th>\n";
+	    print $html "    <th class=\"hier\"$title>$name</th>\n";
 	}
 	print $html "    <th></th>\n  </tr>\n";
+    }
+}
+
+sub html_hier_test_head_utilization {
+    my ($html, @hiers) = @_;
+
+    foreach my $hier (@HIERARCHY) {
+	my $te = $hier eq "date" ? "th" : "td";
+	print $html "  <tr>\n";
+	print $html "    ", (map { "<td></td>" } @TESTKEYS), "\n";
+	foreach my $hvi (@hiers) {
+	    my $title = "";
+	    my $name = $hvi->{$hier} || "";
+	    if ($hier =~ /date$/) {
+		my $time = encode_entities($name);
+		$title = "  title=\"$time\"";
+		$name =~ s/T.*//;
+	    }
+	    print $html "    <$te class=\"hier\"$title>$name</$te>\n";
+	}
+	print $html "  </tr>\n";
     }
 }
 
@@ -206,7 +227,7 @@ sub html_hier_test_row {
     }
 }
 
-sub html_hier_test_row_util {
+sub html_hier_test_row_utilization {
     my ($html, $test, $td, @hiers) = @_;
 
     (my $testcmd = $test) =~ s/_/ /g;
@@ -236,7 +257,8 @@ sub html_hier_test_row_util {
     print $html "  <tr>\n";
     print $html "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
     foreach my $testkey (@TESTKEYS) {
-	print $html "    <th class=\"desc\">$TESTDESC{$test}{$testkey}</th>\n";
+	next if $testkey eq "host";
+	print $html "    <td class=\"desc\">$TESTDESC{$test}{$testkey}</td>\n";
     }
     foreach my $hv (@hiers) {
 	my ($status, $unit, $iface, $value);
@@ -313,25 +335,16 @@ sub write_html_hier_files {
 	print $html "  </tbody>\n";
 	print $html "</table>\n";
 
-	my @hiernodate = @HIERARCHY;
-	shift @hiernodate;
 	print $html "<table class='utilization'>\n";
-	print $html "  <thead>\n  <tr>\n    <th>";
-	print $html join(' ', @hiernodate);
-	print $html "</th>", (map { "<th></th>" } @TESTKEYS), "\n";
-	foreach my $hvi (@hv) {
-	    print $html "    <th>";
-	    my $name  = "";
-	    print $html join(' ', map { $hvi->{$_} || "" } @hiernodate);
-	    print $html "</th>\n";
-	}
-	print $html "  </tr>\n  </thead>\n  <tbody>\n";
+	print $html "  <thead>\n";
+	html_hier_test_head_utilization($html, @hv);
+	print $html "  </thead>\n  <tbody>\n";
 
 	@tests = sort { $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
 	foreach my $test (@tests) {
 	    my $td = $T{$test}{$date}
 		or next;
-	    html_hier_test_row_util($html, $test, $td, @hv);
+	    html_hier_test_row_utilization($html, $test, $td, @hv);
 	}
 	print $html "  </tbody>\n";
 	print $html "</table>\n";
