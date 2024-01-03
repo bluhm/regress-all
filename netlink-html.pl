@@ -29,7 +29,7 @@ use URI::Escape;
 
 use lib dirname($0);
 use Html;
-use Testvars qw(%TESTNAME);
+use Testvars qw(%TESTNAME %TESTDESC @TESTKEYS);
 
 my $now = strftime("%FT%TZ", gmtime);
 
@@ -235,6 +235,9 @@ sub html_hier_test_row_util {
 
     print $html "  <tr>\n";
     print $html "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
+    foreach my $testkey (@TESTKEYS) {
+	print $html "    <th class=\"desc\">$TESTDESC{$test}{$testkey}</th>\n";
+    }
     foreach my $hv (@hiers) {
 	my ($status, $unit, $iface, $value);
 	for (my $i = 0; $i < $maxval; $i++) {
@@ -315,7 +318,7 @@ sub write_html_hier_files {
 	print $html "<table class='utilization'>\n";
 	print $html "  <thead>\n  <tr>\n    <th>";
 	print $html join(' ', @hiernodate);
-	print $html "</th>\n";
+	print $html "</th>", (map { "<th></th>" } @TESTKEYS), "\n";
 	foreach my $hvi (@hv) {
 	    print $html "    <th>";
 	    my $name  = "";
