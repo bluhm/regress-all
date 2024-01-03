@@ -163,9 +163,9 @@ sub html_hier_test_row {
     my ($html, $test, $td, @hiers) = @_;
 
     (my $testcmd = $test) =~ s/_/ /g;
-    my $testdesc = $TESTNAME{$test} || "";
+    my $testname = $TESTNAME{$test} || "";
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\" title=\"$testcmd\">$testdesc</th>\n";
+    print $html "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
     foreach my $hv (@hiers) {
 	my $tv = $td->{$hv->{key}};
 	my $status = $tv->{status} || "";
@@ -210,7 +210,7 @@ sub html_hier_test_row_util {
     my ($html, $test, $td, @hiers) = @_;
 
     (my $testcmd = $test) =~ s/_/ /g;
-    my $testdesc = $TESTNAME{$test} || "";
+    my $testname = $TESTNAME{$test} || "";
     my $vt = $V{$test};
     my $maxval = max map { scalar @{$_ || []} } values %$vt;
 
@@ -234,7 +234,7 @@ sub html_hier_test_row_util {
     return if ($valsum == 0);
 
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\" title=\"$testcmd\">$testdesc</th>\n";
+    print $html "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
     foreach my $hv (@hiers) {
 	my ($status, $unit, $iface, $value);
 	for (my $i = 0; $i < $maxval; $i++) {
@@ -431,10 +431,10 @@ HEADER
     foreach my $test (@tests) {
 	print "." if $verbose;
 	(my $testcmd = $test) =~ s/_/ /g;
-	my $testdesc = $TESTNAME{$test} || "";
+	my $testname = $TESTNAME{$test} || "";
 	print $html "  <tr>\n";
 	print $html
-	    "    <th class=\"desc\" title=\"$testcmd\">$testdesc</th>\n";
+	    "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
 	foreach my $date (@dates) {
 	    my $tv = $T{$test}{$date};
 	    my $status = $tv->{status} || "";
