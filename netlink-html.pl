@@ -165,7 +165,7 @@ sub html_hier_test_head_utilization {
     foreach my $hier (@HIERARCHY) {
 	my $te = $hier eq "date" ? "th" : "td";
 	print $html "  <tr>\n";
-	print $html "    ", (map { "<td></td>" } @TESTKEYS), "\n";
+	print $html "    <th></th>", "<td></td>" x (@TESTKEYS-1), "\n";
 	foreach my $hvi (@hiers) {
 	    my $title = "";
 	    my $name = $hvi->{$hier} || "";
