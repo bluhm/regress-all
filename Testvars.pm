@@ -21,7 +21,7 @@ use warnings;
 
 package Testvars;
 use Exporter 'import';
-our @EXPORT_OK = qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTNAME);
+our @EXPORT_OK = qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTNAME %TESTDESC @TESTKEYS);
 
 ########################################################################
 
@@ -696,7 +696,8 @@ foreach (keys %TESTPLOT) {
 
 ########################################################################
 
-our %TESTNAME;
+our (%TESTNAME, %TESTDESC);
+our @TESTKEYS = qw(ipv proto op len streams host);
 # add a test description
 my @testdesc = (
     # perform
@@ -1098,18 +1099,23 @@ my @testdesc = (
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-croot@lt40_-sroot@lt43_-Afdd7:e83e:66bd:1021::20_-afdd7:e83e:66bd:1022::40_-t10_udpsplice'	=> { ipv => "IPv6", proto => "UDP",  op => "Splice",  len => "MTU",   streams => "parallel-10",  host => "ot42", name => "linux-openbsd-linux-udp6splice-full" },
 );
 
-%TESTNAME = @testdesc;
-if (2 * keys %TESTNAME != @testdesc) {
+%TESTDESC = @testdesc;
+if (2 * keys %TESTDESC != @testdesc) {
     die "testdesc keys not unique";
 }
-my %num;
+my (%num, %vals);
 for (my $i = 0; $i < @testdesc; $i += 2) {
     my ($test, $desc) = @testdesc[$i, $i + 1];
     my $name = ref $desc ? $desc->{name} : $desc;
-    if ($num{$name}) {
-	$TESTNAME{$test} = "$name-$num{$name}";
-    }
+    $TESTNAME{$test} = $num{$name} ? "$name-$num{$name}" : $name;
     $num{$name}++;
+    if (ref $desc) {
+	my %desc = %$desc;
+	my $descvalues = "@desc{@TESTKEYS}";
+	if ($vals{$descvalues}++) {
+	    die "test $test testdesc values not uniqe: $descvalues";
+	}
+    }
 }
 foreach (keys %TESTPLOT) {
     die "testplot $_ is not in testdesc" unless $TESTNAME{$_};
