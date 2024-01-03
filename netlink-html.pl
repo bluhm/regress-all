@@ -174,7 +174,7 @@ sub html_hier_test_head_utilization {
 		$title = "  title=\"$time\"";
 		$name =~ s/T.*//;
 	    }
-	    print $html "    <$te class=\"hier\"$title>$name</$te>\n";
+	    print $html "    <$te class=\"hier $hier\"$title>$name</$te>\n";
 	}
 	print $html "  </tr>\n";
     }
@@ -255,10 +255,12 @@ sub html_hier_test_row_utilization {
     return if ($valsum == 0);
 
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
+    print $html "    <th class=\"desc name\" title=\"$testcmd\">".
+	"$testname</th>\n";
     foreach my $testkey (@TESTKEYS) {
 	next if $testkey eq "host";
-	print $html "    <td class=\"desc\">$TESTDESC{$test}{$testkey}</td>\n";
+	print $html "    <td class=\"desc $testkey\">".
+	    "$TESTDESC{$test}{$testkey}</td>\n";
     }
     foreach my $hv (@hiers) {
 	my ($status, $unit, $iface, $value);
