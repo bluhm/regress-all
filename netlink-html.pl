@@ -29,7 +29,7 @@ use URI::Escape;
 
 use lib dirname($0);
 use Html;
-use Testvars qw(%TESTDESC);
+use Testvars qw(%TESTNAME);
 
 my $now = strftime("%FT%TZ", gmtime);
 
@@ -163,7 +163,7 @@ sub html_hier_test_row {
     my ($html, $test, $td, @hiers) = @_;
 
     (my $testcmd = $test) =~ s/_/ /g;
-    my $testdesc = $TESTDESC{$test} || "";
+    my $testdesc = $TESTNAME{$test} || "";
     print $html "  <tr>\n";
     print $html "    <th class=\"desc\" title=\"$testcmd\">$testdesc</th>\n";
     foreach my $hv (@hiers) {
@@ -210,7 +210,7 @@ sub html_hier_test_row_util {
     my ($html, $test, $td, @hiers) = @_;
 
     (my $testcmd = $test) =~ s/_/ /g;
-    my $testdesc = $TESTDESC{$test} || "";
+    my $testdesc = $TESTNAME{$test} || "";
     my $vt = $V{$test};
     my $maxval = max map { scalar @{$_ || []} } values %$vt;
 
@@ -301,7 +301,7 @@ sub write_html_hier_files {
 	print $html "  </thead>\n  <tbody>\n";
 
 	my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} ||
-	    $TESTDESC{$a} cmp $TESTDESC{$b} } keys %T;
+	    $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
 	foreach my $test (@tests) {
 	    my $td = $T{$test}{$date}
 		or next;
@@ -324,7 +324,7 @@ sub write_html_hier_files {
 	}
 	print $html "  </tr>\n  </thead>\n  <tbody>\n";
 
-	@tests = sort { $TESTDESC{$a} cmp $TESTDESC{$b} } keys %T;
+	@tests = sort { $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
 	foreach my $test (@tests) {
 	    my $td = $T{$test}{$date}
 		or next;
@@ -431,7 +431,7 @@ HEADER
     foreach my $test (@tests) {
 	print "." if $verbose;
 	(my $testcmd = $test) =~ s/_/ /g;
-	my $testdesc = $TESTDESC{$test} || "";
+	my $testdesc = $TESTNAME{$test} || "";
 	print $html "  <tr>\n";
 	print $html
 	    "    <th class=\"desc\" title=\"$testcmd\">$testdesc</th>\n";

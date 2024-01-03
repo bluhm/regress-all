@@ -32,7 +32,7 @@ use URI::Escape;
 use lib dirname($0);
 use Buildquirks;
 use Html;
-use Testvars qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
+use Testvars qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTNAME);
 
 my $fgdir = "/home/bluhm/github/FlameGraph";  # XXX
 
@@ -881,7 +881,7 @@ sub html_repeat_test_row {
     my $reldate = $dv->{reldate};
     (my $testcmd = $test) =~ s/_/ /g;
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\" id=\"$test\">$TESTDESC{$test}</th>\n";
+    print $html "    <th class=\"desc\" id=\"$test\">$TESTNAME{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $repeat (@repeats) {
 	html_status_data($html, "$reldate/$cvsdate", $repeat, $test,
@@ -1201,7 +1201,7 @@ sub html_cvsdate_test_row {
     my $reldate = $dv->{reldate};
     (my $testcmd = $test) =~ s/_/ /g;
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\" id=\"$test\">$TESTDESC{$test}</th>\n";
+    print $html "    <th class=\"desc\" id=\"$test\">$TESTNAME{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $cvsdate (@cvsdates) {
 	html_status_data($html, $reldate, $cvsdate, $test, $td->{$cvsdate});
@@ -1438,7 +1438,7 @@ sub html_date_test_row {
     my ($html, $test, $td, $release, @dates) = @_;
     (my $testcmd = $test) =~ s/_/ /g;
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\" id=\"$test\">$TESTDESC{$test}</th>\n";
+    print $html "    <th class=\"desc\" id=\"$test\">$TESTNAME{$test}</th>\n";
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     foreach my $date (@dates) {
 	if ($release) {

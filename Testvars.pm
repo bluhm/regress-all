@@ -21,7 +21,7 @@ use warnings;
 
 package Testvars;
 use Exporter 'import';
-our @EXPORT_OK = qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTDESC);
+our @EXPORT_OK = qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTNAME);
 
 ########################################################################
 
@@ -696,7 +696,7 @@ foreach (keys %TESTPLOT) {
 
 ########################################################################
 
-our %TESTDESC;
+our %TESTNAME;
 # add a test description
 my @testdesc = (
     'iperf3_-c10.3.45.35_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-ip3fwd",
@@ -1095,22 +1095,22 @@ my @testdesc = (
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i3_-N10_-croot@lt40_-sroot@lt43_-Afdd7:e83e:66bd:1021::20_-afdd7:e83e:66bd:1022::40_-t10_udpsplice'	=> "linux-openbsd-linux-udp6splice-full",
 );
 
-%TESTDESC = @testdesc;
-if (2 * keys %TESTDESC != @testdesc) {
+%TESTNAME = @testdesc;
+if (2 * keys %TESTNAME != @testdesc) {
     die "testdesc keys not unique";
 }
 my %num;
 for (my $i = 0; $i < @testdesc; $i += 2) {
     my ($test, $desc) = @testdesc[$i, $i + 1];
     if ($num{$desc}) {
-	$TESTDESC{$test} = "$desc-$num{$desc}";
+	$TESTNAME{$test} = "$desc-$num{$desc}";
     }
     $num{$desc}++;
 }
 foreach (keys %TESTPLOT) {
-    die "testplot $_ is not in testdesc" unless $TESTDESC{$_};
+    die "testplot $_ is not in testdesc" unless $TESTNAME{$_};
 }
-#foreach (keys %TESTDESC) {
+#foreach (keys %TESTNAME) {
 #    die "testdesc $_ is not in testorder" unless $TESTORDER{$_};
 #}
 

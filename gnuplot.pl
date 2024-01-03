@@ -28,7 +28,7 @@ use Time::Local;
 use lib dirname($0);
 use Buildquirks;
 use Html;
-use Testvars qw(@PLOTORDER %TESTDESC);
+use Testvars qw(@PLOTORDER %TESTNAME);
 
 my %opts;
 getopts('vnB:d:E:LN:p:r:X:x:Y:y:', \%opts) or do {
@@ -182,7 +182,7 @@ sub parse_data_file {
 	next if $run && $run != $create;
 	next if $begin && $checkout < $begin;
 	next if $end && $end < $checkout;
-	$SUBTESTS{"$TESTDESC{$test} $test $sub"} = "$test $sub";
+	$SUBTESTS{"$TESTNAME{$test} $test $sub"} = "$test $sub";
     }
 }
 
