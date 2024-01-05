@@ -931,7 +931,7 @@ my %quirks = (
 	],
     },
     '2023-12-07T14:00:16Z' => {
-	comment => "kernel pinsyscalls(2) stub",
+	comment => "kernel pinsyscalls stub",
 	updatedirs => [
 	    "sys",
 	    "lib/libc",
