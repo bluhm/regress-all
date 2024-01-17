@@ -1,6 +1,6 @@
-# em4 is management, em5 is left over
-export MANAGEMENT_IF=em4
-export SKIP_IF=em4,em5
+# igc2 is management, igc3 is left over
+export MANAGEMENT_IF=igc2
+export SKIP_IF=igc2,igc3
 export NETLINK_LINE=2
 
 # allow to manually run perform tests frag and splice on netlink hosts
