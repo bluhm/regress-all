@@ -38,6 +38,7 @@ databases/p5-SQL-Abstract-More
 databases/p5-ldap
 devel/p5-Algorithm-Diff
 devel/p5-Alien-Base
+devel/p5-Any-Moose
 devel/p5-AnyEvent
 devel/p5-B-COW
 devel/p5-B-Hooks-EndOfScope
