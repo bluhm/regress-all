@@ -761,7 +761,7 @@ my %quirks = (
 	patches => { 'sys-pf-purge-backout' => patch_sys_pf_purge_backout() },
     },
     '2022-11-25T20:27:53Z' => {
-	comment => "backout pf purge without kernel lock",
+	comment => "backout pf purge commit",
 	updatedirs => [ "sys" ],
     },
     '2023-01-01T01:35:00Z' => {
@@ -951,6 +951,17 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	cleandirs => [ "lib/libc" ],
 	builddirs => [ "lib/libc" ],
+    },
+    '2023-12-22T23:01:50Z' => {
+	comment => "backout always allocate if counters",
+	updatedirs => [ "sys" ],
+	patches => {
+	    'sys-if-counters-backout' => patch_sys_if_counters_backout()
+	},
+    },
+    '2023-12-23T10:52:55Z' => {
+	comment => "backout if counters commit",
+	updatedirs => [ "sys" ],
     },
 );
 
@@ -2336,6 +2347,448 @@ diff -u -p -r1.131 Makefile.amd64
  	cp $S/conf/makegap.sh $@
 PATCH
 }
+
+# Backout always allocate per-CPU statistics counters for network
+# interface descriptor.  It panics during attach of em(4) device at
+# boot.
+sub patch_sys_if_counters_backout {
+	return <<'PATCH';
+Index: sys/net/if.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if.c,v
+diff -u -p -r1.712 if.c
+--- sys/net/if.c	22 Dec 2023 23:01:50 -0000	1.712
++++ sys/net/if.c	23 Dec 2023 10:27:51 -0000
+@@ -645,8 +645,6 @@ if_attach_common(struct ifnet *ifp)
+ 		    "%s: if_qstart not set with MPSAFE set", ifp->if_xname);
+ 	}
+ 
+-	ifp->if_counters = counters_alloc(ifc_ncounters);
+-
+ 	if_idxmap_alloc(ifp);
+ 
+ 	ifq_init(&ifp->if_snd, ifp, 0);
+@@ -1252,7 +1250,8 @@ if_detach(struct ifnet *ifp)
+ 	/* Announce that the interface is gone. */
+ 	rtm_ifannounce(ifp, IFAN_DEPARTURE);
+ 
+-	counters_free(ifp->if_counters, ifc_ncounters);
++	if (ifp->if_counters != NULL)
++		if_counters_free(ifp);
+ 
+ 	for (i = 0; i < ifp->if_nifqs; i++)
+ 		ifq_destroy(ifp->if_ifqs[i]);
+@@ -2772,27 +2771,48 @@ ifconf(caddr_t data)
+ }
+ 
+ void
++if_counters_alloc(struct ifnet *ifp)
++{
++	KASSERT(ifp->if_counters == NULL);
++
++	ifp->if_counters = counters_alloc(ifc_ncounters);
++}
++
++void
++if_counters_free(struct ifnet *ifp)
++{
++	KASSERT(ifp->if_counters != NULL);
++
++	counters_free(ifp->if_counters, ifc_ncounters);
++	ifp->if_counters = NULL;
++}
++
++void
+ if_getdata(struct ifnet *ifp, struct if_data *data)
+ {
+-	uint64_t counters[ifc_ncounters];
+ 	unsigned int i;
+ 
+ 	*data = ifp->if_data;
+ 
+-	counters_read(ifp->if_counters, counters, nitems(counters), NULL);
++	if (ifp->if_counters != NULL) {
++		uint64_t counters[ifc_ncounters];
+ 
+-	data->ifi_ipackets += counters[ifc_ipackets];
+-	data->ifi_ierrors += counters[ifc_ierrors];
+-	data->ifi_opackets += counters[ifc_opackets];
+-	data->ifi_oerrors += counters[ifc_oerrors];
+-	data->ifi_collisions += counters[ifc_collisions];
+-	data->ifi_ibytes += counters[ifc_ibytes];
+-	data->ifi_obytes += counters[ifc_obytes];
+-	data->ifi_imcasts += counters[ifc_imcasts];
+-	data->ifi_omcasts += counters[ifc_omcasts];
+-	data->ifi_iqdrops += counters[ifc_iqdrops];
+-	data->ifi_oqdrops += counters[ifc_oqdrops];
+-	data->ifi_noproto += counters[ifc_noproto];
++		counters_read(ifp->if_counters, counters, nitems(counters),
++		    NULL);
++
++		data->ifi_ipackets += counters[ifc_ipackets];
++		data->ifi_ierrors += counters[ifc_ierrors];
++		data->ifi_opackets += counters[ifc_opackets];
++		data->ifi_oerrors += counters[ifc_oerrors];
++		data->ifi_collisions += counters[ifc_collisions];
++		data->ifi_ibytes += counters[ifc_ibytes];
++		data->ifi_obytes += counters[ifc_obytes];
++		data->ifi_imcasts += counters[ifc_imcasts];
++		data->ifi_omcasts += counters[ifc_omcasts];
++		data->ifi_iqdrops += counters[ifc_iqdrops];
++		data->ifi_oqdrops += counters[ifc_oqdrops];
++		data->ifi_noproto += counters[ifc_noproto];
++	}
+ 
+ 	for (i = 0; i < ifp->if_nifqs; i++) {
+ 		struct ifqueue *ifq = ifp->if_ifqs[i];
+Index: sys/net/if_aggr.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_aggr.c,v
+diff -u -p -r1.41 if_aggr.c
+--- sys/net/if_aggr.c	22 Dec 2023 23:01:50 -0000	1.41
++++ sys/net/if_aggr.c	23 Dec 2023 10:27:51 -0000
+@@ -562,6 +562,7 @@ aggr_clone_create(struct if_clone *ifc, 
+ 	ifp->if_link_state = LINK_STATE_DOWN;
+ 	ether_fakeaddr(ifp);
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 
+Index: sys/net/if_bpe.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_bpe.c,v
+diff -u -p -r1.21 if_bpe.c
+--- sys/net/if_bpe.c	22 Dec 2023 23:01:50 -0000	1.21
++++ sys/net/if_bpe.c	23 Dec 2023 10:27:51 -0000
+@@ -182,6 +182,7 @@ bpe_clone_create(struct if_clone *ifc, i
+ 	ifp->if_xflags = IFXF_CLONED;
+ 	ether_fakeaddr(ifp);
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 
+Index: sys/net/if_etherip.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_etherip.c,v
+diff -u -p -r1.53 if_etherip.c
+--- sys/net/if_etherip.c	22 Dec 2023 23:01:50 -0000	1.53
++++ sys/net/if_etherip.c	23 Dec 2023 10:27:51 -0000
+@@ -161,6 +161,7 @@ etherip_clone_create(struct if_clone *if
+ 	ifmedia_add(&sc->sc_media, IFM_ETHER | IFM_AUTO, 0, NULL);
+ 	ifmedia_set(&sc->sc_media, IFM_ETHER | IFM_AUTO);
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 
+Index: sys/net/if_gif.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_gif.c,v
+diff -u -p -r1.135 if_gif.c
+--- sys/net/if_gif.c	22 Dec 2023 23:01:50 -0000	1.135
++++ sys/net/if_gif.c	23 Dec 2023 10:27:51 -0000
+@@ -176,6 +176,7 @@ gif_clone_create(struct if_clone *ifc, i
+ 
+ 	if_attach(ifp);
+ 	if_alloc_sadl(ifp);
++	if_counters_alloc(ifp);
+ 
+ #if NBPFILTER > 0
+ 	bpfattach(&ifp->if_bpf, ifp, DLT_LOOP, sizeof(uint32_t));
+Index: sys/net/if_gre.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_gre.c,v
+diff -u -p -r1.177 if_gre.c
+--- sys/net/if_gre.c	22 Dec 2023 23:01:50 -0000	1.177
++++ sys/net/if_gre.c	23 Dec 2023 10:27:51 -0000
+@@ -592,6 +592,7 @@ gre_clone_create(struct if_clone *ifc, i
+ 	timeout_set_proc(&sc->sc_ka_hold, gre_keepalive_hold, sc);
+ 	sc->sc_ka_state = GRE_KA_NONE;
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	if_alloc_sadl(ifp);
+ 
+@@ -658,6 +659,7 @@ mgre_clone_create(struct if_clone *ifc, 
+ 	sc->sc_tunnel.t_df = htons(0);
+ 	sc->sc_tunnel.t_ecn = ECN_ALLOWED;
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	if_alloc_sadl(ifp);
+ 
+@@ -714,6 +716,7 @@ egre_clone_create(struct if_clone *ifc, 
+ 	ifmedia_add(&sc->sc_media, IFM_ETHER | IFM_AUTO, 0, NULL);
+ 	ifmedia_set(&sc->sc_media, IFM_ETHER | IFM_AUTO);
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 
+@@ -791,6 +794,7 @@ nvgre_clone_create(struct if_clone *ifc,
+ 	ifmedia_add(&sc->sc_media, IFM_ETHER | IFM_AUTO, 0, NULL);
+ 	ifmedia_set(&sc->sc_media, IFM_ETHER | IFM_AUTO);
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 
+@@ -854,6 +858,7 @@ eoip_clone_create(struct if_clone *ifc, 
+ 	ifmedia_add(&sc->sc_media, IFM_ETHER | IFM_AUTO, 0, NULL);
+ 	ifmedia_set(&sc->sc_media, IFM_ETHER | IFM_AUTO);
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 
+Index: sys/net/if_mpe.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_mpe.c,v
+diff -u -p -r1.103 if_mpe.c
+--- sys/net/if_mpe.c	22 Dec 2023 23:01:50 -0000	1.103
++++ sys/net/if_mpe.c	23 Dec 2023 10:27:51 -0000
+@@ -119,6 +119,7 @@ mpe_clone_create(struct if_clone *ifc, i
+ 
+ 	if_attach(ifp);
+ 	if_alloc_sadl(ifp);
++	if_counters_alloc(ifp);
+ 
+ #if NBPFILTER > 0
+ 	bpfattach(&ifp->if_bpf, ifp, DLT_LOOP, sizeof(u_int32_t));
+Index: sys/net/if_mpip.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_mpip.c,v
+diff -u -p -r1.17 if_mpip.c
+--- sys/net/if_mpip.c	22 Dec 2023 23:01:50 -0000	1.17
++++ sys/net/if_mpip.c	23 Dec 2023 10:27:51 -0000
+@@ -121,6 +121,7 @@ mpip_clone_create(struct if_clone *ifc, 
+ 	ifp->if_hardmtu = 65535;
+ 
+ 	if_attach(ifp);
++	if_counters_alloc(ifp);
+ 	if_alloc_sadl(ifp);
+ 
+ #if NBPFILTER > 0
+Index: sys/net/if_mpw.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_mpw.c,v
+diff -u -p -r1.64 if_mpw.c
+--- sys/net/if_mpw.c	22 Dec 2023 23:01:50 -0000	1.64
++++ sys/net/if_mpw.c	23 Dec 2023 10:27:51 -0000
+@@ -115,6 +115,7 @@ mpw_clone_create(struct if_clone *ifc, i
+ 
+ 	sc->sc_dead = 0;
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 
+Index: sys/net/if_pflow.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_pflow.c,v
+diff -u -p -r1.108 if_pflow.c
+--- sys/net/if_pflow.c	22 Dec 2023 23:01:50 -0000	1.108
++++ sys/net/if_pflow.c	23 Dec 2023 10:27:51 -0000
+@@ -279,6 +279,7 @@ pflow_clone_create(struct if_clone *ifc,
+ 
+ 	task_set(&pflowif->sc_outputtask, pflow_output_process, pflowif);
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	if_alloc_sadl(ifp);
+ 
+Index: sys/net/if_pfsync.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_pfsync.c,v
+diff -u -p -r1.323 if_pfsync.c
+--- sys/net/if_pfsync.c	22 Dec 2023 23:01:50 -0000	1.323
++++ sys/net/if_pfsync.c	23 Dec 2023 10:27:51 -0000
+@@ -444,6 +444,7 @@ pfsync_clone_create(struct if_clone *ifc
+ #endif
+ 	}
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	if_alloc_sadl(ifp);
+ 
+Index: sys/net/if_pppx.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_pppx.c,v
+diff -u -p -r1.127 if_pppx.c
+--- sys/net/if_pppx.c	22 Dec 2023 23:01:50 -0000	1.127
++++ sys/net/if_pppx.c	23 Dec 2023 10:27:51 -0000
+@@ -684,6 +684,7 @@ pppx_add_session(struct pppx_dev *pxd, s
+ 	ifp->if_type = IFT_PPP;
+ 	ifp->if_softc = pxi;
+ 	/* ifp->if_rdomain = req->pr_rdomain; */
++	if_counters_alloc(ifp);
+ 
+ 	if_attach(ifp);
+ 
+@@ -1079,6 +1080,7 @@ pppacopen(dev_t dev, int flags, int mode
+ 	ifp->if_qstart = pppac_qstart;
+ 	ifp->if_ioctl = pppac_ioctl;
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	if_alloc_sadl(ifp);
+ 
+Index: sys/net/if_sec.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_sec.c,v
+diff -u -p -r1.8 if_sec.c
+--- sys/net/if_sec.c	22 Dec 2023 23:01:50 -0000	1.8
++++ sys/net/if_sec.c	23 Dec 2023 10:27:51 -0000
+@@ -147,6 +147,7 @@ sec_clone_create(struct if_clone *ifc, i
+ 	ifp->if_ioctl = sec_ioctl;
+ 	ifp->if_rtrequest = p2p_rtrequest;
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	if_alloc_sadl(ifp);
+ 
+Index: sys/net/if_tpmr.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_tpmr.c,v
+diff -u -p -r1.34 if_tpmr.c
+--- sys/net/if_tpmr.c	22 Dec 2023 23:01:50 -0000	1.34
++++ sys/net/if_tpmr.c	23 Dec 2023 10:27:51 -0000
+@@ -168,6 +168,7 @@ tpmr_clone_create(struct if_clone *ifc, 
+ 	ifp->if_xflags = IFXF_CLONED | IFXF_MPSAFE;
+ 	ifp->if_link_state = LINK_STATE_DOWN;
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	if_alloc_sadl(ifp);
+ 
+Index: sys/net/if_trunk.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_trunk.c,v
+diff -u -p -r1.153 if_trunk.c
+--- sys/net/if_trunk.c	22 Dec 2023 23:01:50 -0000	1.153
++++ sys/net/if_trunk.c	23 Dec 2023 10:27:51 -0000
+@@ -193,6 +193,7 @@ trunk_clone_create(struct if_clone *ifc,
+ 	 * Attach as an ordinary ethernet device, children will be attached
+ 	 * as special device IFT_IEEE8023ADLAG.
+ 	 */
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 
+Index: sys/net/if_tun.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_tun.c,v
+diff -u -p -r1.239 if_tun.c
+--- sys/net/if_tun.c	22 Dec 2023 23:01:50 -0000	1.239
++++ sys/net/if_tun.c	23 Dec 2023 10:27:51 -0000
+@@ -246,6 +246,8 @@ tun_create(struct if_clone *ifc, int uni
+ 	ifp->if_hardmtu = TUNMRU;
+ 	ifp->if_link_state = LINK_STATE_DOWN;
+ 
++	if_counters_alloc(ifp);
++
+ 	if ((flags & TUN_LAYER2) == 0) {
+ #if NBPFILTER > 0
+ 		ifp->if_bpf_mtap = bpf_mtap;
+Index: sys/net/if_var.h
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_var.h,v
+diff -u -p -r1.131 if_var.h
+--- sys/net/if_var.h	22 Dec 2023 23:01:50 -0000	1.131
++++ sys/net/if_var.h	23 Dec 2023 10:27:51 -0000
+@@ -379,6 +379,9 @@ int	if_rxr_info_ioctl(struct if_rxrinfo 
+ int	if_rxr_ioctl(struct if_rxrinfo *, const char *, u_int,
+ 	    struct if_rxring *);
+ 
++void	if_counters_alloc(struct ifnet *);
++void	if_counters_free(struct ifnet *);
++
+ int	if_txhprio_l2_check(int);
+ int	if_txhprio_l3_check(int);
+ int	if_rxhprio_l2_check(int);
+Index: sys/net/if_veb.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_veb.c,v
+diff -u -p -r1.33 if_veb.c
+--- sys/net/if_veb.c	22 Dec 2023 23:01:50 -0000	1.33
++++ sys/net/if_veb.c	23 Dec 2023 10:27:51 -0000
+@@ -314,6 +314,7 @@ veb_clone_create(struct if_clone *ifc, i
+ 	ifp->if_flags = IFF_BROADCAST | IFF_SIMPLEX | IFF_MULTICAST;
+ 	ifp->if_xflags = IFXF_CLONED | IFXF_MPSAFE;
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 
+ 	if_alloc_sadl(ifp);
+@@ -2347,6 +2348,7 @@ vport_clone_create(struct if_clone *ifc,
+ 	ifp->if_xflags = IFXF_CLONED | IFXF_MPSAFE;
+ 	ether_fakeaddr(ifp);
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 
+Index: sys/net/if_vlan.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_vlan.c,v
+diff -u -p -r1.217 if_vlan.c
+--- sys/net/if_vlan.c	22 Dec 2023 23:01:50 -0000	1.217
++++ sys/net/if_vlan.c	23 Dec 2023 10:27:51 -0000
+@@ -215,6 +215,7 @@ vlan_clone_create(struct if_clone *ifc, 
+ 	ifp->if_hardmtu = 0xffff;
+ 	ifp->if_link_state = LINK_STATE_DOWN;
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 	ifp->if_hdrlen = EVL_ENCAPLEN;
+Index: sys/net/if_vxlan.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_vxlan.c,v
+diff -u -p -r1.98 if_vxlan.c
+--- sys/net/if_vxlan.c	22 Dec 2023 23:01:50 -0000	1.98
++++ sys/net/if_vxlan.c	23 Dec 2023 10:27:51 -0000
+@@ -275,6 +275,7 @@ vxlan_clone_create(struct if_clone *ifc,
+ 	ifp->if_xflags = IFXF_CLONED | IFXF_MPSAFE;
+ 	ether_fakeaddr(ifp);
+ 
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 
+Index: sys/net/if_wg.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_wg.c,v
+diff -u -p -r1.33 if_wg.c
+--- sys/net/if_wg.c	22 Dec 2023 23:01:50 -0000	1.33
++++ sys/net/if_wg.c	23 Dec 2023 10:27:51 -0000
+@@ -2693,6 +2693,7 @@ wg_clone_create(struct if_clone *ifc, in
+ 
+ 	if_attach(ifp);
+ 	if_alloc_sadl(ifp);
++	if_counters_alloc(ifp);
+ 
+ #if NBPFILTER > 0
+ 	bpfattach(&ifp->if_bpf, ifp, DLT_LOOP, sizeof(uint32_t));
+Index: sys/netinet/ip_carp.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/netinet/ip_carp.c,v
+diff -u -p -r1.359 ip_carp.c
+--- sys/netinet/ip_carp.c	22 Dec 2023 23:01:50 -0000	1.359
++++ sys/netinet/ip_carp.c	23 Dec 2023 10:27:51 -0000
+@@ -831,6 +831,7 @@ carp_clone_create(struct if_clone *ifc, 
+ 	ifp->if_start = carp_start;
+ 	ifp->if_enqueue = carp_enqueue;
+ 	ifp->if_xflags = IFXF_CLONED;
++	if_counters_alloc(ifp);
+ 	if_attach(ifp);
+ 	ether_ifattach(ifp);
+ 	ifp->if_type = IFT_CARP;
+PATCH
+}
+
 #### Subs ####
 
 sub quirks {
