@@ -136,7 +136,8 @@ my $obsd_r_addr6 = "${ip6prefix}${line}2::3";
 my $obsd_r_net6 = "${ip6prefix}${line}2::/64";
 my $obsd_r_prefix6 = 64;
 
-my $lnx_if = "ens2f" . ($line % 2);
+my %lnx_ifs = ( 1 => "ens2f1", 2 => "ens2f0", 3 => "enp6s0" );
+my $lnx_if = $lnx_ifs{$line};
 my $lnx_pdev = "$lnx_if.$line";
 my $lnx_ipdev = $lnx_if;
 
