@@ -201,7 +201,12 @@ my @ifaces;
 if ($iface) {
     open($fh, '<', "dmesg-boot-$host.txt")
 	or die "Open 'dmesg-boot-$host.txt' for reading failed: $!";
-    my @dmesg = <$fh>;
+    my @dmesg;
+    while (<$fh>) {
+	# parse only latest copy of dmesg from current boot
+	undef @dmesg if /^OpenBSD/;
+	push @dmesg, $_;
+    }
     $iface = join(",", @allifaces) if $iface eq "all";
     foreach my $if (split(/,/, $iface)) {
 	my ($iftype, $num) = $if =~ /^([a-z]+)([0-9]+)?$/
