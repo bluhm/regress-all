@@ -146,7 +146,7 @@ $skip_if =~ s/,/|/g;
 
 # setup remote machines
 
-usehosts(bindir => "$netlinkdir/bin", date => $date,
+usehosts(bindir => "$netlinkdir/bin", htmlprog => "netlink", date => $date,
     host => $opts{h}, verbose => $opts{v});
 
 # do not run end block until initialized, date may change later
@@ -265,6 +265,8 @@ push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1)
 # after all regular repeats, make one with btrace turned on
 push @repeats, "btrace-$btrace" if $btrace;
 
+setup_html(date => 1);
+
 foreach my $modifydir (@modifies ? @modifies : ".") {
     if (@modifies) {
 	-d $modifydir || mkdir $modifydir
@@ -318,7 +320,9 @@ foreach my $modifydir (@modifies ? @modifies : ".") {
 
 		collect_result("$opts{h}:/root/netlink");
 		collect_version();
+		wait_html();
 		setup_html();
+		current_html();
 
 		if (@repeats) {
 		    chdir("..")
@@ -349,6 +353,7 @@ powerdown_hosts(cvsdate => $cvsdate, patch => $patch) if $opts{p};
 chdir($netlinkdir)
     or die "Change directory to '$netlinkdir' failed: $!";
 
+wait_html();
 setup_html(date => 1);
 
 unlink("results/latest-$host");

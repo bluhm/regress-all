@@ -28,7 +28,7 @@ our @EXPORT= qw(
     usehosts setup_hosts
     collect_version collect_dmesg collect_result
     bsdcons_hosts cvsbuild_hosts powerdown_hosts powerup_hosts reboot_hosts
-    setup_html
+    setup_html current_html wait_html
 );
 
 my %lasthosts = (
@@ -38,11 +38,12 @@ my %lasthosts = (
     ot31 => "ot32",
 );
 
-my ($bindir, $user, $firsthost, $lasthost, $date, $verbose);
+my ($bindir, $htmlprog, $user, $firsthost, $lasthost, $date, $verbose);
 
 sub usehosts {
     my %args = @_;
-    ($bindir, $date, $verbose) = delete @args{qw(bindir date verbose)};
+    ($bindir, $htmlprog, $date, $verbose) =
+	delete @args{qw(bindir htmlprog date verbose)};
     ($user, $firsthost) = split('@', delete $args{host}, 2);
     ($user, $firsthost) = ("root", $user) unless $firsthost;
     if ($args{lasthost}) {
@@ -227,6 +228,17 @@ sub setup_html {
     push @cmd, '-a' if $args{all};
     push @cmd, '-d', $date if $args{date};
     logeval { runcmd(@cmd) };
+}
+
+my @htmlpids;
+sub current_html {
+    my @cmd = ("$bindir/$htmlprog-html.pl", '-d', $date);
+    push @htmlpids, forkcmd(@cmd);
+}
+
+sub wait_html {
+    logeval { waitcmd(@htmlpids) };
+    undef @htmlpids;
 }
 
 1;
