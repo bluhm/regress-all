@@ -232,7 +232,7 @@ sub setup_html {
 
 my @htmlpids;
 sub current_html {
-    my @cmd = ("$bindir/$htmlprog-html.pl", '-d', $date);
+    my @cmd = ("$bindir/$htmlprog-html.pl", '-d', $date, @_);
     push @htmlpids, forkcmd(@cmd);
 }
 

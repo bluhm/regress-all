@@ -169,7 +169,7 @@ close($fh);
 
 # setup remote machines
 
-usehosts(bindir => "$performdir/bin", date => $date,
+usehosts(bindir => "$performdir/bin", htmlprog => "perform", date => $date,
     host => $opts{h}, verbose => $opts{v});
 (my $host = $opts{h}) =~ s/.*\@//;
 
@@ -213,6 +213,8 @@ if ($unit eq "commit") {
     # if next step does not hit the end exactly, do an additional test
     push @steps, $end;
 }
+
+setup_html(date => 1);
 
 foreach my $current (@steps) {
     chdir($performdir)
@@ -283,7 +285,9 @@ foreach my $current (@steps) {
 	}
     }
     collect_dmesg();
+    wait_html();
     setup_html();
+    current_html('-n');
 }
 powerdown_hosts(release => $release) if $opts{p};
 bsdcons_hosts(release => $release);
@@ -294,6 +298,7 @@ undef $odate;
 chdir($performdir)
     or die "Change directory to '$performdir' failed: $!";
 
+wait_html();
 setup_html(date => 1);
 my @cmd = ("bin/perform-html.pl", "-d", $date);
 push @cmd, "-n" if $opts{n};
