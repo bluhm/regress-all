@@ -89,21 +89,40 @@ sub forkcmd {
 	}
 	_exit(126);
     }
-    return $pid => [@cmd];
+    return ($pid => [@cmd]);
 }
 
+my %waitstatus;
 sub waitcmd {
     my %pidcmds = @_;
     my $total = keys %pidcmds;
     my $failed = 0;
-    while (keys %pidcmds) {
-	(my $pid = wait) == -1
-	    and croak "Wait failed: $!";
+    while (my $pid = each %waitstatus) {
 	my $cmd = delete $pidcmds{$pid}
-	    or croak "Wait for pid $pid without command";
+	    or next;
+	# someone else has waited for our process
+	my $status = delete $waitstatus{$pid};
 	my @cmd = @$cmd;
-	if ($?) {
-	    logeval { croak "Command '@cmd' failed: $?" };
+	if ($status) {
+	    logeval { croak "Command '@cmd' failed: $status" };
+	    $failed++;
+	} else {
+	    logmsg "Command '@cmd' finished.\n";
+	}
+    }
+    while (keys %pidcmds) {
+	(my $pid = wait()) == -1
+	    and croak "Wait failed: $!";
+	my $status = $?;
+	my $cmd = delete $pidcmds{$pid};
+	unless ($cmd) {
+	    # we have waited for someone else's process
+	    $waitstatus{$pid} = $status;
+	    next;
+	}
+	my @cmd = @$cmd;
+	if ($status) {
+	    logeval { croak "Command '@cmd' failed: $status" };
 	    $failed++;
 	} else {
 	    logmsg "Command '@cmd' finished.\n";
