@@ -1,7 +1,7 @@
 #!/usr/bin/perl
-# convert netlink test results to a html tables
+# convert netlink test results to html tables
 
-# Copyright (c) 2016-2023 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2016-2024 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -32,6 +32,8 @@ use Html;
 use Testvars qw(%TESTNAME %TESTDESC @TESTKEYS);
 
 my $now = strftime("%FT%TZ", gmtime);
+
+my @allifaces = qw(em igc ix ixl bnxt);
 
 my %opts;
 getopts('d:h:lv', \%opts) or do {
@@ -140,7 +142,7 @@ HEADER
 }
 
 sub html_hier_test_head {
-    my ($html, @hiers) = @_;
+    my ($html, $dv, @hiers) = @_;
 
     foreach my $hier (@HIERARCHY) {
 	print $html "  <tr>\n";
@@ -152,6 +154,9 @@ sub html_hier_test_head {
 		my $time = encode_entities($name);
 		$title = "  title=\"$time\"";
 		$name =~ s/T.*//;
+	    } elsif ($hier eq "iface" && $dv->{ifdmesg}) {
+		my $ifdmesg = encode_entities($dv->{ifdmesg}{$name});
+		$title = "  title=\"$ifdmesg\"";
 	    }
 	    print $html "    <th class=\"hier\"$title>$name</th>\n";
 	}
@@ -160,7 +165,7 @@ sub html_hier_test_head {
 }
 
 sub html_hier_test_head_utilization {
-    my ($html, @hiers) = @_;
+    my ($html, $dv, @hiers) = @_;
 
     foreach my $hier (@HIERARCHY) {
 	my $te = $hier eq "date" ? "th" : "td";
@@ -173,6 +178,9 @@ sub html_hier_test_head_utilization {
 		my $time = encode_entities($name);
 		$title = "  title=\"$time\"";
 		$name =~ s/T.*//;
+	    } elsif ($hier eq "iface" && $dv->{ifdmesg}) {
+		my $ifdmesg = encode_entities($dv->{ifdmesg}{$name});
+		$title = "  title=\"$ifdmesg\"";
 	    }
 	    print $html "    <$te class=\"hier $hier\"$title>$name</$te>\n";
 	}
@@ -324,7 +332,7 @@ sub write_html_hier_files {
 
 	print $html "<table>\n";
 	print $html "  <thead>\n";
-	html_hier_test_head($html, @hv);
+	html_hier_test_head($html, $dv, @hv);
 	print $html "  </thead>\n  <tbody>\n";
 
 	my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} ||
@@ -339,7 +347,7 @@ sub write_html_hier_files {
 
 	print $html "<table class='utilization'>\n";
 	print $html "  <thead>\n";
-	html_hier_test_head_utilization($html, @hv);
+	html_hier_test_head_utilization($html, $dv, @hv);
 	print $html "  </thead>\n  <tbody>\n";
 
 	@tests = sort { $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
@@ -560,6 +568,9 @@ sub glob_result_files {
 
 # fill global hashes %T %D %H
 sub parse_result_files {
+    my %alliftypes;
+    @alliftypes{@allifaces} = ();
+
     foreach my $file (@_) {
 	print "." if $verbose;
 
@@ -639,6 +650,8 @@ sub parse_result_files {
 	    $dv->{host} ||= $hostname;
 	    (my $dmesg = $version) =~ s,/version-,/dmesg-,;
 	    $dv->{dmesg} ||= $dmesg if -f $dmesg;
+	    (my $dmesgboot = $version) =~ s,version,dmesg-boot,;
+	    $dv->{dmesgboot} ||= $dmesgboot if -f $dmesgboot;
 	    (my $diff = $version) =~ s,/version-,/diff-,;
 	    $dv->{diff} ||= $diff if -s $diff;
 
@@ -646,5 +659,20 @@ sub parse_result_files {
 	}
 	$dv->{build} = ($dv->{location} =~ /^deraadt@\w+.openbsd.org:/) ?
 	    "snapshot" : "custom";
+	if ($dv->{dmesgboot}) {
+	    my %ifdmesg;
+	    open(my $dh, '<', $dv->{dmesgboot})
+		or die "Open '$dv->{dmesgboot}' for reading failed: $!";
+	    while (<$dh>) {
+		# parse only latest copy of dmesg from current boot
+		undef %ifdmesg if /^OpenBSD/;
+		# collect known interfaces
+		/^(([a-z]+)\d+) at / && exists $alliftypes{$2}
+		    or next;
+		chomp;
+		$ifdmesg{"iface-$1"} = $_;
+	    }
+	    $dv->{ifdmesg} = \%ifdmesg;
+	}
     }
 }
