@@ -284,8 +284,8 @@ foreach my $current (@steps) {
 		or die "Change directory to '..' failed: $!";
 	}
     }
-    collect_dmesg();
     wait_html();
+    collect_dmesg();
     setup_html();
     current_html('-n');
 }
