@@ -29,7 +29,7 @@ use Netstat;
 
 my @allifaces = qw(none em igc ix ixl bnxt);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
-my @allpseudos = qw(none bridge veb vlan);
+my @allpseudos = qw(none bridge carp veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp splice);
 
 my %opts;
@@ -404,7 +404,7 @@ foreach my $if (sort keys %hwfeatures) {
 
 if ($pseudo eq 'aggr') {
     # XXX: does now work as switch is not configured
-    # XXX: multiple interfaces in one aggr
+    # TODO: multiple interfaces in one aggr
     printcmd('ifconfig', 'aggr0', 'create');
     printcmd('ifconfig', 'aggr1', 'create');
     printcmd('ifconfig', 'aggr0', 'trunkport', $obsd_l_if);
@@ -437,7 +437,18 @@ if ($pseudo eq 'aggr') {
 	($lnx_r_net_flat, $lnx_r_net6_flat,
 	@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
 } elsif ($pseudo eq 'carp') {
-    # XXX
+    my $carp_l_vhid = "1${line}1";
+    my $carp_r_vhid = "1${line}2";
+
+    # TODO: two carp as master and backup
+    printcmd('ifconfig', 'carp0', 'create');
+    printcmd('ifconfig', 'carp1', 'create');
+    printcmd('ifconfig', 'carp0', 'carpdev', $obsd_l_if, 'vhid', $carp_l_vhid);
+    printcmd('ifconfig', 'carp1', 'carpdev', $obsd_r_if, 'vhid', $carp_r_vhid);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    $obsd_l_ipdev = "carp0";
+    $obsd_r_ipdev = "carp1";
 } elsif ($pseudo eq 'trunk') {
     # XXX
 } elsif ($pseudo eq 'veb') {
@@ -464,16 +475,16 @@ if ($pseudo eq 'aggr') {
 	($lnx_r_net_flat, $lnx_r_net6_flat,
 	@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
 } elsif ($pseudo eq 'vlan') {
-    my $vlan_l_id = "2${line}1";
-    my $vlan_r_id = "2${line}2";
+    my $vlan_l_vnetid = "2${line}1";
+    my $vlan_r_vnetid = "2${line}2";
 
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	printcmd('ssh', $ssh, 'modprobe', '8021q');
     }
     printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
-	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_l_id);
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_l_vnetid);
     printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
-	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_r_id);
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_r_vnetid);
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
     }
@@ -481,14 +492,16 @@ if ($pseudo eq 'aggr') {
 
     printcmd('ifconfig', 'vlan0', 'create');
     printcmd('ifconfig', 'vlan1', 'create');
-    printcmd('ifconfig', 'vlan0', 'parent', $obsd_l_if, 'vnetid', $vlan_l_id);
-    printcmd('ifconfig', 'vlan1', 'parent', $obsd_r_if, 'vnetid', $vlan_r_id);
+    printcmd('ifconfig', 'vlan0', 'parent', $obsd_l_if,
+	'vnetid', $vlan_l_vnetid);
+    printcmd('ifconfig', 'vlan1', 'parent', $obsd_r_if,
+	'vnetid', $vlan_r_vnetid);
     printcmd('ifconfig', $obsd_l_if, 'up');
     printcmd('ifconfig', $obsd_r_if, 'up');
     $obsd_l_ipdev = "vlan0";
     $obsd_r_ipdev = "vlan1";
 }
-# XXX: tpmr, nipsec, gre?
+# XXX: tpmr, nipsec, gre, wg?
 
 # configure OpenBSD addresses
 
@@ -544,6 +557,7 @@ if ($obsd_r_ipdev) {
 
 print "waiting for interface link\n" if $opts{v};
 sleep(3);
+sleep(5) if $pseudo eq 'carp';
 printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
 printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
 printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
