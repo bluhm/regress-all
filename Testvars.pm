@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # module with global variables for perform tests
 
-# Copyright (c) 2018-2020 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2024 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2018-2019 Moritz Buhl <mbuhl@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
