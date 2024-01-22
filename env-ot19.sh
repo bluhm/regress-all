@@ -1,7 +1,8 @@
-# em8 is management, em8 and em9 are onboard and not tested
-# em4, em5 and em12, em13 belong to quad port, em18 is tripple port
-export MANAGEMENT_IF=em8
-export SKIP_IF=em8,em9,em4,em5,em12,em13,em18
+# em18 is management, em18 is tripple port
+# em8 and em9 are onboard
+# em4, em5 and em12, em13 belong to quad port
+export MANAGEMENT_IF=em18
+export SKIP_IF=em18
 export NETLINK_LINE=3
 
 # allow to manually run perform tests frag and splice on netlink hosts

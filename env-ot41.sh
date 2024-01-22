@@ -1,6 +1,6 @@
-# em2 is management, not enough switch ports for em0 and em1 
-export MANAGEMENT_IF=em2
-export SKIP_IF=em2,em0,em1
+# em4 is management, not enough switch ports for em2 and em3
+export MANAGEMENT_IF=em4
+export SKIP_IF=em4,em2,em3
 export NETLINK_LINE=1
 
 # allow to manually run perform tests frag and splice on netlink hosts
