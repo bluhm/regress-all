@@ -364,6 +364,8 @@ if ($modify eq 'notso') {
     printcmd('sysctl', 'net.inet.tcp.tso=1');
 }
 
+print "\nold config destroyed\n\n";
+
 # only run generic setup code, basically destroys interface config
 exit if $iface eq "none";
 
@@ -562,6 +564,8 @@ printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
 printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
 printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
 printcmd('ping6', '-n', '-c1', '-w5', $lnx_r_addr6);
+
+print "\nnew config created\n\n";
 
 my $netbench = "$netlinkdir/netbench.pl";
 
@@ -1048,6 +1052,8 @@ foreach my $t (@tests) {
 
 chdir($netlinkdir)
     or die "Change directory to '$netlinkdir' failed: $!";
+
+print "\ntests finished\n\n";
 
 # create a tgz file with all log files
 my @paxcmd = ('pax', '-x', 'cpio', '-wzf', "$netlinkdir/test.log.tgz");
