@@ -478,6 +478,17 @@ if ($pseudo eq 'aggr') {
     my $vlan_l_vnetid = "2${line}1";
     my $vlan_r_vnetid = "2${line}2";
 
+    printcmd('ifconfig', 'vlan0', 'create');
+    printcmd('ifconfig', 'vlan1', 'create');
+    printcmd('ifconfig', 'vlan0', 'parent', $obsd_l_if,
+	'vnetid', $vlan_l_vnetid);
+    printcmd('ifconfig', 'vlan1', 'parent', $obsd_r_if,
+	'vnetid', $vlan_r_vnetid);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    $obsd_l_ipdev = "vlan0";
+    $obsd_r_ipdev = "vlan1";
+
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	printcmd('ssh', $ssh, 'modprobe', '8021q');
     }
@@ -489,17 +500,6 @@ if ($pseudo eq 'aggr') {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
     }
     $lnx_ipdev = $lnx_pdev;
-
-    printcmd('ifconfig', 'vlan0', 'create');
-    printcmd('ifconfig', 'vlan1', 'create');
-    printcmd('ifconfig', 'vlan0', 'parent', $obsd_l_if,
-	'vnetid', $vlan_l_vnetid);
-    printcmd('ifconfig', 'vlan1', 'parent', $obsd_r_if,
-	'vnetid', $vlan_r_vnetid);
-    printcmd('ifconfig', $obsd_l_if, 'up');
-    printcmd('ifconfig', $obsd_r_if, 'up');
-    $obsd_l_ipdev = "vlan0";
-    $obsd_r_ipdev = "vlan1";
 }
 # XXX: tpmr, nipsec, gre, wg?
 
