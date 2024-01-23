@@ -33,7 +33,7 @@ my $scriptname = "$0 @ARGV";
 
 my @allifaces = qw(bnxt em igc ix ixl);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
-my @allpseudos = qw(none bridge carp gif veb vlan);
+my @allpseudos = qw(none bridge carp gif gre veb vlan);
 my @allsetupmodes = (qw(build install upgrade sysupgrade keep kernel reboot
     tools), "cvs,build", "cvs,kernel");
 my @alltestmodes = qw(all fragment icmp tcp udp splice);

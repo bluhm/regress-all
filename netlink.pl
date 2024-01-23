@@ -29,7 +29,7 @@ use Netstat;
 
 my @allifaces = qw(none em igc ix ixl bnxt);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
-my @allpseudos = qw(none bridge carp gif veb vlan);
+my @allpseudos = qw(none bridge carp gif gre veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp splice);
 
 my %opts;
@@ -296,6 +296,7 @@ foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 
 printcmd('sysctl', 'net.inet.ip.forwarding=1');
 printcmd('sysctl', 'net.inet6.ip6.forwarding=1');
+printcmd('sysctl', 'net.inet.gre.allow=1');
 
 # allow tcpbench to bind on ipv6 addresses without explicitly providing it
 printcmd('ssh', $lnx_l_ssh, 'sysctl','net.ipv6.bindv6only=1');
@@ -505,6 +506,50 @@ if ($pseudo eq 'aggr') {
 	'local', $lnx_l_tunnel_addr, 'remote', $obsd_l_tunnel_addr);
     printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', $lnx_pdev,
 	'type', 'sit', 'mode', 'any',
+	'local', $lnx_r_tunnel_addr, 'remote', $obsd_r_tunnel_addr);
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
+    }
+    $lnx_ipdev = $lnx_pdev;
+} elsif ($pseudo eq 'gre') {
+    my $gre_l_key = "2${line}1";
+    my $gre_r_key = "2${line}2";
+
+    # configure OpenBSD tunnel addresses
+    printcmd('ifconfig', $obsd_l_if, 'inet', "$obsd_l_tunnel_addr/24");
+    printcmd('ifconfig', $obsd_r_if, 'inet', "$obsd_r_tunnel_addr/24");
+    printcmd('ifconfig', 'gre0', 'create');
+    printcmd('ifconfig', 'gre1', 'create');
+    printcmd('ifconfig', 'gre0', 'vnetid', $gre_l_key,
+	'tunnel', $obsd_l_tunnel_addr, $lnx_l_tunnel_addr);
+    printcmd('ifconfig', 'gre1', 'vnetid', $gre_r_key,
+	'tunnel', $obsd_r_tunnel_addr, $lnx_r_tunnel_addr);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    $obsd_l_ipdev = "gre0";
+    $obsd_r_ipdev = "gre1";
+    $obsd_l_prefix = 32;
+    $obsd_l_prefix6 = 128;
+    $obsd_r_prefix = 32;
+    $obsd_r_prefix6 = 128;
+    @obsd_l_dest_addr = $lnx_l_addr;
+    @obsd_l_dest_addr6 = $lnx_l_addr6;
+    @obsd_r_dest_addr = $lnx_r_addr;
+    @obsd_r_dest_addr6 = $lnx_r_addr6;
+
+    # configure Linux tunnel addresses
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'modprobe', 'ip_gre');
+    }
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'address', 'add', $lnx_l_tunnel_net,
+	'dev', $lnx_if);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'address', 'add', $lnx_r_tunnel_net,
+	'dev', $lnx_if);
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'name', $lnx_pdev,
+	'type', 'gre', 'key', $gre_l_key,
+	'local', $lnx_l_tunnel_addr, 'remote', $obsd_l_tunnel_addr);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'name', $lnx_pdev,
+	'type', 'gre', 'key', $gre_r_key,
 	'local', $lnx_r_tunnel_addr, 'remote', $obsd_r_tunnel_addr);
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
