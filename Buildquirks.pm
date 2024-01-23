@@ -963,6 +963,10 @@ my %quirks = (
 	comment => "backout if counters commit",
 	updatedirs => [ "sys" ],
     },
+    '2024-01-16T23:38:14Z' => {
+	comment => "update drm moves kernel source files",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 );
 
 #### Patches ####
