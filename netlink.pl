@@ -733,29 +733,57 @@ sub netbench_parser {
     return 1;
 }
 
+sub pingflood_parser {
+    my ($line, $log) = @_;
+    my ($min, $avg, $max, $stddev);
+    if ($line =~ m{^(\d+) packets transmitted, (\d+) received, ([\.\d]+)% packet loss, time ([\.\d]+)ms$}) {
+	print $tr "VALUE $1 packet transmit\n";
+	print $tr "VALUE $2 packet receive\n";
+	print $tr "VALUE $3 percent loss\n";
+    }
+    if ($line =~ m{^(\d+) packets transmitted, (\d+) packets received, ([\.\d]+)% packet loss$}) {
+	print $tr "VALUE $1 packet transmit\n";
+	print $tr "VALUE $2 packet receive\n";
+	print $tr "VALUE $3 percent loss\n";
+    }
+    if ($line =~ m{^rtt min/avg/max/mdev = ([\.\d]+)/([\.\d]+)/([\.\d]+)/([\.\d]+) ms, ipg/ewma ([\.\d]+)/([\.\d]+) ms$}) {
+	print $tr "VALUE $1 ms min\n";
+	print $tr "VALUE $2 ms avg\n";
+	print $tr "VALUE $3 ms max\n";
+	print $tr "VALUE $4 ms stddev\n";
+    }
+    if ($line =~ m{^round-trip min/avg/max/std-dev = ([\.\d]+)/([\.\d]+)/([\.\d]+)/([\.\d]+) ms$}) {
+	print $tr "VALUE $1 ms min\n";
+	print $tr "VALUE $2 ms avg\n";
+	print $tr "VALUE $3 ms max\n";
+	print $tr "VALUE $4 ms stddev\n";
+    }
+    return 1;
+}
+
 my @tests;
 push @tests, (
     {
 	testcmd => ['ssh', $lnx_l_ssh, 'ping', '-qfc10000', $obsd_l_addr],
-	parser => \&ping_f_parser,
+	parser => \&pingflood_parser,
     }, {
 	testcmd => ['ping', '-qfc10000', $lnx_r_addr],
-	parser => \&ping_f_parser,
+	parser => \&pingflood_parser,
     }, {
 	testcmd => ['ssh', $lnx_l_ssh, 'ping', '-qfc10000', $lnx_r_addr],
-	parser => \&ping_f_parser,
+	parser => \&pingflood_parser,
     }
 ) if ($testmode{icmp4});
 push @tests, (
     {
 	testcmd => ['ssh', $lnx_l_ssh, 'ping6', '-qfc10000', $obsd_l_addr6],
-	parser => \&ping_f_parser,
+	parser => \&pingflood_parser,
     }, {
 	testcmd => ['ping6', '-qfc10000', $lnx_r_addr6],
-	parser => \&ping_f_parser,
+	parser => \&pingflood_parser,
     }, {
 	testcmd => ['ssh', $lnx_l_ssh, 'ping6', '-qfc10000', $lnx_r_addr6],
-	parser => \&ping_f_parser,
+	parser => \&pingflood_parser,
     }
 ) if ($testmode{icmp6});
 push @tests, {
@@ -1272,27 +1300,6 @@ sub vmstat_m_tail_1_parser {
 
 	print "Memory: $used/$allocated = $utilization\n";
     }
-}
-
-sub ping_f_parser {
-    my ($l, $log) = @_;
-    if ($l =~ m{rtt min/avg/max/mdev = ([\.\d]+)/([\.\d]+)/([\.\d]+)/([\.\d]+) ms, ipg/ewma ([\.\d]+)/([\.\d]+) ms}) {
-	my $min = $1;
-	my $avg = $2;
-	my $max = $3;
-	my $mdev = $4;
-	my $ipg = $5;
-	my $ewma = $6;
-	print "Ping: $min/$avg/$max/$mdev $ipg/$ewma\n";
-    }
-    if ($l =~ m{round-trip min/avg/max/std-dev = ([\.\d]+)/([\.\d]+)/([\.\d]+)/([\.\d]+) ms}) {
-	my $min = $1;
-	my $avg = $2;
-	my $max = $3;
-	my $stddev = $4;
-	print "Ping: $min/$avg/$max/$stddev\n";
-    }
-    return 1;
 }
 
 sub printcmd {
