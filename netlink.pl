@@ -29,7 +29,7 @@ use Netstat;
 
 my @allifaces = qw(none em igc ix ixl bnxt);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
-my @allpseudos = qw(none bridge carp veb vlan);
+my @allpseudos = qw(none bridge carp gif veb vlan);
 my @alltestmodes = sort qw(all fragment icmp tcp udp splice);
 
 my %opts;
@@ -125,6 +125,8 @@ my $obsd_l_prefix6_flat = 60;
 
 my @obsd_l_addr_range = map { "$obsd_l_addr$_" } 0..9;
 my @obsd_l_addr6_range = map { "$obsd_l_addr6$_" } 0..9;
+my $obsd_l_tunnel_addr = "$ip4prefix.${line}3.2";
+my $obsd_l_tunnel_net = "$ip4prefix.${line}3.0/24";
 
 my $obsd_r_if = $iftype . $right_ifidx;
 my $obsd_r_ipdev = $obsd_r_if;
@@ -135,6 +137,9 @@ my $obsd_r_prefix = 24;
 my $obsd_r_addr6 = "${ip6prefix}${line}2::3";
 my $obsd_r_net6 = "${ip6prefix}${line}2::/64";
 my $obsd_r_prefix6 = 64;
+
+my $obsd_r_tunnel_addr = "$ip4prefix.${line}4.3";
+my $obsd_r_tunnel_net = "$ip4prefix.${line}4.0/24";
 
 my %lnx_ifs = ( 1 => "ens2f1", 2 => "ens2f0", 3 => "enp6s0" );
 my $lnx_if = $lnx_ifs{$line};
@@ -149,6 +154,9 @@ my $lnx_l_addr6 = "${ip6prefix}${line}1::1";
 my $lnx_l_net6 = "$lnx_l_addr6/64";
 my $lnx_l_net6_flat = "$lnx_l_addr6/60";
 my $lnx_l_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
+
+my $lnx_l_tunnel_addr = "$ip4prefix.${line}3.1";
+my $lnx_l_tunnel_net = "$lnx_l_tunnel_addr/24";
 
 my $lnx_r_mtu = 1500;
 my $lnx_r_addr = "$ip4prefix.${line}2.4";
@@ -165,6 +173,11 @@ my @lnx_r_net_range_flat = map { "$_/21" } @lnx_r_addr_range;
 my @lnx_r_addr6_range = map { "$lnx_r_addr6$_" } 0..9;
 my @lnx_r_net6_range = map { "$_/64" } @lnx_r_addr6_range;
 my @lnx_r_net6_range_flat = map { "$_/60" } @lnx_r_addr6_range;
+my $lnx_r_tunnel_addr = "$ip4prefix.${line}4.4";
+my $lnx_r_tunnel_net = "$lnx_r_tunnel_addr/24";
+
+my (@obsd_l_dest_addr, @obsd_l_dest_addr6,
+    @obsd_r_dest_addr, @obsd_r_dest_addr6);
 
 my $dir = dirname($0);
 chdir($dir)
@@ -234,12 +247,16 @@ foreach my $if (@allinterfaces) {
     my $pdevre = join '|', (@allpseudos, "vether", "vport");
     printcmd('ifconfig', $if, 'destroy') if ($if =~ m{^($pdevre)\d+});
 }
+foreach my $net ($obsd_l_net, $obsd_l_net6, $obsd_r_net, $obsd_r_net6) {
+    printcmd('route', 'delete', $net);
+}
 
 # unconfigure Linux interfaces
 printcmd('ssh', $lnx_l_ssh, qw(
     for if in), $lnx_if, $lnx_pdev, qw(; do
 	for net in),
-	$lnx_l_net, $lnx_l_net6, $lnx_l_net_flat, $lnx_l_net6_flat, qw(; do
+	$lnx_l_net, $lnx_l_net6, $lnx_l_net_flat, $lnx_l_net6_flat,
+	$lnx_l_tunnel_net, qw(; do
 	    ip address delete $net dev $if ;
 	done ;
     done));
@@ -248,17 +265,18 @@ printcmd('ssh', $lnx_r_ssh, qw(
 	for net in),
 	$lnx_r_net, $lnx_r_net6, $lnx_r_net_flat, $lnx_r_net6_flat,
 	@lnx_r_net_range, @lnx_r_net6_range,
-	@lnx_r_net_range_flat, @lnx_r_net6_range_flat, qw(; do
+	@lnx_r_net_range_flat, @lnx_r_net6_range_flat,
+	$lnx_r_tunnel_net, qw(; do
 	    ip address delete $net dev $if ;
 	done ;
     done));
 
 printcmd('ssh', $lnx_l_ssh, qw(
-    for net in), $obsd_r_net, $obsd_r_net6, qw(; do
+    for net in), $obsd_r_net, $obsd_r_net6, $obsd_l_net, $obsd_l_net6, qw(; do
 	ip route delete $net ;
     done));
 printcmd('ssh', $lnx_r_ssh, qw(
-    for net in), $obsd_l_net, $obsd_l_net6, qw(; do
+    for net in), $obsd_l_net, $obsd_l_net6, $obsd_r_net, $obsd_r_net6, qw(; do
 	ip route delete $net ;
     done));
 
@@ -435,9 +453,9 @@ if ($pseudo eq 'aggr') {
 	($obsd_l_net_flat, $obsd_l_prefix_flat,
 	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
     ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
-    ($lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range) =
-	($lnx_r_net_flat, $lnx_r_net6_flat,
-	@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
+    ($lnx_r_net, $lnx_r_net6) = ($lnx_r_net_flat, $lnx_r_net6_flat);
+    (@lnx_r_net_range, @lnx_r_net6_range) =
+	(@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
 } elsif ($pseudo eq 'carp') {
     my $carp_l_vhid = "1${line}1";
     my $carp_r_vhid = "1${line}2";
@@ -451,8 +469,47 @@ if ($pseudo eq 'aggr') {
     printcmd('ifconfig', $obsd_r_if, 'up');
     $obsd_l_ipdev = "carp0";
     $obsd_r_ipdev = "carp1";
-} elsif ($pseudo eq 'trunk') {
-    # XXX
+} elsif ($pseudo eq 'gif') {
+    # configure OpenBSD tunnel addresses
+    printcmd('ifconfig', $obsd_l_if, 'inet', "$obsd_l_tunnel_addr/24");
+    printcmd('ifconfig', $obsd_r_if, 'inet', "$obsd_r_tunnel_addr/24");
+    printcmd('ifconfig', 'gif0', 'create');
+    printcmd('ifconfig', 'gif1', 'create');
+    printcmd('ifconfig', 'gif0',
+	'tunnel', $obsd_l_tunnel_addr, $lnx_l_tunnel_addr);
+    printcmd('ifconfig', 'gif1',
+	'tunnel', $obsd_r_tunnel_addr, $lnx_r_tunnel_addr);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    $obsd_l_ipdev = "gif0";
+    $obsd_r_ipdev = "gif1";
+    $obsd_l_prefix = 32;
+    $obsd_l_prefix6 = 128;
+    $obsd_r_prefix = 32;
+    $obsd_r_prefix6 = 128;
+    @obsd_l_dest_addr = $lnx_l_addr;
+    @obsd_l_dest_addr6 = $lnx_l_addr6;
+    @obsd_r_dest_addr = $lnx_r_addr;
+    @obsd_r_dest_addr6 = $lnx_r_addr6;
+
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'modprobe', 'sit');
+    }
+    # configure Linux tunnel addresses
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'address', 'add', $lnx_l_tunnel_net,
+	'dev', $lnx_if);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'address', 'add', $lnx_r_tunnel_net,
+	'dev', $lnx_if);
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'name', $lnx_pdev,
+	'type', 'sit', 'mode', 'any',
+	'local', $lnx_l_tunnel_addr, 'remote', $obsd_l_tunnel_addr);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', $lnx_pdev,
+	'type', 'sit', 'mode', 'any',
+	'local', $lnx_r_tunnel_addr, 'remote', $obsd_r_tunnel_addr);
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
+    }
+    $lnx_ipdev = $lnx_pdev;
 } elsif ($pseudo eq 'veb') {
     printcmd('ifconfig', 'veb0', 'create');
     printcmd('ifconfig', 'vport0', 'create');
@@ -503,12 +560,14 @@ if ($pseudo eq 'aggr') {
     }
     $lnx_ipdev = $lnx_pdev;
 }
-# XXX: tpmr, nipsec, gre, wg?
+# XXX: trunk, tpmr, nipsec, wg?
 
 # configure OpenBSD addresses
 
-printcmd('ifconfig', $obsd_l_ipdev, 'inet', "$obsd_l_addr/$obsd_l_prefix");
-printcmd('ifconfig', $obsd_l_ipdev, 'inet6', "$obsd_l_addr6/$obsd_l_prefix6");
+printcmd('ifconfig', $obsd_l_ipdev, 'inet', "$obsd_l_addr/$obsd_l_prefix",
+    @obsd_l_dest_addr);
+printcmd('ifconfig', $obsd_l_ipdev, 'inet6', "$obsd_l_addr6/$obsd_l_prefix6",
+    @obsd_l_dest_addr6);
 foreach my $addr (@obsd_l_addr_range) {
     printcmd('ifconfig', $obsd_l_ipdev, 'inet', "$addr/32", 'alias');
 }
@@ -520,12 +579,24 @@ printcmd('ifconfig', $obsd_l_ipdev, 'mtu', $lnx_l_mtu)
 printcmd('ifconfig', $obsd_l_ipdev, 'up');
 if ($obsd_r_ipdev) {
     printcmd('ifconfig', $obsd_r_ipdev, 'inet',
-	"$obsd_r_addr/$obsd_r_prefix");
+	"$obsd_r_addr/$obsd_r_prefix", @obsd_r_dest_addr);
     printcmd('ifconfig', $obsd_r_ipdev, 'inet6',
-	"$obsd_r_addr6/$obsd_r_prefix6");
+	"$obsd_r_addr6/$obsd_r_prefix6", @obsd_r_dest_addr6);
     printcmd('ifconfig', $obsd_r_ipdev, 'mtu', $lnx_r_mtu)
 	if $obsd_r_ipdev ne $obsd_r_if && $lnx_r_mtu != 1500;
     printcmd('ifconfig', $obsd_r_ipdev, 'up');
+}
+if (@obsd_l_dest_addr) {
+    printcmd('route', 'add', $obsd_l_net, @obsd_l_dest_addr);
+}
+if (@obsd_l_dest_addr6) {
+    printcmd('route', 'add', $obsd_l_net6, @obsd_l_dest_addr6);
+}
+if (@obsd_r_dest_addr) {
+    printcmd('route', 'add', $obsd_r_net, @obsd_r_dest_addr);
+}
+if (@obsd_r_dest_addr6) {
+    printcmd('route', 'add', $obsd_r_net6, @obsd_r_dest_addr6);
 }
 
 # configure Linux addresses and routes
