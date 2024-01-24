@@ -161,6 +161,10 @@ collect_output(@clients, @relays, @servers);
 print_status_tcp() if $testmode{tcp};
 print_status_udp() if $testmode{udp};
 
+my @failed = map { $_->{status} ? $_->{name} : () }
+    (@clients, @relays, @servers);
+die "Process '@failed' failed" if @failed;
+
 exit;
 
 sub start_server_tcp {
@@ -365,9 +369,12 @@ sub read_output {
 	}
     }
     unless ($!{EWOULDBLOCK}) {
-	close($proc->{fh}) or warn $! ?
-	    "Close pipe from proc $proc->{name} '@{$proc->{cmd}}' failed: $!" :
-	    "Proc $proc->{name} '@{$proc->{cmd}}' failed: $?";
+	unless (close($proc->{fh})) {
+	    die "Close pipe from proc $proc->{name} '@{$proc->{cmd}}' ".
+		"failed: $!" if $!;
+	    warn "Proc $proc->{name} '@{$proc->{cmd}}' failed: $?";
+	    $proc->{status} = $?;
+	}
 	delete $proc->{fh};
 	delete $proc->{pid};
     }
