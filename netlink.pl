@@ -778,31 +778,50 @@ sub netbench_parser {
     return 1;
 }
 
+my $pingflood_loss;
 sub pingflood_parser {
     my ($line, $log) = @_;
     my ($min, $avg, $max, $stddev);
     if ($line =~ m{^(\d+) packets transmitted, (\d+) received, ([\.\d]+)% packet loss, time ([\.\d]+)ms$}) {
-	print $tr "VALUE $1 packet transmit\n";
-	print $tr "VALUE $2 packet receive\n";
-	print $tr "VALUE $3 percent loss\n";
+	$pingflood_loss = 0 + $3;
+	print $tr "SUBVALUE $1 packet transmit\n";
+	print $tr "SUBVALUE $2 packet receive\n";
+	print $tr "SUBVALUE $pingflood_loss percent loss\n";
     }
     if ($line =~ m{^(\d+) packets transmitted, (\d+) packets received, ([\.\d]+)% packet loss$}) {
-	print $tr "VALUE $1 packet transmit\n";
-	print $tr "VALUE $2 packet receive\n";
-	print $tr "VALUE $3 percent loss\n";
+	$pingflood_loss = 0 + $3;
+	print $tr "SUBVALUE $1 packet transmit\n";
+	print $tr "SUBVALUE $2 packet receive\n";
+	print $tr "SUBVALUE $pingflood_loss percent loss\n";
     }
     if ($line =~ m{^rtt min/avg/max/mdev = ([\.\d]+)/([\.\d]+)/([\.\d]+)/([\.\d]+) ms, ipg/ewma ([\.\d]+)/([\.\d]+) ms$}) {
-	print $tr "VALUE $1 ms min\n";
+	print $tr "SUBVALUE $1 ms min\n";
 	print $tr "VALUE $2 ms avg\n";
 	print $tr "VALUE $3 ms max\n";
-	print $tr "VALUE $4 ms stddev\n";
+	print $tr "SUBVALUE $4 ms stddev\n";
     }
     if ($line =~ m{^round-trip min/avg/max/std-dev = ([\.\d]+)/([\.\d]+)/([\.\d]+)/([\.\d]+) ms$}) {
-	print $tr "VALUE $1 ms min\n";
+	print $tr "SUBVALUE $1 ms min\n";
 	print $tr "VALUE $2 ms avg\n";
 	print $tr "VALUE $3 ms max\n";
-	print $tr "VALUE $4 ms stddev\n";
+	print $tr "SUBVALUE $4 ms stddev\n";
     }
+    return 1;
+}
+
+sub pingflood_finalize {
+    my ($log) = @_;
+    unless (defined $pingflood_loss) {
+	print $log "FAILED no packet loss value\n" if $log;
+	print "FAILED no packet loss value\n" if $opts{v};
+	return;
+    }
+    unless ($pingflood_loss == 0) {
+	print $log "FAILED $pingflood_loss\% packet loss\n" if $log;
+	print "FAILED $pingflood_loss\% packet loss\n" if $opts{v};
+	return;
+    }
+    undef $pingflood_loss;
     return 1;
 }
 
@@ -811,24 +830,30 @@ push @tests, (
     {
 	testcmd => ['ssh', $lnx_l_ssh, 'ping', '-qfc10000', $obsd_l_addr],
 	parser => \&pingflood_parser,
+	finalize => \&pingflood_finalize,
     }, {
 	testcmd => ['ping', '-qfc10000', $lnx_r_addr],
 	parser => \&pingflood_parser,
+	finalize => \&pingflood_finalize,
     }, {
 	testcmd => ['ssh', $lnx_l_ssh, 'ping', '-qfc10000', $lnx_r_addr],
 	parser => \&pingflood_parser,
+	finalize => \&pingflood_finalize,
     }
 ) if ($testmode{icmp4});
 push @tests, (
     {
 	testcmd => ['ssh', $lnx_l_ssh, 'ping6', '-qfc10000', $obsd_l_addr6],
 	parser => \&pingflood_parser,
+	finalize => \&pingflood_finalize,
     }, {
 	testcmd => ['ping6', '-qfc10000', $lnx_r_addr6],
 	parser => \&pingflood_parser,
+	finalize => \&pingflood_finalize,
     }, {
 	testcmd => ['ssh', $lnx_l_ssh, 'ping6', '-qfc10000', $lnx_r_addr6],
 	parser => \&pingflood_parser,
+	finalize => \&pingflood_finalize,
     }
 ) if ($testmode{icmp6});
 push @tests, {
