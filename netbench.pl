@@ -204,17 +204,20 @@ sub start_client_tcp {
 sub start_server_udp {
     my ($proc) = @_;
 
+    my $timeout = 1;
+    $timeout += $opts{i} if defined($opts{i});
+    $timeout += $opts{t} if defined($opts{t});
     my @cmd = ('udpbench');
     push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-d$opts{d}" if defined($opts{d});
-    push @cmd, "-i$opts{i}" if defined($opts{i});
+    push @cmd, "-i0";
     push @cmd, "-l$paylen" if defined($paylen);
     push @cmd, "-m$opts{m}" if defined($opts{m});
     push @cmd, "-N$opts{N}" if defined($opts{N});
     push @cmd, "-P$opts{P}" if defined($opts{P});
     push @cmd, '-p0';
-    push @cmd, "-t$opts{t}" if defined($opts{t});
+    push @cmd, "-t$timeout" if defined($opts{t});
     push @cmd, ('recv', $proc->{addr});
     unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
     $proc->{cmd} = \@cmd;
@@ -246,14 +249,15 @@ sub start_client_udp {
 sub start_relay {
     my ($proc) = @_;
 
-    my $timeout = 1;
-    $timeout += $opts{t} if defined($opts{t});
+    my $timeout = 0;
     $timeout += $opts{d} if defined($opts{d});
+    $timeout += $opts{i} if defined($opts{i});
+    $timeout += $opts{t} if defined($opts{t});
     my @cmd = ('splicebench');
     push @cmd, '-c' if $testmode{copy};
     push @cmd, '-u' if $testmode{udp};
     push @cmd, "-b$opts{b}" if defined($opts{b});
-    push @cmd, "-i$opts{i}" if defined($opts{i});
+    push @cmd, "-i0";
     push @cmd, "-N$opts{N}" if defined($opts{N}) && $testmode{udp};
     push @cmd, "-n$opts{N}" if defined($opts{N}) && $testmode{tcp};
     push @cmd, "-t$timeout" if defined($opts{t});
