@@ -312,6 +312,8 @@ sub parse_version_file {
 	}
 	/^hw.machine=(\w+)$/ and $v{arch} = $1;
 	/^hw.ncpu=(\w+)$/ and $v{ncpu} = $1;
+	# override if more specific value exists
+	/^hw.ncpuonline=(\w+)$/ and $v{ncpu} = $1;
     }
     return %v;
 }

@@ -102,7 +102,7 @@ sub collect_version {
 	my $version = "version-$host.txt";
 	logeval { logcmd({
 	    cmd => ['ssh', "$user\@$host", 'sysctl',
-		'kern.version', 'hw.machine', 'hw.ncpu'],
+		'kern.version', 'hw.machine', 'hw.ncpu', 'hw.ncpuonline'],
 	    outfile => $version,
 	})};
 	if ($@) {

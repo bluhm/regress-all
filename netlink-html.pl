@@ -119,10 +119,13 @@ sub list_dates {
 
 sub html_hier_top {
     my ($html, $date, @cvsdates) = @_;
-    my $setup = $D{$date}{setup};
+    my $dv = $D{$date};
+    my $setup = $dv->{setup};
     my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
     my $href = $setup ? "<a href=\"../$link\">" : "";
     my $enda = $href ? "</a>" : "";
+    my $hostname = $dv->{host};
+    my $ncpu = $dv->{ncpu};
     print $html <<"HEADER";
 <table>
   <tr>
@@ -134,7 +137,11 @@ sub html_hier_top {
     <td><a href="../$date/netlink.html">$date</a></td>
   </tr>
   <tr>
-    <th>setup</th>
+    <th>test host with cpu cores</th>
+    <td>$hostname/$ncpu</td>
+  </tr>
+  <tr>
+    <th>machine setup</th>
     <td>${href}info$enda</td>
   </tr>
 </table>
