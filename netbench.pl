@@ -227,7 +227,7 @@ sub start_server_udp {
     unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
     $proc->{cmd} = \@cmd;
 
-    open_pipe($proc, "sockname");
+    open_pipe($proc, "sockname", $opts{N});
 }
 
 sub start_client_udp {
@@ -248,7 +248,7 @@ sub start_client_udp {
     unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
     $proc->{cmd} = \@cmd;
 
-    open_pipe($proc, "sockname");
+    open_pipe($proc, "sockname", $opts{N});
 }
 
 sub start_relay {
@@ -270,11 +270,11 @@ sub start_relay {
     unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
     $proc->{cmd} = \@cmd;
 
-    open_pipe($proc, "listen sockname");
+    open_pipe($proc, "listen sockname", $testmode{udp} && $opts{N});
 }
 
 sub open_pipe {
-    my ($proc, $sockname) = @_;
+    my ($proc, $sockname, $num) = @_;
 
     print "command: @{$proc->{cmd}}\n" if $opts{v};
     $proc->{pid} = open(my $fh, '-|', @{$proc->{cmd}})
@@ -284,12 +284,12 @@ sub open_pipe {
     local $_;
     while (<$fh>) {
 	print if $opts{v};
-	if ($sockname && /^$sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
-	    $proc->{addr} = $1;
-	    $proc->{port} = $2;
-	    last;
-	}
 	last unless $sockname;
+	if (/^$sockname: ([0-9.a-fA-F:]+) ([0-9]+)/) {
+	    $proc->{addr} ||= $1;
+	    $proc->{port} = $2;
+	    last unless $num && --$num;
+	}
     }
     unless (defined) {
 	close($fh) or die $! ?
