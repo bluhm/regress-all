@@ -210,6 +210,7 @@ sub start_server_udp {
     my ($proc) = @_;
 
     my $timeout = 1;
+    $timeout += $opts{d} if defined($opts{d});
     $timeout += $opts{i} if defined($opts{i});
     $timeout += $opts{t} if defined($opts{t});
     my @cmd = ('udpbench');
