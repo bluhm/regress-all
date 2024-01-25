@@ -161,6 +161,11 @@ collect_output(@clients, @relays, @servers);
 print_status_tcp() if $testmode{tcp};
 print_status_udp() if $testmode{udp};
 
+# timeout always fails with error
+if ($testmode{tcp}) {
+    delete $_->{status} foreach (@servers);
+}
+
 my @failed = map { $_->{status} ? $_->{name} : () }
     (@clients, @relays, @servers);
 die "Process '@failed' failed" if @failed;
@@ -174,7 +179,7 @@ sub start_server_tcp {
     my $timeout = 2;
     $timeout += $opts{t} if defined($opts{t});
     my @cmd = ('tcpbench', '-s');
-    unshift @cmd, ('timeout', $timeout) if $opts{t};
+    unshift @cmd, ('timeout', '-p', $timeout) if $opts{t};
     push @cmd, "-b$proc->{addr}";
     push @cmd, "-p$proc->{port}";
     push @cmd, "-S$opts{b}" if defined($opts{b});
@@ -257,7 +262,7 @@ sub start_relay {
     push @cmd, '-c' if $testmode{copy};
     push @cmd, '-u' if $testmode{udp};
     push @cmd, "-b$opts{b}" if defined($opts{b});
-    push @cmd, "-i0";
+    push @cmd, "-i0" if $testmode{udp};
     push @cmd, "-N$opts{N}" if defined($opts{N}) && $testmode{udp};
     push @cmd, "-n$opts{N}" if defined($opts{N}) && $testmode{tcp};
     push @cmd, "-t$timeout" if defined($opts{t});
