@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2022-2023 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2022-2024 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -176,7 +176,7 @@ sub start_server_tcp {
     my ($proc) = @_;
 
     $proc->{port} = "12345";
-    my $timeout = 2;
+    my $timeout = 3;
     $timeout += $opts{t} if defined($opts{t});
     my @cmd = ('tcpbench', '-s');
     unshift @cmd, ('timeout', $timeout) if $opts{t};
@@ -209,15 +209,14 @@ sub start_client_tcp {
 sub start_server_udp {
     my ($proc) = @_;
 
-    my $timeout = 1;
+    my $timeout = 3;
     $timeout += $opts{d} if defined($opts{d});
-    $timeout += $opts{i} if defined($opts{i});
     $timeout += $opts{t} if defined($opts{t});
     my @cmd = ('udpbench');
     push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-d$opts{d}" if defined($opts{d});
-    push @cmd, "-i0";
+    push @cmd, "-i0" if defined($opts{i});
     push @cmd, "-l$paylen" if defined($paylen);
     push @cmd, "-m$opts{m}" if defined($opts{m});
     push @cmd, "-N$opts{N}" if defined($opts{N});
@@ -238,7 +237,7 @@ sub start_client_udp {
     push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-d$opts{d}" if defined($opts{d});
-    push @cmd, "-i$opts{i}" if defined($opts{i});
+    push @cmd, "-i0" if defined($opts{i});
     push @cmd, "-l$paylen" if defined($paylen);
     push @cmd, "-m$opts{m}" if defined($opts{m});
     push @cmd, "-N$opts{N}" if defined($opts{N});
@@ -255,15 +254,14 @@ sub start_client_udp {
 sub start_relay {
     my ($proc) = @_;
 
-    my $timeout = 0;
+    my $timeout = 2;
     $timeout += $opts{d} if defined($opts{d});
-    $timeout += $opts{i} if defined($opts{i});
     $timeout += $opts{t} if defined($opts{t});
     my @cmd = ('splicebench');
     push @cmd, '-c' if $testmode{copy};
     push @cmd, '-u' if $testmode{udp};
     push @cmd, "-b$opts{b}" if defined($opts{b});
-    push @cmd, "-i0" if $testmode{udp};
+    push @cmd, "-i0" if defined($opts{i});
     push @cmd, "-N$opts{N}" if defined($opts{N}) && $testmode{udp};
     push @cmd, "-n$opts{N}" if defined($opts{N}) && $testmode{tcp};
     push @cmd, "-t$timeout" if defined($opts{t});
