@@ -48,7 +48,7 @@ usage: netlink.pl [-v] [-c pseudo] [-e environment] [-i iface] [-m modify]
 EOF
     exit(2);
 };
-my $timeout = $opts{t} || 20;
+my $timeout = $opts{t} || 60;
 environment($opts{e}) if $opts{e};
 my $pseudo = $opts{c} || "none";
 my $iface = $opts{i} || "none";
