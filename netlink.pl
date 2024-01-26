@@ -41,14 +41,14 @@ usage: netlink.pl [-v] [-c pseudo] [-e environment] [-i iface] [-m modify]
     -e environ	parse environment for tests from shell script
     -i iface	interface, may contain number: @allifaces
     -m modify	modify mode: @allmodifymodes
-    -t timeout	timeout for a single test, default 60 seconds
+    -t timeout	timeout for a single test, default 30 seconds
     -v		verbose
     test ...	test mode: @alltestmodes
 		appending 4 or 6 to a test restricts the IP version.
 EOF
     exit(2);
 };
-my $timeout = $opts{t} || 60;
+my $timeout = $opts{t} || 30;
 environment($opts{e}) if $opts{e};
 my $pseudo = $opts{c} || "none";
 my $iface = $opts{i} || "none";
