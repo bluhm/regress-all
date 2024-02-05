@@ -967,6 +967,10 @@ my %quirks = (
 	comment => "update drm moves kernel source files",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2024-02-03T18:51:59Z' => {
+	comment => "softdep kernel source files removed",
+	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
 );
 
 #### Patches ####
