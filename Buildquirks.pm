@@ -971,6 +971,12 @@ my %quirks = (
 	comment => "softdep kernel source files removed",
 	cleandirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
     },
+    '2024-02-05T23:16:39Z' => {
+	comment => "netstat route cache counter",
+	updatedirs => [ "sys", "usr.bin/netstat" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "usr.bin/netstat" ],
+    },
 );
 
 #### Patches ####
