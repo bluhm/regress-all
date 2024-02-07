@@ -555,10 +555,12 @@ rsyslog
 rust
 rust-openssl-tests
 scapy
+splicebench
 sudo--
 sysclean
 texlive_texmf-full
 ucspi-tcp
+udpbench
 unzip--
 wycheproof-testvectors
 xdg-user-dirs-gtk
