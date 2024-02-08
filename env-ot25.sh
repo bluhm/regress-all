@@ -9,6 +9,8 @@ export SKIP_IF=em0,em1,em4,em5,em8,em9,em10,em11,em12,ix0,ix1
 export NETLINK_LINE=4
 # currently there is no distinct linux interface for link 4, share with 3
 export LINUX_IF=enp6s0
+export LINUX_LEFT_SSH=root@lt40
+export LINUX_RIGHT_SSH=root@lt43
 
 # allow to manually run perform tests frag and splice on netlink hosts
 
@@ -41,7 +43,4 @@ LOCAL_ADDR_RANGE=10.10.41.20
 LOCAL_ADDR6_RANGE=fdd7:e83e:66bd:1041::20
 LINUX_ADDR_RANGE=10.10.42.40
 LINUX_ADDR6_RANGE=fdd7:e83e:66bd:1042::40
-LINUX_SSH=root@lt40
-LINUX_OTHER_SSH=root@lt43
 export LOCAL_ADDR_RANGE LOCAL_ADDR6_RANGE LINUX_ADDR_RANGE LINUX_ADDR6_RANGE
-export LINUX_SSH LINUX_OTHER_SSH

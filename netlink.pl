@@ -60,6 +60,10 @@ my $management_if = $ENV{MANAGEMENT_IF}
     or die "MANAGEMENT_IF is not in env";
 my $linux_if = $ENV{LINUX_IF}
     or die "LINUX_IF is not in env";
+my $linux_left_ssh = $ENV{LINUX_LEFT_SSH}
+    or die "LINUX_LEFT_SSH is not in env";
+my $linux_right_ssh = $ENV{LINUX_RIGHT_SSH}
+    or die "LINUX_RIGHT_SSH is not in env";
 
 my ($iftype, $ifnum) = $iface =~ /^([a-z]+)([0-9]+)?$/;
 grep { $_ eq $iftype } @allifaces
@@ -154,7 +158,7 @@ my $lnx_l_net_flat = "$lnx_l_addr/21";
 my $lnx_l_addr6 = "${ip6prefix}${line}1::1";
 my $lnx_l_net6 = "$lnx_l_addr6/64";
 my $lnx_l_net6_flat = "$lnx_l_addr6/60";
-my $lnx_l_ssh = 'root@lt40'; #$ENV{LINUXL_SSH}; # XXX
+my $lnx_l_ssh = $linux_left_ssh;
 
 my $lnx_l_tunnel_addr = "$ip4prefix.${line}3.1";
 my $lnx_l_tunnel_net = "$lnx_l_tunnel_addr/24";
@@ -166,7 +170,7 @@ my $lnx_r_net_flat = "$lnx_r_addr/21";
 my $lnx_r_addr6 = "${ip6prefix}${line}2::4";
 my $lnx_r_net6 = "$lnx_r_addr6/64";
 my $lnx_r_net6_flat = "$lnx_r_addr6/60";
-my $lnx_r_ssh = 'root@lt43'; #$ENV{LINUXR_SSH};
+my $lnx_r_ssh = $linux_right_ssh;
 
 my @lnx_r_addr_range = map { "$lnx_r_addr$_" } 0..9;
 my @lnx_r_net_range = map { "$_/24" } @lnx_r_addr_range;
@@ -1113,13 +1117,13 @@ my @stats = (
     }, {
 	statcmd => [ 'netstat', '-nr' ],
     }, {
-	statcmd => [ 'ssh', 'root@lt40', 'netstat', '-nr' ],
+	statcmd => [ 'ssh', $lnx_l_ssh, 'netstat', '-nr' ],
     }, {
-	statcmd => [ 'ssh', 'root@lt40', 'netstat', '-6nr' ],
+	statcmd => [ 'ssh', $lnx_l_ssh, 'netstat', '-6nr' ],
     }, {
-	statcmd => [ 'ssh', 'root@lt43', 'netstat', '-nr' ],
+	statcmd => [ 'ssh', $lnx_r_ssh, 'netstat', '-nr' ],
     }, {
-	statcmd => [ 'ssh', 'root@lt43', 'netstat', '-6nr' ],
+	statcmd => [ 'ssh', $lnx_r_ssh, 'netstat', '-6nr' ],
     }, {
 	statcmd => [ 'vmstat', '-mv' ],
     }, {
