@@ -554,7 +554,6 @@ rsyslog
 scapy
 sudo--
 sysclean
-texlive_texmf-full
 ucspi-tcp
 unzip--
 wycheproof-testvectors

@@ -555,7 +555,6 @@ rsyslog
 scapy
 sudo--
 sysclean
-texlive_texmf-full
 u-boot-arm
 ucspi-tcp
 unzip--

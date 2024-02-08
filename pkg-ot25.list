@@ -558,7 +558,6 @@ scapy
 splicebench
 sudo--
 sysclean
-texlive_texmf-full
 ucspi-tcp
 udpbench
 unzip--
