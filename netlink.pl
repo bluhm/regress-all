@@ -58,6 +58,8 @@ my $line = $ENV{NETLINK_LINE}
     or die "NETLINK_LINE is not in env";
 my $management_if = $ENV{MANAGEMENT_IF}
     or die "MANAGEMENT_IF is not in env";
+my $linux_if = $ENV{LINUX_IF}
+    or die "LINUX_IF is not in env";
 
 my ($iftype, $ifnum) = $iface =~ /^([a-z]+)([0-9]+)?$/;
 grep { $_ eq $iftype } @allifaces
@@ -141,9 +143,7 @@ my $obsd_r_prefix6 = 64;
 my $obsd_r_tunnel_addr = "$ip4prefix.${line}4.3";
 my $obsd_r_tunnel_net = "$ip4prefix.${line}4.0/24";
 
-# currently there is no distinct linux interface for link 4, share with 3
-my %lnx_ifs = ( 1 => "ens2f1", 2 => "ens2f0", 3 => "enp6s0", 4 => "enp6s0" );
-my $lnx_if = $lnx_ifs{$line};
+my $lnx_if = $linux_if;
 my $lnx_pdev = "$lnx_if.$line";
 my $lnx_ipdev = $lnx_if;
 

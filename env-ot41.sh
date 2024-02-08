@@ -2,6 +2,7 @@
 export MANAGEMENT_IF=em4
 export SKIP_IF=em4,em2,em3
 export NETLINK_LINE=1
+export LINUX_IF=ens2f1
 
 # allow to manually run perform tests frag and splice on netlink hosts
 
