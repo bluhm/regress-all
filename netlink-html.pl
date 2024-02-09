@@ -333,6 +333,7 @@ sub write_html_hier_files {
 	html_header($html, "OpenBSD Netlink Hierarchie",
 	    "OpenBSD netlink $short test results",
 	    @nav);
+	print $html "<script src='/tables.js'></script>\n";
 
 	my @hv = sort { $a->{key} cmp $b->{key} } @{$H{$date}};
 	html_hier_top($html, $date, @hv);
