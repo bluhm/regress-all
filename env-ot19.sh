@@ -4,8 +4,7 @@
 export MANAGEMENT_IF=em18
 export SKIP_IF=em18
 export NETLINK_LINE=3
-# currently there is no distinct linux interface for link 4, share with 3
-export LINUX_IF=enp6s0
+export LINUX_IF=ens1f0
 export LINUX_LEFT_SSH=root@lt40
 export LINUX_RIGHT_SSH=root@lt43
 

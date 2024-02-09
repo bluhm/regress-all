@@ -1,14 +1,10 @@
 # em0 is management
 # em0, em1, em2, em3 are onboard
-# em10 is tripple port
-# em6, em7 are quad port
+# em6, em7 belong to quad port
 export MANAGEMENT_IF=em0
-# em4, em5, ix0, ix1 have no carrier
-# em8, em9, em10 are identical to em2
-export SKIP_IF=em0,em1,em4,em5,em8,em9,em10,em11,em12,ix0,ix1
+export SKIP_IF=em0,em1,em6,em7
 export NETLINK_LINE=4
-# currently there is no distinct linux interface for link 4, share with 3
-export LINUX_IF=enp6s0
+export LINUX_IF=ens1f1
 export LINUX_LEFT_SSH=root@lt40
 export LINUX_RIGHT_SSH=root@lt43
 
