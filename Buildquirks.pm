@@ -977,6 +977,19 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "usr.bin/netstat" ],
     },
+    '2024-02-19T14:08:58Z' => {
+	comment => "clang disable retpoline",
+	updatedirs => [
+	    "gnu/llvm",
+	    "gnu/usr.bin/clang",
+	],
+	cleandirs => [
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [
+	    "gnu/usr.bin/clang",
+	],
+    },
 );
 
 #### Patches ####
