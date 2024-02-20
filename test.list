@@ -327,6 +327,7 @@ sys/mfs_noperm
 sys/net/etherip
 sys/net/gif
 sys/net/loop
+sys/net/mpath
 sys/net/pair
 sys/net/pf_divert
 sys/net/pf_forward
@@ -414,6 +415,7 @@ usr.bin/pkg-config
 usr.bin/rcs
 usr.bin/rev
 usr.bin/rsync
+usr.bin/rsync-unit
 usr.bin/sdiff
 usr.bin/sed
 usr.bin/seq
