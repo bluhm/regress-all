@@ -31,7 +31,7 @@ my $now = strftime("%FT%TZ", gmtime);
 
 my $scriptname = "$0 @ARGV";
 
-my @allifaces = qw(bnxt em igc ix ixl);
+my @allifaces = qw(bnxt em igc ix ixl re vio);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gre veb vlan);
 my @allsetupmodes = (qw(build install upgrade sysupgrade keep kernel reboot
