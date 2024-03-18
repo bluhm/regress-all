@@ -372,7 +372,8 @@ my @cmd = ("bin/netlink-html.pl");
 push @cmd, "-v" if $opts{v};
 runcmd(@cmd, "-l");
 runcmd(@cmd, "-h", $host);
-runcmd(@cmd);
+# do not create all page, it is too slow and too large
+#runcmd(@cmd);
 
 $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $now.\n");

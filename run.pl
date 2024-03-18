@@ -185,7 +185,8 @@ symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
 runcmd("bin/regress-html.pl", "-l", "src");
 
-runcmd("bin/regress-html.pl", "src");
+# do not create all page, it is too slow and too large
+#runcmd("bin/regress-html.pl", "src");
 
 my $now = strftime("%FT%TZ", gmtime);
 logmsg("Script '$scriptname' finished at $now.\n");
