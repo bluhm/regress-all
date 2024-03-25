@@ -115,7 +115,8 @@ sub write_html_date_file {
 	$mode{release} ? "Release" : "";
     my @nav = (
 	Top     => "../../test.html",
-	All     => ($opts{l} || $host ? "regress.html" : undef),
+	All     => (($opts{l} || $host) && -f "regress.html" ?
+	    "regress.html" : undef),
 	Latest  => (! $opts{l} ? "latest.html" : undef),
 	Running => "run.html");
     html_header($html, "OpenBSD $typename Results",
