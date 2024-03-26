@@ -327,11 +327,11 @@ sub write_html_hier_files {
 
 	my ($html, $htmlfile) = html_open("$date/netlink");
 	my @nav = (
-	    Top      => "../../../test.html",
-	    All      => "../netlink.html",
-	    Current  => "../current/netlink.html",
-	    Latest   => "../latest.html",
-	    Running  => "../run.html");
+	    Top     => "../../../test.html",
+	    All     => (-f "netlink.html" ? "../netlink.html" : undef),
+	    Current => "../current/netlink.html",
+	    Latest  => "../latest.html",
+	    Running => "../run.html");
 	html_header($html, "OpenBSD Netlink Hierarchie",
 	    "OpenBSD netlink $short test results",
 	    @nav);
@@ -385,7 +385,8 @@ sub write_html_date_file {
     my $typename = "Netlink";
     my @nav = (
 	Top     => "../../test.html",
-	All     => ($opts{l} || $host ? "netlink.html" : undef),
+	All     => (($opts{l} || $host) && -f "netlink.html" ?
+	    "netlink.html" : undef),
 	Current => "current/netlink.html",
 	Latest  => ($opts{l} ? undef :
 	    $host ? "latest-$host/netlink.html" : "latest/netlink.html"),
