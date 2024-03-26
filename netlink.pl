@@ -787,7 +787,7 @@ my $pingflood_loss;
 sub pingflood_parser {
     my ($line, $log) = @_;
     my ($min, $avg, $max, $stddev);
-    if ($line =~ m{^(\d+) packets transmitted, (\d+) received, ([\.\d]+)% packet loss, time ([\.\d]+)ms$}) {
+    if ($line =~ m{^(\d+) packets transmitted, (\d+) received,.* ([\.\d]+)% packet loss, time ([\.\d]+)ms$}) {
 	$pingflood_loss = 0 + $3;
 	print $tr "SUBVALUE $1 packet transmit\n";
 	print $tr "SUBVALUE $2 packet receive\n";
