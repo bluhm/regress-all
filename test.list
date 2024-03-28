@@ -105,7 +105,6 @@ lib/libcrypto/ecdsa
 lib/libcrypto/evp
 lib/libcrypto/free
 lib/libcrypto/gcm128
-lib/libcrypto/gost
 lib/libcrypto/hkdf
 lib/libcrypto/hmac
 lib/libcrypto/idea
