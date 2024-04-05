@@ -990,6 +990,11 @@ my %quirks = (
 	    "gnu/usr.bin/clang",
 	],
     },
+# OpenBSD 7.5, newvers 2024-03-12Z
+    '2024-03-20T21:54:47Z' => {
+	comment => "OpenBSD/amd64 7.5 release",
+	release => '7.5',
+    },
 );
 
 #### Patches ####
