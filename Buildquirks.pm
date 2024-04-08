@@ -995,6 +995,20 @@ my %quirks = (
 	comment => "OpenBSD/amd64 7.5 release",
 	release => '7.5',
     },
+    '2024-03-29T06:47:05Z' => {
+	comment => "kernel removes msyscall check",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	commands => [ "reboot" ],
+    },
+    '2024-04-05T13:51:47Z' => {
+	comment => "ld.so removes msyscall call",
+	updatedirs => [ "libexec/ld.so" ],
+	builddirs => [ "libexec/ld.so" ],
+    },
 );
 
 #### Patches ####
