@@ -1228,8 +1228,8 @@ sub html_cvsdate_test_row {
 	my $rp0 = $dv->{$cvsdates[0]}{repeats};
 	my $value0 = $rp0 ?
 	    first { $_ } map { $vt->{$cvsdates[0]}{$_}[$i] } @$rp0 :
-	    first { $_ } map { $vt->{$_}[$i] } @cvsdates;
-	my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
+	    first { $_ } map { ($vt->{$_} || [])->[$i] } @cvsdates;
+	my ($name0, $unit0) = ($value0->{name} // "", $value0->{unit} // "");
 	print $html "  <tr>\n    <td></td>\n";
 	print $html "    <th>$name0</th>\n";
 	my @numbers = map { ref($vt->{$_}) eq 'HASH' ?
