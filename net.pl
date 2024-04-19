@@ -71,7 +71,7 @@ if ($opts{D}) {
     $cvsdate = strftime("%FT%TZ", gmtime($cd));
 }
 my $patch = $opts{P};
-my $iface = $opts{i};
+my $iface = $opts{i} || "all";
 my $modify = $opts{m};
 my $pseudo = $opts{c};
 my $repeat = $opts{N};
@@ -214,7 +214,7 @@ if ($iface) {
 	grep { $_ eq $iftype } @allifaces
 	    or die "Unknown interface '$if'";
 	unless (grep { /^$iftype\d+ at / } @dmesg) {
-	    if ($opts{i} eq "all") {
+	    if (!$opts{i} || $opts{i} eq "all") {
 		next;
 	    } else {
 		die "Interface type '$if' does not exist in dmesg";
