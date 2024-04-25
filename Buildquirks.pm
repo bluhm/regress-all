@@ -1009,6 +1009,12 @@ my %quirks = (
 	updatedirs => [ "libexec/ld.so" ],
 	builddirs => [ "libexec/ld.so" ],
     },
+    '2024-04-22T13:30:22Z' => {
+	comment => "pfctl fragment reassembly counters",
+	updatedirs => [ "sys", "sbin/pfctl", "usr.bin/systat" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl", "usr.bin/systat" ],
+    },
 );
 
 #### Patches ####
