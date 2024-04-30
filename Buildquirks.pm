@@ -1013,7 +1013,7 @@ my %quirks = (
 	comment => "pfctl fragment reassembly counters",
 	updatedirs => [ "sys", "sbin/pfctl", "usr.bin/systat" ],
 	prebuildcommands => [ "make includes" ],
-	builddirs => [ "sbin/pfctl", "usr.bin/systat" ],
+	builddirs => [ "sbin/pfctl", "usr.bin/systat", "usr.sbin/relayd" ],
     },
 );
 
