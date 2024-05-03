@@ -1,0 +1,14 @@
+export MANAGEMENT_IF=vmx2
+export SKIP_IF=vmx2
+export NETLINK_LINE=6
+export LINUX_IF=ens224
+export LINUX_LEFT_SSH=root@lt54
+export LINUX_RIGHT_SSH=root@lt55
+
+export REGRESS_FAIL_EARLY=no
+export TEST_SSH_UNSAFE_PERMISSIONS=yes
+
+LOCAL_IF=vmx1
+LOCAL_MAC=00:0c:29:2e:8e:b3
+
+export LOCAL_IF LOCAL_MAC
