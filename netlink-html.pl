@@ -33,7 +33,7 @@ use Testvars qw(%TESTNAME %TESTDESC @TESTKEYS);
 
 my $now = strftime("%FT%TZ", gmtime);
 
-my @allifaces = qw(bnxt em igc ix ixl re vio);
+my @allifaces = qw(bnxt em igc ix ixl re vio vmx);
 
 my %opts;
 getopts('d:h:lv', \%opts) or do {
@@ -306,6 +306,7 @@ sub html_hier_test_row_utilization {
 	    "iface-ixl"  =>  10 * 10 ** 9,
 	    "iface-re"   =>  .1 * 10 ** 9,
 	    "iface-vio"  =>  20 * 10 ** 9,
+	    "iface-vmx"  =>  20 * 10 ** 9,
 	);
 	$iface =~ s/\d+$//;
 	my $linerate = $linerates{$iface} || 10 ** 9;
