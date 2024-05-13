@@ -6,6 +6,7 @@ gmake
 iperf
 iperf3
 rsync--
+splicebench
 sysclean
 udpbench
 xz
