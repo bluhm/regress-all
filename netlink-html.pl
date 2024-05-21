@@ -164,6 +164,9 @@ sub html_hier_test_head {
 	    } elsif ($hier eq "iface" && $dv->{ifdmesg}) {
 		my $ifdmesg = encode_entities($dv->{ifdmesg}{$name});
 		$title = "  title=\"$ifdmesg\"";
+	    } elsif ($hier eq "patch" && $hv->{diff}) {
+		my $link = uri_escape($hv->{diff}, "^A-Za-z0-9\-\._~/");
+		$name = "<a href=\"../$link\">$name</a>";
 	    }
 	    print $html "    <th class=\"hier\"$title>$name</th>\n";
 	}
@@ -178,9 +181,9 @@ sub html_hier_test_head_utilization {
 	my $te = $hier eq "date" ? "th" : "td";
 	print $html "  <tr>\n";
 	print $html "    <th></th>", "<td></td>" x (@TESTKEYS-1), "\n";
-	foreach my $hvi (@hiers) {
+	foreach my $hv (@hiers) {
 	    my $title = "";
-	    my $name = $hvi->{$hier} || "";
+	    my $name = $hv->{$hier} || "";
 	    if ($hier =~ /date$/) {
 		my $time = encode_entities($name);
 		$title = "  title=\"$time\"";
@@ -188,6 +191,9 @@ sub html_hier_test_head_utilization {
 	    } elsif ($hier eq "iface" && $dv->{ifdmesg}) {
 		my $ifdmesg = encode_entities($dv->{ifdmesg}{$name});
 		$title = "  title=\"$ifdmesg\"";
+	    } elsif ($hier eq "patch" && $hv->{diff}) {
+		my $link = uri_escape($hv->{diff}, "^A-Za-z0-9\-\._~/");
+		$name = "<a href=\"../$link\">$name</a>";
 	    }
 	    print $html "    <$te class=\"hier $hier\"$title>$name</$te>\n";
 	}
@@ -664,10 +670,13 @@ sub parse_result_files {
 	    $dv->{dmesg} ||= $dmesg if -f $dmesg;
 	    (my $dmesgboot = $version) =~ s,version,dmesg-boot,;
 	    $dv->{dmesgboot} ||= $dmesgboot if -f $dmesgboot;
-	    (my $diff = $version) =~ s,/version-,/diff-,;
-	    $dv->{diff} ||= $diff if -s $diff;
 
 	    %$dv = (parse_version_file($version), %$dv);
+	}
+	if ($file->{patch}) {
+	    foreach my $diff (sort glob("$date/$file->{patch}/diff-*.txt")) {
+		$hiers{diff} ||= $diff if -s $diff;
+	    }
 	}
 	$dv->{build} = ($dv->{location} =~ /^deraadt@\w+.openbsd.org:/) ?
 	    "snapshot" : "custom";
