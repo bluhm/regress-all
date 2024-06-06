@@ -1015,6 +1015,19 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/pfctl", "usr.bin/systat", "usr.sbin/relayd" ],
     },
+    '2024-06-02T15:42:19Z' => {
+	comment => "clang add -fret-clean option",
+	updatedirs => [
+	    "gnu/llvm",
+	    "gnu/usr.bin/clang",
+	],
+	cleandirs => [
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [
+	    "gnu/usr.bin/clang",
+	],
+    },
 );
 
 #### Patches ####
