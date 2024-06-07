@@ -1028,6 +1028,58 @@ my %quirks = (
 	    "gnu/usr.bin/clang",
 	],
     },
+    '2024-06-04T15:14:45Z' => {
+	comment => "kernel enable -fret-clean",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+    },
+    '2024-06-05T20:19:26Z' => {
+	comment => "kernel disable -fret-clean",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+    },
+    '2024-06-07T05:16:32Z' => {
+	comment => "clang fix -fret-clean option",
+	updatedirs => [
+	    "gnu/llvm",
+	    "gnu/usr.bin/clang",
+	],
+	cleandirs => [
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [
+	    "gnu/usr.bin/clang",
+	],
+    },
+    '2024-06-07T05:17:34Z' => {
+	comment => "kernel libc ld.so enable -fret-clean",
+	updatedirs => [
+	    "sys",
+	    "lib/libc",
+	    "libexec/ld.so",
+	],
+	prebuildcommands => [
+	    "make includes",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+	cleandirs => [
+	    "lib/libc",
+	    "libexec/ld.so",
+	],
+	builddirs => [
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	    "lib/libc",
+	    "libexec/ld.so",
+	],
+	commands => [ "reboot" ],
+    },
 );
 
 #### Patches ####
