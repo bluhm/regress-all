@@ -1061,6 +1061,7 @@ my %quirks = (
 	comment => "kernel libc ld.so enable -fret-clean",
 	updatedirs => [
 	    "sys",
+	    "include",
 	    "lib/libc",
 	    "libexec/ld.so",
 	],
