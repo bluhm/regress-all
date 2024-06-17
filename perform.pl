@@ -1132,7 +1132,7 @@ push @tests, (
 	parser => \&iperf3_parser,
     }
 ) if $testmode{vport6} && $linux_veb_addr6;
-if ($modify && $modify eq 'lro') {
+if ($modify && $modify eq 'nolro') {
     $tests[0]{startup} = \&nolro_startup;
     $tests[-1]{shutdown} = \&nolro_shutdown;
 }
