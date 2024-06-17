@@ -241,21 +241,28 @@ sub glob_result_files {
 sub parse_result_files {
     foreach my $result (@_) {
 	# parse result file
-	my ($release, $date, $short, $cvsdate, $repeat) = $result =~
+	my ($release, $date, $cvsdate, $patch, $modify, $repeat) = $result =~
 	    m,
 		(?:(\d+\.\d)/)?				# release
-		(([^/]+)T[^/]+Z)/			# date
-		([^/]+T[^/]+Z|patch-[^/]+\.\d+|		# cvsdate or patch
-		    (?:lro|nopf|notso|pfsync)\.\d+)/	# modify mode
+		([^/]+T[^/]+Z)/				# date
+		(?:([^/]+T[^/]+Z)/)?			# cvsdate
+		(?:(patch-[^/]+\.\d+)/)?		# patch
+		(?:(modify-[^/]+\.\d+)/)?		# modify
 		(?:(\d+|btrace-[^/]+\.\d+)/)?		# repeat or btrace
 		test.result				# result file
 	    ,x or next;
-	next if ! $opts{n} && $cvsdate !~ /^.+T.+Z$/;
+	next if ! $opts{n} && (!$cvsdate || $patch || $modify);
 	print "." if $verbose;
-	my ($cvsshort, $repshort) = ($cvsdate, $repeat);
+	$cvsdate ||= "";
+	$cvsdate .= "/$patch" if $patch;
+	$cvsdate .= "/$modify" if $modify;
+	$cvsdate =~ s,^/,,;
+	my ($short, $cvsshort, $repshort) = ($date, $cvsdate, $repeat);
+	$short =~ s/T.+Z$//;
 	$cvsshort =~ s/T.+Z$//;
-	$cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
-	$cvsshort =~ s/^(\w+)\.\d+$/$1/;
+	$cvsshort =~ s/patch-(.*)\.\d+$/$1/;
+	$cvsshort =~ s/modify-(.*)\.\d+$/$1/;
+	$cvsshort =~ s,/, ,g;
 	$repshort =~ s/^btrace-(.*)\.\d+$/$1/ if $repeat;
 	my $reldate = "$date";
 	$reldate = "$release/$reldate" if $release;
@@ -1227,7 +1234,7 @@ sub html_cvsdate_test_row {
     for (my $i = 0; $i < $maxval; $i++) {
 	my $rp0 = $dv->{$cvsdates[0]}{repeats};
 	my $value0 = first { $_ }
-	    map { my $cv = $vt->{$_}; $rp0 ? 
+	    map { my $cv = $vt->{$_}; $rp0 ?
 	    map { ref($cv) eq 'HASH' && ref($cv->{$_}) eq 'ARRAY' ?
 	    $cv->{$_}[$i] : () } @$rp0 :
 	    (ref($cv) eq 'ARRAY' ? $cv->[$i] : ()) } @cvsdates;
