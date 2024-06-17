@@ -126,9 +126,9 @@ if ($date && $date =~ /^(current|latest|latest-\w+)$/) {
     $release ||= dirname($current) if $date ne $current;
 }
 $resultdir .= "/$release" if $release;
-$resultdir = "$resultdir/$date" if $date;
+$resultdir .= "/$date" if $date;
 if ($date && $cvsdate) {
-    $resultdir = "$resultdir/$cvsdate";
+    $resultdir .= "/$cvsdate";
     -d $resultdir || mkdir $resultdir
 	or die "Make directory '$resultdir' failed: $!";
 }
@@ -142,7 +142,7 @@ if ($patch) {
     }
 }
 if ($modify) {
-    $resultdir = mkdir_num("$resultdir/$modify");
+    $resultdir = mkdir_num("$resultdir/modify-$modify");
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";

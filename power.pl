@@ -103,7 +103,7 @@ if ($patch) {
 	or die "Patch directory '$dir' not found";
 }
 if ($modify) {
-    my $dir = "$resultdir/$modify.[0-9]";
+    my $dir = "$resultdir/modify-$modify.[0-9]";
     $resultdir = (glob($dir))[-1]
 	or die "Modify directory '$dir' not found";
 }
