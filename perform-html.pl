@@ -229,6 +229,9 @@ sub glob_result_files {
     push @files, bsd_glob("$dateglob/*/*/test.result", GLOB_NOSORT)
 	unless $opts{n} && $release;
     print "." if $verbose;
+    push @files, bsd_glob("$dateglob/*/*/*/test.result", GLOB_NOSORT)
+	unless $opts{n} && $release;
+    print "." if $verbose;
     push @files, bsd_glob("$relglob/$dateglob/*/test.result", GLOB_NOSORT);
     print "." if $verbose;
     push @files, bsd_glob("$relglob/$dateglob/*/*/test.result", GLOB_NOSORT);
