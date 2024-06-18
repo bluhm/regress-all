@@ -162,7 +162,9 @@ sub parse_log_files {
 
 	my @cvsdates = grep { -d $_ } (
 	    bsd_glob("*T*", GLOB_NOSORT),
-	    bsd_glob("[a-z]*.[0-9]", GLOB_NOSORT));
+	    bsd_glob("patch-[a-z]*.[0-9]", GLOB_NOSORT),
+	    bsd_glob("modify-[a-z]*.[0-9]", GLOB_NOSORT),
+	    bsd_glob("patch-[a-z]*.[0-9]/modify-[a-z]*.[0-9]", GLOB_NOSORT));
 	$D{$date}{cvsdates} = [ @cvsdates ];
 
 	foreach my $cvsdate ("", @cvsdates) {
