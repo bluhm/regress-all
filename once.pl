@@ -134,7 +134,7 @@ if ($date && $cvsdate) {
 }
 if ($patch) {
     my $patchdir = "patch-".
-	join(',', map { s,\.[^/]*,,; basename($_) } split(/,/, $patch));
+	join(',', map { s,\.[^/]*$,,; basename($_) } split(/,/, $patch));
     if ($kernelmode{keep}) {
 	$resultdir = chdir_num("$resultdir/$patchdir");
     } else {
@@ -272,7 +272,7 @@ exit;
 sub mkdir_num {
     my ($path) = @_;
 
-    $path =~ s/\..*//;
+    $path =~ s,\.[^/]*$,,;
     my $dir;
     for (my $suffix = 0; $suffix < 10; $suffix++) {
 	$dir = "$path.$suffix";
@@ -289,7 +289,7 @@ sub mkdir_num {
 sub chdir_num {
     my ($path) = @_;
 
-    $path =~ s/\..*//;
+    $path =~ s,\.[^/]*$,,;
     my $dir;
     for (my $suffix = 9; $suffix >= 0; $suffix--) {
 	$dir = "$path.$suffix";
