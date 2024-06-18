@@ -374,8 +374,9 @@ sub write_html_setup {
 		}
 		if ($cvsdate) {
 		    (my $cvsshort = $cvsdate) =~ s/T.*//;
-		    $cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
-		    $cvsshort =~ s/^(\w+)\.\d+$/$1/;
+		    $cvsshort =~ s/patch-(.*)\.\d+$/$1/;
+		    $cvsshort =~ s/modify-(.*)\.\d+$/$1/;
+		    $cvsshort =~ s/\.\d+//g;
 		    print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 		} elsif (@cvsdates) {
 		    print $html "    <td></td>\n";
@@ -507,8 +508,9 @@ sub write_html_build {
 		print $html "    <td></td>\n";
 	    }
 	    (my $cvsshort = $cvsdate) =~ s/T.*//;
-	    $cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
-	    $cvsshort =~ s/^(\w+)\.\d+$/$1/;
+	    $cvsshort =~ s/patch-(.*)\.\d+$/$1/;
+	    $cvsshort =~ s/modify-(.*)\.\d+$/$1/;
+	    $cvsshort =~ s/\.\d+//g;
 	    print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 	    my $version = $h->{$host}{version};
 	    my $time = encode_entities($h->{$host}{kerntime});
@@ -521,7 +523,7 @@ sub write_html_build {
 	    my $quirks = $h->{$host}{quirks};
 	    my $nmbsd = $h->{$host}{nmbsd};
 	    if ($version) {
-		$version =~ s,[^/]+/,,;
+		$version =~ s,.*-[^/]+/,,;
 		$version = uri_escape($version, "^A-Za-z0-9\-\._~/");
 		print $html "    <td title=\"$time\">".
 		    "<a href=\"$version\">$short</a></td>\n";
@@ -530,14 +532,14 @@ sub write_html_build {
 	    }
 	    print $html "    <td>$arch</td>\n";
 	    if ($build) {
-		$build =~ s,[^/]+/,,;
+		$build =~ s,.*-[^/]+/,,;
 		$build = uri_escape($build, "^A-Za-z0-9\-\._~/");
 		print $html "    <td><a href=\"$build\">log</a></td>\n";
 	    } else {
 		print $html "    <td></td>\n";
 	    }
 	    if ($dmesgboot) {
-		$dmesgboot =~ s,[^/]+/,,;
+		$dmesgboot =~ s,.*-[^/]+/,,;
 		$dmesgboot = uri_escape($dmesgboot, "^A-Za-z0-9\-\._~/");
 		print $html
 		    "    <td><a href=\"$dmesgboot\">boot</a></td>\n";
@@ -545,28 +547,28 @@ sub write_html_build {
 		print $html "    <td></td>\n";
 	    }
 	    if ($dmesg) {
-		$dmesg =~ s,[^/]+/,,;
+		$dmesg =~ s,.*-[^/]+/,,;
 		$dmesg = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
 		print $html "    <td><a href=\"$dmesg\">run</a></td>\n";
 	    } else {
 		print $html "    <td></td>\n";
 	    }
 	    if ($diff) {
-		$diff =~ s,[^/]+/,,;
+		$diff =~ s,.*-[^/]+/,,;
 		$diff = uri_escape($diff, "^A-Za-z0-9\-\._~/");
 		print $html "    <td><a href=\"$diff\">diff</a></td>\n";
 	    } else {
 		print $html "    <td></td>\n";
 	    }
 	    if ($quirks) {
-		$quirks =~ s,[^/]+/,,;
+		$quirks =~ s,.*-[^/]+/,,;
 		$quirks = uri_escape($quirks, "^A-Za-z0-9\-\._~/");
 		print $html "    <td><a href=\"$quirks\">quirks</a></td>\n";
 	    } else {
 		print $html "    <td></td>\n";
 	    }
 	    if ($nmbsd) {
-		$nmbsd =~ s,[^/]+/,,;
+		$nmbsd =~ s,.*-[^/]+/,,;
 		$nmbsd = uri_escape($nmbsd, "^A-Za-z0-9\-\._~/");
 		print $html "    <td><a href=\"$nmbsd\">nmbsd</a></td>\n";
 	    } else {
@@ -632,8 +634,9 @@ sub write_html_reboot {
 	(my $repshort = $repeat) =~ s/^btrace-(.*)\.\d+$/$1/;
 	print $html "    <td title=\"$repeat\">$repshort</td>\n";
 	(my $cvsshort = $cvsdate) =~ s/T.*//;
-	$cvsshort =~ s/^patch-(.*)\.\d+$/$1/;
-	$cvsshort =~ s/^(\w+)\.\d+$/$1/;
+	$cvsshort =~ s/patch-(.*)\.\d+$/$1/;
+	$cvsshort =~ s/modify-(.*)\.\d+$/$1/;
+	$cvsshort =~ s/\.\d+//g;
 	print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 	my $version = $h->{$host}{version};
 	my $time = encode_entities($h->{$host}{kerntime});
