@@ -262,9 +262,9 @@ sub parse_result_files {
 	$cvsdate =~ s,^/,,;
 	my ($short, $cvsshort, $repshort) = ($date, $cvsdate, $repeat);
 	$short =~ s/T.+Z$//;
-	$cvsshort =~ s/T.+Z$//;
-	$cvsshort =~ s/patch-(.*)\.\d+$/$1/;
-	$cvsshort =~ s/modify-(.*)\.\d+$/$1/;
+	$cvsshort =~ s,T[^/]+Z,,;
+	$cvsshort =~ s,patch-([^/]*)\.\d+,$1,;
+	$cvsshort =~ s,modify-([^/]*)\.\d+,$1,;
 	$cvsshort =~ s,/, ,g;
 	$repshort =~ s/^btrace-(.*)\.\d+$/$1/ if $repeat;
 	my $reldate = "$date";
