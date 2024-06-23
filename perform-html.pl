@@ -265,8 +265,7 @@ sub parse_result_files {
 	$cvsshort =~ s,T[^/]+Z,,;
 	$cvsshort =~ s,patch-([^/]*)\.\d+,$1,;
 	$cvsshort =~ s,modify-([^/]*)\.\d+,$1,;
-	$cvsshort =~ s,/, ,g;
-	$repshort =~ s/^btrace-(.*)\.\d+$/$1/ if $repeat;
+	$repshort =~ s,btrace-([^/]*)\.\d+,$1, if $repeat;
 	my $reldate = "$date";
 	$reldate = "$release/$reldate" if $release;
 	$R{$release}{dates}{$date} = 1 if $release;

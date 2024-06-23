@@ -367,16 +367,15 @@ sub write_html_setup {
 	    foreach my $host (sort keys %$h) {
 		print $html "  <tr>\n    <th>$host</th>\n";
 		if ($repeat) {
-		    (my $repshort = $repeat) =~ s/^btrace-(.*)\.\d+$/$1/;
+		    (my $repshort = $repeat) =~ s,btrace-([^/]*)\.\d+,$1,;
 		    print $html "    <td title=\"$repeat\">$repshort</td>\n";
 		} elsif (@cvsdates && @{$D{$date}{$cvsdates[0]}{repeats}}) {
 		    print $html "    <td></td>\n";
 		}
 		if ($cvsdate) {
-		    (my $cvsshort = $cvsdate) =~ s/T.*//;
-		    $cvsshort =~ s/patch-(.*)\.\d+$/$1/;
-		    $cvsshort =~ s/modify-(.*)\.\d+$/$1/;
-		    $cvsshort =~ s/\.\d+//g;
+		    (my $cvsshort = $cvsdate) =~ s,T[^/]+Z,,;
+		    $cvsshort =~ s,patch-([^/]*)\.\d+,$1,;
+		    $cvsshort =~ s,modify-([^/]*)\.\d+,$1,;
 		    print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 		} elsif (@cvsdates) {
 		    print $html "    <td></td>\n";
@@ -502,15 +501,14 @@ sub write_html_build {
 	foreach my $host (sort keys %$h) {
 	    print $html "  <tr>\n    <th>$host</th>\n";
 	    if ($repeat) {
-		(my $repshort = $repeat) =~ s/^btrace-(.*)\.\d+$/$1/;
+		(my $repshort = $repeat) =~ s,btrace-([^/]*)\.\d+,$1,;
 		print $html "    <td title=\"$repeat\">$repshort</td>\n";
 	    } elsif (@repeats) {
 		print $html "    <td></td>\n";
 	    }
-	    (my $cvsshort = $cvsdate) =~ s/T.*//;
-	    $cvsshort =~ s/patch-(.*)\.\d+$/$1/;
-	    $cvsshort =~ s/modify-(.*)\.\d+$/$1/;
-	    $cvsshort =~ s/\.\d+//g;
+	    (my $cvsshort = $cvsdate) =~ s,T[^/]+Z,,;
+	    $cvsshort =~ s,patch-([^/]*)\.\d+,$1,;
+	    $cvsshort =~ s,modify-([^/]*)\.\d+,$1,;
 	    print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 	    my $version = $h->{$host}{version};
 	    my $time = encode_entities($h->{$host}{kerntime});
@@ -631,12 +629,11 @@ sub write_html_reboot {
 
     foreach my $host (sort keys %$h) {
 	print $html "  <tr>\n    <th>$host</th>\n";
-	(my $repshort = $repeat) =~ s/^btrace-(.*)\.\d+$/$1/;
+	(my $repshort = $repeat) =~ s,btrace-([^/]*)\.\d+,$1,;
 	print $html "    <td title=\"$repeat\">$repshort</td>\n";
-	(my $cvsshort = $cvsdate) =~ s/T.*//;
-	$cvsshort =~ s/patch-(.*)\.\d+$/$1/;
-	$cvsshort =~ s/modify-(.*)\.\d+$/$1/;
-	$cvsshort =~ s/\.\d+//g;
+	(my $cvsshort = $cvsdate) =~ s,T[^/]+Z,,;
+	$cvsshort =~ s,patch-([^/]*)\.\d+,$1,;
+	$cvsshort =~ s,modify-([^/]*)\.\d+,$1,;
 	print $html "    <td title=\"$cvsdate\">$cvsshort</td>\n";
 	my $version = $h->{$host}{version};
 	my $time = encode_entities($h->{$host}{kerntime});
