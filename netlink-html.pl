@@ -553,6 +553,9 @@ sub glob_result_files {
 	    warn "Invalid subdir '$_' in result '$File::Find::name'";
 	    return;
 	}
+	foreach (values %f) {
+	    delete $f{$1} if /(.*)-none$/;
+	}
 	$f{dir} = $File::Find::dir;
 	$f{name} = $File::Find::name;
 	push @files, \%f;
