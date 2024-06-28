@@ -319,6 +319,7 @@ sys/kern/sysvshm
 sys/kern/unalign
 sys/kern/unfdpass
 sys/kern/unixsockets
+sys/kern/unp-write-closed
 sys/kern/unveil
 sys/kern/unveil-unmount
 sys/kern/wait
