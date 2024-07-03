@@ -299,7 +299,7 @@ sub html_hier_test_row_utilization {
 	    }
 	}
 	unless (defined $value) {
-	    printf $html "    <td></td>\n";
+	    printf $html "    <td style=\"background-color: red\"></td>\n";
 	    next;
 	}
 	my $title = " title=\"$value $unit\"";
