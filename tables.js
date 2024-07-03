@@ -35,7 +35,7 @@ function merge_rows() {
 	    console.warn(`inhomogeneous cell count: ${len} vs ${otr.length}.`);
 	    return;
 	}
-	for (let i = 0; i < len; i++) {
+	for (let i = 0; i < 6; i++) {
 	    if (tr[i].innerText && otr[i].innerText == tr[i].innerText) {
 		let rowspan = Number(otr[i].getAttribute('rowspan'));
 		if (!rowspan) {
