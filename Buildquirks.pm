@@ -1081,6 +1081,15 @@ my %quirks = (
 	],
 	commands => [ "reboot" ],
     },
+    '2024-07-05T21:24:13Z' => {
+	comment => "fix build in device qwx",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-dev-qwx' => patch_sys_dev_qwx() },
+    },
+    '2024-07-06T05:34:35Z' => {
+	comment => "update fixed device qwx",
+	updatedirs => [ "sys" ],
+    },
 );
 
 #### Patches ####
@@ -1154,7 +1163,6 @@ sub patch_cvs_vendor {
 Index: gnu/usr.bin/cvs/src/rcs.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/gnu/usr.bin/cvs/src/rcs.c,v
-retrieving revision 1.26
 diff -u -p -r1.26 rcs.c
 --- gnu/usr.bin/cvs/src/rcs.c	28 May 2014 16:43:06 -0000	1.26
 +++ gnu/usr.bin/cvs/src/rcs.c	7 Oct 2018 20:34:54 -0000
@@ -1193,8 +1201,6 @@ sub patch_sys_puc {
 Index: sys/dev/pci/puc.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/puc.c,v
-retrieving revision 1.25
-retrieving revision 1.26
 diff -u -p -r1.25 -r1.26
 --- sys/dev/pci/puc.c	15 Apr 2018 15:07:25 -0000	1.25
 +++ sys/dev/pci/puc.c	2 May 2018 19:11:01 -0000	1.26
@@ -1284,8 +1290,6 @@ diff -u -p -r1.25 -r1.26
 Index: sys/dev/pci/pucdata.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/pucdata.c,v
-retrieving revision 1.108
-retrieving revision 1.109
 diff -u -p -r1.108 -r1.109
 --- sys/dev/pci/pucdata.c	15 Apr 2018 15:07:25 -0000	1.108
 +++ sys/dev/pci/pucdata.c	2 May 2018 19:11:01 -0000	1.109
@@ -1307,8 +1311,6 @@ diff -u -p -r1.108 -r1.109
 Index: sys/dev/pci/pucvar.h
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/pucvar.h,v
-retrieving revision 1.15
-retrieving revision 1.16
 diff -u -p -r1.15 -r1.16
 --- sys/dev/pci/pucvar.h	15 Apr 2018 15:07:25 -0000	1.15
 +++ sys/dev/pci/pucvar.h	2 May 2018 19:11:01 -0000	1.16
@@ -1342,8 +1344,6 @@ sub patch_sys_garbage {
 Index: sys/arch/amd64/conf/GENERIC.MP
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/arch/amd64/conf/GENERIC.MP,v
-retrieving revision 1.13
-retrieving revision 1.14
 diff -u -p -r1.13 -r1.14
 --- sys/arch/amd64/conf/GENERIC.MP	12 Jul 2018 22:09:04 -0000	1.13
 +++ sys/arch/amd64/conf/GENERIC.MP	13 Jul 2018 05:25:24 -0000	1.14
@@ -1363,8 +1363,6 @@ sub patch_llvm_save_func {
 Index: gnu/llvm/lib/Target/X86/X86FrameLowering.cpp
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/gnu/llvm/lib/Target/X86/X86FrameLowering.cpp,v
-retrieving revision 1.6
-retrieving revision 1.7
 diff -u -p -r1.6 -r1.7
 --- gnu/llvm/lib/Target/X86/X86FrameLowering.cpp	30 Jan 2019 03:08:12 -0000	1.6
 +++ gnu/llvm/lib/Target/X86/X86FrameLowering.cpp	5 Feb 2019 02:12:41 -0000	1.7
@@ -1380,8 +1378,6 @@ diff -u -p -r1.6 -r1.7
 Index: gnu/llvm/lib/Target/X86/X86Subtarget.h
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/gnu/llvm/lib/Target/X86/X86Subtarget.h,v
-retrieving revision 1.4
-retrieving revision 1.5
 diff -u -p -r1.4 -r1.5
 --- gnu/llvm/lib/Target/X86/X86Subtarget.h	30 Jan 2019 03:08:12 -0000	1.4
 +++ gnu/llvm/lib/Target/X86/X86Subtarget.h	4 Feb 2019 17:08:56 -0000	1.5
@@ -1412,8 +1408,6 @@ sub patch_sys_files_ucrcom {
 Index: sys/dev/usb/files.usb
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/usb/files.usb,v
-retrieving revision 1.137
-retrieving revision 1.138
 diff -u -p -r1.137 -r1.138
 --- sys/dev/usb/files.usb	27 Mar 2019 22:08:51 -0000	1.137
 +++ sys/dev/usb/files.usb	9 May 2019 00:20:57 -0000	1.138
@@ -1437,8 +1431,6 @@ sub patch_sys_sys_time {
 Index: sys/sys/time.h
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/sys/time.h,v
-retrieving revision 1.44
-retrieving revision 1.45
 diff -u -p -r1.44 -r1.45
 --- sys/sys/time.h	3 Jul 2019 22:39:33 -0000	1.44
 +++ sys/sys/time.h	2 Aug 2019 03:33:15 -0000	1.45
@@ -1460,8 +1452,6 @@ sub patch_sys_uhci_activate {
 Index: sys/dev/pci/uhci_pci.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/uhci_pci.c,v
-retrieving revision 1.33
-retrieving revision 1.34
 diff -u -p -r1.33 -r1.34
 --- sys/dev/pci/uhci_pci.c	16 May 2014 18:17:03 -0000	1.33
 +++ sys/dev/pci/uhci_pci.c	5 Sep 2019 17:59:12 -0000	1.34
@@ -1500,8 +1490,6 @@ sub patch_sys_shm_copyin {
 Index: sys/kern/sysv_shm.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/kern/sysv_shm.c,v
-retrieving revision 1.73
-retrieving revision 1.74
 diff -u -p -r1.73 -r1.74
 --- sys/kern/sysv_shm.c	3 Nov 2019 20:16:01 -0000	1.73
 +++ sys/kern/sysv_shm.c	4 Nov 2019 00:48:22 -0000	1.74
@@ -1523,8 +1511,6 @@ sub patch_sys_ix_toeplitz {
 Index: sys/dev/pci/ixgbe.h
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/ixgbe.h,v
-retrieving revision 1.30
-retrieving revision 1.31
 diff -u -p -r1.30 -r1.31
 --- sys/dev/pci/ixgbe.h	17 Jul 2020 06:27:36 -0000	1.30
 +++ sys/dev/pci/ixgbe.h	17 Jul 2020 07:49:49 -0000	1.31
@@ -1545,8 +1531,6 @@ sub patch_sys_ix_toeplitz_bad {
 Index: sys/dev/pci/if_ix.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/if_ix.c,v
-retrieving revision 1.170
-retrieving revision 1.169
 diff -u -p -r1.170 -r1.169
 --- sys/dev/pci/if_ix.c	17 Jul 2020 07:40:35 -0000	1.170
 +++ sys/dev/pci/if_ix.c	17 Jul 2020 06:33:07 -0000	1.169
@@ -1568,8 +1552,6 @@ sub patch_sys_pf_rdomain {
 Index: sys/net/pf_ioctl.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/net/pf_ioctl.c,v
-retrieving revision 1.357
-retrieving revision 1.358
 diff -u -p -r1.357 -r1.358
 --- sys/net/pf_ioctl.c	1 Oct 2020 14:02:08 -0000	1.357
 +++ sys/net/pf_ioctl.c	2 Oct 2020 09:14:33 -0000	1.358
@@ -1592,8 +1574,6 @@ sub patch_sys_softraid_crypto {
 Index: sys/dev/softraid_crypto.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/dev/softraid_crypto.c,v
-retrieving revision 1.142
-retrieving revision 1.143
 diff -u -p -r1.142 -r1.143
 --- sys/dev/softraid_crypto.c	13 Oct 2021 22:43:44 -0000	1.142
 +++ sys/dev/softraid_crypto.c	22 Oct 2021 05:06:37 -0000	1.143
@@ -1615,8 +1595,6 @@ sub patch_sys_scsi_link {
 Index: sys/scsi/scsiconf.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/scsi/scsiconf.c,v
-retrieving revision 1.247
-retrieving revision 1.248
 diff -u -p -r1.247 -r1.248
 --- sys/scsi/scsiconf.c	23 Mar 2022 14:36:01 -0000	1.247
 +++ sys/scsi/scsiconf.c	24 Mar 2022 00:30:51 -0000	1.248
@@ -1676,8 +1654,6 @@ sub patch_sys_pledge_nodelay {
 Index: sys/kern/kern_pledge.c
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/kern/kern_pledge.c,v
-retrieving revision 1.298
-retrieving revision 1.299
 diff -u -p -r1.298 -r1.299
 --- sys/kern/kern_pledge.c	9 Nov 2022 22:25:08 -0000	1.298
 +++ sys/kern/kern_pledge.c	10 Nov 2022 00:14:11 -0000	1.299
@@ -1698,8 +1674,6 @@ sub patch_sys_pfvar_annotations {
 Index: sys/net/pfvar_priv.h
 ===================================================================
 RCS file: /data/mirror/openbsd/cvs/src/sys/net/pfvar_priv.h,v
-retrieving revision 1.16
-retrieving revision 1.17
 diff -u -p -r1.16 -r1.17
 --- sys/net/pfvar_priv.h	11 Nov 2022 12:29:32 -0000	1.16
 +++ sys/net/pfvar_priv.h	11 Nov 2022 12:36:05 -0000	1.17
@@ -1721,7 +1695,6 @@ sub patch_sys_pf_purge {
 Index: sys/net/pf.c
 ===================================================================
 RCS file: /mount/openbsd/cvs/src/sys/net/pf.c,v
-retrieving revision 1.1152
 diff -u -p -r1.1152 pf.c
 --- sys/net/pf.c	11 Nov 2022 16:12:08 -0000	1.1152
 +++ sys/net/pf.c	22 Nov 2022 14:05:27 -0000
@@ -1779,8 +1752,6 @@ sub patch_sys_if_srp_smr {
 Index: sys/net/if.c
 ===================================================================
 RCS file: /mount/openbsd/cvs/src/sys/net/if.c,v
-retrieving revision 1.675
-retrieving revision 1.676
 diff -u -p -r1.675 -r1.676
 --- sys/net/if.c	9 Nov 2022 13:09:30 -0000	1.675
 +++ sys/net/if.c	9 Nov 2022 22:15:50 -0000	1.676
@@ -2144,7 +2115,6 @@ sub patch_sys_pf_purge_backout {
 Index: sys/net/pf.c
 ===================================================================
 RCS file: /mount/openbsd/cvs/src/sys/net/pf.c,v
-retrieving revision 1.1155
 diff -u -p -r1.1155 pf.c
 --- sys/net/pf.c	25 Nov 2022 18:03:53 -0000	1.1155
 +++ sys/net/pf.c	25 Nov 2022 18:53:32 -0000
@@ -2376,7 +2346,6 @@ diff -u -p -r1.1155 pf.c
 Index: sys/net/pf_ioctl.c
 ===================================================================
 RCS file: /mount/openbsd/cvs/src/sys/net/pf_ioctl.c,v
-retrieving revision 1.391
 diff -u -p -r1.391 pf_ioctl.c
 --- sys/net/pf_ioctl.c	11 Nov 2022 16:12:08 -0000	1.391
 +++ sys/net/pf_ioctl.c	25 Nov 2022 18:53:32 -0000
@@ -2403,7 +2372,6 @@ diff -u -p -r1.391 pf_ioctl.c
 Index: sys/net/pfvar.h
 ===================================================================
 RCS file: /mount/openbsd/cvs/src/sys/net/pfvar.h,v
-retrieving revision 1.520
 diff -u -p -r1.520 pfvar.h
 --- sys/net/pfvar.h	11 Nov 2022 16:12:08 -0000	1.520
 +++ sys/net/pfvar.h	25 Nov 2022 18:53:32 -0000
@@ -2418,7 +2386,6 @@ diff -u -p -r1.520 pfvar.h
 Index: sys/net/pfvar_priv.h
 ===================================================================
 RCS file: /mount/openbsd/cvs/src/sys/net/pfvar_priv.h,v
-retrieving revision 1.22
 diff -u -p -r1.22 pfvar_priv.h
 --- sys/net/pfvar_priv.h	24 Nov 2022 00:04:32 -0000	1.22
 +++ sys/net/pfvar_priv.h	25 Nov 2022 18:53:32 -0000
@@ -2450,7 +2417,6 @@ sub patch_sys_amd64_cfgap {
 Index: sys/arch/amd64/conf/Makefile.amd64
 ===================================================================
 RCS file: /mount/openbsd/cvs/src/sys/arch/amd64/conf/Makefile.amd64,v
-retrieving revision 1.131
 diff -u -p -r1.131 Makefile.amd64
 --- sys/arch/amd64/conf/Makefile.amd64	17 Apr 2023 01:14:24 -0000	1.131
 +++ sys/arch/amd64/conf/Makefile.amd64	20 Apr 2023 21:25:05 -0000
@@ -2904,6 +2870,27 @@ diff -u -p -r1.359 ip_carp.c
  	if_attach(ifp);
  	ether_ifattach(ifp);
  	ifp->if_type = IFT_CARP;
+PATCH
+}
+
+# Fix last commit; the flag has a slightly different prefix
+sub patch_sys_dev_qwx {
+	return <<'PATCH';
+Index: sys/dev/pci/if_qwx_pci.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/dev/pci/if_qwx_pci.c,v
+diff -u -p -r1.21 -r1.22
+--- sys/dev/pci/if_qwx_pci.c	5 Jul 2024 21:24:13 -0000	1.21
++++ sys/dev/pci/if_qwx_pci.c	6 Jul 2024 05:34:35 -0000	1.22
+@@ -4130,7 +4130,7 @@ qwx_pci_intr(void *arg)
+ 				ret = 1;
+ 		}
+ 
+-		if (test_bit(QWX_FLAG_EXT_IRQ_ENABLED, sc->sc_flags)) {
++		if (test_bit(ATH11K_FLAG_EXT_IRQ_ENABLED, sc->sc_flags)) {
+ 			for (i = 0; i < nitems(sc->ext_irq_grp); i++) {
+ 				if (qwx_dp_service_srng(sc, i))
+ 					ret = 1;
 PATCH
 }
 
