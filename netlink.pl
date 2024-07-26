@@ -696,7 +696,10 @@ sub tcpbench_server_startup {
     # requires echo 1 > /proc/sys/net/ipv6/bindv6only
     my @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'start');
     printcmd(@sshcmd)
-	and die "Start linux tcpbench server with '@sshcmd' failed: $?";
+	and warn "Start linux tcpbench server with '@sshcmd' failed: $?";
+    @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'rc-service', 'tcpbench', 'start');
+    printcmd(@sshcmd)
+	and warn "Start linux tcpbench server with '@sshcmd' failed: $?";
 
     my @cmd = ('rcctl', '-f', 'start', 'tcpbench');
     printcmd(@cmd)
@@ -705,6 +708,9 @@ sub tcpbench_server_startup {
 
 sub tcpbench_server_shutdown {
     my @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'stop');
+    printcmd(@sshcmd)
+	and die "Stop linux tcpbench server with '@sshcmd' failed: $?";
+    @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'rc-service', 'tcpbench', 'stop');
     printcmd(@sshcmd)
 	and die "Stop linux tcpbench server with '@sshcmd' failed: $?";
 
