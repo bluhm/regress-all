@@ -1120,14 +1120,6 @@ my @stats = (
     }, {
 	statcmd => [ 'netstat', '-nr' ],
     }, {
-	statcmd => [ 'ssh', $lnx_l_ssh, 'netstat', '-nr' ],
-    }, {
-	statcmd => [ 'ssh', $lnx_l_ssh, 'netstat', '-6nr' ],
-    }, {
-	statcmd => [ 'ssh', $lnx_r_ssh, 'netstat', '-nr' ],
-    }, {
-	statcmd => [ 'ssh', $lnx_r_ssh, 'netstat', '-6nr' ],
-    }, {
 	statcmd => [ 'vmstat', '-mv' ],
     }, {
 	statcmd => [ 'vmstat', '-s' ],
