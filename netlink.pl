@@ -317,7 +317,8 @@ printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
 printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
     if ($testmode{fragment4});
 
-tcpbench_service();
+eval { tcpbench_service() };
+eval { tcpbench_init() };
 tcpbench_rc();
 
 if ($modify eq 'nopf') {
@@ -1412,6 +1413,41 @@ EOF
     close($fh) or die $! ?
 	"Close pipe after writing tcpbench service failed: $!" :
 	"Command failed: $?";
+}
+
+sub tcpbench_init {
+    defined(my $pid = open(my $fh, '|-'))
+	or die "Open pipe for writing tcpbench init failed: $!";
+    if ($pid == 0) {
+	my @sshcmd = ('ssh', $lnx_r_ssh, 'cat', '-', '>',
+	    '/etc/init.d/tcpbench');
+	print "@sshcmd\n";
+	exec(@sshcmd);
+	warn "Exec '@sshcmd' failed: $!";
+	_exit(126);
+    }
+
+    print $fh <<'EOF';
+#!/sbin/openrc-run
+
+supervisor=supervise-daemon
+
+command="/usr/local/bin/tcpbench"
+command_args="-s $command_args"
+description="A tool for performing tcp throughput measurements"
+
+depend() {
+	need net
+	after firewall
+}
+EOF
+
+    close($fh) or die $! ?
+	"Close pipe after writing tcpbench init failed: $!" :
+	"Command failed: $?";
+    my @sshcmd = ('ssh', $lnx_r_ssh, 'chmod', '0555', '/etc/init.d/tcpbench');
+    printcmd("@sshcmd")
+	and die "Command '@sshcmd' failed: $?";
 }
 
 sub tcpbench_rc {
