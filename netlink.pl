@@ -317,65 +317,8 @@ printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
 printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
     if ($testmode{fragment4});
 
-# install tcpbench service
-defined(my $pid = open(my $lnx_tcpbench_service, '|-'))
-    or die "Open pipe for writing tcpbench service failed: $!";
-if ($pid == 0) {
-    my @sshcmd = ('ssh', $lnx_r_ssh, 'cat', '-', '>',
-	'/etc/systemd/system/tcpbench.service');
-    print "@sshcmd\n";
-    exec(@sshcmd);
-    warn "Exec '@sshcmd' failed: $!";
-    _exit(126);
-}
-print $lnx_tcpbench_service <<'EOF';
-[Unit]
-Description=OpenBSD tcpbench server
-After=network.target auditd.service
-
-[Service]
-ExecStart=/usr/bin/tcpbench -s
-ExecReload=/bin/kill -HUP $MAINPID
-KillMode=process
-Restart=on-failure
-RestartPreventExitStatus=255
-Type=simple
-
-[Install]
-WantedBy=multi-user.target
-Alias=tcpbench.service
-EOF
-
-close($lnx_tcpbench_service)
-    or die ($! ?
-    "Close pipe after writing tcpbench service failed: $!" :
-    "Command failed: $?");
-
-open(my $tcpbench_rc, '>', '/etc/rc.d/tcpbench')
-    or die "Open '/etc/rc.d/tcpbench' for writing failed: $!";
-
-print $tcpbench_rc <<'EOF';
-#!/bin/ksh
-
-daemon="/usr/bin/tcpbench"
-daemon_flags="-s"
-daemon_user=user
-
-. /etc/rc.d/rc.subr
-
-rc_reload=NO
-rc_bg=YES
-
-rc_start() {
-	rc_exec "${daemon} ${daemon_flags}" &
-}
-
-rc_cmd $1
-EOF
-close($tcpbench_rc)
-    or die "Close '/etc/rc.d/tcpbench' after writing failed: $!";
-
-printcmd('chmod', '555', '/etc/rc.d/tcpbench');
+tcpbench_service();
+tcpbench_rc();
 
 if ($modify eq 'nopf') {
     printcmd('/sbin/pfctl', '-d');
@@ -1434,4 +1377,68 @@ sub printcmd {
     my @cmd = @_;
     print "@cmd\n";
     system(@cmd);
+}
+
+sub tcpbench_service {
+    defined(my $pid = open(my $fh, '|-'))
+	or die "Open pipe for writing tcpbench service failed: $!";
+    if ($pid == 0) {
+	my @sshcmd = ('ssh', $lnx_r_ssh, 'cat', '-', '>',
+	    '/etc/systemd/system/tcpbench.service');
+	print "@sshcmd\n";
+	exec(@sshcmd);
+	warn "Exec '@sshcmd' failed: $!";
+	_exit(126);
+    }
+
+    print $fh <<'EOF';
+[Unit]
+Description=OpenBSD tcpbench server
+After=network.target auditd.service
+
+[Service]
+ExecStart=/usr/bin/tcpbench -s
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartPreventExitStatus=255
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
+Alias=tcpbench.service
+EOF
+
+    close($fh) or die $! ?
+	"Close pipe after writing tcpbench service failed: $!" :
+	"Command failed: $?";
+}
+
+sub tcpbench_rc {
+    open(my $fh, '>', "/etc/rc.d/tcpbench")
+	or die "Open '/etc/rc.d/tcpbench' for writing failed: $!";
+
+    print $fh <<'EOF';
+#!/bin/ksh
+
+daemon="/usr/bin/tcpbench"
+daemon_flags="-s"
+daemon_user=user
+
+. /etc/rc.d/rc.subr
+
+rc_reload=NO
+rc_bg=YES
+
+rc_start() {
+	rc_exec "${daemon} ${daemon_flags}" &
+}
+
+rc_cmd $1
+EOF
+
+    close($fh)
+	or die "Close '/etc/rc.d/tcpbench' after writing failed: $!";
+    chmod 0555, "/etc/rc.d/tcpbench"
+	or die "Chmod 0555 '/etc/rc.d/tcpbench' files: $!";
 }
