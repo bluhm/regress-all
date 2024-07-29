@@ -697,9 +697,6 @@ sub tcpbench_server_startup {
     my @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'start');
     printcmd(@sshcmd)
 	and warn "Start linux tcpbench server with '@sshcmd' failed: $?";
-    @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'rc-service', 'tcpbench', 'start');
-    printcmd(@sshcmd)
-	and warn "Start linux tcpbench server with '@sshcmd' failed: $?";
 
     my @cmd = ('rcctl', '-f', 'start', 'tcpbench');
     printcmd(@cmd)
@@ -708,9 +705,6 @@ sub tcpbench_server_startup {
 
 sub tcpbench_server_shutdown {
     my @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'service', 'tcpbench', 'stop');
-    printcmd(@sshcmd)
-	and die "Stop linux tcpbench server with '@sshcmd' failed: $?";
-    @sshcmd = ('ssh', '-f', $lnx_r_ssh, 'rc-service', 'tcpbench', 'stop');
     printcmd(@sshcmd)
 	and die "Stop linux tcpbench server with '@sshcmd' failed: $?";
 
