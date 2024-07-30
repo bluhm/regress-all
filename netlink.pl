@@ -30,7 +30,7 @@ use Netstat;
 my @allifaces = qw(none bnxt em igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gre veb vlan wg);
-my @alltestmodes = sort qw(all fragment icmp tcp udp splice);
+my @alltestmodes = sort qw(all fragment icmp tcp udp parallel splice);
 
 my %opts;
 getopts('c:e:i:m:t:v', \%opts) or do {
@@ -1007,6 +1007,100 @@ push @tests, (
 	parser => \&udpbench_parser,
     }
 ) if ($testmode{fragment6});
+foreach my $frame (0, 1, 2) {
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B1000000000',
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i3',
+	    '-N10',
+	    "-c$lnx_l_ssh",
+	    "-a$obsd_l_addr_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{parallel4};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B1000000000',
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i3',
+	    '-N10',
+	    "-c$lnx_l_ssh",
+	    "-a$obsd_l_addr6_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{parallel6};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B1000000000',
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i3',
+	    '-N10',
+	    "-s$lnx_r_ssh",
+	    "-a$lnx_r_addr_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{parallel4};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B1000000000',
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i3',
+	    '-N10',
+	    "-s$lnx_r_ssh",
+	    "-a$lnx_r_addr6_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{parallel6};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B1000000000',
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i3',
+	    '-N10',
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-a$lnx_r_addr_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{parallel4};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B1000000000',
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i3',
+	    '-N10',
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-a$lnx_r_addr6_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{parallel6};
+}
 push @tests, {
     testcmd => \&tcpbench_server_shutdown,
 } if ($testmode{tcp4} || $testmode{tcp6} ||
