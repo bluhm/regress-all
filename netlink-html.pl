@@ -197,7 +197,7 @@ sub html_hier_test_head_utilization {
 	    }
 	    print $html "    <$te class=\"hier $hier\"$title>$name</$te>\n";
 	}
-	print $html "  </tr>\n";
+	print $html "    <th></th>\n  </tr>\n";
     }
 }
 
@@ -321,6 +321,7 @@ sub html_hier_test_row_utilization {
 	    " style=\"background-color: rgba(128, 255, 128, %.1f)\"", $rate);
 	printf $html "    <td$class$style$title>%.1f%%</td>\n", $rate * 100;
     }
+    print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     print $html "  </tr>\n";
 }
 
