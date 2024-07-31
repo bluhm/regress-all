@@ -36,7 +36,7 @@ my @allmodifymodes = qw(none jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gre veb vlan wg);
 my @allsetupmodes = (qw(build install upgrade sysupgrade keep kernel reboot
     tools), "cvs,build", "cvs,kernel");
-my @alltestmodes = qw(all fragment icmp tcp udp splice);
+my @alltestmodes = qw(all icmp tcp udp splice);
 
 my %opts;
 getopts('b:c:d:D:h:i:m:N:P:ps:v', \%opts) or do {

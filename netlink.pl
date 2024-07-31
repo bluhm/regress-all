@@ -30,7 +30,7 @@ use Netstat;
 my @allifaces = qw(none bnxt em igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gre veb vlan wg);
-my @alltestmodes = sort qw(all fragment icmp tcp udp parallel splice);
+my @alltestmodes = sort qw(all icmp tcp udp splice);
 
 my %opts;
 getopts('c:e:i:m:t:v', \%opts) or do {
@@ -308,14 +308,12 @@ printcmd('ssh', $lnx_l_ssh, 'sysctl','net.ipv6.bindv6only=1');
 printcmd('ssh', $lnx_r_ssh, 'sysctl','net.ipv6.bindv6only=1');
 
 # allow fragment reassembly to use up to 1GiB of memory
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv6.ip6frag_high_thresh=1073741824')
-    if ($testmode{fragment6});
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv6.ip6frag_high_thresh=1073741824')
-    if ($testmode{fragment6});
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
-    if ($testmode{fragment4});
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824')
-    if ($testmode{fragment4});
+printcmd('ssh', $lnx_l_ssh, 'sysctl',
+    'net.ipv6.ip6frag_high_thresh=1073741824');
+printcmd('ssh', $lnx_r_ssh, 'sysctl',
+    'net.ipv6.ip6frag_high_thresh=1073741824');
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824');
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824');
 
 eval { tcpbench_service() };
 eval { tcpbench_init() };
@@ -923,183 +921,101 @@ push @tests, (
 	finalize => \&tcpbench_finalize,
     }
 ) if ($testmode{tcp6});
-push @tests, (
-    {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_l_ssh,
-	    'recv', $obsd_l_addr],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l1472', '-t10', '-r', $lnx_l_ssh,
-	    'recv', $obsd_l_addr],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_r_ssh,
-	    'send', $lnx_r_addr],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l1472', '-t10', '-r', $lnx_r_ssh,
-	    'send', $lnx_r_addr],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l36', '-t10',
-	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1472', '-t10',
-	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr],
-	parser => \&udpbench_parser,
+foreach my $parallel (0, 10) {
+    foreach my $frame (0, 1, 2) {
+	push @tests, {
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		($parallel ? ("-N$parallel") : ()),
+		"-c$lnx_l_ssh",
+		"-a$obsd_l_addr_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	} if $testmode{udp4};
+	push @tests, {
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		($parallel ? ("-N$parallel") : ()),
+		"-c$lnx_l_ssh",
+		"-a$obsd_l_addr6_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	} if $testmode{udp6};
+	push @tests, {
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		($parallel ? ("-N$parallel") : ()),
+		"-c$lnx_l_ssh",
+		"-s$lnx_r_ssh",
+		"-a$lnx_r_addr_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	} if $testmode{udp4};
+	push @tests, {
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		($parallel ? ("-N$parallel") : ()),
+		"-c$lnx_l_ssh",
+		"-s$lnx_r_ssh",
+		"-a$lnx_r_addr6_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	} if $testmode{udp6};
+	push @tests, {
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		($parallel ? ("-N$parallel") : ()),
+		"-s$lnx_r_ssh",
+		"-a$lnx_r_addr_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	} if $testmode{udp4};
+	push @tests, {
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		($parallel ? ("-N$parallel") : ()),
+		"-s$lnx_r_ssh",
+		"-a$lnx_r_addr6_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	} if $testmode{udp6};
     }
-) if ($testmode{udp4});
-push @tests, (
-    {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_l_ssh,
-	    'recv', $obsd_l_addr6],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l1452', '-t10', '-r', $lnx_l_ssh,
-	    'recv', $obsd_l_addr6],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l36', '-t10', '-r', $lnx_r_ssh,
-	    'send', $lnx_r_addr6],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l1452', '-t10', '-r', $lnx_r_ssh,
-	    'send', $lnx_r_addr6],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l36', '-t10',
-	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr6],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1452', '-t10',
-	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr6],
-	parser => \&udpbench_parser,
-    }
-) if ($testmode{udp6});
-push @tests, (
-    {
-	testcmd => ['udpbench', '-l1473', '-t10', '-r', $lnx_l_ssh,
-	    'recv', $obsd_l_addr],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l1473', '-t10', '-r', $lnx_r_ssh,
-	    'send', $lnx_r_addr],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1473', '-t10',
-	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr],
-	parser => \&udpbench_parser,
-    }
-) if ($testmode{fragment4});
-push @tests, (
-    {
-	testcmd => ['udpbench', '-l1453', '-t10', '-r', $lnx_l_ssh,
-	    'recv', $obsd_l_addr6],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['udpbench', '-l1453', '-t10', '-r', $lnx_r_ssh,
-	    'send', $lnx_r_addr6],
-	parser => \&udpbench_parser,
-    }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'udpbench', '-l1453', '-t10',
-	    '-r', $lnx_r_ssh, 'send', $lnx_r_addr6],
-	parser => \&udpbench_parser,
-    }
-) if ($testmode{fragment6});
-foreach my $frame (0, 1, 2) {
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    '-B1000000000',
-	    '-b1000000',
-	    '-d1',
-	    "-f$frame",
-	    '-i0',
-	    '-N10',
-	    "-c$lnx_l_ssh",
-	    "-a$obsd_l_addr_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{parallel4};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    '-B1000000000',
-	    '-b1000000',
-	    '-d1',
-	    "-f$frame",
-	    '-i0',
-	    '-N10',
-	    "-c$lnx_l_ssh",
-	    "-a$obsd_l_addr6_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{parallel6};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    '-B1000000000',
-	    '-b1000000',
-	    '-d1',
-	    "-f$frame",
-	    '-i0',
-	    '-N10',
-	    "-s$lnx_r_ssh",
-	    "-a$lnx_r_addr_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{parallel4};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    '-B1000000000',
-	    '-b1000000',
-	    '-d1',
-	    "-f$frame",
-	    '-i0',
-	    '-N10',
-	    "-s$lnx_r_ssh",
-	    "-a$lnx_r_addr6_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{parallel6};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    '-B1000000000',
-	    '-b1000000',
-	    '-d1',
-	    "-f$frame",
-	    '-i0',
-	    '-N10',
-	    "-c$lnx_l_ssh",
-	    "-s$lnx_r_ssh",
-	    "-a$lnx_r_addr_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{parallel4};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    '-B1000000000',
-	    '-b1000000',
-	    '-d1',
-	    "-f$frame",
-	    '-i0',
-	    '-N10',
-	    "-c$lnx_l_ssh",
-	    "-s$lnx_r_ssh",
-	    "-a$lnx_r_addr6_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{parallel6};
 }
 push @tests, {
     testcmd => \&tcpbench_server_shutdown,
