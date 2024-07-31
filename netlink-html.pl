@@ -167,6 +167,8 @@ sub html_hier_test_head {
 	    } elsif ($hier eq "patch" && $hv->{diff}) {
 		my $link = uri_escape($hv->{diff}, "^A-Za-z0-9\-\._~/");
 		$name = "<a href=\"../$link\">$name</a>";
+	    } else {
+		$name =~ s/.*-none$//;
 	    }
 	    print $html "    <th class=\"hier\"$title>$name</th>\n";
 	}
@@ -194,6 +196,8 @@ sub html_hier_test_head_utilization {
 	    } elsif ($hier eq "patch" && $hv->{diff}) {
 		my $link = uri_escape($hv->{diff}, "^A-Za-z0-9\-\._~/");
 		$name = "<a href=\"../$link\">$name</a>";
+	    } else {
+		$name =~ s/.*-none$//;
 	    }
 	    print $html "    <$te class=\"hier $hier\"$title>$name</$te>\n";
 	}
@@ -553,9 +557,6 @@ sub glob_result_files {
 	if (defined) {
 	    warn "Invalid subdir '$_' in result '$File::Find::name'";
 	    return;
-	}
-	foreach (values %f) {
-	    delete $f{$1} if /(.*)-none$/;
 	}
 	$f{dir} = $File::Find::dir;
 	$f{name} = $File::Find::name;
