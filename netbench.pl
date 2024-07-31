@@ -216,7 +216,7 @@ sub start_server_udp {
     push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-d$opts{d}" if defined($opts{d});
-    push @cmd, "-i0" if defined($opts{i});
+    push @cmd, "-i$opts{i}" if defined($opts{i});
     push @cmd, "-l$paylen" if defined($paylen);
     push @cmd, "-m$opts{m}" if defined($opts{m});
     push @cmd, "-N$opts{N}" if defined($opts{N});
@@ -237,7 +237,7 @@ sub start_client_udp {
     push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
     push @cmd, "-d$opts{d}" if defined($opts{d});
-    push @cmd, "-i0" if defined($opts{i});
+    push @cmd, "-i$opts{i}" if defined($opts{i});
     push @cmd, "-l$paylen" if defined($paylen);
     push @cmd, "-m$opts{m}" if defined($opts{m});
     push @cmd, "-N$opts{N}" if defined($opts{N});
@@ -261,7 +261,7 @@ sub start_relay {
     push @cmd, '-c' if $testmode{copy};
     push @cmd, '-u' if $testmode{udp};
     push @cmd, "-b$opts{b}" if defined($opts{b});
-    push @cmd, "-i0" if defined($opts{i});
+    push @cmd, "-i$opts{i}" if defined($opts{i});
     push @cmd, "-N$opts{N}" if defined($opts{N}) && $testmode{udp};
     push @cmd, "-n$opts{N}" if defined($opts{N}) && $testmode{tcp};
     push @cmd, "-t$timeout" if defined($opts{t});
