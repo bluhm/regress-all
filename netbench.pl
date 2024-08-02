@@ -29,19 +29,21 @@ my @alltestmodes = qw(
 );
 
 my %opts;
-getopts('A:a:B:b:c:d:f:i:l:m:N:P:s:t:v', \%opts) or do {
+getopts('A:a:B:b:C:c:d:f:i:l:m:N:P:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: netbench.pl [-v] [-A address] -a address [-B bitrate] [-b bufsize]
-	[-c client] [-d delay] [-f frames] [-i idle] [-l length] [-m mmsglen]
-	[-P packetrate] [-s server] [-t timeout] [test ...]
+	[-C pseudo] [-c client] [-d delay] [-f frames] [-i idle] [-l length]
+	[-m mmsglen] [-P packetrate] [-p pseudo] [-s server] [-t timeout]
+	[test ...]
     -A address	IP address of relay
     -a address	IP address for packet destination
     -B bitrate	bits per seconds send rate
     -b bufsize	set size of send and receive buffer
+    -C pseudo	pseudo network device changes packet length
+    -c client	connect via ssh to start packet generator
     -d delay	wait for setup before sending
     -f frames	calculate udp payload to fragment packet into frames
     -i idle	idle timeout before receiving stops
-    -c client	connect via ssh to start packet generator
     -m mmsglen	number of mmsghdr for sendmmsg or recvmmsg
     -N repeat	run instances in parallel with incremented address
     -P packet	packets per seconds send rate
@@ -62,6 +64,7 @@ my $relay_addr = $opts{A};
     or die "Relay address must be IPv4 or IPv6";
 my $client_ssh = $opts{c};
 my $server_ssh = $opts{s};
+my $pseudo = $opts{C};
 
 @ARGV or die "No test mode specified";
 my %testmode;
@@ -95,17 +98,27 @@ if (defined($opts{f})) {
 	or die "Use either -f frames or -l lenght";
     $opts{f} =~ /\d+$/
 	or die "Frames must be number";
+    my $mtu = 1500;
+    if ($pseudo) {
+	if ($pseudo eq "gif") {
+		$mtu = 1480;
+	} elsif ($pseudo eq "gif6") {
+		$mtu = 1460;
+	} elsif ($pseudo eq "gre") {
+		$mtu = 1472;
+	}
+    }
     if ($addr =~ /:/) {
 	if ($opts{f} <= 1) {
 	    # ether frame minus ip6 header
-	    $paylen = (1500 - 40) * $opts{f};
+	    $paylen = ($mtu - 40) * $opts{f};
 	} else {
 	    # ether frame minus ip6 header minus fragment header minus round
-	    $paylen = (1500 - 40 - 8 - 4) * $opts{f};
+	    $paylen = ($mtu - 40 - 8 - 4) * $opts{f};
 	}
     } else {
 	# ether frame minus ip header
-	$paylen = (1500 - 20) * $opts{f};
+	$paylen = ($mtu - 20) * $opts{f};
     }
     # minus udp header
     $paylen = $paylen < 8 ? 0 : $paylen - 8;
@@ -215,6 +228,7 @@ sub start_server_udp {
     my @cmd = ('udpbench');
     push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
+    push @cmd, "-C$opts{C}" if defined($opts{C});
     push @cmd, "-d$opts{d}" if defined($opts{d});
     push @cmd, "-i$opts{i}" if defined($opts{i});
     push @cmd, "-l$paylen" if defined($paylen);

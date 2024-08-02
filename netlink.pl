@@ -423,9 +423,9 @@ if ($pseudo eq 'aggr') {
     printcmd('ifconfig', $obsd_r_if, 'inet', "$obsd_r_tunnel_addr/24");
     printcmd('ifconfig', 'gif0', 'create');
     printcmd('ifconfig', 'gif1', 'create');
-    printcmd('ifconfig', 'gif0',
+    printcmd('ifconfig', 'gif0', 'mtu', '1480',
 	'tunnel', $obsd_l_tunnel_addr, $lnx_l_tunnel_addr);
-    printcmd('ifconfig', 'gif1',
+    printcmd('ifconfig', 'gif1', 'mtu', '1480',
 	'tunnel', $obsd_r_tunnel_addr, $lnx_r_tunnel_addr);
     printcmd('ifconfig', $obsd_l_if, 'up');
     printcmd('ifconfig', $obsd_r_if, 'up');
@@ -1142,6 +1142,9 @@ foreach my $t (@tests) {
 
     my @runcmd = @{$t->{testcmd}};
     (my $test = join("_", @runcmd)) =~ s,/.*/,,;
+    if ($pseudo && $runcmd[0] eq $netbench) {
+	splice(@runcmd, 1, 0, '-C', $pseudo);
+    }
 
     my $begin = Time::HiRes::time();
     my $date = strftime("%FT%TZ", gmtime($begin));
