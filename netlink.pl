@@ -1192,7 +1192,7 @@ foreach my $t (@tests) {
     my @runcmd = @{$t->{testcmd}};
     (my $test = join("_", @runcmd)) =~ s,/.*/,,;
     if ($pseudo && $runcmd[0] eq $netbench) {
-	splice(@runcmd, 1, 0, '-C', $pseudo);
+	splice(@runcmd, 1, 0, "-C$pseudo");
     }
 
     my $begin = Time::HiRes::time();
