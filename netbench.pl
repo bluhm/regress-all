@@ -250,6 +250,7 @@ sub start_client_udp {
     my @cmd = ('udpbench');
     push @cmd, "-B$opts{B}" if defined($opts{B});
     push @cmd, "-b$opts{b}" if defined($opts{b});
+    push @cmd, "-C$opts{C}" if defined($opts{C});
     push @cmd, "-d$opts{d}" if defined($opts{d});
     push @cmd, "-i$opts{i}" if defined($opts{i});
     push @cmd, "-l$paylen" if defined($paylen);
