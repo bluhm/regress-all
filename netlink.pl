@@ -372,6 +372,7 @@ foreach my $if (sort keys %hwfeatures) {
     my $mtu = 1500;
     if ($modify eq 'jumbo' && $hwhardmtu) {
 	($mtu = $hwhardmtu) =~ s/...$/000/ if $hwhardmtu >= 2000;
+	$mtu = 10000 if $mtu > 10000;
 	$lnx_l_mtu = $mtu if $if eq $obsd_l_if;
 	$lnx_r_mtu = $mtu if $if eq $obsd_r_if;
     }
