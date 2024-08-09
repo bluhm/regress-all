@@ -614,7 +614,8 @@ sub parse_result_files {
 		or next;
 	    $hiers{$hier} = $subdir;
 	}
-	my $hk = join($;, map { $file->{$_} || "" } @HIERARCHY);
+	my $hk = join($;, map { local $_ = $file->{$_} || ""; s/-none$/-/; $_; }
+	    @HIERARCHY);
 	$hiers{key} = $hk;
 	my $hv = $H{$date} ||= [];
 	push @$hv, \%hiers;
