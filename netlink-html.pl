@@ -241,8 +241,8 @@ sub html_hier_test_row {
 	print $html "    <th>$name0</th>\n";
 	foreach my $hv (@hiers) {
 	    my $tv = $td->{$hv->{key}};
-	    my $vv = $vt->{$hv->{key}};
 	    if ($tv && ($tv->{status} =~ /^X?PASS$/)) {
+		my $vv = $vt->{$hv->{key}};
 		print $html "    <td>$vv->[$i]{number}</td>\n";
 	    } else {
 		print $html "    <td></td>\n";
@@ -262,20 +262,18 @@ sub html_hier_test_row_utilization {
 
     my $valsum = 0;
     foreach my $hv (@hiers) {
-	my $value = 0;
-	my $status;
+	my $tv = $td->{$hv->{key}}
+	    or next;
+	my $status = $tv->{status} || "NONE";
+	$status =~ /^X?PASS$/
+	    or next;
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
 	    if ($value0->{name} eq "recv" || $maxval == 1) {
-		my $tv = $td->{$hv->{key}};
 		my $vv = $vt->{$hv->{key}};
-		$status = $tv->{status} || "NONE";
-		if ($tv && ($status eq 'PASS')) {
-		    $value = $vv->[$i]{number};
-		}
+		$valsum += $vv->[$i]{number};
 	    }
 	}
-	$valsum += $value;
     }
     return if ($valsum == 0);
 
@@ -288,16 +286,16 @@ sub html_hier_test_row_utilization {
 	    "$TESTDESC{$test}{$testkey}</td>\n";
     }
     foreach my $hv (@hiers) {
-	my ($status, $unit, $iface, $value);
+	my $tv = $td->{$hv->{key}};
+	my $status = $tv->{status} || "NONE";
+	my ($unit, $iface, $value);
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
 	    if ($value0->{name} eq "recv" || $maxval == 1) {
-		my $tv = $td->{$hv->{key}};
-		my $vv = $vt->{$hv->{key}};
-		$status = $tv->{status} || "NONE";
 		$unit = $value0->{unit} || "";
 		$iface = $hv->{iface};
-		if ($tv && ($status eq 'PASS')) {
+		if ($status =~ /^X?PASS$/) {
+		    my $vv = $vt->{$hv->{key}};
 		    $value = $vv->[$i]{number};
 		}
 	    }
@@ -321,8 +319,9 @@ sub html_hier_test_row_utilization {
 	$iface =~ s/\d+$//;
 	my $linerate = $linerates{$iface} || 10 ** 9;
 	my $rate = $value / $linerate;
+	my $rgb = $status eq 'PASS' ? "128, 255, 128" : "255, 128, 128";
 	my $style = sprintf(
-	    " style=\"background-color: rgba(128, 255, 128, %.1f)\"", $rate);
+	    " style=\"background-color: rgba($rgb, %.1f)\"", $rate);
 	printf $html "    <td$class$style$title>%.1f%%</td>\n", $rate * 100;
     }
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
