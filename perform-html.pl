@@ -32,7 +32,7 @@ use URI::Escape;
 use lib dirname($0);
 use Buildquirks;
 use Html;
-use Testvars qw(@PLOTORDER %TESTPLOT %TESTORDER %TESTNAME);
+use Testvars qw(@PLOTORDER %TESTPLOT %TESTNAME);
 
 my $fgdir = "/home/bluhm/github/FlameGraph";  # XXX
 
@@ -407,10 +407,6 @@ sub parse_result_files {
     }
 }
 
-sub list_plots {
-    return @PLOTORDER;
-}
-
 # open files and names by categories
 # $F{all}[$handle, $path]		# array with file handle and path
 # $F{$plot}[$handle, $path]
@@ -543,27 +539,13 @@ sub write_data_files {
     close_data();
 }
 
-sub list_tests {
-    foreach my $test (keys %T) {
-	next if $TESTORDER{$test};
-	warn "testorder missing test $test\n";
-	$TESTORDER{$test} = 0;
-    }
-    return reverse sort { $TESTORDER{$b} <=> $TESTORDER{$a} } keys %T;
-}
-
-sub list_dates {
-    my @dates = shift || reverse sort keys %D;
-    return @dates;
-}
-
 # create gnuplot graphs for date
 sub create_gnuplot_date_files {
     my @dates = shift || reverse sort keys %V;
 
     foreach my $date (@dates) {
 	my $reldate = $D{$date}{reldate};
-	foreach my $plot (list_plots()) {
+	foreach my $plot (@PLOTORDER) {
 	    next if !$opts{d} && !$opts{g} && -f "$reldate/gnuplot/$plot.png";
 	    next unless -r "$reldate/gnuplot/$plot.data";
 	    print "." if $verbose;
@@ -581,7 +563,7 @@ sub create_gnuplot_release_files {
     my @releases = shift || reverse sort keys %R;
 
     foreach my $release (@releases) {
-	foreach my $plot (list_plots()) {
+	foreach my $plot (@PLOTORDER) {
 	    next if !$opts{r} && !$opts{g} && -f "$release/gnuplot/$plot.png";
 	    next unless -r "$release/gnuplot/$plot.data";
 	    print "." if $verbose;
@@ -604,7 +586,7 @@ sub create_gnuplot_all_files {
     }
 
     my %releases = quirk_releases();
-    foreach my $plot (list_plots()) {
+    foreach my $plot (@PLOTORDER) {
 	print "." if $verbose;
 	my @cmd = ("$performdir/bin/gnuplot.pl", "-p", "$plot");
 	system(@cmd)
@@ -626,6 +608,7 @@ sub create_gnuplot_all_files {
 # create cvs log file with commits after previous cvsdates
 sub create_cvslog_files {
     my @dates = shift || reverse sort keys %D;
+
     foreach my $dv (@D{@dates}) {
 	my %cvsdates;
 	@cvsdates{@{$dv->{cvsdates}}} = ();
@@ -671,6 +654,7 @@ sub create_cvslog_files {
 
 sub create_nmbsd_files {
     my @dates = shift || reverse sort keys %D;
+
     foreach my $date (@dates) {
 	my $dv = $D{$date};
 	next if ($dv->{stepconf}{kernelmodes} || "") ne "align";
@@ -736,6 +720,7 @@ sub diff_stat_file {
 
 sub create_btrace_files {
     my @dates = shift || reverse sort keys %B;
+
     foreach my $date (@dates) {
 	my $dv = $B{$date}
 	    or next;
@@ -1527,8 +1512,8 @@ IMAGE
 }
 
 sub write_html_repeat_files {
-    my @dates = list_dates(shift);
-    my @tests = list_tests();
+    my @dates = shift || reverse sort keys %D;
+    my @tests = sort { $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
 
     foreach my $date (@dates) {
 	my $dv = $D{$date};
@@ -1573,9 +1558,8 @@ sub write_html_repeat_files {
 }
 
 sub write_html_cvsdate_files {
-    my @dates = list_dates(shift);
-    my @tests = list_tests();
-    my @plots = list_plots();
+    my @dates = shift || reverse sort keys %D;
+    my @tests = sort { $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
 
     foreach my $date (@dates) {
 	print "." if $verbose;
@@ -1608,7 +1592,7 @@ sub write_html_cvsdate_files {
 	print $html "</table>\n";
 
 	print $html "<table>\n";
-	foreach my $plot (@plots) {
+	foreach my $plot (@PLOTORDER) {
 	    next unless -f "$reldate/gnuplot/$plot.png";
 	    print $html "  <tr class=\"IMG\">\n";
 	    html_plot_data($html, $plot);
@@ -1625,13 +1609,12 @@ sub write_html_cvsdate_files {
 
 sub write_html_release_files {
     my @releases = shift || reverse sort keys %R;
-    my @plots = list_plots();
 
     foreach my $release (@releases) {
 	print "." if $verbose;
 	my $rv = $R{$release};
 	my @dates = reverse sort keys %{$rv->{dates}};
-	my @tests = reverse sort { $TESTORDER{$b} <=> $TESTORDER{$a} }
+	my @tests = sort { $TESTNAME{$a} cmp $TESTNAME{$b} }
 	    keys %{$rv->{tests}};
 
 	my ($html, $htmlfile) = html_open("$release/perform");
@@ -1656,7 +1639,7 @@ sub write_html_release_files {
 	print $html "</table>\n";
 
 	print $html "<table>\n";
-	foreach my $plot (@plots) {
+	foreach my $plot (@PLOTORDER) {
 	    next unless -f "$release/gnuplot/$plot.png";
 	    print $html "  <tr class=\"IMG\">\n";
 	    html_plot_data($html, $plot);
@@ -1726,8 +1709,7 @@ sub list_reldates {
 
 sub write_html_date_file {
     my @dates = list_reldates();
-    my @tests = list_tests();
-    my @plots = list_plots();
+    my @tests = sort { $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
 
     my ($html, $htmlfile) = html_open("perform");
     my @releases = glob("[0-9]*.[0-9]/perform.html");
@@ -1754,7 +1736,7 @@ sub write_html_date_file {
 
     print "." if $verbose;
     print $html "<table>\n";
-    foreach my $plot (@plots) {
+    foreach my $plot (@PLOTORDER) {
 	print $html "  <tr>\n";
 	print $html "    <th></th>\n";
 	print $html "    <th>all</th>\n";
