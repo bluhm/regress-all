@@ -1702,6 +1702,9 @@ sub list_reldates {
 	);
 	# use the date hash to store releases to iterate over both
 	$D{$release} = \%rv;
+	foreach my $test (keys %{$R{$release}{tests}}) {
+	    $T{$test}{$release} = { status => "EXIST" };
+	}
 	push @reldates, $release;
     }
     return @reldates;

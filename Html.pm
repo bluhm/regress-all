@@ -93,7 +93,7 @@ sub html_header {
     td.XPASS {background-color: #ff80c0;}
     td.FAIL {background-color: #ff8080;}
     td.NOEXIT, td.NOTERM, td.NORUN {background-color: #ffff80;}
-    td.NOLOG, td.NOCLEAN, td.NOEXIST {background-color: #ffffff;}
+    td.NOLOG, td.NOCLEAN, td.NOEXIST, td.EXIST {background-color: #ffffff;}
     td.status, td.status a {color: black;}
     td.outlier {color: red;}
     iframe {width: 100%; border: none; min-height: 1200px;}
@@ -140,7 +140,8 @@ sub status2severity {
 	$status eq 'NORUN'   ?  8 :
 	$status eq 'NOLOG'   ?  9 :
 	$status eq 'NOCLEAN' ? 10 :
-	$status eq 'NOEXIST' ? 11 : 12;
+	$status eq 'NOEXIST' ? 11 :
+	$status eq 'EXIST' ? 12 : 13;
     if ($severity == 12 && ! $badstatus{$status}) {
 	$badstatus{$status} = 1;
 	warn "unknown status '$status'\n";
@@ -236,6 +237,12 @@ TABLE
   <tr>
     <td class="status NOEXIST">NOEXIST</td>
     <td>test directory not found</td>
+  </tr>
+TABLE
+    print $html <<"TABLE" if $type eq "perform";
+  <tr>
+    <td class="status EXIST">EXIST</td>
+    <td>some test result exists</td>
   </tr>
 TABLE
     print $html <<"TABLE";
