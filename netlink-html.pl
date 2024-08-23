@@ -269,7 +269,7 @@ sub html_hier_test_row_utilization {
 	    or next;
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
-	    if ($value0->{name} eq "recv" || $maxval == 1) {
+	    if ($value0 && $value0->{name} eq "recv" || $maxval == 1) {
 		my $vv = $vt->{$hv->{key}};
 		$valsum += $vv->[$i]{number};
 	    }
