@@ -844,7 +844,7 @@ sub pingflood_parser {
 	print $tr "SUBVALUE $2 packet receive\n";
 	print $tr "SUBVALUE $pingflood_loss percent loss\n";
     }
-    if ($line =~ m{^rtt min/avg/max/mdev = ([\.\d]+)/([\.\d]+)/([\.\d]+)/([\.\d]+) ms, ipg/ewma ([\.\d]+)/([\.\d]+) ms$}) {
+    if ($line =~ m{^rtt min/avg/max/mdev = ([\.\d]+)/([\.\d]+)/([\.\d]+)/([\.\d]+) ms, (:?pipe \d+, )?ipg/ewma ([\.\d]+)/([\.\d]+) ms$}) {
 	print $tr "SUBVALUE $1 ms min\n";
 	print $tr "VALUE $2 ms avg\n";
 	print $tr "VALUE $3 ms max\n";
