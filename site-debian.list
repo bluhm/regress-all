@@ -1,8 +1,8 @@
+/etc/apt/apt.conf
+/etc/apt/sources.list
 /etc/hostname
-/etc/hosts
 /etc/network/interfaces
-/etc/ntpd.conf
-/etc/profile.d/proxy.sh
+/etc/openntpd/ntpd.conf
 /etc/resolv.conf
 /etc/ssh/ssh_host_ecdsa_key
 /etc/ssh/ssh_host_ecdsa_key.pub
@@ -11,7 +11,6 @@
 /etc/ssh/ssh_host_rsa_key
 /etc/ssh/ssh_host_rsa_key.pub
 /etc/ssh/ssh_known_hosts
-/etc/update-extlinux.conf
 /root/.ssh/authorized_keys
 /root/.ssh/id_rsa
 /root/.ssh/id_rsa.pub
