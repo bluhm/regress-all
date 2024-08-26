@@ -1,7 +1,7 @@
 cd /dev && sh ./MAKEDEV `jot 10 0 | sed s/^/tap/`
-groupadd -g 999 vmm
-useradd -G vmm -u 1000 ot60
-useradd -G vmm -u 1001 lt61
-useradd -G vmm -u 1002 ot62
-useradd -G vmm -u 1003 lt63
-useradd -G vmm -u 1004 ot64
+-groupadd -g 999 vmm
+-useradd -G vmm -u 1000 ot60
+-useradd -G vmm -u 1001 lt61
+-useradd -G vmm -u 1002 ot62
+-useradd -G vmm -u 1003 lt63
+-useradd -G vmm -u 1004 ot64
