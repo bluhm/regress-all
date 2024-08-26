@@ -1,5 +1,6 @@
 /etc/apt/apt.conf
 /etc/apt/sources.list
+/etc/default/grub
 /etc/hostname
 /etc/network/interfaces
 /etc/openntpd/ntpd.conf
