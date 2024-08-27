@@ -474,8 +474,8 @@ HEADER
     print $html "    <th></th>\n  </tr>\n";
     print $html "  </thead>\n  <tbody>\n";
 
-    my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} || $a cmp $b }
-	keys %T;
+    my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} ||
+	$TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
     foreach my $test (@tests) {
 	print "." if $verbose;
 	(my $testcmd = $test) =~ s/_/ /g;
