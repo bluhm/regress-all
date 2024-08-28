@@ -1183,8 +1183,10 @@ my @stats = (
 );
 
 local $SIG{ALRM} = 'IGNORE';
+my $i = 0;
 TEST:
 foreach my $t (@tests) {
+    printf("test %d/%d\n", ++$i, scalar @tests);
     if (ref $t->{testcmd} eq 'CODE') {
 	$t->{testcmd}->();
 	next;
