@@ -70,10 +70,10 @@ sub parse {
 	or die "Open '$fname' for reading failed: $!";
 
     while(<$fh>) {
-	if ($_ =~ /^(\w+):$/) {
+	if (/^(\w+):$/) {
 	    $l1 = canonicalize_key $1;
 	    $netstat{$l1} = {}
-	} elsif ($_ =~ /^			([^:	]+): (\d+)$/) {
+	} elsif (/^			([^:	]+): (\d+)$/) {
 	    my $k = canonicalize_key($1);
 	    if (ref($netstat{$l1}{$l2}{$l3}) ne "HASH") {
 		my $total = $netstat{$l1}{$l2}{$l3};
@@ -81,7 +81,7 @@ sub parse {
 		$netstat{$l1}{$l2}{$l3}{total} = $total;
 	    }
 	    $netstat{$l1}{$l2}{$l3}{$k} = $2;
-	} elsif ($_ =~ /^		(\d+) (.+)$/) {
+	} elsif (/^		(\d+) (.+)$/) {
 	    $l3 = canonicalize_key $2;
 	    my $v = $1;
 	    if (ref($netstat{$l1}{$l2}) ne "HASH") {
@@ -98,10 +98,10 @@ sub parse {
 		$netstat{$l1}{$l2}{$k2} = $v2;
 	    }
 	    $netstat{$l1}{$l2}{$l3} = $v;
-	} elsif ($_ =~ /^		([^:]+): (\d+)$/) {
+	} elsif (/^		([^:]+): (\d+)$/) {
 	    $l3 = canonicalize_key $1;
 	    $netstat{$l1}{$l2}{$l3} = $2;
-	} elsif ($_ =~ /^	(\d+) (.+)$/) {
+	} elsif (/^	(\d+) (.+)$/) {
 	    my $v = $1;
 	    $l2 = canonicalize_key $2;
 	    if ($l2 =~ /\((.+)\)/ && $1 =~ /\d/) {
@@ -113,7 +113,7 @@ sub parse {
 		$netstat{$l1}{$k2} = $v2;
 	    }
 	    $netstat{$l1}{$l2} = $v;
-	} elsif ($_ =~ /^	([^:]+):?$/) {
+	} elsif (/^	([^:]+):?$/) {
 	    $l2 = canonicalize_key $1;
 	    $netstat{$l1}{$l2} = {};
 	} else {
