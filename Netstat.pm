@@ -134,21 +134,21 @@ sub myprint {
 	    my $l2 = $l1->{$k};
 	    foreach my $k2 (sort keys %$l2) {
 		if (ref($l2->{$k2}) eq "HASH") {
-		    print $fh ("	$k2:\n");
+		    print $fh ("\t$k2:\n");
 		    my $l3 = $l2->{$k2};
 		    foreach my $k3 (sort keys %$l3) {
 			if (ref($l3->{$k3}) eq "HASH") {
 			    my $l4 = $l3->{$k3};
-			    print $fh ("		$k3:\n");
+			    print $fh ("\t\t$k3:\n");
 			    foreach my $k4 (sort keys %$l4) {
-				print $fh ("			$k4: $l4->{$k4}\n");
+				print $fh ("\t\t\t$k4: $l4->{$k4}\n");
 			    }
 			} else {
-			    print $fh ("		$k3: $l3->{$k3}\n");
+			    print $fh ("\t\t$k3: $l3->{$k3}\n");
 			}
 		    }
 		} else {
-		    print $fh ("	$k2: $l2->{$k2}\n");
+		    print $fh ("\t$k2: $l2->{$k2}\n");
 		}
 	    }
 	} else {
