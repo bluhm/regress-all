@@ -235,7 +235,7 @@ sub good {
     generate_diff_netstat($test);
 
     my $pass = "PASS";
-    my $netstat = "$test.stats-diff-netstat.log";
+    my $netstat = "$test.stats-netstat-diff.txt";
 
     open(my $fh, '<', $netstat) or die("Could not open '$netstat'");
     while(<$fh>) {
@@ -1328,7 +1328,7 @@ sub statistics {
     my ($test, $when) = @_;
     foreach my $s (@stats) {
 	my @statcmd = @{$s->{statcmd}};
-	my $name = "$test.stats-$when-". join("_", @statcmd). ".log";
+	my $name = "$test.stats-". join("_", @statcmd). "-$when.txt";
 	open(my $fh, '>', $name)
 	    or die "Open '$name' for writing failed: $!";
 	defined(my $pid = fork())

@@ -268,12 +268,12 @@ sub sweep {
 sub generate_diff_netstat {
     my ($test) = @_;
 
-    my $diff = "$test.stats-diff-netstat.log";
+    my $diff = "$test.stats-netstat-diff.txt";
     open(my $fh, '>', $diff)
 	or die "Open '$diff' for writing failed: $!";
     foreach my $opt (qw(m s)) {
-	my $before = "$test.stats-before-netstat_-$opt.log";
-	my $after = "$test.stats-after-netstat_-$opt.log";
+	my $before = "$test.stats-netstat_-$opt-before.txt";
+	my $after = "$test.stats-netstat_-$opt-after.txt";
 	-r $before && -r $after
 	    or next;
 	my $parser;
