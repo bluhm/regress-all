@@ -21,7 +21,7 @@ use warnings;
 
 use parent 'Exporter';
 our @EXPORT= qw(
-    generate_diff_netstat_s
+    generate_diff_netstat
 );
 
 # netstat output might use plural for some nouns always use
@@ -60,7 +60,7 @@ sub canonicalize_key {
 # map netstat indentation to perl hash some nestat -s lines increase the
 # indentation and at the same time have a value.  Write that value to the
 # "total" field.
-sub parse {
+sub parse_s {
     my ($fname) = @_;
     my %netstat;
     my $l1;
@@ -118,6 +118,40 @@ sub parse {
 	    $netstat{$l1}{$l2} = {};
 	} else {
 	    die "Can't parse '$_'";
+	}
+    }
+
+    return %netstat;
+}
+
+sub parse_m {
+    my ($fname) = @_;
+    my %netstat;
+    my $l1 = "memory";
+    my $l2;
+    my $l3;
+    open(my $fh, '<', $fname)
+	or die "Open '$fname' for reading failed: $!";
+
+    while(<$fh>) {
+	if (m{^(\d+) mbufs? (in use):}) {
+	    $l2 = "mbuf $2";
+	    $netstat{$l1}{$l2} = $1;
+	    $l2 = "mbuf types";
+	} elsif (m{^	(\d+) mbufs? (allocated to .+)}) {
+	    $l3 = "mbuf $2";
+	    $netstat{$l1}{$l2}{$l3} = $1;
+	} elsif (m{^(\d+)/\d+ (mbuf \d+ byte clusters in use)}) {
+	    $l2 = "mbuf cluster in use";
+	    $l3 = $2;
+	    $netstat{$l1}{$l2}{$l3} = $1;
+	} elsif (m{^(\d+)/\d+/\d+ (Kbytes allocated to network)}) {
+	    $l2 = $2;
+	    $netstat{$l1}{$l2} = $1;
+	} elsif (m{^(\d+) (\w[\w ]+)$}) {
+	    $l2 = "counter";
+	    $l3 = $2;
+	    $netstat{$l1}{$l2}{$l3} = $1;
 	}
     }
 
@@ -231,18 +265,28 @@ sub sweep {
     }
 }
 
-sub generate_diff_netstat_s {
+sub generate_diff_netstat {
     my ($test) = @_;
-    my %bef = parse("$test.stats-before-netstat_-s.log");
-    my %aft = parse("$test.stats-after-netstat_-s.log");
-    my %dif = diff(\%bef, \%aft);
-    sweep(\%dif);
-    my $name = "$test.stats-diff-netstat_-s.log";
-    open(my $fh, '>', $name)
-	or die "Open '$name' for writing failed: $!";
-    myprint($fh, \%dif);
-    unlink("$test.stats-before-netstat_-s.log");
-    unlink("$test.stats-after-netstat_-s.log");
+
+    my $diff = "$test.stats-diff-netstat.log";
+    open(my $fh, '>', $diff)
+	or die "Open '$diff' for writing failed: $!";
+    foreach my $opt (qw(m s)) {
+	my $before = "$test.stats-before-netstat_-$opt.log";
+	my $after = "$test.stats-after-netstat_-$opt.log";
+	-r $before && -r $after
+	    or next;
+	my $parser;
+	$parser = \&parse_m if $opt eq 'm';
+	$parser = \&parse_s if $opt eq 's';
+	my %bef = $parser->($before);
+	my %aft = $parser->($after);
+	my %dif = diff(\%bef, \%aft);
+	sweep(\%dif);
+	myprint($fh, \%dif);
+    }
+    close($fh)
+	or die "Close '$diff' after writing failed: $!";
 }
 
 1;

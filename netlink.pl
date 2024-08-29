@@ -217,7 +217,7 @@ sub bad {
     print $tr "$reason\t$test\t$message\n";
 
     statistics($test, "after");
-    generate_diff_netstat_s($test);
+    generate_diff_netstat($test);
 
     $log->sync() if $log;
     $tr->sync();
@@ -232,10 +232,10 @@ sub good {
     my $duration = sprintf("%dm%02d.%02ds", $diff/60, $diff%60, 100*$diff%100);
 
     statistics($test, "after");
-    generate_diff_netstat_s($test);
+    generate_diff_netstat($test);
 
     my $pass = "PASS";
-    my $netstat = "$test.stats-diff-netstat_-s.log";
+    my $netstat = "$test.stats-diff-netstat.log";
 
     open(my $fh, '<', $netstat) or die("Could not open '$netstat'");
     while(<$fh>) {
@@ -1347,38 +1347,6 @@ sub statistics {
 	    or die "Wait for pid '$pid' failed: $!";
 	$? == 0
 	    or die "Command '@statcmd' failed: $?";
-    }
-}
-
-sub netstat_m_parser {
-    my ($l, $log) = @_;
-    if ($l =~ m{(\d+) mbufs? in use}) {
-	my $mbufs = $1;
-	print "used mbufs: $mbufs\n";
-    } elsif ($l =~ m{(\d+) mbufs? allocated to data}) {
-	my $data_mbufs = $1;
-	print "data mbufs: $data_mbufs\n";
-    } elsif ($l =~ m{(\d+) mbufs? allocated to packet headers}) {
-	my $header_mbufs = $1;
-	print "header mbufs: $header_mbufs\n";
-    } elsif ($l =~ m{(\d+) mbufs? allocated to socket names and addresses}) {
-	my $named_mbufs = $1;
-	print "named mbufs: $named_mbufs\n";
-    } elsif ($l =~ m{(\d+)/(\d+) mbuf (\d+) byte clusters in use}) {
-	my ($current, $peak, $mbuf_size) = ($1, $2, $3);
-	print "mbufs of size $mbuf_size: curr: $current peak: $peak\n";
-    } elsif ($l =~ m{(\d+)/(\d+)/(\d+) Kbytes allocated to network}) {
-	my ($current, $peak, $max) = ($1, $2, $3);
-	print "network mbufs: curr: $current peak: $peak max: $max\n";
-    } elsif ($l =~ m{(\d+) requests for memory denied}) {
-	my $denied = $1;
-	print "denied requests: $denied\n";
-    } elsif ($l =~ m{(\d+) requests for memory delayed}) {
-	my $delayed = $1;
-	print "delayed requests: $delayed\n";
-    } elsif ($l =~ m{(\d+) calls to protocol drain routines}) {
-	my $drains = $1;
-	print "called drains: $drains\n";
     }
 }
 

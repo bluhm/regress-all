@@ -644,7 +644,7 @@ sub parse_result_files {
 	    $tv->{message} = $message;
 	    my $logfile = "$file->{dir}/logs/$test.log";
 	    $tv->{logfile} = $logfile if -f $logfile;
-	    my $stats = "$file->{dir}/logs/$test.stats-diff-netstat_-s.log";
+	    my $stats = "$file->{dir}/logs/$test.stats-diff-netstat.log";
 	    $tv->{stats} = $stats if -f $stats;
 	    $V{$test}{$hk} = [ @values ];
 	    undef @values;
