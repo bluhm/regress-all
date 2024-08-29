@@ -90,12 +90,12 @@ sub parse {
 		$netstat{$l1}{$l2}{total} = $total;
 	    }
 	    if ($l3 =~ /\((.+)\)/ && $1 =~ /\d/) {
-		    my ($l) = $l3 =~ /\((.+)\)/;
-		    $l3 =~ s/ \(.+\)//;
-		    (my $k2 = "$l3 $l") =~ s/\d+ //;
-		    $k2 = canonicalize_key $k2;
-		    my ($v2) = $l =~ /(\d+)/;
-		    $netstat{$l1}{$l2}{$k2} = $v2;
+		my ($l) = $l3 =~ /\((.+)\)/;
+		$l3 =~ s/ \(.+\)//;
+		(my $k2 = "$l3 $l") =~ s/\d+ //;
+		$k2 = canonicalize_key $k2;
+		my ($v2) = $l =~ /(\d+)/;
+		$netstat{$l1}{$l2}{$k2} = $v2;
 	    }
 	    $netstat{$l1}{$l2}{$l3} = $v;
 	} elsif ($_ =~ /^		([^:]+): (\d+)$/) {
@@ -105,12 +105,12 @@ sub parse {
 	    my $v = $1;
 	    $l2 = canonicalize_key $2;
 	    if ($l2 =~ /\((.+)\)/ && $1 =~ /\d/) {
-		    my ($l) = $l2 =~ /\((.+)\)/;
-		    $l2 =~ s/ \(.+\)//;
-		    (my $k2 = "$l2 $l") =~ s/\d+ //;
-		    $k2 = canonicalize_key $k2;
-		    my ($v2) = $l =~ /(\d+)/;
-		    $netstat{$l1}{$k2} = $v2;
+		my ($l) = $l2 =~ /\((.+)\)/;
+		$l2 =~ s/ \(.+\)//;
+		(my $k2 = "$l2 $l") =~ s/\d+ //;
+		$k2 = canonicalize_key $k2;
+		my ($v2) = $l =~ /(\d+)/;
+		$netstat{$l1}{$k2} = $v2;
 	    }
 	    $netstat{$l1}{$l2} = $v;
 	} elsif ($_ =~ /^	([^:]+):?$/) {
