@@ -128,7 +128,6 @@ lib/libcrypto/sm3
 lib/libcrypto/sm4
 lib/libcrypto/symbols
 lib/libcrypto/utf8
-lib/libcrypto/whirlpool
 lib/libcrypto/wycheproof
 lib/libcrypto/x509
 lib/libedit
