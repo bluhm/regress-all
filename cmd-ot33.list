@@ -1,0 +1,1 @@
+[ -e /home/user/disk.img ] || dd if=/dev/null of=/home/user/disk.img bs=1G seek=10 count=0
