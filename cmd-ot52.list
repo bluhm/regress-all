@@ -1,8 +1,8 @@
 -groupadd -g 999 vmm
 -useradd -G vmm -m lt70
+-useradd -G vmm -m lt75
 -useradd -G vmm -m ot71
 -useradd -G vmm -m ot72
 -useradd -G vmm -m ot73
 -useradd -G vmm -m ot74
--useradd -G vmm -m lt75
 cd /dev && sh ./MAKEDEV `jot 16 0 | sed s/^/tap/`
