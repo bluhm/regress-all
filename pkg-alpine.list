@@ -14,11 +14,14 @@ iproute2
 iputils
 kmod
 libbsd
+libbsd-dev
 libevent
+libevent-dev
 linux-headers
 make
 man-pages
 mandoc
+musl-dev
 net-tools
 openntpd
 openrc
