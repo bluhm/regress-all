@@ -690,10 +690,10 @@ my @netlinkdesc = (
 );
 
 my %netlinklines = (
-    ot19 => { line => 3, left => 40, right => 42 },
-    ot25 => { line => 4, left => 40, right => 42 },
-    ot41 => { line => 1, left => 40, right => 42 },
-    ot42 => { line => 2, left => 40, right => 42 },
+    ot19 => { line => 3, left => 40, right => 43 },
+    ot25 => { line => 4, left => 40, right => 43 },
+    ot41 => { line => 1, left => 40, right => 43 },
+    ot42 => { line => 2, left => 40, right => 43 },
     ot48 => { line => 5, left => 49, right => 59 },
     ot57 => { line => 6, left => 54, right => 55 },
     ot62 => { line => 7, left => 61, right => 63 },
