@@ -29,7 +29,7 @@ use Netstat;
 
 my @allifaces = qw(none bge bnxt em igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
-my @allpseudos = qw(none bridge carp gif gif6 gre veb vlan vxlan wg);
+my @allpseudos = qw(none bridge carp gif gif6 gre veb vlan vxlan vxlanmc wg);
 my @alltestmodes = sort qw(all icmp tcp udp splice);
 
 my %opts;
@@ -136,6 +136,7 @@ my $obsd_l_tunnel_addr = "${ip4prefix}${line}3.2";
 my $obsd_l_tunnel_net = "${ip4prefix}${line}3.0/24";
 my $obsd_l_tunnel_addr6 = "${ip6prefix}${line}3::2";
 my $obsd_l_tunnel_net6 = "${ip6prefix}${line}3::/64";
+my $mcast_l_tunnel_addr = "234.${ip4prefix}${line}3";
 
 my $obsd_r_if = $iftype . $right_ifidx;
 my $obsd_r_ipdev = $obsd_r_if;
@@ -152,6 +153,7 @@ my $obsd_r_tunnel_addr = "${ip4prefix}${line}4.3";
 my $obsd_r_tunnel_net = "${ip4prefix}${line}4.0/24";
 my $obsd_r_tunnel_addr6 = "${ip6prefix}${line}4::3";
 my $obsd_r_tunnel_net6 = "${ip6prefix}${line}3::/64";
+my $mcast_r_tunnel_addr = "234.${ip4prefix}${line}4";
 
 my $lnx_if = $linux_if;
 my $lnx_pdev = "$lnx_if.$line";
@@ -604,8 +606,8 @@ if ($pseudo eq 'aggr') {
     }
     $lnx_ipdev = $lnx_pdev;
 } elsif ($pseudo eq 'vxlan') {
-    my $vxlan_l_vnetid = "2${line}1";
-    my $vxlan_r_vnetid = "2${line}2";
+    my $vxlan_l_vnetid = "3${line}1";
+    my $vxlan_r_vnetid = "3${line}2";
 
     printcmd('ifconfig', $obsd_l_if, 'inet', "$obsd_l_tunnel_addr/24");
     printcmd('ifconfig', $obsd_r_if, 'inet', "$obsd_r_tunnel_addr/24");
@@ -643,6 +645,51 @@ if ($pseudo eq 'aggr') {
     }
     $lnx_l_mtu = $lnx_r_mtu = 1600;
     $lnx_ipdev = $lnx_pdev;
+} elsif ($pseudo eq 'vxlanmc') {
+    my $vxlan_l_vnetid = "4${line}1";
+    my $vxlan_r_vnetid = "4${line}2";
+
+    printcmd('ifconfig', $obsd_l_if, 'inet', "$obsd_l_tunnel_addr/24");
+    printcmd('ifconfig', $obsd_r_if, 'inet', "$obsd_r_tunnel_addr/24");
+    printcmd('ifconfig', $obsd_l_if, 'mtu', 1600);
+    printcmd('ifconfig', $obsd_r_if, 'mtu', 1600);
+    printcmd('ifconfig', 'vxlan0', 'create');
+    printcmd('ifconfig', 'vxlan1', 'create');
+    printcmd('ifconfig', 'vxlan0',
+	'parent', $obsd_l_if,
+	'tunnel', $obsd_l_tunnel_addr, $mcast_l_tunnel_addr);
+    printcmd('ifconfig', 'vxlan1',
+	'parent', $obsd_r_if,
+	'tunnel', $obsd_r_tunnel_addr, $mcast_r_tunnel_addr);
+    printcmd('ifconfig', 'vxlan0', 'vnetid', $vxlan_l_vnetid);
+    printcmd('ifconfig', 'vxlan1', 'vnetid', $vxlan_r_vnetid);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    $obsd_l_ipdev = "vxlan0";
+    $obsd_r_ipdev = "vxlan1";
+
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'modprobe', 'vxlan');
+    }
+    # configure Linux tunnel addresses
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'address', 'add', $lnx_l_tunnel_net,
+	'dev', $lnx_if);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'address', 'add', $lnx_r_tunnel_net,
+	'dev', $lnx_if);
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'name', $lnx_pdev,
+	'type', 'vxlan', 'id', $vxlan_l_vnetid, 'dstport', 4789,
+	'dev', $lnx_if,
+	'local', $lnx_l_tunnel_addr, 'group', $mcast_l_tunnel_addr);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'name', $lnx_pdev,
+	'type', 'vxlan', 'id', $vxlan_r_vnetid, 'dstport', 4789,
+	'dev', $lnx_if,
+	'local', $lnx_r_tunnel_addr, 'group', $mcast_r_tunnel_addr);
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
+    }
+    $lnx_l_mtu = $lnx_r_mtu = 1600;
+    $lnx_ipdev = $lnx_pdev;
+
 } elsif ($pseudo eq 'wg') {
     my @lnx_pub;
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
