@@ -29,7 +29,7 @@ use Netstat;
 
 my @allifaces = qw(none bge bnxt em igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
-my @allpseudos = qw(none bridge carp gif gif6 gre veb vlan wg);
+my @allpseudos = qw(none bridge carp gif gif6 gre veb vlan vxlan wg);
 my @alltestmodes = sort qw(all icmp tcp udp splice);
 
 my %opts;
@@ -118,6 +118,7 @@ my $ip6prefix = 'fdd7:e83e:66bd:10';
 my $obsd_l_if = $iftype . $left_ifidx;
 my $obsd_l_ipdev = $obsd_l_if;
 
+my $obsd_l_mtu = 1500;
 my $obsd_l_addr = "${ip4prefix}${line}1.2";
 my $obsd_l_net = "${ip4prefix}${line}1.0/24";
 my $obsd_l_net_flat = "${ip4prefix}${line}0.0/21";
@@ -139,6 +140,7 @@ my $obsd_l_tunnel_net6 = "${ip6prefix}${line}3::/64";
 my $obsd_r_if = $iftype . $right_ifidx;
 my $obsd_r_ipdev = $obsd_r_if;
 
+my $obsd_r_mtu = 1500;
 my $obsd_r_addr = "${ip4prefix}${line}2.3";
 my $obsd_r_net = "${ip4prefix}${line}2.0/24";
 my $obsd_r_prefix = 24;
@@ -373,8 +375,8 @@ foreach my $if (sort keys %hwfeatures) {
     if ($modify eq 'jumbo' && $hwhardmtu) {
 	($mtu = $hwhardmtu) =~ s/...$/000/ if $hwhardmtu >= 2000;
 	$mtu = 10000 if $mtu > 10000;
-	$lnx_l_mtu = $mtu if $if eq $obsd_l_if;
-	$lnx_r_mtu = $mtu if $if eq $obsd_r_if;
+	$obsd_l_mtu = $lnx_l_mtu = $mtu if $if eq $obsd_l_if;
+	$obsd_r_mtu = $lnx_r_mtu = $mtu if $if eq $obsd_r_if;
     }
     printcmd('/sbin/ifconfig', $if, 'mtu', $mtu);
 }
@@ -601,6 +603,46 @@ if ($pseudo eq 'aggr') {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
     }
     $lnx_ipdev = $lnx_pdev;
+} elsif ($pseudo eq 'vxlan') {
+    my $vxlan_l_vnetid = "2${line}1";
+    my $vxlan_r_vnetid = "2${line}2";
+
+    printcmd('ifconfig', $obsd_l_if, 'inet', "$obsd_l_tunnel_addr/24");
+    printcmd('ifconfig', $obsd_r_if, 'inet', "$obsd_r_tunnel_addr/24");
+    printcmd('ifconfig', $obsd_l_if, 'mtu', 1600);
+    printcmd('ifconfig', $obsd_r_if, 'mtu', 1600);
+    printcmd('ifconfig', 'vxlan0', 'create');
+    printcmd('ifconfig', 'vxlan1', 'create');
+    printcmd('ifconfig', 'vxlan0',
+	'tunnel', $obsd_l_tunnel_addr, $lnx_l_tunnel_addr);
+    printcmd('ifconfig', 'vxlan1',
+	'tunnel', $obsd_r_tunnel_addr, $lnx_r_tunnel_addr);
+    printcmd('ifconfig', 'vxlan0', 'vnetid', $vxlan_l_vnetid);
+    printcmd('ifconfig', 'vxlan1', 'vnetid', $vxlan_r_vnetid);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    $obsd_l_ipdev = "vxlan0";
+    $obsd_r_ipdev = "vxlan1";
+
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'modprobe', 'vxlan');
+    }
+    # configure Linux tunnel addresses
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'address', 'add', $lnx_l_tunnel_net,
+	'dev', $lnx_if);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'address', 'add', $lnx_r_tunnel_net,
+	'dev', $lnx_if);
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'name', $lnx_pdev,
+	'type', 'vxlan', 'id', $vxlan_l_vnetid, 'dstport', 4789,
+	'local', $lnx_l_tunnel_addr, 'remote', $obsd_l_tunnel_addr);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'name', $lnx_pdev,
+	'type', 'vxlan', 'id', $vxlan_r_vnetid, 'dstport', 4789,
+	'local', $lnx_r_tunnel_addr, 'remote', $obsd_r_tunnel_addr);
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
+    }
+    $lnx_l_mtu = $lnx_r_mtu = 1600;
+    $lnx_ipdev = $lnx_pdev;
 } elsif ($pseudo eq 'wg') {
     my @lnx_pub;
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
@@ -669,16 +711,16 @@ foreach my $addr (@obsd_l_addr_range) {
 foreach my $addr (@obsd_l_addr6_range) {
     printcmd('ifconfig', $obsd_l_ipdev, 'inet6', "$addr/128", 'alias');
 }
-printcmd('ifconfig', $obsd_l_ipdev, 'mtu', $lnx_l_mtu)
-    if $obsd_l_ipdev ne $obsd_l_if && $lnx_l_mtu != 1500;
+printcmd('ifconfig', $obsd_l_ipdev, 'mtu', $obsd_l_mtu)
+    if $obsd_l_ipdev ne $obsd_l_if && $obsd_l_mtu != 1500;
 printcmd('ifconfig', $obsd_l_ipdev, 'up');
 if ($obsd_r_ipdev) {
     printcmd('ifconfig', $obsd_r_ipdev, 'inet',
 	"$obsd_r_addr/$obsd_r_prefix", @obsd_r_dest_addr);
     printcmd('ifconfig', $obsd_r_ipdev, 'inet6',
 	"$obsd_r_addr6/$obsd_r_prefix6", @obsd_r_dest_addr6);
-    printcmd('ifconfig', $obsd_r_ipdev, 'mtu', $lnx_r_mtu)
-	if $obsd_r_ipdev ne $obsd_r_if && $lnx_r_mtu != 1500;
+    printcmd('ifconfig', $obsd_r_ipdev, 'mtu', $obsd_r_mtu)
+	if $obsd_r_ipdev ne $obsd_r_if && $obsd_r_mtu != 1500;
     printcmd('ifconfig', $obsd_r_ipdev, 'up');
 }
 if (@obsd_l_dest_addr) {
