@@ -29,7 +29,7 @@ use Netstat;
 
 my @allifaces = qw(none bge bnxt em igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
-my @allpseudos = qw(none bridge carp gif gif6 gre veb vlan vxlan vxlanmc wg);
+my @allpseudos = qw(none bridge carp gif gif6 gre veb vlan vxlan wg);
 my @alltestmodes = sort qw(all icmp tcp udp splice);
 
 my %opts;
@@ -605,7 +605,7 @@ if ($pseudo eq 'aggr') {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
     }
     $lnx_ipdev = $lnx_pdev;
-} elsif ($pseudo eq 'vxlan') {
+} elsif ($pseudo eq 'vxlan-pointtopoint') {
     my $vxlan_l_vnetid = "3${line}1";
     my $vxlan_r_vnetid = "3${line}2";
 
@@ -645,7 +645,7 @@ if ($pseudo eq 'aggr') {
     }
     $lnx_l_mtu = $lnx_r_mtu = 1600;
     $lnx_ipdev = $lnx_pdev;
-} elsif ($pseudo eq 'vxlanmc') {
+} elsif ($pseudo eq 'vxlan-learning' || $pseudo eq 'vxlan') {
     my $vxlan_l_vnetid = "4${line}1";
     my $vxlan_r_vnetid = "4${line}2";
 
@@ -689,7 +689,6 @@ if ($pseudo eq 'aggr') {
     }
     $lnx_l_mtu = $lnx_r_mtu = 1600;
     $lnx_ipdev = $lnx_pdev;
-
 } elsif ($pseudo eq 'wg') {
     my @lnx_pub;
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
