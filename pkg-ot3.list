@@ -4,6 +4,7 @@ apache-httpd
 apr
 apr-util--
 aspell
+bash
 bc-gh
 botan2
 brotli
@@ -527,7 +528,9 @@ p5-prefork
 perltidy
 pinentry
 pkglocatedb
+py3-psutil
 py3-sphinx
+py3-test
 python%3.10
 python%3.11
 python%3.9

@@ -36,6 +36,9 @@ databases/p5-Rose-DB
 databases/p5-Rose-Object
 databases/p5-SQL-Abstract-More
 databases/p5-ldap
+devel/libdivsufsort
+devel/llvm-lit
+devel/llvm-openmp
 devel/p5-Algorithm-Diff
 devel/p5-Alien-Base
 devel/p5-Any-Moose
