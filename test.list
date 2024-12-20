@@ -26,6 +26,7 @@ lib/libc/cephes
 lib/libc/cxa-atexit
 lib/libc/db
 lib/libc/dirname
+lib/libc/elf_aux_info
 lib/libc/env
 lib/libc/explicit_bzero
 lib/libc/ffs
@@ -94,6 +95,7 @@ lib/libcrypto/cast
 lib/libcrypto/certs
 lib/libcrypto/chacha
 lib/libcrypto/cms
+lib/libcrypto/crypto
 lib/libcrypto/ct
 lib/libcrypto/curve25519
 lib/libcrypto/des
@@ -102,7 +104,9 @@ lib/libcrypto/dsa
 lib/libcrypto/ec
 lib/libcrypto/ecdh
 lib/libcrypto/ecdsa
+lib/libcrypto/err
 lib/libcrypto/evp
+lib/libcrypto/exdata
 lib/libcrypto/free
 lib/libcrypto/gcm128
 lib/libcrypto/hkdf
@@ -110,7 +114,9 @@ lib/libcrypto/hmac
 lib/libcrypto/idea
 lib/libcrypto/ige
 lib/libcrypto/init
+lib/libcrypto/lhash
 lib/libcrypto/md
+lib/libcrypto/mlkem
 lib/libcrypto/objects
 lib/libcrypto/ocsp
 lib/libcrypto/pbkdf2
@@ -142,6 +148,7 @@ lib/libm/fenv
 lib/libm/floor
 lib/libm/fpaccuracy
 lib/libm/lgamma
+lib/libm/modf
 lib/libm/msun
 lib/libm/nextafter
 lib/libm/rint
@@ -171,6 +178,7 @@ lib/libssl/record
 lib/libssl/record_layer
 lib/libssl/rust-openssl
 lib/libssl/server
+lib/libssl/shutdown
 lib/libssl/ssl
 lib/libssl/symbols
 lib/libssl/tls
@@ -195,6 +203,7 @@ misc/exceptions
 misc/os-test
 misc/posixtestsuite
 misc/sse2
+sbin/bioctl
 sbin/disklabel
 sbin/ifconfig
 sbin/iked/dh
@@ -208,6 +217,7 @@ sbin/pfctl
 sbin/route
 sbin/slaacd
 sys/altivec_ast
+sys/arch/amd64/ddb
 sys/arch/amd64/dump_tables
 sys/arch/amd64/fpu
 sys/arch/amd64/vmm
@@ -215,6 +225,7 @@ sys/arch/hppa
 sys/arch/i386
 sys/arch/m88k
 sys/arch/sparc64
+sys/btcfi
 sys/copy
 sys/crypto/aes
 sys/crypto/aesctr
@@ -293,6 +304,8 @@ sys/kern/signal/cansig
 sys/kern/signal/earlysig
 sys/kern/signal/fpsig
 sys/kern/signal/sig-stop
+sys/kern/signal/sig-stop2
+sys/kern/signal/sig-stop3
 sys/kern/signal/sigaltstack_fork
 sys/kern/signal/sigfpe
 sys/kern/signal/siginfo-fault
@@ -337,6 +350,7 @@ sys/net/pf_policy
 sys/net/pf_print
 sys/net/pf_state
 sys/net/pf_table
+sys/net/pf_trans
 sys/net/pflog
 sys/net/pflow
 sys/net/rdomains
