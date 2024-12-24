@@ -179,6 +179,9 @@ sub parse_log_files {
 	    foreach my $repeat ("", @repeats) {
 		chdir("$dir/$cvsdate/$repeat") or die
 		    "Change directory to '$dir/$cvsdate/$repeat' failed: $!";
+		my $subdir = "";
+		$subdir .= "$cvsdate/" if $cvsdate;
+		$subdir .= "$repeat/" if $repeat;
 
 		my %h;
 		foreach my $version (glob("version-*.txt")) {
@@ -191,9 +194,6 @@ sub parse_log_files {
 		    (my $diff = $version) =~ s,version,diff,;
 		    (my $quirks = $version) =~ s,version,quirks,;
 		    (my $nmbsd = $version) =~ s,version,nm-bsd,;
-		    my $subdir = "";
-		    $subdir .= "$cvsdate/" if $cvsdate;
-		    $subdir .= "$repeat/" if $repeat;
 		    $h{$host} = {
 			version   => $subdir.$version,
 			%v,
@@ -208,15 +208,15 @@ sub parse_log_files {
 		}
 		foreach my $setup (glob("setup-*.log")) {
 		    my ($host) = $setup =~ m,setup-(.*)\.log,;
-		    $h{$host}{setup} = $setup,
+		    $h{$host}{setup} = $subdir.$setup;
 		}
 		foreach my $build (glob("cvsbuild-*.log")) {
 		    my ($host) = $build =~ m,cvsbuild-(.*)\.log,;
-		    $h{$host}{build} = "$cvsdate/$build",
+		    $h{$host}{build} = $subdir.$build;
 		}
 		foreach my $reboot (glob("reboot-*.log")) {
 		    my ($host) = $reboot =~ m,reboot-(.*)\.log,;
-		    $h{$host}{reboot} = "$cvsdate/$repeat/$reboot",
+		    $h{$host}{reboot} = $subdir.$reboot;
 		}
 		if ($repeat) {
 		    $D{$date}{$cvsdate}{$repeat}{host} = \%h;
