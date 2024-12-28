@@ -381,6 +381,7 @@ net/p5-PlRPC
 net/p5-Socket-GetAddrInfo
 net/p5-Socket6
 net/p5-Test-TCP
+net/scapy
 productivity/p5-iCal-Parser
 security/botan2
 security/p5-Authen-SASL
