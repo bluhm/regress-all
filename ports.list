@@ -62,6 +62,7 @@ devel/p5-Class-XSAccessor
 devel/p5-Commandable
 devel/p5-Coro
 devel/p5-Curses
+devel/p5-Data-Buffer
 devel/p5-Data-Compare
 devel/p5-Data-Dump-Streamer
 devel/p5-Data-HexDump
@@ -337,6 +338,7 @@ mail/p5-Mail-DKIM-Iterator
 mail/p5-Mail-DMARC-Iterator
 mail/p5-Mail-SPF-Iterator
 mail/p5-Mail-Tools
+math/p5-Math-BigInt-GMP
 math/p5-Number-WithError
 math/p5-Statistics-CaseResampling
 misc/open62541
@@ -421,6 +423,7 @@ security/p5-Crypt-SaltedHash
 security/p5-Crypt-SmbHash
 security/p5-Crypt-TripleDES
 security/p5-Crypt-Twofish
+security/p5-Crypt-URandom
 security/p5-Crypt-X509
 security/p5-CryptX
 security/p5-Digest-HMAC
