@@ -687,6 +687,10 @@ my @netlinkdesc = (
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i0_-N10_-croot@lt{left}_-sroot@lt{right}_-Afdd7:e83e:66bd:10{line}1::20_-afdd7:e83e:66bd:10{line}2::40_-t10_udpsplice'	=> { ipv => "IPv6", proto => "UDP",  op => "Splice",  len => "Empty", streams => "parallel-10",  name => "linux-openbsd-linux-udp6splice-empty" },
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-croot@lt{left}_-sroot@lt{right}_-A10.10.{line}1.20_-a10.10.{line}2.40_-t10_udpsplice'				=> { ipv => "IPv4", proto => "UDP",  op => "Splice",  len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-linux-udp4splice-full" },
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-croot@lt{left}_-sroot@lt{right}_-Afdd7:e83e:66bd:10{line}1::20_-afdd7:e83e:66bd:10{line}2::40_-t10_udpsplice'	=> { ipv => "IPv6", proto => "UDP",  op => "Splice",  len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-linux-udp6splice-full" },
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-R10.10.{line}1.2_-S10.10.{line}1.1_-croot@lt{left}_-a234.10.10.{line}1_-t10_udpbench'	=>	{ ipv => "IPv4", proto => "MCast",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-mcast4bench-parallel-mtu" },
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-Rvio0_-Senp7s0_-croot@lt{left}_-aff34:40:fdd7:e83e:66bd:10{line}1::1_-t10_udpbench'	=>	{ ipv => "IPv6", proto => "MCast",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-mcast6bench-parallel-mtu" },
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-R10.10.{line}2.4_-S10.10.{line}2.3_-sroot@lt{right}_-a234.10.10.{line}2_-t10_udpbench'	=>	{ ipv => "IPv4", proto => "MCast",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-mcast4bench-parallel-mtu" },
+    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-Renp7s0_-Svio1_-sroot@lt{right}_-aff34:40:fdd7:e83e:66bd:10{line}2::1_-t10_udpbench'	=>	{ ipv => "IPv6", proto => "MCast",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-mcast6bench-parallel-mtu" },
 );
 
 my %netlinklines = (
