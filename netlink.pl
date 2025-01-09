@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # Copyright (c) 2022 Moritz Buhl <mbuhl@genua.de>
-# Copyright (c) 2018-2024 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2025 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -30,7 +30,7 @@ use Netstat;
 my @allifaces = qw(none bge bnxt em ice igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gif6 gre veb vlan vxlan wg);
-my @alltestmodes = sort qw(all icmp tcp udp splice);
+my @alltestmodes = sort qw(all icmp tcp udp splice mcast);
 
 my %opts;
 getopts('c:e:i:m:t:v', \%opts) or do {
@@ -192,6 +192,11 @@ my $lnx_r_tunnel_addr = "${ip4prefix}${line}4.4";
 my $lnx_r_tunnel_net = "$lnx_r_tunnel_addr/24";
 my $lnx_r_tunnel_addr6 = "${ip6prefix}${line}4::4";
 my $lnx_r_tunnel_net6 = "$lnx_r_tunnel_addr6/64";
+
+my $mcast_l_addr = "234.${ip4prefix}${line}1";
+my $mcast_r_addr = "234.${ip4prefix}${line}2";
+my $mcast_l_addr6 = "ff34:40:${ip6prefix}${line}1::1";
+my $mcast_r_addr6 = "ff34:40:${ip6prefix}${line}2::1";
 
 my (@obsd_l_dest_addr, @obsd_l_dest_addr6,
     @obsd_r_dest_addr, @obsd_r_dest_addr6);
@@ -1249,6 +1254,74 @@ foreach my $frame (0, 1) {
 	parser => \&netbench_parser,
     } if $testmode{splice6};
 }
+push @tests, {
+    testcmd => [$netbench,
+	'-v',
+	'-B1000000000',
+	'-b1000000',
+	'-d1',
+	'-f1',
+	'-i0',
+	'-N10',
+	"-R$obsd_l_addr",
+	"-S$lnx_l_addr",
+	"-c$lnx_l_ssh",
+	"-a$mcast_l_addr",
+	'-t10',
+	'udpbench'],
+    parser => \&netbench_parser,
+} if $testmode{mcast4};
+push @tests, {
+    testcmd => [$netbench,
+	'-v',
+	'-B1000000000',
+	'-b1000000',
+	'-d1',
+	'-f1',
+	'-i0',
+	'-N10',
+	"-R$obsd_l_ipdev",
+	"-S$lnx_ipdev",
+	"-c$lnx_l_ssh",
+	"-a$mcast_l_addr6",
+	'-t10',
+	'udpbench'],
+    parser => \&netbench_parser,
+} if $testmode{mcast6};
+push @tests, {
+    testcmd => [$netbench,
+	'-v',
+	'-B1000000000',
+	'-b1000000',
+	'-d1',
+	'-f1',
+	'-i0',
+	'-N10',
+	"-R$lnx_r_addr",
+	"-S$obsd_r_addr",
+	"-s$lnx_r_ssh",
+	"-a$mcast_r_addr",
+	'-t10',
+	'udpbench'],
+    parser => \&netbench_parser,
+} if $testmode{mcast4};
+push @tests, {
+    testcmd => [$netbench,
+	'-v',
+	'-B1000000000',
+	'-b1000000',
+	'-d1',
+	'-f1',
+	'-i0',
+	'-N10',
+	"-R$lnx_ipdev",
+	"-S$obsd_r_ipdev",
+	"-s$lnx_r_ssh",
+	"-a$mcast_r_addr6",
+	'-t10',
+	'udpbench'],
+    parser => \&netbench_parser,
+} if $testmode{mcast6};
 
 my @stats = (
     {

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2022-2024 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2022-2025 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -29,12 +29,12 @@ my @alltestmodes = qw(
 );
 
 my %opts;
-getopts('A:a:B:b:C:c:d:f:i:l:m:N:P:s:t:v', \%opts) or do {
+getopts('A:a:B:b:C:c:d:f:i:l:m:N:P:R:S:s:t:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: netbench.pl [-v] [-A address] -a address [-B bitrate] [-b bufsize]
 	[-C pseudo] [-c client] [-d delay] [-f frames] [-i idle] [-l length]
-	[-m mmsglen] [-P packetrate] [-p pseudo] [-s server] [-t timeout]
-	[test ...]
+	[-m mmsglen] [-P packetrate] [-p pseudo] [-R ifaddr] [-S ifaddr]
+	[-s server] [-t timeout] [test ...]
     -A address	IP address of relay
     -a address	IP address for packet destination
     -B bitrate	bits per seconds send rate
@@ -47,6 +47,8 @@ usage: netbench.pl [-v] [-A address] -a address [-B bitrate] [-b bufsize]
     -m mmsglen	number of mmsghdr for sendmmsg or recvmmsg
     -N repeat	run instances in parallel with incremented address
     -P packet	packets per seconds send rate
+    -R ifaddr	multicast receive interface address or name
+    -S ifaddr	multicast send interface address or name
     -l length	set length of udp payload
     -s sever	connect via ssh to start packet consumer
     -t timeout	send duration and receive timeout, default 1
@@ -235,6 +237,7 @@ sub start_server_udp {
     push @cmd, "-m$opts{m}" if defined($opts{m});
     push @cmd, "-N$opts{N}" if defined($opts{N});
     push @cmd, "-P$opts{P}" if defined($opts{P});
+    push @cmd, "-I$opts{R}" if defined($opts{R});
     push @cmd, '-p0';
     push @cmd, "-t$timeout" if defined($opts{t});
     push @cmd, ('recv', $proc->{addr});
@@ -257,6 +260,7 @@ sub start_client_udp {
     push @cmd, "-m$opts{m}" if defined($opts{m});
     push @cmd, "-N$opts{N}" if defined($opts{N});
     push @cmd, "-P$opts{P}" if defined($opts{P});
+    push @cmd, "-I$opts{S}" if defined($opts{S});
     push @cmd, "-p$proc->{port}";
     push @cmd, "-t$opts{t}" if defined($opts{t});
     push @cmd, ('send', $proc->{addr});
