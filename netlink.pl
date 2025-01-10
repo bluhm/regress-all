@@ -113,6 +113,7 @@ foreach (keys %testmode) {
 }
 
 my $ip4prefix = '10.10.';
+my $ip4mshort = '10.';
 my $ip6prefix = 'fdd7:e83e:66bd:10';
 
 my $obsd_l_if = $iftype . $left_ifidx;
@@ -136,7 +137,7 @@ my $obsd_l_tunnel_addr = "${ip4prefix}${line}3.2";
 my $obsd_l_tunnel_net = "${ip4prefix}${line}3.0/24";
 my $obsd_l_tunnel_addr6 = "${ip6prefix}${line}3::2";
 my $obsd_l_tunnel_net6 = "${ip6prefix}${line}3::/64";
-my $mcast_l_tunnel_addr = "234.${ip4prefix}${line}3";
+my $mcast_l_tunnel_addr = "234.${ip4mshort}${line}3.1";
 
 my $obsd_r_if = $iftype . $right_ifidx;
 my $obsd_r_ipdev = $obsd_r_if;
@@ -153,7 +154,7 @@ my $obsd_r_tunnel_addr = "${ip4prefix}${line}4.3";
 my $obsd_r_tunnel_net = "${ip4prefix}${line}4.0/24";
 my $obsd_r_tunnel_addr6 = "${ip6prefix}${line}4::3";
 my $obsd_r_tunnel_net6 = "${ip6prefix}${line}3::/64";
-my $mcast_r_tunnel_addr = "234.${ip4prefix}${line}4";
+my $mcast_r_tunnel_addr = "234.${ip4mshort}${line}4.1";
 
 my $lnx_if = $linux_if;
 my $lnx_pdev = "$lnx_if.$line";
@@ -193,10 +194,10 @@ my $lnx_r_tunnel_net = "$lnx_r_tunnel_addr/24";
 my $lnx_r_tunnel_addr6 = "${ip6prefix}${line}4::4";
 my $lnx_r_tunnel_net6 = "$lnx_r_tunnel_addr6/64";
 
-my $mcast_l_addr = "234.${ip4prefix}${line}1";
-my $mcast_r_addr = "234.${ip4prefix}${line}2";
-my $mcast_l_addr6 = "ff34:40:${ip6prefix}${line}1::1";
-my $mcast_r_addr6 = "ff34:40:${ip6prefix}${line}2::1";
+my $mcast_l_addr = "234.${ip4mshort}${line}1.10";
+my $mcast_r_addr = "234.${ip4mshort}${line}2.10";
+my $mcast_l_addr6 = "ff34:40:${ip6prefix}${line}1::10";
+my $mcast_r_addr6 = "ff34:40:${ip6prefix}${line}2::10";
 
 my (@obsd_l_dest_addr, @obsd_l_dest_addr6,
     @obsd_r_dest_addr, @obsd_r_dest_addr6);
