@@ -639,14 +639,17 @@ sub parse_result_files {
 		};
 		next;
 	    }
+	    my $logfile = "$file->{dir}/logs/$test.log";
+	    my $stats = "$file->{dir}/logs/$test.stats-netstat-diff.txt";
+	    if ($test =~ /^netbench\.pl_/) {
+		$test =~ s/(?<=_-[RS])[a-z][a-z0-9.]+_/{ifname}_/g;
+	    }
 	    my $tv = $T{$test}{$date}{$hk} ||= {};
 	    $tv->{status}
 		and warn "Duplicate test '$test' at '$file->{name}'";
 	    $tv->{status} = $status;
 	    $tv->{message} = $message;
-	    my $logfile = "$file->{dir}/logs/$test.log";
 	    $tv->{logfile} = $logfile if -f $logfile;
-	    my $stats = "$file->{dir}/logs/$test.stats-netstat-diff.txt";
 	    $tv->{stats} = $stats if -f $stats;
 	    $V{$test}{$hk} = [ @values ];
 	    undef @values;
