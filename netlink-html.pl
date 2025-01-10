@@ -642,6 +642,8 @@ sub parse_result_files {
 	    my $logfile = "$file->{dir}/logs/$test.log";
 	    my $stats = "$file->{dir}/logs/$test.stats-netstat-diff.txt";
 	    if ($test =~ /^netbench\.pl_/) {
+		# multicast interfaces depend on test and hardware
+		$test =~ s/(?<=_-[RS])[1-9][0-9.]+_/{ifaddr}_/g;
 		$test =~ s/(?<=_-[RS])[a-z][a-z0-9.]+_/{ifname}_/g;
 	    }
 	    my $tv = $T{$test}{$date}{$hk} ||= {};
