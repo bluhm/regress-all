@@ -1299,7 +1299,7 @@ push @tests, {
 	'-i0',
 	'-N10',
 	"-R$lnx_r_addr",
-	"-S$obsd_r_addr",
+	'-S'.($obsd_r_addr // $obsd_l_addr),  # undef for bridge and veb
 	"-s$lnx_r_ssh",
 	"-a$mcast_r_addr",
 	'-t10',
@@ -1316,7 +1316,7 @@ push @tests, {
 	'-i0',
 	'-N10',
 	"-R$lnx_ipdev",
-	"-S$obsd_r_ipdev",
+	'-S'.($obsd_r_ipdev // $obsd_l_ipdev),  # undef for bridge and veb
 	"-s$lnx_r_ssh",
 	"-a$mcast_r_addr6",
 	'-t10',
