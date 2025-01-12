@@ -308,6 +308,7 @@ devel/p5-Time-Period
 devel/p5-Time-TimeDate
 devel/p5-Try-Tiny
 devel/p5-Type-Tiny
+devel/p5-URI-db
 devel/p5-X-Tiny
 devel/p5-XS-Parse-Keyword
 devel/p5-YAML
