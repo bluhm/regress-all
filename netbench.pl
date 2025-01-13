@@ -176,9 +176,13 @@ collect_output(@clients, @relays, @servers);
 print_status_tcp() if $testmode{tcp};
 print_status_udp() if $testmode{udp};
 
-# timeout always fails with error
 if ($testmode{tcp}) {
-    delete $_->{status} foreach (@servers);
+    foreach my $server (@servers) {
+	# timeout tcpbench -s may hang and block the port
+	cleanup_server_tcp($server);
+	# timeout always fails with error
+	delete $server->{status};
+    }
 }
 
 my @failed = map { $_->{status} ? $_->{name} : () }
@@ -422,4 +426,17 @@ sub print_status_udp {
 	    $status{$_}{etherlen} * 8 /
 	    ($status{$_}{end} - $status{$_}{begin}));
     }
+}
+
+sub cleanup_server_tcp {
+    my ($proc) = @_;
+
+    my @cmd = ('tcpbench', '-s');
+    unshift @cmd, ('pkill', '-f');
+    push @cmd, "-b$proc->{addr}";
+    push @cmd, "-p$proc->{port}";
+    push @cmd, "-S$opts{b}" if defined($opts{b});
+    unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
+    print "command: @cmd\n" if $opts{v};
+    system(@cmd);
 }
