@@ -299,7 +299,6 @@ devel/p5-Test-YAML
 devel/p5-Test-YAML-Valid
 devel/p5-Test-utf8
 devel/p5-Test2-Plugin-NoWarnings
-devel/p5-Test2-Suite
 devel/p5-Test2-Tools-Explain
 devel/p5-Text-Control
 devel/p5-Tie-ToObject
