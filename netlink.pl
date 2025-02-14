@@ -705,6 +705,11 @@ if ($pseudo eq 'aggr') {
     chomp(my $lnx_l_pub = `ssh $lnx_l_ssh cat wg-public.key`);
     chomp(my $lnx_r_pub = `ssh $lnx_r_ssh cat wg-public.key`);
 
+    my $lnx_l_port  = 0 + "71${line}1";
+    my $obsd_l_port = 0 + "71${line}2";
+    my $obsd_r_port = 0 + "71${line}3";
+    my $lnx_r_port  = 0 + "71${line}4";
+
     # configure OpenBSD tunnel addresses
     printcmd('ifconfig', $obsd_l_if, 'inet', "$obsd_l_tunnel_addr/24");
     printcmd('ifconfig', $obsd_r_if, 'inet', "$obsd_r_tunnel_addr/24");
@@ -712,11 +717,11 @@ if ($pseudo eq 'aggr') {
     printcmd('ifconfig', 'wg1', 'create');
     chomp(my $obsd_l_key = `openssl rand -base64 32`);
     chomp(my $obsd_r_key = `openssl rand -base64 32`);
-    printcmd('ifconfig', 'wg0', 'wgport', '7112', 'wgkey', $obsd_l_key,
-	'wgpeer', $lnx_l_pub, 'wgendpoint', $lnx_l_tunnel_addr, '7111',
+    printcmd('ifconfig', 'wg0', 'wgport', $obsd_l_port, 'wgkey', $obsd_l_key,
+	'wgpeer', $lnx_l_pub, 'wgendpoint', $lnx_l_tunnel_addr, $lnx_l_port,
 	'wgaip', $lnx_l_net, 'wgaip', $lnx_l_net6);
-    printcmd('ifconfig', 'wg1', 'wgport', '7113', 'wgkey', $obsd_r_key,
-	'wgpeer', $lnx_r_pub, 'wgendpoint', $lnx_r_tunnel_addr, '7114',
+    printcmd('ifconfig', 'wg1', 'wgport', $obsd_r_port, 'wgkey', $obsd_r_key,
+	'wgpeer', $lnx_r_pub, 'wgendpoint', $lnx_r_tunnel_addr, $lnx_r_port,
 	'wgaip', $lnx_r_net, 'wgaip', $lnx_r_net6,);
     chomp(my $obsd_l_pub = `ifconfig wg0 | grep 'wgpubkey' | cut -d ' ' -f 2`);
     chomp(my $obsd_r_pub = `ifconfig wg1 | grep 'wgpubkey' | cut -d ' ' -f 2`);
@@ -734,16 +739,18 @@ if ($pseudo eq 'aggr') {
 	'type', 'wireguard');
     printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'name', $lnx_pdev,
 	'type', 'wireguard');
-    printcmd('ssh', $lnx_l_ssh, 'wg', 'set', $lnx_pdev, 'listen-port', '7111',
+    printcmd('ssh', $lnx_l_ssh, 'wg', 'set', $lnx_pdev,
+	'listen-port', $lnx_l_port,
 	'private-key', 'wg-private.key', 'peer', $obsd_l_pub,
 	'allowed-ips', $obsd_l_net, 'allowed-ips', $obsd_l_net6,
 	'allowed-ips', $obsd_r_net, 'allowed-ips', $obsd_r_net6,
-	'endpoint', "$obsd_l_tunnel_addr:7112");
-    printcmd('ssh', $lnx_r_ssh, 'wg', 'set', $lnx_pdev, 'listen-port', '7114',
+	'endpoint', "$obsd_l_tunnel_addr:$obsd_l_port");
+    printcmd('ssh', $lnx_r_ssh, 'wg', 'set', $lnx_pdev,
+	'listen-port', $lnx_r_port,
 	'private-key', 'wg-private.key', 'peer', $obsd_r_pub,
 	'allowed-ips', $obsd_r_net, 'allowed-ips', $obsd_r_net6,
 	'allowed-ips', $obsd_l_net, 'allowed-ips', $obsd_l_net6,
-	'endpoint', "$obsd_r_tunnel_addr:7113");
+	'endpoint', "$obsd_r_tunnel_addr:$obsd_r_port");
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
     }
