@@ -730,7 +730,7 @@ my @netlinkdesc = (
 );
 
 my %netlinklines = (
-    ot19 => { line => 3, left => 40, right => 43 },
+    #ot19 => { line => 3, left => 40, right => 43 },
     ot25 => { line => 4, left => 40, right => 43 },
     ot41 => { line => 1, left => 40, right => 43 },
     ot42 => { line => 2, left => 40, right => 43 },
@@ -739,6 +739,7 @@ my %netlinklines = (
     ot62 => { line => 7, left => 61, right => 63 },
     ot71 => { line => 8, left => 70, right => 75 },
     ot72 => { line => 9, left => 70, right => 75 },
+    ot73 => { line => 3, left => 70, right => 75 },
 );
 
 foreach my $host (sort keys %netlinklines) {
