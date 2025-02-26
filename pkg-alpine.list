@@ -18,6 +18,7 @@ libbsd-dev
 libevent
 libevent-dev
 linux-headers
+linux-virt-dev
 make
 man-pages
 mandoc
