@@ -249,7 +249,7 @@ sub update_packages {
     };
 }
 
-# build and install addtitional tools
+# build and install additional tools
 
 sub build_tools {
     return unless -f "$bindir/build-$host.list";
@@ -272,7 +272,7 @@ sub build_tools {
     }
 }
 
-# run addtitional commands
+# run additional commands
 
 sub run_commands {
     return unless -f "$bindir/cmd-$host.list";
