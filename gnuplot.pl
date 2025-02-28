@@ -30,6 +30,9 @@ use Buildquirks;
 use Html;
 use Testvars qw(@PLOTORDER %TESTNAME);
 
+my $now = strftime("%FT%TZ", gmtime);
+my $scriptname = "$0 @ARGV";
+
 my %opts;
 getopts('vnB:d:E:LN:p:r:X:x:Y:y:', \%opts) or do {
     print STDERR <<"EOF";
@@ -218,10 +221,13 @@ sub create_plot_files {
     } else {
 	push @cmd, (map { ("-e", $_) } @vars);
 	push @cmd, $gplotfile;
-	print "Command '@cmd' started.\n" if $verbose;
-	system(@cmd)
-	    and die "Command '@cmd' failed: $?";
-	print "Command '@cmd' finished.\n" if $verbose;
+	$now = strftime("%FT%TZ", gmtime);
+	print "$now Command '@cmd' started.\n" if $verbose;
+	system(@cmd) && $? == -1 and
+	    die "System '@cmd' failed: $!";
+	$now = strftime("%FT%TZ", gmtime);
+	$? and die "$now Command '@cmd' failed: $?";
+	print "$now Command '@cmd' finished.\n" if $verbose;
     }
 }
 
@@ -229,10 +235,13 @@ sub create_key_files {
     my ($from, $to) = @_;
     return if $from > $to;
     my @cmd = ("$performdir/bin/keys.sh", $from, $to);
-    print "Command '@cmd' started.\n" if $verbose;
-    system(@cmd)
-	and die "Command '@cmd' failed: $?";
-    print "Command '@cmd' finished.\n" if $verbose;
+    $now = strftime("%FT%TZ", gmtime);
+    print "$now Command '@cmd' started.\n" if $verbose;
+    system(@cmd) && $? == -1 and
+	die "System '@cmd' failed: $!";
+    $now = strftime("%FT%TZ", gmtime);
+    $? and die "$now Command '@cmd' failed: $?";
+    print "$now Command '@cmd' finished.\n" if $verbose;
 }
 
 sub create_html_file {
@@ -241,6 +250,7 @@ sub create_html_file {
     $htmltitle .= ", run $date" if $date;
 
     my ($html, $htmlfile) = html_open($prefix);
+    $now = strftime("%FT%TZ", gmtime);
     print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
@@ -333,6 +343,12 @@ TABLE_ROW
 	$i++;
     }
     print $html <<"END";
+    <tr>
+      <td></td>
+      <td></td>
+      <th>created at</th>
+      <td>$now</td>
+    </tr>
   </table>
   <img id="frame" src="$prefix\_0.png" alt="$PLOT Grid">
   <img id="combined" src="$prefix.png" alt="$PLOT Performance">

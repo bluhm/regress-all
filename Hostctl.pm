@@ -157,9 +157,10 @@ sub collect_result {
 	    next if $status =~ /VALUE/;
 	    print $pax $test unless $test =~ m,[^\w/],;
 	}
+	my $now = strftime("%FT%TZ", gmtime);
 	close($pax) or die $! ?
 	    "Close pipe to '@paxcmd' failed: $!" :
-	    "Command '@paxcmd' failed: $?";
+	    "$now Command '@paxcmd' failed: $?";
 	close($tr)
 	    or die "Close 'test.result' after reading failed: $!";
 

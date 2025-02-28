@@ -27,9 +27,9 @@ use POSIX;
 use Time::Local;
 use URI::Escape;
 
-my $now = strftime("%FT%TZ", gmtime);
-
 use lib dirname($0);
+
+my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
@@ -78,7 +78,7 @@ my $cvsend = strftime("%FZ%T", gmtime($end));
 my $cvsdate = "-d$cvsbegin<=$cvsend";
 
 my @cvscmd = (qw(cvs -qR rlog -b -N), $cvsdate, "$module/$path");
-print "Pipe from command '@cvscmd' started.\n" if $verbose;
+print "$now Pipe from command '@cvscmd' started.\n" if $verbose;
 open(my $cvs, '-|', @cvscmd)
     or die "Open pipe from '@cvscmd' failed: $!";
 
@@ -180,10 +180,11 @@ if ($state eq "header") {
     die "Unexpected state '$state' after log";
 }
 
+$now = strftime("%FT%TZ", gmtime);
 close($cvs) or die $! ?
     "Close pipe from '@cvscmd' failed: $!" :
-    "Command '@cvscmd' failed: $?";
-print "Pipe from command '@cvscmd' finished.\n" if $verbose;
+    "$now Command '@cvscmd' failed: $?";
+print "$now Pipe from command '@cvscmd' finished.\n" if $verbose;
 
 # write result log file
 
@@ -209,6 +210,7 @@ print $fh "PATH $module/$path\n";
 my $commitnum = keys %l;
 print $fh "COMMITS $commitnum\n";
 
+$now = strftime("%FT%TZ", gmtime);
 print $html <<"HEADER";
 <!DOCTYPE html>
 <html>
