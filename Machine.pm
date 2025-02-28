@@ -89,7 +89,8 @@ sub get_bsdcons {
 sub get_version {
     my @sshcmd = (('ssh', "$user\@$host", 'sysctl'),
 	qw(kern.version hw.machine hw.ncpu hw.ncpuonline));
-    logmsg "Command '@sshcmd' started.\n";
+    my $now = strftime("%FT%TZ", gmtime);
+    logmsg "$now Command '@sshcmd' started.\n";
     open(my $ctl, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
     open(my $version, '>', "version-$host.txt.new")
@@ -106,10 +107,11 @@ sub get_version {
 	}
 	print $version $_;
     }
+    $now = strftime("%FT%TZ", gmtime);
     close($ctl) or die $! ?
 	"Close pipe from '@sshcmd' failed: $!" :
-	"Command '@sshcmd' failed: $?";
-    logmsg "Command '@sshcmd' finished.\n";
+	"$now Command '@sshcmd' failed: $?";
+    logmsg "$now Command '@sshcmd' finished.\n";
     close($version)
 	or die "Close 'version-$host.txt.new' after writing failed: $!";
     rename("version-$host.txt.new", "version-$host.txt") or
@@ -154,7 +156,8 @@ sub diff_cvs {
     $path = $path ? " $path" : "";
     my @sshcmd = ('ssh', "$user\@$host",
 	"cd /usr/src && cvs -qR diff -up$path");
-    logmsg "Command '@sshcmd' started.\n";
+    my $now = strftime("%FT%TZ", gmtime);
+    logmsg "$now Command '@sshcmd' started.\n";
     open(my $cvs, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
     open(my $diff, '>', "diff-$host.txt.new")
@@ -163,12 +166,13 @@ sub diff_cvs {
     while (<$cvs>) {
 	print $diff $_;
     }
+    $now = strftime("%FT%TZ", gmtime);
     close($cvs) or do {
 	die "Close pipe from '@sshcmd' failed: $!" if $!;
 	# cvs diff returns 0 without and 1 with differences
-	die "Command '@sshcmd' failed: $?" if $? != 0 && $? != (1<<8);
+	die "$now Command '@sshcmd' failed: $?" if $? != 0 && $? != (1<<8);
     };
-    logmsg "Command '@sshcmd' finished.\n";
+    logmsg "$now Command '@sshcmd' finished.\n";
     close($diff)
 	or die "Close 'diff-$host.txt.new' after writing failed: $!";
     rename("diff-$host.txt.new", "diff-$host.txt")
@@ -294,16 +298,18 @@ sub reorder_kernel {
 
 sub get_bsdnm {
     my @sshcmd = ('ssh', "$user\@$host", 'nm', '/bsd');
-    logmsg "Command '@sshcmd' started.\n";
+    my $now = strftime("%FT%TZ", gmtime);
+    logmsg "$now Command '@sshcmd' started.\n";
     open(my $nm, '-|', @sshcmd)
 	or die "Open pipe from '@sshcmd' failed: $!";
     open(my $fh, '>', "nm-bsd-$host.txt.new")
 	or die "Open 'nm-bsd-$host.txt.new' for writing failed: $!";
     print $fh sort <$nm>;
+    $now = strftime("%FT%TZ", gmtime);
     close($nm) or die $! ?
 	"Close pipe from '@sshcmd' failed: $!" :
-	"Command '@sshcmd' failed: $?";
-    logmsg "Command '@sshcmd' finished.\n";
+	"$now Command '@sshcmd' failed: $?";
+    logmsg "$now Command '@sshcmd' finished.\n";
     close($fh)
 	or die "Close 'nm-bsd-$host.txt.new' after writing failed: $!";
     rename("nm-bsd-$host.txt.new", "nm-bsd-$host.txt") or

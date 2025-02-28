@@ -327,8 +327,7 @@ sub get_commits {
     unless (-f $cvstxt) {
 	my @cmd = ("$performdir/bin/cvslog.pl",
 	    "-B", $cvsbegin, "-E", $cvsend, "-P", "src/sys");
-	system(@cmd)
-	    and die "Command '@cmd' failed: $?";
+	runcmd(@cmd);
     }
     open (my $fh, '<', $cvstxt)
 	or die "Open '$cvstxt' for reading failed: $!";
