@@ -279,6 +279,8 @@ sub log2status {
 
     defined(my $line = <$fh>)
 	or return 'NOLOG';
+    # timestamp is optional
+    $line =~ s/^[-0-9]+T[:0-9]+Z //;
     $line =~ /^Script .* started/i
 	or return 'NORUN';
 
@@ -291,7 +293,8 @@ sub log2status {
     while (<$fh>) {
 	$line = $_;
     }
-
+    # timestamp is optional
+    $line =~ s/^[-0-9]+T[:0-9]+Z //;
     $line =~ /^Warning:/
 	and return 'NOTERM';
     $line =~ /^[A-Z].* failed/

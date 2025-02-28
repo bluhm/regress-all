@@ -25,6 +25,7 @@ use lib dirname($0);
 use Logcmd;
 use Hostctl;
 
+my $date = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my @allsetupmodes = qw(commands keep ports);
@@ -61,8 +62,6 @@ foreach my $mode (qw(keep)) {
 $SIG{PIPE} = 'IGNORE';
 
 # create directory for this test run with timestamp 2016-07-13T12:30:42Z
-my $date = strftime("%FT%TZ", gmtime);
-
 my $regressdir = dirname($0). "/..";
 chdir($regressdir)
     or die "Change directory to '$regressdir' failed: $!";
@@ -77,7 +76,7 @@ chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
 createlog(file => "test.log", verbose => $opts{v});
-logmsg("Script '$scriptname' started at $date.\n");
+logmsg("$date Script '$scriptname' started.\n");
 
 open(my $fh, '>', "testconf.txt")
     or die "Open 'testconf.txt' for writing failed: $!";
@@ -177,6 +176,6 @@ runcmd("bin/regress-html.pl", "-l", "ports");
 #runcmd("bin/regress-html.pl", "ports");
 
 my $now = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $now.\n");
+logmsg("$now Script '$scriptname' finished.\n");
 
 exit;

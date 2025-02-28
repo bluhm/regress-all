@@ -27,6 +27,7 @@ use lib dirname($0);
 use Logcmd;
 use Machine;
 
+my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my @allpowermodes = qw(down up);
@@ -115,8 +116,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
 createlog(file => "power-$host.log", verbose => $opts{v});
-$date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' started at $date.\n");
+logmsg("$now Script '$scriptname' started.\n");
 
 createhost($user, $host);
 
@@ -127,7 +127,7 @@ power_up() if $mode{up};
 
 # finish power log
 
-my $now = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $now.\n");
+$now = strftime("%FT%TZ", gmtime);
+logmsg("$now Script '$scriptname' finished.\n");
 
 exit;

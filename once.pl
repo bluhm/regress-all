@@ -27,7 +27,6 @@ use Logcmd;
 use Hostctl;
 
 my $now = strftime("%FT%TZ", gmtime);
-
 my $scriptname = "$0 @ARGV";
 
 my @allkernelmodes = qw(align gap sort reorder reboot keep);
@@ -148,7 +147,7 @@ chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
 createlog(file => "once.log", verbose => $opts{v});
-logmsg("Script '$scriptname' started at $now.\n");
+logmsg("$now Script '$scriptname' started.\n");
 
 # setup remote machines
 
@@ -265,7 +264,7 @@ if ($date) {
 }
 
 $now = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $now.\n");
+logmsg("$now Script '$scriptname' finished.\n");
 
 exit;
 

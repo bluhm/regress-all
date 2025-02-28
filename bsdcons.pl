@@ -28,7 +28,6 @@ use Logcmd;
 use Machine;
 
 my $now = strftime("%FT%TZ", gmtime);
-
 my $scriptname = "$0 @ARGV";
 
 my %opts;
@@ -88,7 +87,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
 createlog(verbose => $opts{v});
-logmsg("Script '$scriptname' started at $now.\n");
+logmsg("$now Script '$scriptname' started.\n");
 
 if ($opts{l}) {
     my @bsdcons = sort glob("*T*/bsdcons-$host.txt")
@@ -124,4 +123,4 @@ createhost($user, $host);
 get_bsdcons();
 
 $now = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $now.\n");
+logmsg("$now Script '$scriptname' finished.\n");

@@ -29,7 +29,6 @@ use Machine;
 use Buildquirks;
 
 my $now = strftime("%FT%TZ", gmtime);
-
 my $scriptname = "$0 @ARGV";
 
 my @allkernelmodes = qw(align gap sort reorder reboot);
@@ -111,7 +110,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
 createlog(file => "cvsbuild-$host.log", verbose => $opts{v});
-logmsg("Script '$scriptname' started at $now.\n");
+logmsg("$now Script '$scriptname' started.\n");
 
 createhost($user, $host);
 
@@ -170,4 +169,4 @@ get_version();
 # finish build log
 
 $now = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $now.\n");
+logmsg("$now Script '$scriptname' finished.\n");

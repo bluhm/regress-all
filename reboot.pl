@@ -27,6 +27,7 @@ use lib dirname($0);
 use Logcmd;
 use Machine;
 
+my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my @allkernelmodes = qw(align gap sort reorder reboot);
@@ -113,8 +114,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
 createlog(file => "reboot-$host.log", verbose => $opts{v});
-$date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' started at $date.\n");
+logmsg("$now Script '$scriptname' started.\n");
 
 createhost($user, $host);
 
@@ -134,7 +134,7 @@ get_version();
 
 # finish reboot log
 
-my $now = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $now.\n");
+$now = strftime("%FT%TZ", gmtime);
+logmsg("$now Script '$scriptname' finished.\n");
 
 exit;

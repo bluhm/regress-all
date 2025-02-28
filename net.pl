@@ -28,7 +28,6 @@ use Logcmd;
 use Hostctl;
 
 my $now = strftime("%FT%TZ", gmtime);
-
 my $scriptname = "$0 @ARGV";
 
 my @allifaces = qw(bge bnxt em ice igc ix ixl re vio vmx);
@@ -129,7 +128,7 @@ chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
 createlog(file => "net.log", verbose => $opts{v});
-logmsg("Script '$scriptname' started at $now.\n");
+logmsg("$now Script '$scriptname' started.\n");
 
 open(my $fh, '>', "netconf.txt")
     or die "Open 'netconf.txt' for writing failed: $!";
@@ -376,7 +375,7 @@ runcmd(@cmd, "-h", $host);
 #runcmd(@cmd);
 
 $now = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $now.\n");
+logmsg("$now Script '$scriptname' finished.\n");
 
 exit;
 

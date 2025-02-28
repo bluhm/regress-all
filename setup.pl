@@ -28,6 +28,7 @@ use Logcmd;
 use Machine;
 use Buildquirks;
 
+my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my @allsetupmodes = qw(
@@ -96,8 +97,7 @@ my ($user, $host) = split('@', $opts{h}, 2);
 ($user, $host) = ("root", $user) unless $host;
 
 createlog(file => "setup-$host.log", verbose => $opts{v});
-$date = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' started at $date.\n");
+logmsg("$now Script '$scriptname' started.\n");
 
 createhost($user, $host);
 
@@ -139,8 +139,8 @@ get_bsdcons();
 
 # finish setup log
 
-my $now = strftime("%FT%TZ", gmtime);
-logmsg("Script '$scriptname' finished at $now.\n");
+$now = strftime("%FT%TZ", gmtime);
+logmsg("$now Script '$scriptname' finished.\n");
 
 exit;
 
