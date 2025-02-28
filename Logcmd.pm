@@ -60,7 +60,10 @@ sub logeval(&) {
     my $code = shift;
     local $SIG{__DIE__};
     eval { &$code };
-    logmsg "Warning: $@" if $@;
+    if ($@) {
+	$@ =~ s/^([-0-9]+T[:0-9]+Z )?/${1}Warning: /;
+	logmsg $@;
+    }
 }
 
 sub runcmd {
