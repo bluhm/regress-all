@@ -134,34 +134,7 @@ logcmd(@sshcmd);
 
 # get result and logs
 
-my @scpcmd = ('scp');
-push @scpcmd, '-q' unless $opts{v};
-push @scpcmd, ("$opts{h}:/root/regress/test.*", $resultdir);
-runcmd(@scpcmd);
-
-open(my $tr, '<', "test.result")
-    or die "Open 'test.result' for reading failed: $!";
-my $logdir = "$resultdir/logs";
-mkdir $logdir
-    or die "Make directory '$logdir' failed: $!";
-chdir($logdir)
-    or die "Change directory to '$logdir' failed: $!";
-my @paxcmd = ('pax', '-rzf', "../test.log.tgz");
-open(my $pax, '|-', @paxcmd)
-    or die "Open pipe to '@paxcmd' failed: $!";
-while (<$tr>) {
-    my ($status, $test, $message) = split(" ", $_, 3);
-    print $pax "$test/make.log" unless $test =~ m,[^\w/],;
-}
-close($pax) or die $! ?
-    "Close pipe to '@paxcmd' failed: $!" :
-    "Command '@paxcmd' failed: $?";
-close($tr)
-    or die "Close 'test.result' after reading failed: $!";
-
-chdir($resultdir)
-    or die "Change directory to '$resultdir' failed: $!";
-
+collect_result("$opts{h}:/root/regress");
 collect_dmesg();
 setup_html();
 powerdown_hosts(patch => $patch) if $opts{p};
