@@ -19,6 +19,7 @@ package Hostctl;
 use strict;
 use warnings;
 use Carp;
+use POSIX;
 
 use Logcmd;
 use Machine;
