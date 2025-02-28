@@ -65,15 +65,19 @@ sub logeval(&) {
 
 sub runcmd {
     my @cmd = @_;
-    logmsg "Command '@cmd' started.\n";
-    system(@cmd)
-	and croak "Command '@cmd' failed: $?";
-    logmsg "Command '@cmd' finished.\n";
+    my $now = strftime("%FT%TZ", gmtime);
+    logmsg "$now Command '@cmd' started.\n";
+    system(@cmd) && $? == -1 and
+	croak "System '@cmd' failed: $!";
+    $now = strftime("%FT%TZ", gmtime);
+    $? and croak "$now Command '@cmd' failed: $?";
+    logmsg "$now Command '@cmd' finished.\n";
 }
 
 sub forkcmd {
     my @cmd = @_;
-    logmsg "Command '@cmd' started.\n";
+    my $now = strftime("%FT%TZ", gmtime);
+    logmsg "$now Command '@cmd' started.\n";
     defined(my $pid = fork())
 	or croak "Fork '@cmd' failed: $!";
     if ($pid == 0) {
@@ -97,6 +101,7 @@ sub waitcmd {
     my %pidcmds = @_;
     my $total = keys %pidcmds;
     my $failed = 0;
+    my $now = strftime("%FT%TZ", gmtime);
     while (my $pid = each %waitstatus) {
 	my $cmd = delete $pidcmds{$pid}
 	    or next;
@@ -104,10 +109,10 @@ sub waitcmd {
 	my $status = delete $waitstatus{$pid};
 	my @cmd = @$cmd;
 	if ($status) {
-	    logeval { croak "Command '@cmd' failed: $status" };
+	    logeval { croak "$now Command '@cmd' failed: $status" };
 	    $failed++;
 	} else {
-	    logmsg "Command '@cmd' finished.\n";
+	    logmsg "$now Command '@cmd' finished.\n";
 	}
     }
     while (keys %pidcmds) {
@@ -121,14 +126,18 @@ sub waitcmd {
 	    next;
 	}
 	my @cmd = @$cmd;
+	$now = strftime("%FT%TZ", gmtime);
 	if ($status) {
-	    logeval { croak "Command '@cmd' failed: $status" };
+	    logeval { croak "$now Command '@cmd' failed: $status" };
 	    $failed++;
 	} else {
-	    logmsg "Command '@cmd' finished.\n";
+	    logmsg "$now Command '@cmd' finished.\n";
 	}
     }
-    $failed and croak "Commands $failed out of $total failed";
+    if ($failed) {
+	$now = strftime("%FT%TZ", gmtime);
+	croak "$now Commands $failed out of $total failed.";
+    }
 }
 
 sub logcmd {
@@ -141,7 +150,8 @@ sub logcmd {
     } else {
 	@cmd = @_;
     }
-    logmsg "Command '@cmd' started.\n";
+    my $now = strftime("%FT%TZ", gmtime);
+    logmsg "$now Command '@cmd' started.\n";
     open(my $fh, '>', $outfile)
 	or croak "Open file '$outfile' for writing failed: $!"
 	if $outfile;
@@ -174,9 +184,10 @@ sub logcmd {
 	    }
 	    copy($infile, $in)
 		or die "Copy '$infile' to '@cmd' failed: $!";
+	    $now = strftime("%FT%TZ", gmtime);
 	    close($in) or croak $! ?
 		"Close pipe to '@cmd' failed: $!" :
-		"Command '@cmd' failed: $?";
+		"$now Command '@cmd' failed: $?";
 	    _exit(0);
 	} else {
 	    no warnings 'exec';
@@ -191,10 +202,11 @@ sub logcmd {
 	s/[^\s[:print:]]/_/g;
 	logmsg $_;
     }
+    $now = strftime("%FT%TZ", gmtime);
     close($out) or croak $! ?
 	"Close pipe from '@cmd' failed: $!" :
-	"Command '@cmd' failed: $?";
-    logmsg "Command '@cmd' finished.\n";
+	"$now Command '@cmd' failed: $?";
+    logmsg "$now Command '@cmd' finished.\n";
 }
 
 sub loggrep {
