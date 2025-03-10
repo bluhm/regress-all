@@ -31,6 +31,8 @@ use lib dirname($0);
 use Html;
 use Testvars qw(%TESTNAME %TESTDESC @TESTKEYS);
 
+my $fgdir = "/home/bluhm/github/FlameGraph";  # XXX
+
 my $now = strftime("%FT%TZ", gmtime);
 
 my @allifaces = qw(bge bnxt em ice igc ix ixl re vio vmx);
@@ -69,16 +71,17 @@ chdir($resultdir)
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
 
-my @HIERARCHY = qw(date iface cvsdate patch modify pseudo);
-my (%T, %D, %H, %V);
+my @HIERARCHY = qw(date iface cvsdate patch modify pseudo repeat btrace);
+my @HIERS;
+my (%T, %D, %H, %V, %B);
 
 # %T
 # $test				test directory relative to /usr/src/regress/
 # $T{$test}{severity}		weighted severity of all failures of this test
 # $date				date and time when test was executed as string
-# $T{$test}{$date}{status}	result of this test at that day
-# $T{$test}{$date}{message}	test printed a pass duration or failure summary
-# $T{$test}{$date}{logfile}	relative path to net.log for hyper link
+# $T{$test}{$date}{$hk}{status}		result of this test at that day
+# $T{$test}{$date}{$hk}{message}	test printed a duration or summary
+# $T{$test}{$date}{$hk}{logfile}	relative path to net.log for hyper link
 # %D
 # $date				date and time when test was executed as string
 # $D{$date}{pass}		percentage of not skipped tests that passed
@@ -95,13 +98,21 @@ my (%T, %D, %H, %V);
 # $D{$date}{build}		snapshot or custom build
 # $D{$date}{arch}		sysctl hardware machine architecture
 # $D{$date}{ncpu}		sysctl hardware ncpu cores
+# $B{$test}{$hk}{dir}		directory of btrace input file
+# $B{$test}{$hk}{btfile}	btrace input file
+# $B{$test}{$hk}{btrace}	btrace-kstack.num
 
-print "glob_result_files" if $verbose;
-my @result_files = glob_result_files($date);
-print "\nparse result files" if $verbose;
-parse_result_files(@result_files);
+{
+    print "glob_result_files" if $verbose;
+    my @results = glob_result_files($date);
+    print "\nparse result files" if $verbose;
+    parse_result_files(@results);
+}
+print "\ncreate btrace files" if $verbose;
+create_btrace_files();
+
 print "\ncreate html hier files" if $verbose;
-write_html_hier_files($date);
+write_html_hier_files();
 print "\nwrite html date file" if $verbose;
 if ($opts{d}) {
     print "\n" if $verbose;
@@ -111,11 +122,6 @@ write_html_date_file();
 print "\n" if $verbose;
 
 exit;
-
-sub list_dates {
-    my @dates = shift || reverse sort keys %D;
-    return @dates;
-}
 
 sub html_hier_top {
     my ($html, $date, @cvsdates) = @_;
@@ -151,7 +157,7 @@ HEADER
 sub html_hier_test_head {
     my ($html, $dv, @hiers) = @_;
 
-    foreach my $hier (@HIERARCHY) {
+    foreach my $hier (@HIERS) {
 	print $html "  <tr>\n";
 	print $html "    <td>$hier</td>\n";
 	foreach my $hv (@hiers) {
@@ -179,7 +185,7 @@ sub html_hier_test_head {
 sub html_hier_test_head_utilization {
     my ($html, $dv, @hiers) = @_;
 
-    foreach my $hier (@HIERARCHY) {
+    foreach my $hier (@HIERS) {
 	my $te = $hier eq "date" ? "th" : "td";
 	print $html "  <tr>\n";
 	print $html "    <td></td>", "<td></td>" x (@TESTKEYS-1), "\n";
@@ -250,6 +256,34 @@ sub html_hier_test_row {
 	}
 	print $html "    <th></th>\n  </tr>\n";
     }
+    my $bt = $B{$test};
+    if ($bt) {
+	print $html "  <tr>\n";
+	print $html "    <td><code>btrace</code></td>\n";
+	foreach my $hv (@hiers) {
+	    my $bv = $bt->{$hv->{key}} || {};
+	    html_btrace_link($html, $bv->{dir}, $test, $bv->{btrace} || ());
+	}
+	print $html "    <th></th>\n  </tr>\n";
+    }
+}
+
+sub html_btrace_link {
+    my ($html, $dir, $test, @stacks) = @_;
+    unless (@stacks) {
+	print $html "    <td></td>\n";
+	return;
+    }
+    my @svgs;
+    foreach my $stack (@stacks) {
+	my $svgfile = "$dir/btrace/$test-$stack.svg";
+	my $link = uri_escape("../$svgfile", "^A-Za-z0-9\-\._~/");
+	my $href = -f $svgfile ? "<a href=\"$link\">" : "";
+	my $enda = $href ? "</a>" : "";
+	$stack =~ s/^btrace-//;
+	push @svgs, "$href$stack$enda";
+    }
+    print $html "    <td>", join(" ", sort @svgs), "</td>\n";
 }
 
 sub html_hier_test_row_utilization {
@@ -331,8 +365,7 @@ sub html_hier_test_row_utilization {
 }
 
 sub write_html_hier_files {
-    my @dates = list_dates(shift);
-
+    my @dates = reverse sort keys %D;
     foreach my $date (@dates) {
 	print "." if $verbose;
 	my $dv = $D{$date};
@@ -590,11 +623,12 @@ sub glob_result_files {
     }
 }
 
-# fill global hashes %T %D %H
+# fill global @HIERS and hashes %T %D %H %V %B
 sub parse_result_files {
     my %alliftypes;
     @alliftypes{@allifaces} = ();
 
+    my %usedhiers;
     foreach my $file (@_) {
 	print "." if $verbose;
 
@@ -614,6 +648,7 @@ sub parse_result_files {
 	    my $subdir = $file->{$hier}
 		or next;
 	    $hiers{$hier} = $subdir;
+	    $usedhiers{$hier}++;
 	}
 	my $hk = join($;, map { local $_ = $file->{$_} || ""; s/-none$/-/; $_; }
 	    @HIERARCHY);
@@ -653,6 +688,15 @@ sub parse_result_files {
 	    $tv->{message} = $message;
 	    $tv->{logfile} = $logfile if -f $logfile;
 	    $tv->{stats} = $stats if -f $stats;
+	    if ($file->{btrace}) {
+		(my $btrace = $file->{btrace}) =~ s,btrace-([^/]*)\.\d+,$1,;
+		(my $btfile = $logfile) =~ s,\.log$,-$btrace.btrace,;
+		$B{$test}{$hk} = {
+		    dir    => $file->{dir},
+		    btfile => $btfile,
+		    btrace => $file->{btrace},
+		} if -s $btfile;
+	    }
 	    $V{$test}{$hk} = [ @values ];
 	    undef @values;
 	    my $severity = status2severity($status);
@@ -706,6 +750,36 @@ sub parse_result_files {
 		$ifdmesg{"iface-$1"} = $_;
 	    }
 	    $dv->{ifdmesg} = \%ifdmesg;
+	}
+    }
+    @HIERS = grep { $usedhiers{$_} } @HIERARCHY;
+}
+
+sub create_btrace_files {
+    my @tests = reverse sort keys %B;
+    foreach my $test (@tests) {
+	my $tv = $B{$test};
+	foreach my $hk (sort keys %{$tv}) {
+	    my $hv = $tv->{$hk};
+	    my $dir = $hv->{dir};
+	    my $btdir = "$dir/btrace";
+	    -d $btdir || mkdir $btdir
+		or die "Make directory '$btdir' failed: $!";
+	    my $btfile = $hv->{btfile};
+	    my $stack = $hv->{btrace};
+	    my $svgfile = "$btdir/$test-$stack.svg";
+	    next if -f $svgfile;
+	    print "." if $verbose;
+	    my $fgcmd = "$fgdir/stackcollapse-bpftrace.pl <$btfile | ".
+		"$fgdir/flamegraph.pl >$svgfile.new";
+	    system($fgcmd)
+		and die "Command '$fgcmd' failed: $?";
+	    rename("$svgfile.new", $svgfile)
+		or die "Rename '$svgfile.new' to '$svgfile' failed: $!";
+	    system("gzip -f -c $svgfile >$svgfile.gz.new")
+		and die "Gzip '$svgfile' failed: $?";
+	    rename("$svgfile.gz.new", "$svgfile.gz") or die
+		"Rename '$svgfile.gz.new' to '$svgfile.gz' failed: $!";
 	}
     }
 }
