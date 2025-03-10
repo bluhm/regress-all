@@ -27,20 +27,25 @@ use Time::HiRes;
 use lib dirname($0);
 use Netstat;
 
+my $startdir = getcwd();
+my @startcmd = ($0, @ARGV);
+
 my @allifaces = qw(none bge bnxt em ice igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gif6 gre veb vlan vxlan wg);
 my @alltestmodes = sort qw(all icmp tcp udp splice mcast);
 
 my %opts;
-getopts('c:e:i:m:t:v', \%opts) or do {
+getopts('b:c:e:i:m:st:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: netlink.pl [-v] [-c pseudo] [-e environment] [-i iface] [-m modify]
-    [-t timeout] [test ...]
+usage: netlink.pl [-sv] [-b kstack] [-c pseudo] [-e environment] [-i iface]
+    [-m modify] [-t timeout] [test ...]
+    -b kstack	measure with btrace and create kernel stack map
     -c pseudo	pseudo network device: @allpseudos
     -e environ	parse environment for tests from shell script
     -i iface	interface, may contain number: @allifaces
     -m modify	modify mode: @allmodifymodes
+    -s		stress test, run tests longer, activate sysctl
     -t timeout	timeout for a single test, default 30 seconds
     -v		verbose
     test ...	test mode: @alltestmodes
@@ -48,11 +53,15 @@ usage: netlink.pl [-v] [-c pseudo] [-e environment] [-i iface] [-m modify]
 EOF
     exit(2);
 };
-my $timeout = $opts{t} || 30;
+my $btrace = $opts{b};
+!$btrace || $btrace eq "kstack"
+    or die "Btrace -b '$btrace' not supported, use 'kstack'";
+my $timeout = $opts{t} || ($btrace ? 2*60 : 30);
 environment($opts{e}) if $opts{e};
 my $pseudo = $opts{c} || "none";
 my $iface = $opts{i} || "none";
 my $modify = $opts{m} || "none";
+my $stress = $opts{s};
 
 my $line = $ENV{NETLINK_LINE}
     or die "NETLINK_LINE is not in env";
@@ -110,6 +119,20 @@ if ($testmode{all6}) {
 }
 foreach (keys %testmode) {
     $testmode{"${_}4"} = $testmode{"${_}6"} = 1 if $_ !~ /[46]$/;
+}
+
+if ($stress) {
+    my %sysctl = (
+	'kern.pool_debug'	=> 1,
+	'kern.splassert'	=> 3,
+	'kern.witness.watch'	=> 3,
+    );
+    foreach my $k (sort keys %sysctl) {
+	my $v = $sysctl{$k};
+	my @cmd = ('/sbin/sysctl', "$k=$v");
+	system(@cmd)
+	    and die "Sysctl '$k=$v' failed: $?";
+    }
 }
 
 my $ip4prefix = '10.10.';
@@ -208,6 +231,7 @@ chdir($dir)
 my $netlinkdir = getcwd();
 
 # write summary of results into result file
+rename("test.result", "test.result.old") if $stress;
 open(my $tr, '>', "test.result")
     or die "Open 'test.result' for writing failed: $!";
 $tr->autoflush();
@@ -244,18 +268,16 @@ sub good {
     statistics($test, "after");
     generate_diff_netstat($test);
 
-    my $pass = "PASS";
+    my $reason = "PASS";
     my $netstat = "$test.stats-netstat-diff.txt";
-
     open(my $fh, '<', $netstat) or die("Could not open '$netstat'");
-    while(<$fh>) {
-	$pass = "XPASS" if /error/;
+    while (<$fh>) {
+	$reason = "XPASS" if /error/;
     }
 
-    print $log "\n$pass\t$test\tDuration $duration\n" if $log;
-    print "\n$pass\t$test\tDuration $duration\n\n" if $opts{v};
-    print $tr "$pass\t$test\tDuration $duration\n";
-
+    print $log "\n$reason\t$test\tDuration $duration\n" if $log;
+    print "\n$reason\t$test\tDuration $duration\n\n" if $opts{v};
+    print $tr "$reason\t$test\tDuration $duration\n";
     $log->sync() if $log;
     $tr->sync();
 }
@@ -1367,6 +1389,27 @@ foreach my $t (@tests) {
 	splice(@runcmd, 1, 0, "-C$pseudo");
     }
 
+    # reap zombies, might happen if there were some btrace errors
+    1 while waitpid(-1, WNOHANG) > 0;
+
+    my $sampletime;
+    if ($btrace) {
+	# run the test for 80 seconds to measure btrace during 1 minute
+	if (grep { /^-t10$/ } @runcmd) {
+	    s/^-t10$/-t80/ foreach @runcmd;
+	    $sampletime = 60;
+	} elsif (grep { /^make$/ } @runcmd) {
+	    # kernel build usually takes longer than 5 minutes
+	    $sampletime = 300;
+	} else {
+	    next;
+	}
+    } elsif ($stress) {
+	if (grep { /^-t10$/ } @runcmd) {
+	    s/^-t10$/-t60/ foreach @runcmd;
+	}
+    }
+
     my $begin = Time::HiRes::time();
     my $date = strftime("%FT%TZ", gmtime($begin));
     print "\nSTART\t$test\t$date\n\n" if $opts{v};
@@ -1406,6 +1449,59 @@ foreach my $t (@tests) {
 	_exit(126);
     }
 
+    my $btpid;
+    if ($btrace) {
+	my @btcmd = ('btrace', '-e', "profile:hz:100{\@[$btrace]=count()}");
+	my $btfile = "$test-$btrace.btrace";
+	open(my $bt, '>', $btfile)
+	    or bad $test, 'NOLOG',
+	    "Open btrace '$btfile' for writing failed: $!";
+	$SIG{USR1} = 'IGNORE';
+	defined($btpid = fork())
+	    or bad $test, 'XPASS', "Fork btrace failed: $!", $log;
+	if ($btpid == 0) {
+	    # child process
+
+	    # allow test to spin up
+	    sleep 10;
+
+	    defined(my $btracepid = fork())
+		or warn "Fork btrace '@btcmd' failed: $!";
+	    if ($btracepid == 0) {
+		# child process
+		open(STDOUT, '>&', $bt)
+		    or warn "Redirect stdout to btrace failed: $!";
+		exec(@btcmd);
+		warn "Exec '@btcmd' failed: $!";
+		_exit(126);
+	    }
+	    my $tracetime = Time::HiRes::time();
+	    print $log "Btrace '@btcmd' started for $sampletime seconds\n";
+	    print "Btrace '@btcmd' started for $sampletime seconds\n"
+		if $opts{v};
+
+	    # gather samples during 1 minute or 5 minutes
+	    $SIG{USR1} = sub { print "Btrace aborted\n" if $opts{v} };
+	    sleep $sampletime;
+	    $SIG{USR1} = 'IGNORE';
+	    kill 'INT', $btracepid
+		or warn "Interrupt btrace failed: $!";
+
+	    $tracetime = sprintf("%d", Time::HiRes::time() - $tracetime);
+	    print $log "Btrace '@btcmd' stopped after $tracetime seconds\n";
+	    print "Btrace '@btcmd' stopped after $tracetime seconds\n"
+		if $opts{v};
+	    undef $!;
+	    waitpid($btracepid, 0) == $btracepid && $? == 0
+		and _exit(0);
+	    warn $! ?
+		"Wait for btrace '@btcmd' failed: $!" :
+		"Btrace '@btcmd' failed: $?";
+	    _exit(126);
+	}
+	close($bt);
+    }
+
     eval {
 	local $SIG{ALRM} = sub { die "Test running too long, aborted.\n" };
 	alarm($timeout);
@@ -1431,6 +1527,16 @@ foreach my $t (@tests) {
     if ($@) {
 	chomp($@);
 	bad $test, 'NOTERM', $@, $log;
+    }
+
+    if ($btpid) {
+	kill 'USR1', $btpid
+	    or bad $test, 'XPASS', "Kill btrace failed: $!", $log;
+	print "Btrace killed\n" if $opts{v};
+	waitpid($btpid, 0) == $btpid
+	    or bad $test, 'XPASS', "Wait for btrace failed: $!", $log;
+	$? == 0
+	    or bad $test, 'XFAIL', "Btrace failed: $?", $log;
     }
 
     close($out)
@@ -1465,6 +1571,13 @@ printcmd(@paxcmd)
 
 close($tr)
     or die "Close 'test.result' after writing failed: $!";
+
+if ($stress) {
+    chdir($startdir)
+	or die "Change directory to '$startdir' failed: $!";
+    exec $! @startcmd;
+    die "Exec '@startcmd' failed: $!";
+}
 
 exit;
 

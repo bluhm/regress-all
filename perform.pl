@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2024 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2018-2025 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -44,7 +44,7 @@ my @alltestmodes = qw(
 );
 
 my %opts;
-getopts('b:e:m:t:sv', \%opts) or do {
+getopts('b:e:m:st:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: perform.pl [-sv] [-b kstack] [-e environment] [-m modify] [-t timeout]
 	[test ...]
@@ -156,6 +156,10 @@ sub bad {
     print $log "\n$reason\t$test\t$message\n" if $log;
     print "\n$reason\t$test\t$message\n\n" if $opts{v};
     print $tr "$reason\t$test\t$message\n";
+
+    # XXX temporarily disabled
+    #statistics($test, "after");
+
     $log->sync() if $log;
     $tr->sync();
     no warnings 'exiting';
@@ -167,6 +171,10 @@ sub bad {
 sub good {
     my ($test, $diff, $log) = @_;
     my $duration = sprintf("%dm%02d.%02ds", $diff/60, $diff%60, 100*$diff%100);
+
+    # XXX temporarily disabled
+    #statistics($test, "after");
+
     print $log "\nPASS\t$test\tDuration $duration\n" if $log;
     print "\nPASS\t$test\tDuration $duration\n\n" if $opts{v};
     print $tr "PASS\t$test\tDuration $duration\n";
@@ -1367,9 +1375,6 @@ foreach my $t (@tests) {
 	or bad $test, 'NOEXIT', $! ?
 	"Close pipe from '@runcmd' failed: $!" :
 	"Command '@runcmd' failed: $?", $log;
-
-    # XXX temporarily disabled
-    #statistics($test, "after");
 
     eval { $t->{shutdown}($log) if $t->{shutdown}; };
     if ($@) {

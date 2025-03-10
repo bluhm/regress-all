@@ -42,7 +42,7 @@ getopts('b:c:d:D:h:i:m:N:P:ps:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: net.pl [-pv] [-b kstack] [-c pseudo] [-d date] [-D cvsdate] -h host
 	[-i iface] [-m modify] [-N repeat] [-P patch] [-s setup] [test ...]
-#    -b kstack	measure with btrace and create kernel stack map
+    -b kstack	measure with btrace and create kernel stack map
     -c pseudo	list of pseudo network devices: all @allpseudos
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
