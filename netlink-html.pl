@@ -33,6 +33,19 @@ use Testvars qw(%TESTNAME %TESTDESC @TESTKEYS);
 
 my $fgdir = "/home/bluhm/github/FlameGraph";  # XXX
 
+my %LINERATES = (
+    "iface-bge"  =>       10 ** 9,
+    "iface-bnxt" =>  10 * 10 ** 9,
+    "iface-em"   =>       10 ** 9,
+    "iface-ice"  =>  10 * 10 ** 9,  # XXX faster devices exist
+    "iface-igc"  => 2.5 * 10 ** 9,
+    "iface-ix"   =>  10 * 10 ** 9,
+    "iface-ixl"  =>  10 * 10 ** 9,
+    "iface-re"   =>  .1 * 10 ** 9,
+    "iface-vio"  =>  20 * 10 ** 9,
+    "iface-vmx"  =>  20 * 10 ** 9,
+);
+
 my $now = strftime("%FT%TZ", gmtime);
 
 my @allifaces = qw(bge bnxt em ice igc ix ixl re vio vmx);
@@ -319,6 +332,7 @@ sub html_hier_test_row_utilization {
 	print $html "    <td class=\"desc $testkey\">".
 	    "$TESTDESC{$test}{$testkey}</td>\n";
     }
+    my $bt = $B{$test};
     foreach my $hv (@hiers) {
 	my $tv = $td->{$hv->{key}};
 	my $status = $tv->{status} || "NONE";
@@ -340,25 +354,22 @@ sub html_hier_test_row_utilization {
 	}
 	my $title = " title=\"$value $unit\"";
 	my $class = " class=\"status $status\"";
-	my %linerates = (
-	    "iface-bge"  =>       10 ** 9,
-	    "iface-bnxt" =>  10 * 10 ** 9,
-	    "iface-em"   =>       10 ** 9,
-	    "iface-ice"  =>  10 * 10 ** 9,  # XXX faster devices exist
-	    "iface-igc"  => 2.5 * 10 ** 9,
-	    "iface-ix"   =>  10 * 10 ** 9,
-	    "iface-ixl"  =>  10 * 10 ** 9,
-	    "iface-re"   =>  .1 * 10 ** 9,
-	    "iface-vio"  =>  20 * 10 ** 9,
-	    "iface-vmx"  =>  20 * 10 ** 9,
-	);
 	$iface =~ s/\d+$//;
-	my $linerate = $linerates{$iface} || 10 ** 9;
+	my $linerate = $LINERATES{$iface} || 10 ** 9;
 	my $rate = $value / $linerate;
 	my $rgb = $status eq 'PASS' ? "128, 255, 128" : "255, 128, 128";
 	my $style = sprintf(
 	    " style=\"background-color: rgba($rgb, %.1f)\"", $rate);
-	printf $html "    <td$class$style$title>%.1f%%</td>\n", $rate * 100;
+	my ($href, $enda) = ("", "");
+	if ($bt and my $bv = $bt->{$hv->{key}}) {
+	    my $svgfile = "$bv->{dir}/btrace/$test-$bv->{btrace}.svg";
+	    my $link = uri_escape("../$svgfile", "^A-Za-z0-9\-\._~/");
+	    $link =~ s,%,%%,g;  # printf escape
+	    $href = -f $svgfile ? "<a href=\"$link\">" : "";
+	    $enda = $href ? "</a>" : "";
+	}
+	printf $html "    <td$class$style$title>$href%.1f%%$enda</td>\n",
+	    $rate * 100;
     }
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     print $html "  </tr>\n";
