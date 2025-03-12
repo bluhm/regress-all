@@ -1,5 +1,4 @@
 adduser
-amd64-microcode
 bash
 binutils
 bsdextrautils
@@ -16,7 +15,6 @@ inetutils-inetd
 inetutils-telnet
 inetutils-tools
 inetutils-traceroute
-intel-microcode
 iproute2
 iputils-arping
 iputils-clockdiff
@@ -24,6 +22,7 @@ iputils-ping
 iputils-tracepath
 libbsd-dev
 libevent-dev
+make
 manpages
 netcat-openbsd
 nvi
