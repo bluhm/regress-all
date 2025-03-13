@@ -730,16 +730,19 @@ my @netlinkdesc = (
 );
 
 my %netlinklines = (
+    # XXX concept do use more than 10 netlink lines is needed
     #ot19 => { line => 3, left => 40, right => 43 },
-    ot25 => { line => 4, left => 40, right => 43 },
+    #ot25 => { line => 4, left => 40, right => 43 },
     ot41 => { line => 1, left => 40, right => 43 },
     ot42 => { line => 2, left => 40, right => 43 },
     ot48 => { line => 5, left => 49, right => 59 },
-    ot57 => { line => 6, left => 54, right => 55 },
+    #ot57 => { line => 6, left => 54, right => 55 },
     ot62 => { line => 7, left => 61, right => 63 },
     ot71 => { line => 8, left => 70, right => 75 },
     ot72 => { line => 9, left => 70, right => 75 },
     ot73 => { line => 3, left => 70, right => 75 },
+    ot91 => { line => 4, left => 90, right => 95 },
+    ot92 => { line => 6, left => 90, right => 95 },
 );
 
 foreach my $host (sort keys %netlinklines) {
