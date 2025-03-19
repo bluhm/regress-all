@@ -354,6 +354,10 @@ printcmd('ssh', $lnx_r_ssh, 'sysctl',
     'net.ipv6.ip6frag_high_thresh=1073741824');
 printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824');
 printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824');
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_time=2');
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_time=2');
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv6.ip6frag_time=2');
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv6.ip6frag_time=2');
 
 eval { tcpbench_service() };
 eval { tcpbench_init() };
