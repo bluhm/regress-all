@@ -1,6 +1,6 @@
 # igc2 is management, igc3 is left over
 export MANAGEMENT_IF=igc2
-export SKIP_IF=igc2,igc3,ice0,ice1
+export SKIP_IF=em0,em1,igc2,igc3,ice0,ice1
 export NETLINK_LINE=2
 export LINUX_IF=ens2f0
 export LINUX_LEFT_SSH=root@lt40
