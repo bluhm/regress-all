@@ -1381,14 +1381,16 @@ local $SIG{ALRM} = 'IGNORE';
 my $i = 0;
 TEST:
 foreach my $t (@tests) {
-    printf("test %d/%d\n", ++$i, scalar @tests);
+    printf("test %d/%d", ++$i, scalar @tests);
     if (ref $t->{testcmd} eq 'CODE') {
+	print "\n";
 	$t->{testcmd}->();
 	next;
     }
 
     my @runcmd = @{$t->{testcmd}};
     (my $test = join("_", @runcmd)) =~ s,/.*/,,;
+    print " $test\n";
     if ($pseudo && $runcmd[0] eq $netbench) {
 	splice(@runcmd, 1, 0, "-C$pseudo");
     }

@@ -1216,9 +1216,9 @@ local $SIG{ALRM} = 'IGNORE';
 my $i = 0;
 TEST:
 foreach my $t (@tests) {
-    printf("test %d/%d\n", ++$i, scalar @tests);
     my @runcmd = @{$t->{testcmd}};
     (my $test = join("_", @runcmd)) =~ s,/.*/,,;
+    printf("test %d/%d %s\n", ++$i, scalar @tests, $test);
 
     # reap zombies, might happen if there were some btrace errors
     1 while waitpid(-1, WNOHANG) > 0;
