@@ -433,6 +433,7 @@ security/p5-Module-Signature
 security/p5-Net-SSLGlue
 security/p5-Net-SSLeay
 sysutils/p5-Capture-Tiny
+sysutils/p5-Data-Entropy
 sysutils/p5-File-Rename
 sysutils/p5-File-Which
 sysutils/p5-Filesys-Df
