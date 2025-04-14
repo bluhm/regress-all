@@ -1090,10 +1090,15 @@ my %quirks = (
 	comment => "update fixed device qwx",
 	updatedirs => [ "sys" ],
     },
-# OpenBSD 7.5, newvers 2024-09-23Z
+# OpenBSD 7.6, newvers 2024-09-23Z
     '2024-09-30T15:00:54Z' => {
 	comment => "OpenBSD/amd64 7.6 release",
 	release => '7.6',
+    },
+# OpenBSD 7.7, newvers 2025-04-12Z
+    '2025-04-13T14:35:59Z' => {
+	comment => "OpenBSD/amd64 7.7 release",
+	release => '7.7',
     },
 );
 
