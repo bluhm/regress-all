@@ -1358,23 +1358,15 @@ push @tests, {
 } if $testmode{mcast6};
 
 my @stats = (
-    {
-	statcmd => [ 'netstat', '-s' ],
-    }, {
-	statcmd => [ 'netstat', '-m' ],
-    }, {
-	statcmd => [ 'netstat', '-inv' ],
-    }, {
-	statcmd => [ 'netstat', '-binv' ],
-    }, {
-	statcmd => [ 'netstat', '-nr' ],
-    }, {
-	statcmd => [ 'vmstat', '-mv' ],
-    }, {
-	statcmd => [ 'vmstat', '-s' ],
-    }, {
-	statcmd => [ 'vmstat', '-iz' ],
-    },
+    { statcmd => [ netstat => '-s' ] },
+    { statcmd => [ netstat => '-m' ] },
+    { statcmd => [ netstat => '-inv' ] },
+    { statcmd => [ netstat => '-binv' ] },
+    { statcmd => [ netstat => '-nr' ] },
+    { statcmd => [ vmstat => '-mv' ] },
+    { statcmd => [ vmstat => '-s' ] },
+    { statcmd => [ vmstat => '-iz' ] },
+    { statcmd => [ kstat => "${obsd_l_if}:::", "${obsd_r_if}:::" ] },
 );
 
 local $SIG{ALRM} = 'IGNORE';
