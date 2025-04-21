@@ -1,9 +1,9 @@
-Run a bunch of OpenBSD regression tests in a row.  The intension
+Run a bunch of OpenBSD regression tests in a row.  The intention
 is to have a reliable set of tests and run them on a regular basis.
 The result summary is written to a file, log output of each test
 is available.
 
-A second prupose is to run OpenBSD performance tests.  A certain
+A second purpose is to run OpenBSD performance tests.  A certain
 cvs checkout corresponding to a date is created.  The build environment
 is based on the previous release and adapted with commands from
 current.html.  This is mostly updating the build tools to compile
@@ -18,9 +18,9 @@ testing network interfaces in multiple configurations.
 Buildquirks.pm	- create tool chain to compile kernel from certain date
 Hostctl.pm	- run commands on all tests hosts to configure them
 Html.pm		- utility functions to create html pages with results
-Logcmd.pm	- common log funtions for run.pl, setp.pl, and setup.pl
+Logcmd.pm	- common log functions for run.pl, setp.pl, and setup.pl
 Machine.pm	- functions to setup a single machine
-Netstat.pm	- parse netstat statistics and show coounter differences
+Netstat.pm	- parse netstat statistics and show counter differences
 Testvars.pm	- variables with test names for perform and netlink
 bsdcons.pl	- collect kernel output from console of selected machine
 build-ot14.list	- setup builds special tools needed on test machine ot14
@@ -45,7 +45,7 @@ netlink.pl	- set up and run one network regression test on test machine
 		  this is started by net.pl
 once.pl		- run performance test once, used for manual testing
 perform-html.pl	- convert performance test results into html table
-perform.pl	- run one set up performace test on test machine,
+perform.pl	- run one set up performance test on test machine,
 		  this is started by step.pl or once.pl
 pkg-ot1.list	- setup installs packages on test machine ot1
 plot.gp		- gnuplot script used by gnuplot.pl
