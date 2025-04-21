@@ -86,7 +86,7 @@ my ($user, $host) = split('@', $opts{h} || "", 2);
 
 my @HIERARCHY = qw(date iface cvsdate patch modify pseudo btrace repeat);
 my @HIERS;
-my (%T, %D, %H, %V, %B);
+my (%T, %D, %H, %V, %S, %B);
 
 # %T
 # $test				test directory relative to /usr/src/regress/
@@ -95,6 +95,7 @@ my (%T, %D, %H, %V, %B);
 # $T{$test}{$date}{$hk}{status}		result of this test at that day
 # $T{$test}{$date}{$hk}{message}	test printed a duration or summary
 # $T{$test}{$date}{$hk}{logfile}	relative path to net.log for hyper link
+# $T{$test}{$date}{$hk}{stats}		relative path to stats diff file
 # %D
 # $date				date and time when test was executed as string
 # $D{$date}{pass}		percentage of not skipped tests that passed
@@ -111,16 +112,21 @@ my (%T, %D, %H, %V, %B);
 # $D{$date}{build}		snapshot or custom build
 # $D{$date}{arch}		sysctl hardware machine architecture
 # $D{$date}{ncpu}		sysctl hardware ncpu cores
+# $S{$test}{$hk}{stdir}		directory of stats diff output file
+# $S{$test}{$hk}{stinput}	array of statistics input files
+# $S{$test}{$hk}{stats}		relative path to stats-diff.txt
 # $B{$test}{$hk}{dir}		directory of btrace input file
 # $B{$test}{$hk}{btfile}	btrace input file
-# $B{$test}{$hk}{btrace}	btrace-kstack.num
+# $B{$test}{$hk}{btrace}	relative path to btrace-kstack.num file
 
 {
-    print "glob_result_files" if $verbose;
+    print "glob result files" if $verbose;
     my @results = glob_result_files($date);
     print "\nparse result files" if $verbose;
     parse_result_files(@results);
 }
+print "\ncreate stats files" if $verbose;
+create_stats_files();
 print "\ncreate btrace files" if $verbose;
 create_btrace_files();
 
@@ -634,7 +640,7 @@ sub glob_result_files {
     }
 }
 
-# fill global @HIERS and hashes %T %D %H %V %B
+# fill global @HIERS and hashes %T %D %H %V %S %B
 sub parse_result_files {
     my %alliftypes;
     @alliftypes{@allifaces} = ();
@@ -686,7 +692,6 @@ sub parse_result_files {
 		next;
 	    }
 	    my $logfile = "$file->{dir}/logs/$test.log";
-	    my $stats = "$file->{dir}/logs/$test.stats-netstat-diff.txt";
 	    if ($test =~ /^netbench\.pl_/) {
 		# multicast interfaces depend on test and hardware
 		$test =~ s/(?<=_-[RS])[1-9][0-9.]+_/{ifaddr}_/g;
@@ -698,7 +703,16 @@ sub parse_result_files {
 	    $tv->{status} = $status;
 	    $tv->{message} = $message;
 	    $tv->{logfile} = $logfile if -f $logfile;
-	    $tv->{stats} = $stats if -f $stats;
+	    my @stinput = glob("$file->{dir}/logs/$test.stats-*-diff.txt");
+	    if (@stinput) {
+		my $difffile = "$file->{dir}/stats/$test.stats-diff.txt";
+		$tv->{stats} = $difffile;
+		$S{$test}{$hk} = {
+		    stdir    => "$file->{dir}/stats",
+		    stinput  => \@stinput,
+		    difffile => $difffile,
+		} unless -f $difffile;
+	    }
 	    if ($file->{btrace}) {
 		(my $btrace = $file->{btrace}) =~ s,btrace-([^/]*)\.\d+,$1,;
 		(my $btfile = $logfile) =~ s,\.log$,-$btrace.btrace,;
@@ -766,21 +780,53 @@ sub parse_result_files {
     @HIERS = grep { $usedhiers{$_} } @HIERARCHY;
 }
 
+sub create_stats_files {
+    my @tests = reverse sort keys %S;
+    foreach my $test (@tests) {
+	my $tv = $S{$test};
+	foreach my $hk (sort keys %$tv) {
+	    print "." if $verbose;
+	    my $hv = $tv->{$hk};
+	    my $stdir = $hv->{stdir};
+	    -d $stdir || mkdir $stdir
+		or die "Make directory '$stdir' failed: $!";
+	    my $difffile = $hv->{difffile};
+	    open(my $out, '>', "$difffile.new")
+		or die "Open '$difffile.new' for writing failed: $!";
+	    foreach my $stat (@{$hv->{stinput}}) {
+		open(my $in, '<', $stat)
+		    or die "Open '$stat' for reading failed: $!";
+		while (<$in>) {
+			print $out $_;
+		}
+	    }
+	    close($out)
+		or die "Close '$difffile.new' after writing failed: $!";
+	    rename("$difffile.new", $difffile)
+		or die "Rename '$difffile.new' to '$difffile' failed: $!";
+	    system("gzip -f -c $difffile >$difffile.gz.new")
+		and die "Gzip '$difffile' failed: $?";
+	    rename("$difffile.gz.new", "$difffile.gz") or die
+		"Rename '$difffile.gz.new' to '$difffile.gz' failed: $!";
+	}
+    }
+}
+
 sub create_btrace_files {
     my @tests = reverse sort keys %B;
     foreach my $test (@tests) {
 	my $tv = $B{$test};
-	foreach my $hk (sort keys %{$tv}) {
+	foreach my $hk (sort keys %$tv) {
 	    my $hv = $tv->{$hk};
 	    my $dir = $hv->{dir};
 	    my $btdir = "$dir/btrace";
 	    -d $btdir || mkdir $btdir
 		or die "Make directory '$btdir' failed: $!";
-	    my $btfile = $hv->{btfile};
 	    my $stack = $hv->{btrace};
 	    my $svgfile = "$btdir/$test-$stack.svg";
 	    next if -f $svgfile;
 	    print "." if $verbose;
+	    my $btfile = $hv->{btfile};
 	    my $fgcmd = "$fgdir/stackcollapse-bpftrace.pl <$btfile | ".
 		"$fgdir/flamegraph.pl >$svgfile.new";
 	    system($fgcmd)

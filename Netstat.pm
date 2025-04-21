@@ -1,5 +1,6 @@
 # put common statistics parsing functions in a module
 
+# Copyright (c) 2025 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2023 Moritz Buhl <mbuhl@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -21,6 +22,7 @@ use warnings;
 
 use parent 'Exporter';
 our @EXPORT= qw(
+    netstat_diff
     generate_diff_netstat
 );
 
@@ -265,6 +267,23 @@ sub sweep {
     }
 }
 
+sub netstat_diff {
+    my ($fh, $test, $opt) = @_;
+
+    my $before = "$test.stats-netstat_-$opt-before.txt";
+    my $after = "$test.stats-netstat_-$opt-after.txt";
+    -r $before && -r $after
+	or next;
+    my $parser;
+    $parser = \&parse_m if $opt eq 'm';
+    $parser = \&parse_s if $opt eq 's';
+    my %bef = $parser->($before);
+    my %aft = $parser->($after);
+    my %dif = diff(\%bef, \%aft);
+    sweep(\%dif);
+    myprint($fh, \%dif);
+}
+
 sub generate_diff_netstat {
     my ($test) = @_;
 
@@ -272,18 +291,7 @@ sub generate_diff_netstat {
     open(my $fh, '>', $diff)
 	or die "Open '$diff' for writing failed: $!";
     foreach my $opt (qw(m s)) {
-	my $before = "$test.stats-netstat_-$opt-before.txt";
-	my $after = "$test.stats-netstat_-$opt-after.txt";
-	-r $before && -r $after
-	    or next;
-	my $parser;
-	$parser = \&parse_m if $opt eq 'm';
-	$parser = \&parse_s if $opt eq 's';
-	my %bef = $parser->($before);
-	my %aft = $parser->($after);
-	my %dif = diff(\%bef, \%aft);
-	sweep(\%dif);
-	myprint($fh, \%dif);
+	netstat_diff($fh, $test, $opt);
     }
     close($fh)
 	or die "Close '$diff' after writing failed: $!";
