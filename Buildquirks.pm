@@ -1100,6 +1100,11 @@ my %quirks = (
 	comment => "OpenBSD/amd64 7.7 release",
 	release => '7.7',
     },
+    '2025-04-21T21:11:04Z' => {
+	comment => "fix broken qcscm acpi commit smuggled into release",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-files-qcscm' => patch_sys_files_qcscm() },
+    },
 );
 
 #### Patches ####
@@ -2901,6 +2906,42 @@ diff -u -p -r1.21 -r1.22
  			for (i = 0; i < nitems(sc->ext_irq_grp); i++) {
  				if (qwx_dp_service_srng(sc, i))
  					ret = 1;
+PATCH
+}
+
+# Fix last commit; qcscm was missing for non-arm64 architectures
+sub patch_sys_files_qcscm {
+	return <<'PATCH';
+Index: sys/conf/files
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/conf/files,v
+diff -u -p -r1.742 -r1.743
+--- sys/conf/files	15 Dec 2024 11:00:05 -0000	1.742
++++ sys/conf/files	22 Apr 2025 05:31:49 -0000	1.743
+@@ -110,6 +110,9 @@ define	edid
+ file	dev/videomode/edid.c		edid
+ file    dev/videomode/vesagtf.c         edid
+ file    dev/videomode/videomode.c       edid
++
++# ACPI / FDT qualcomm devices
++device qcscm
+ 
+ # Attribute for devices that read/write an IEEE 802.3u MII bus using the
+ # bit-bang method.
+Index: sys/dev/fdt/files.fdt
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/dev/fdt/files.fdt,v
+diff -u -p -r1.207 -r1.208
+--- sys/dev/fdt/files.fdt	25 Mar 2025 04:17:52 -0000	1.207
++++ sys/dev/fdt/files.fdt	22 Apr 2025 05:31:50 -0000	1.208
+@@ -729,7 +729,7 @@ attach	qcpas at fdt
+ file	dev/fdt/qcpas.c			qcpas
+ 
+ # Qualcomm SCM
+-device	qcscm
++#device	qcscm	# XXX in sys/conf/files, because shared between ACPI and FDT 
+ attach	qcscm at fdt
+ file	dev/fdt/qcscm.c			qcscm
 PATCH
 }
 
