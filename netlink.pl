@@ -269,6 +269,7 @@ sub good {
 
     statistics($test, "after");
     generate_diff_netstat($test);
+    generate_diff_kstat($test, "${obsd_l_if}:::_${obsd_r_if}:::");
 
     my $reason = "PASS";
     my $netstat = "$test.stats-netstat-diff.txt";
