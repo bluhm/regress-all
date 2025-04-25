@@ -26,6 +26,7 @@ use Time::HiRes;
 
 use lib dirname($0);
 use Netstat;
+use Kstat;
 
 my $startdir = getcwd();
 my @startcmd = ($0, @ARGV);
@@ -252,6 +253,7 @@ sub bad {
 
     statistics($test, "after");
     generate_diff_netstat($test);
+    generate_diff_kstat($test, "${obsd_l_if}:::_${obsd_r_if}:::");
 
     $log->sync() if $log;
     $tr->sync();

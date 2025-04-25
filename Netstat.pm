@@ -72,6 +72,7 @@ sub parse_s {
 	or die "Open '$fname' for reading failed: $!";
 
     while(<$fh>) {
+	chomp;
 	if (m{^(\w+):$}) {
 	    $l1 = canonicalize_key $1;
 	    $netstat{$l1} = {}
@@ -119,7 +120,7 @@ sub parse_s {
 	    $l2 = canonicalize_key $1;
 	    $netstat{$l1}{$l2} = {};
 	} else {
-	    die "Can't parse '$_'";
+	    die "Cannot parse '$_'";
 	}
     }
 
@@ -273,7 +274,7 @@ sub netstat_diff {
     my $before = "$test.stats-netstat_-$opt-before.txt";
     my $after = "$test.stats-netstat_-$opt-after.txt";
     -r $before && -r $after
-	or next;
+	or return;
     my $parser;
     $parser = \&parse_m if $opt eq 'm';
     $parser = \&parse_s if $opt eq 's';
