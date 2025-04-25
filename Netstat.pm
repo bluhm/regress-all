@@ -26,71 +26,60 @@ our @EXPORT= qw(
     generate_diff_netstat
 );
 
-# netstat output might use plural for some nouns always use
-# the plural form of these words.
+# netstat output might use plural for some nouns
+# always use the plural form of these words.
+my @plurales = qw(miss);
+my @pluralys = qw(entr);
+my @plurals = qw(ACK Interface SYN TDB accept ack agreement allocation
+    association attempt authentication byte calculation call change
+    checksum cleanup collision connection datagram decapsulation
+    decryption destination drop duplicate episode error failure field
+    flow fragment frame gap gateway global insert jump llx local
+    lookup mbuf message mismatche node notification option overflow
+    packet prediction probe quer redirect replay report request
+    response rexmit route scan seed segment slide state table
+    timeout transition upcall use);
+my $regex_es = join('|', @plurales);
+my $regex_ys = join('|', @pluralys);
+my $regex_s = join('|', @plurals);
+
 sub canonicalize_key {
-    my ($key) = @_;
-    my @plurales = qw(miss);
-    my @pluralys = qw(entr);
-    my @plurals = qw(ACK Interface SYN TDB accept ack agreement allocation
-	association attempt authentication byte calculation call change
-	checksum cleanup collision connection datagram decapsulation
-	decryption destination drop duplicate episode error failure field
-	flow fragment frame gap gateway global insert jump llx local
-	lookup mbuf message mismatche node notification option overflow
-	packet prediction probe quer redirect replay report request
-	response rexmit route scan seed segment slide state table
-	timeout transition upcall use);
-
-    foreach my $sub (@plurales) {
-	$key =~ s/ ${sub}(?=[^e][^s])/ ${sub}es/;
-	$key =~ s/^${sub}(?=[^e][^s])/${sub}es/;
-    }
-    foreach my $sub (@pluralys) {
-	$key =~ s/ ${sub}(?=[^i][^e][^s])/ ${sub}ies/;
-	$key =~ s/^${sub}(?=[^i][^e][^s])/${sub}ies/;
-    }
-    foreach my $sub (@plurals) {
-	$key =~ s/ ${sub}(?=[^s])/ ${sub}s/;
-	$key =~ s/^${sub}(?=[^s])/${sub}s/;
-    }
-
-    chomp $key;
-    return $key;
+    local $_ = shift;
+    chomp;
+    s/\b(?<=$regex_es)\b/es/;
+    s/\b(?<=$regex_ys)\b/ies/;
+    s/\b(?<=$regex_s)\b/s/;
+    return $_;
 }
 
 # map netstat indentation to perl hash some nestat -s lines increase the
 # indentation and at the same time have a value.  Write that value to the
 # "total" field.
 sub parse_s {
-    my ($fname) = @_;
+    my ($file) = @_;
     my %netstat;
-    my $l1;
-    my $l2;
-    my $l3;
-    open(my $fh, '<', $fname)
-	or die "Open '$fname' for reading failed: $!";
+    open(my $fh, '<', $file)
+	or die "Open '$file' for reading failed: $!";
 
+    my ($l1, $l2, $l3);
     while(<$fh>) {
 	chomp;
 	if (m{^(\w+):$}) {
 	    $l1 = canonicalize_key $1;
 	    $netstat{$l1} = {}
-	} elsif (m{^			([^:	]+): (\d+)$}) {
+	} elsif (m{^\t\t\t([^:\t]+): (\d+)$}) {
 	    my $k = canonicalize_key($1);
-	    if (ref($netstat{$l1}{$l2}{$l3}) ne "HASH") {
-		my $total = $netstat{$l1}{$l2}{$l3};
-		$netstat{$l1}{$l2}{$l3} = {};
-		$netstat{$l1}{$l2}{$l3}{total} = $total;
+	    my $n3 = $netstat{$l1}{$l2}{$l3};
+	    if (ref($n3) ne 'HASH') {
+		$n3 = $netstat{$l1}{$l2}{$l3} = { total => $n3 };
 	    }
-	    $netstat{$l1}{$l2}{$l3}{$k} = $2;
-	} elsif (m{^		(\d+) (.+)$}) {
+	    $n3->{$k} = $2;
+	} elsif (m{^\t\t(\d+) (.+)$}) {
 	    $l3 = canonicalize_key $2;
 	    my $v = $1;
-	    if (ref($netstat{$l1}{$l2}) ne "HASH") {
-		my $total = $netstat{$l1}{$l2};
-		$netstat{$l1}{$l2} = {};
-		$netstat{$l1}{$l2}{total} = $total;
+	    my $n2 = $netstat{$l1}{$l2};
+	    if (ref($n2) ne 'HASH') {
+		$n2 = $netstat{$l1}{$l2} = { total => $n2 };
 	    }
 	    if ($l3 =~ m{\((.+)\)} && $1 =~ /\d/) {
 		my ($l) = $l3 =~ /\((.+)\)/;
@@ -98,13 +87,13 @@ sub parse_s {
 		(my $k2 = "$l3 $l") =~ s/\d+ //;
 		$k2 = canonicalize_key $k2;
 		my ($v2) = $l =~ /(\d+)/;
-		$netstat{$l1}{$l2}{$k2} = $v2;
+		$n2->{$k2} = $v2;
 	    }
-	    $netstat{$l1}{$l2}{$l3} = $v;
-	} elsif (m{^		([^:]+): (\d+)$}) {
+	    $n2->{$l3} = $v;
+	} elsif (m{^\t\t([^:]+): (\d+)$}) {
 	    $l3 = canonicalize_key $1;
 	    $netstat{$l1}{$l2}{$l3} = $2;
-	} elsif (m{^	(\d+) (.+)$}) {
+	} elsif (m{^\t(\d+) (.+)$}) {
 	    my $v = $1;
 	    $l2 = canonicalize_key $2;
 	    if ($l2 =~ m{\((.+)\)} && $1 =~ /\d/) {
@@ -116,7 +105,7 @@ sub parse_s {
 		$netstat{$l1}{$k2} = $v2;
 	    }
 	    $netstat{$l1}{$l2} = $v;
-	} elsif (m{^	([^:]+):?$}) {
+	} elsif (m{^\t([^:]+):?$}) {
 	    $l2 = canonicalize_key $1;
 	    $netstat{$l1}{$l2} = {};
 	} else {
@@ -128,33 +117,32 @@ sub parse_s {
 }
 
 sub parse_m {
-    my ($fname) = @_;
+    my ($file) = @_;
     my %netstat;
-    my $l1 = "memory";
-    my $l2;
-    my $l3;
-    open(my $fh, '<', $fname)
-	or die "Open '$fname' for reading failed: $!";
+    open(my $fh, '<', $file)
+	or die "Open '$file' for reading failed: $!";
 
+    my ($l1, $l2, $l3) = "memory";
+    my $n1 = $netstat{$l1} ||= {};
     while(<$fh>) {
 	if (m{^(\d+) mbufs? (in use):}) {
 	    $l2 = "mbuf $2";
-	    $netstat{$l1}{$l2} = $1;
+	    $n1->{$l2} = $1;
 	    $l2 = "mbuf types";
-	} elsif (m{^	(\d+) mbufs? (allocated to .+)}) {
+	} elsif (m{^\t(\d+) mbufs? (allocated to .+)}) {
 	    $l3 = "mbuf $2";
-	    $netstat{$l1}{$l2}{$l3} = $1;
+	    $n1->{$l2}{$l3} = $1;
 	} elsif (m{^(\d+)/\d+ (mbuf \d+ byte clusters in use)}) {
 	    $l2 = "mbuf cluster in use";
 	    $l3 = $2;
-	    $netstat{$l1}{$l2}{$l3} = $1;
+	    $n1->{$l2}{$l3} = $1;
 	} elsif (m{^(\d+)/\d+/\d+ (Kbytes allocated to network)}) {
 	    $l2 = $2;
-	    $netstat{$l1}{$l2} = $1;
+	    $n1->{$l2} = $1;
 	} elsif (m{^(\d+) (\w[\w ]+)$}) {
 	    $l2 = "counter";
 	    $l3 = $2;
-	    $netstat{$l1}{$l2}{$l3} = $1;
+	    $n1->{$l2}{$l3} = $1;
 	}
     }
 
@@ -165,31 +153,31 @@ sub parse_m {
 sub myprint {
     my ($fh, $l1) = @_;
     my %res;
-    foreach my $k (sort keys %$l1) {
-	print $fh ("$k:\n");
-	if (ref($l1->{$k}) eq "HASH") {
-	    my $l2 = $l1->{$k};
+    foreach my $k1 (sort keys %$l1) {
+	print $fh "$k1:\n";
+	my $l2 = $l1->{$k1};
+	if (ref($l2) eq 'HASH') {
 	    foreach my $k2 (sort keys %$l2) {
-		if (ref($l2->{$k2}) eq "HASH") {
-		    print $fh ("\t$k2:\n");
-		    my $l3 = $l2->{$k2};
+		my $l3 = $l2->{$k2};
+		if (ref($l3) eq 'HASH') {
+		    print $fh "\t$k2:\n";
 		    foreach my $k3 (sort keys %$l3) {
-			if (ref($l3->{$k3}) eq "HASH") {
-			    my $l4 = $l3->{$k3};
-			    print $fh ("\t\t$k3:\n");
+			my $l4 = $l3->{$k3};
+			if (ref($l4) eq 'HASH') {
+			    print $fh "\t\t$k3:\n";
 			    foreach my $k4 (sort keys %$l4) {
-				print $fh ("\t\t\t$k4: $l4->{$k4}\n");
+				print $fh "\t\t\t$k4: $l4->{$k4}\n";
 			    }
 			} else {
-			    print $fh ("\t\t$k3: $l3->{$k3}\n");
+			    print $fh "\t\t$k3: $l4\n";
 			}
 		    }
 		} else {
-		    print $fh ("\t$k2: $l2->{$k2}\n");
+		    print $fh "\t$k2: $l3\n";
 		}
 	    }
 	} else {
-	    print $fh ("$k: $l1->{$k}\n");
+	    print $fh "$k1: $l2\n";
 	}
     }
 }
@@ -198,38 +186,38 @@ sub myprint {
 sub diff {
     my ($l1, $m1) = @_;
     my %res;
-    foreach my $k (sort keys %$l1) {
-	if (ref($l1->{$k}) eq "HASH") {
-	    $res{$k} = {};
-	    my $l2 = $l1->{$k};
-	    my $m2 = $m1->{$k};
-	    foreach my $k2 (sort keys %$l2) {
-		if (ref($l2->{$k2}) eq "HASH") {
-		    $res{$k}{$k2} = {};
-		    my $l3 = $l2->{$k2};
+    foreach my $k1 (keys %$l1) {
+	my $l2 = $l1->{$k1};
+	if (ref($l2) eq 'HASH') {
+	    my $m2 = $m1->{$k1};
+	    my $r2 = $res{$k1} ||= {};
+	    foreach my $k2 (keys %$l2) {
+		my $l3 = $l2->{$k2};
+		if (ref($l3) eq 'HASH') {
 		    my $m3 = $m2->{$k2};
-		    foreach my $k3 (sort keys %$l3) {
-			if (ref($l3->{$k3}) eq "HASH") {
-			    $res{$k}{$k2}{$k3} = {};
-			    my $l4 = $l3->{$k3};
+		    my $r3 = $r2->{$k2} ||= {};
+		    foreach my $k3 (keys %$l3) {
+			my $l4 = $l3->{$k3};
+			if (ref($l4) eq 'HASH') {
 			    my $m4 = $m3->{$k3};
-			    foreach my $k4 (sort keys %$l4) {
+			    my $r4 = $r3->{$k3} ||= {};
+			    foreach my $k4 (keys %$l4) {
 				my $v = $m4->{$k4} - $l4->{$k4};
-				$res{$k}{$k2}{$k3}{$k4} = $v if ($v != 0);
+				$r4->{$k4} = $v if ($v != 0);
 			    }
 			} else {
 			    my $v = $m3->{$k3} - $l3->{$k3};
-			    $res{$k}{$k2}{$k3} = $v if ($v != 0);
+			    $r3->{$k3} = $v if ($v != 0);
 			}
 		    }
 		} else {
 		    my $v = $m2->{$k2} - $l2->{$k2};
-		    $res{$k}{$k2} = $v if ($v != 0);
+		    $r2->{$k2} = $v if ($v != 0);
 		}
 	    }
 	} else {
-	    my $v = $m1->{$k} - $l1->{$k};
-	    $res{$k} = $v if ($v != 0);
+	    my $v = $m1->{$k1} - $l1->{$k1};
+	    $res{$k1} = $v if ($v != 0);
 	}
     }
     return %res;
@@ -238,22 +226,22 @@ sub diff {
 # remove empty key-hash pairs
 sub sweep {
     my ($l1) = @_;
-    foreach my $k1 (sort keys %$l1) {
+    foreach my $k1 (keys %$l1) {
 	my $l2 = $l1->{$k1};
-	if (ref($l2) eq "SCALAR") {
+	if (ref($l2) eq 'SCALAR') {
 	    delete $l1->{$k1} if ($l2 == 0);
-	} elsif (ref($l2) eq "HASH") {
-	    foreach my $k2 (sort keys %$l2) {
+	} elsif (ref($l2) eq 'HASH') {
+	    foreach my $k2 (keys %$l2) {
 		my $l3 = $l2->{$k2};
-		if (ref($l3) eq "SCALAR") {
+		if (ref($l3) eq 'SCALAR') {
 		    delete $l2->{$k2} if ($l3 == 0);
-		} elsif (ref($l3) eq "HASH") {
-		    foreach my $k3 (sort keys %$l3) {
+		} elsif (ref($l3) eq 'HASH') {
+		    foreach my $k3 (keys %$l3) {
 			my $l4 = $l3->{$k3};
-			if (ref($l4) eq "SCALAR") {
+			if (ref($l4) eq 'SCALAR') {
 			    delete $l3->{$k3} if ($l4 == 0);
-			} elsif (ref($l4) eq "HASH") {
-			    foreach my $k4 (sort keys %$l4) {
+			} elsif (ref($l4) eq 'HASH') {
+			    foreach my $k4 (keys %$l4) {
 				my $l5 = $l4->{$k4};
 				delete $l4->{$k4} if ($l5 == 0);
 			    }
@@ -269,15 +257,15 @@ sub sweep {
 }
 
 sub netstat_diff {
-    my ($fh, $test, $opt) = @_;
+    my ($fh, $test, $arg) = @_;
 
-    my $before = "$test.stats-netstat_-$opt-before.txt";
-    my $after = "$test.stats-netstat_-$opt-after.txt";
+    my $before = "$test.stats-netstat_$arg-before.txt";
+    my $after = "$test.stats-netstat_$arg-after.txt";
     -r $before && -r $after
 	or return;
     my $parser;
-    $parser = \&parse_m if $opt eq 'm';
-    $parser = \&parse_s if $opt eq 's';
+    $parser = \&parse_m if $arg eq '-m';
+    $parser = \&parse_s if $arg eq '-s';
     my %bef = $parser->($before);
     my %aft = $parser->($after);
     my %dif = diff(\%bef, \%aft);
@@ -291,7 +279,7 @@ sub generate_diff_netstat {
     my $diff = "$test.stats-netstat-diff.txt";
     open(my $fh, '>', $diff)
 	or die "Open '$diff' for writing failed: $!";
-    foreach my $opt (qw(m s)) {
+    foreach my $opt ('-m', '-s') {
 	netstat_diff($fh, $test, $opt);
     }
     close($fh)

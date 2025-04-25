@@ -60,7 +60,7 @@ sub myprint {
     foreach my $k1 (sort keys %$l1) {
 	print $fh "$k1\n";
 	my $l2 = $l1->{$k1};
-	if (ref($l2) eq "HASH") {
+	if (ref($l2) eq 'HASH') {
 	    foreach my $k2 (sort keys %$l2) {
 		my $l3 = $l2->{$k2};
 		print $fh "$l3->{indent}$k2 ",
@@ -83,7 +83,7 @@ sub diff {
     my %res;
     foreach my $k1 (keys %$l1) {
 	my $l2 = $l1->{$k1};
-	if (ref($l2) eq "HASH") {
+	if (ref($l2) eq 'HASH') {
 	    my $m2 = $m1->{$k1};
 	    my $r2 = $res{$k1} ||= {};
 	    foreach my $k2 (keys %$l2) {
@@ -111,7 +111,7 @@ sub sweep {
     my ($l1) = @_;
     foreach my $k1 (keys %$l1) {
 	my $l2 = $l1->{$k1};
-	if (ref($l2) eq "HASH") {
+	if (ref($l2) eq 'HASH') {
 	    delete $l1->{$k1} unless keys %$l2;
 	}
     }
