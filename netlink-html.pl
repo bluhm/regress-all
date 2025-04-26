@@ -96,6 +96,8 @@ my (%T, %D, %H, %V, %S, %B);
 # $T{$test}{$date}{$hk}{message}	test printed a duration or summary
 # $T{$test}{$date}{$hk}{logfile}	relative path to net.log for hyper link
 # $T{$test}{$date}{$hk}{stats}		relative path to stats diff file
+# $T{$test}{$date}{$hk}{btrace}		name of btrace, usually ktrace
+# $T{$test}{$date}{$hk}{svgfile}	relative path to btrace-kstat.svg file
 # %D
 # $date				date and time when test was executed as string
 # $D{$date}{pass}		percentage of not skipped tests that passed
@@ -115,9 +117,10 @@ my (%T, %D, %H, %V, %S, %B);
 # $S{$test}{$hk}{stdir}		directory of stats diff output file
 # $S{$test}{$hk}{stinput}	array of statistics input files
 # $S{$test}{$hk}{stats}		relative path to stats-diff.txt
-# $B{$test}{$hk}{dir}		directory of btrace input file
+# $B{$test}{$hk}{btdir}		directory of btrace output file
 # $B{$test}{$hk}{btfile}	btrace input file
-# $B{$test}{$hk}{btrace}	relative path to btrace-kstack.num file
+# $B{$test}{$hk}{btrace}	name of btrace, usually ktrace
+# $B{$test}{$hk}{svgfile}	relative path to btrace-kstat.svg file
 
 {
     print "glob result files" if $verbose;
@@ -275,34 +278,24 @@ sub html_hier_test_row {
 	}
 	print $html "    <th></th>\n  </tr>\n";
     }
-    my $bt = $B{$test};
-    if ($bt) {
+    if ($B{$test}) {
 	print $html "  <tr>\n";
 	print $html "    <td><code>btrace</code></td>\n";
 	foreach my $hv (@hiers) {
-	    my $bv = $bt->{$hv->{key}} || {};
-	    html_btrace_link($html, $bv->{dir}, $test, $bv->{btrace} || ());
+	    my $tv = $td->{$hv->{key}};
+	    my $btrace = $tv->{btrace};
+	    if ($btrace) {
+		my $svgfile = $tv->{svgfile};
+		my $link = uri_escape("../$svgfile", "^A-Za-z0-9\-\._~/");
+		my $href = -f $svgfile ? "<a href=\"$link\">" : "";
+		my $enda = $href ? "</a>" : "";
+		print $html "    <td>$href$btrace$enda</td>\n";
+	    } else {
+		print $html "    <td></td>\n";
+	    }
 	}
 	print $html "    <th></th>\n  </tr>\n";
     }
-}
-
-sub html_btrace_link {
-    my ($html, $dir, $test, @stacks) = @_;
-    unless (@stacks) {
-	print $html "    <td></td>\n";
-	return;
-    }
-    my @svgs;
-    foreach my $stack (@stacks) {
-	my $svgfile = "$dir/btrace/$test-$stack.svg";
-	my $link = uri_escape("../$svgfile", "^A-Za-z0-9\-\._~/");
-	my $href = -f $svgfile ? "<a href=\"$link\">" : "";
-	my $enda = $href ? "</a>" : "";
-	$stack =~ s/^btrace-//;
-	push @svgs, "$href$stack$enda";
-    }
-    print $html "    <td>", join(" ", sort @svgs), "</td>\n";
 }
 
 sub html_hier_test_row_utilization {
@@ -338,7 +331,6 @@ sub html_hier_test_row_utilization {
 	print $html "    <td class=\"desc $testkey\">".
 	    "$TESTDESC{$test}{$testkey}</td>\n";
     }
-    my $bt = $B{$test};
     foreach my $hv (@hiers) {
 	my $tv = $td->{$hv->{key}};
 	my $status = $tv->{status} || "NONE";
@@ -367,8 +359,8 @@ sub html_hier_test_row_utilization {
 	my $style = sprintf(
 	    " style=\"background-color: rgba($rgb, %.1f)\"", $rate);
 	my ($href, $enda) = ("", "");
-	if ($bt and my $bv = $bt->{$hv->{key}}) {
-	    my $svgfile = "$bv->{dir}/btrace/$test-$bv->{btrace}.svg";
+	if ($tv->{btrace}) {
+	    my $svgfile = $tv->{svgfile};
 	    my $link = uri_escape("../$svgfile", "^A-Za-z0-9\-\._~/");
 	    $link =~ s,%,%%,g;  # printf escape
 	    $href = -f $svgfile ? "<a href=\"$link\">" : "";
@@ -716,11 +708,16 @@ sub parse_result_files {
 	    if ($file->{btrace}) {
 		(my $btrace = $file->{btrace}) =~ s,btrace-([^/]*)\.\d+,$1,;
 		(my $btfile = $logfile) =~ s,\.log$,-$btrace.btrace,;
-		$B{$test}{$hk} = {
-		    dir    => $file->{dir},
-		    btfile => $btfile,
-		    btrace => $file->{btrace},
-		} if -s $btfile;
+		my $svgfile = "$file->{dir}/btrace/$test-btrace-$btrace.svg";
+		$tv->{btrace} = $btrace if -s $btfile;
+		$tv->{svgfile} = $svgfile;
+		my $bt = $B{$test} ||= {};
+		$bt->{$hk} = {
+		    btdir   => "$file->{dir}/btrace",
+		    btfile  => $btfile,
+		    btrace  => $btrace,
+		    svgfile => $svgfile,
+		} if -s $btfile && ! -f $svgfile;
 	    }
 	    $V{$test}{$hk} = [ @values ];
 	    undef @values;
@@ -815,18 +812,15 @@ sub create_stats_files {
 sub create_btrace_files {
     my @tests = reverse sort keys %B;
     foreach my $test (@tests) {
-	my $tv = $B{$test};
-	foreach my $hk (sort keys %$tv) {
-	    my $hv = $tv->{$hk};
-	    my $dir = $hv->{dir};
-	    my $btdir = "$dir/btrace";
+	my $bt = $B{$test};
+	foreach my $hk (sort keys %$bt) {
+	    print "." if $verbose;
+	    my $bv = $bt->{$hk};
+	    my $btdir = $bv->{btdir};
 	    -d $btdir || mkdir $btdir
 		or die "Make directory '$btdir' failed: $!";
-	    my $stack = $hv->{btrace};
-	    my $svgfile = "$btdir/$test-$stack.svg";
-	    next if -f $svgfile;
-	    print "." if $verbose;
-	    my $btfile = $hv->{btfile};
+	    my $btfile = $bv->{btfile};
+	    my $svgfile = $bv->{svgfile};
 	    my $fgcmd = "$fgdir/stackcollapse-bpftrace.pl <$btfile | ".
 		"$fgdir/flamegraph.pl >$svgfile.new";
 	    system($fgcmd)
