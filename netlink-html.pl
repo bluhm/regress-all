@@ -695,7 +695,8 @@ sub parse_result_files {
 	    $tv->{status} = $status;
 	    $tv->{message} = $message;
 	    $tv->{logfile} = $logfile if -f $logfile;
-	    my @stinput = glob("$file->{dir}/logs/$test.stats-*-diff.txt");
+	    (my $stfile = $logfile) =~ s,\.log$,.stats-*-diff.txt,;
+	    my @stinput = glob($stfile);
 	    if (@stinput) {
 		my $difffile = "$file->{dir}/stats/$test.stats-diff.txt";
 		$tv->{stats} = $difffile;
