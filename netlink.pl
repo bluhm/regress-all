@@ -277,6 +277,11 @@ sub good {
     while (<$fh>) {
 	$reason = "XPASS" if /error/;
     }
+    my $kstat = "$test.stats-kstat_${obsd_l_if}:::_${obsd_r_if}:::-diff.txt";
+    open($fh, '<', $kstat) or die("Could not open '$kstat'");
+    while (<$fh>) {
+	$reason = "XPASS" if /oactive:/;
+    }
 
     print $log "\n$reason\t$test\tDuration $duration\n" if $log;
     print "\n$reason\t$test\tDuration $duration\n\n" if $opts{v};
