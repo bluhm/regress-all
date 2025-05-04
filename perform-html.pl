@@ -715,6 +715,12 @@ sub diff_stat_file {
 	    or die "Close '$difffile.new' after writing failed: $!";
 	rename("$difffile.new", $difffile)
 	    or die "Rename '$difffile.new' to '$difffile' failed: $!";
+	if (-s $difffile) {
+            system("gzip -f -c $difffile >$difffile.gz.new")
+                and die "Gzip '$difffile' failed: $?";
+            rename("$difffile.gz.new", "$difffile.gz") or die
+                "Rename '$difffile.gz.new' to '$difffile.gz' failed: $!";
+	}
     }
 }
 
