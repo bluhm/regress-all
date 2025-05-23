@@ -370,6 +370,7 @@ sys/netinet/pmtu
 sys/netinet/recvmsg
 sys/netinet/sendsrcaddr
 sys/netinet/tcpthread
+sys/netinet/udpthread
 sys/netinet6/autoport
 sys/netinet6/frag6
 sys/netinet6/mcast6
