@@ -40,6 +40,7 @@ lib/libc/getcap
 lib/libc/getopt
 lib/libc/getopt_long
 lib/libc/glob
+lib/libc/hash
 lib/libc/hsearch
 lib/libc/ieeefp
 lib/libc/ifnameindex
@@ -369,6 +370,7 @@ sys/netinet/mcast
 sys/netinet/pmtu
 sys/netinet/recvmsg
 sys/netinet/sendsrcaddr
+sys/netinet/tcpstate
 sys/netinet/tcpthread
 sys/netinet/udpthread
 sys/netinet6/autoport
