@@ -1105,6 +1105,32 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	patches => { 'sys-files-qcscm' => patch_sys_files_qcscm() },
     },
+    '2025-06-11T17:46:33Z' => {
+	comment => "clang, lld, and lib update LLVM to 19.1.7",
+	updatedirs => [
+	    "gnu/llvm",
+	    "gnu/lib/libclang_rt",
+	    "gnu/lib/libcompiler_rt",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	    "gnu/usr.bin/clang",
+	],
+	cleandirs => [
+	    "gnu/lib/libclang_rt",
+	    "gnu/lib/libcompiler_rt",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [
+	    "gnu/lib/libclang_rt",
+	    "gnu/lib/libcompiler_rt",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	    "gnu/usr.bin/clang",
+	],
+    },
 );
 
 #### Patches ####
