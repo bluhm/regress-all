@@ -356,6 +356,7 @@ net/p5-Net-CIDR
 net/p5-Net-CIDR-Lite
 net/p5-Net-DNS
 net/p5-Net-DNS-SEC
+net/p5-Net-FTPSSL
 net/p5-Net-Flow
 net/p5-Net-HTTP
 net/p5-Net-IMP
