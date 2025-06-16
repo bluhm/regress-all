@@ -29,6 +29,7 @@ p5-Net-Pcap
 p5-NetPacket
 p5-YAML
 p5-ldap
+pebble
 posixtestsuite
 py3-tlsfuzzer
 raspberrypi-firmware

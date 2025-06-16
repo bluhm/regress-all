@@ -533,6 +533,7 @@ p5-libwww
 p5-namespace-autoclean
 p5-namespace-clean
 p5-prefork
+pebble
 perltidy
 pinentry
 pkglocatedb
