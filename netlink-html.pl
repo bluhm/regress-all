@@ -694,11 +694,11 @@ sub parse_result_files {
 	    unless ($desc) {
 		$desc = $test;
 		# direct ssh login happens only to client
-		$desc =~ s/(?<=^ssh_root\@lt)[0-9]+_/{left}_/g;
+		$desc =~ s/(?<=^ssh_)root\@lt[0-9]+_/{left}_/g;
 		if ($test =~ /^netbench\.pl_/) {
 		    # netbench does client and server login
-		    $desc =~ s/(?<=_-croot\@lt)[0-9]+_/{left}_/g;
-		    $desc =~ s/(?<=_-sroot\@lt)[0-9]+_/{right}_/g;
+		    $desc =~ s/(?<=_-c)root\@lt[0-9]+_/{left}_/g;
+		    $desc =~ s/(?<=_-s)root\@lt[0-9]+_/{right}_/g;
 		    # multicast interfaces depend on test and hardware
 		    $desc =~ s/(?<=_-[RS])[1-9][0-9.]+_/{ifaddr}_/g;
 		    $desc =~ s/(?<=_-[RS])[a-z][a-z0-9.]+_/{ifname}_/g;
