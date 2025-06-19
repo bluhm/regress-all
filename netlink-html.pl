@@ -89,15 +89,17 @@ my @HIERS;
 my (%T, %D, %H, %V, %S, %B);
 
 # %T
-# $test				test directory relative to /usr/src/regress/
-# $T{$test}{severity}		weighted severity of all failures of this test
+# $test				test command as executed by netlink
+# $desc				generic test description as defined by testvars
+# $T{$desc}{severity}		weighted severity of all failures of this test
 # $date				date and time when test was executed as string
-# $T{$test}{$date}{$hk}{status}		result of this test at that day
-# $T{$test}{$date}{$hk}{message}	test printed a duration or summary
-# $T{$test}{$date}{$hk}{logfile}	relative path to net.log for hyper link
-# $T{$test}{$date}{$hk}{stats}		relative path to stats diff file
-# $T{$test}{$date}{$hk}{btrace}		name of btrace, usually ktrace
-# $T{$test}{$date}{$hk}{svgfile}	relative path to btrace-kstat.svg file
+# $T{$desc}{$date}(test}		test command in a specifc test run
+# $T{$desc}{$date}{$hk}{status}		result of this test at that day
+# $T{$desc}{$date}{$hk}{message}	test printed a duration or summary
+# $T{$desc}{$date}{$hk}{logfile}	relative path to net.log for hyper link
+# $T{$desc}{$date}{$hk}{stats}		relative path to stats diff file
+# $T{$desc}{$date}{$hk}{btrace}		name of btrace, usually ktrace
+# $T{$desc}{$date}{$hk}{svgfile}	relative path to btrace-kstat.svg file
 # %D
 # $date				date and time when test was executed as string
 # $D{$date}{pass}		percentage of not skipped tests that passed
@@ -234,10 +236,11 @@ sub html_hier_test_head_utilization {
 }
 
 sub html_hier_test_row {
-    my ($html, $test, $td, @hiers) = @_;
+    my ($html, $desc, $td, @hiers) = @_;
 
+    my $test = $td->{test};
     (my $testcmd = $test) =~ s/_/ /g;
-    my $testname = $TESTNAME{$test} || "";
+    my $testname = $TESTNAME{$desc} || "";
     print $html "  <tr>\n";
     print $html "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
     foreach my $hv (@hiers) {
@@ -299,10 +302,11 @@ sub html_hier_test_row {
 }
 
 sub html_hier_test_row_utilization {
-    my ($html, $test, $td, @hiers) = @_;
+    my ($html, $desc, $td, @hiers) = @_;
 
-    (my $testcmd = $test) =~ s/_/ /g;
-    my $testname = $TESTNAME{$test} || "";
+    my $test = $td->{test};
+    (my $testcmd = $td->{test}) =~ s/_/ /g;
+    my $testname = $TESTNAME{$desc} || "";
     my $vt = $V{$test};
     my $maxval = max map { scalar @{$_ || []} } values %$vt;
 
@@ -329,7 +333,7 @@ sub html_hier_test_row_utilization {
     foreach my $testkey (@TESTKEYS) {
 	next if $testkey eq "host";
 	print $html "    <td class=\"desc $testkey\">".
-	    "$TESTDESC{$test}{$testkey}</td>\n";
+	    "$TESTDESC{$desc}{$testkey}</td>\n";
     }
     foreach my $hv (@hiers) {
 	my $tv = $td->{$hv->{key}};
@@ -402,10 +406,10 @@ sub write_html_hier_files {
 
 	my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} ||
 	    $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
-	foreach my $test (@tests) {
-	    my $td = $T{$test}{$date}
+	foreach my $desc (@tests) {
+	    my $td = $T{$desc}{$date}
 		or next;
-	    html_hier_test_row($html, $test, $td, @hv);
+	    html_hier_test_row($html, $desc, $td, @hv);
 	}
 	print $html "  </tbody>\n";
 	print $html "</table>\n";
@@ -416,10 +420,10 @@ sub write_html_hier_files {
 	print $html "  </thead>\n  <tbody>\n";
 
 	@tests = sort { $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
-	foreach my $test (@tests) {
-	    my $td = $T{$test}{$date}
+	foreach my $desc (@tests) {
+	    my $td = $T{$desc}{$date}
 		or next;
-	    html_hier_test_row_utilization($html, $test, $td, @hv);
+	    html_hier_test_row_utilization($html, $desc, $td, @hv);
 	}
 	print $html "  </tbody>\n";
 	print $html "</table>\n";
@@ -520,15 +524,15 @@ HEADER
 
     my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} ||
 	$TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
-    foreach my $test (@tests) {
+    foreach my $desc (@tests) {
 	print "." if $verbose;
-	(my $testcmd = $test) =~ s/_/ /g;
-	my $testname = $TESTNAME{$test} || "";
+	(my $testcmd = $desc) =~ s/_/ /g;
+	my $testname = $TESTNAME{$desc} || "";
 	print $html "  <tr>\n";
 	print $html
 	    "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
 	foreach my $date (@dates) {
-	    my $tv = $T{$test}{$date};
+	    my $tv = $T{$desc}{$date};
 	    my $status = $tv->{status} || "";
 	    my $class = " class=\"status $status\"";
 	    my $message = encode_entities($tv->{message});
@@ -537,6 +541,7 @@ HEADER
 	    my $link = uri_escape($hierhtml, "^A-Za-z0-9\-\._~/");
 	    my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
 	    my $enda = $href ? "</a>" : "";
+	    ($testcmd = $tv->{test}) =~ s/_/ /g;
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
 	print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
@@ -637,6 +642,7 @@ sub parse_result_files {
     my %alliftypes;
     @alliftypes{@allifaces} = ();
 
+    my %testdesc;
     my %usedhiers;
     foreach my $file (@_) {
 	print "." if $verbose;
@@ -683,17 +689,27 @@ sub parse_result_files {
 		};
 		next;
 	    }
-	    my $logfile = "$file->{dir}/logs/$test.log";
-	    if ($test =~ /^netbench\.pl_/) {
-		# multicast interfaces depend on test and hardware
-		$test =~ s/(?<=_-[RS])[1-9][0-9.]+_/{ifaddr}_/g;
-		$test =~ s/(?<=_-[RS])[a-z][a-z0-9.]+_/{ifname}_/g;
+	    my $desc = $testdesc{$test};
+	    unless ($desc) {
+		$desc = $test;
+		# direct ssh login happens only to client
+		$desc =~ s/(?<=^ssh_root\@lt)[0-9]+_/{left}_/g;
+		if ($test =~ /^netbench\.pl_/) {
+		    # netbench does client and server login
+		    $desc =~ s/(?<=_-croot\@lt)[0-9]+_/{left}_/g;
+		    $desc =~ s/(?<=_-sroot\@lt)[0-9]+_/{right}_/g;
+		    # multicast interfaces depend on test and hardware
+		    $desc =~ s/(?<=_-[RS])[1-9][0-9.]+_/{ifaddr}_/g;
+		    $desc =~ s/(?<=_-[RS])[a-z][a-z0-9.]+_/{ifname}_/g;
+		}
+		$testdesc{$test} = $desc;
 	    }
-	    my $tv = $T{$test}{$date}{$hk} ||= {};
+	    my $tv = $T{$desc}{$date}{$hk} ||= {};
 	    $tv->{status}
 		and warn "Duplicate test '$test' at '$file->{name}'";
 	    $tv->{status} = $status;
 	    $tv->{message} = $message;
+	    my $logfile = "$file->{dir}/logs/$test.log";
 	    $tv->{logfile} = $logfile if -f $logfile;
 	    (my $stfile = $logfile) =~ s,\.log$,.stats-*-diff.txt,;
 	    my @stinput = glob($stfile);
@@ -723,10 +739,11 @@ sub parse_result_files {
 	    $V{$test}{$hk} = [ @values ];
 	    undef @values;
 	    my $severity = status2severity($status);
-	    $T{$test}{severity} += $severity;
+	    $T{$desc}{severity} += $severity;
 	    $total++ unless $status eq 'SKIP' || $status eq 'XFAIL';
 	    $pass++ if $status eq 'PASS';
-	    $tv = $T{$test}{$date};
+	    $tv = $T{$desc}{$date};
+	    $tv->{test} = $test;
 	    if (($tv->{severity} || 0) < $severity) {
 		$tv->{status} = $status;
 		$tv->{severity} = $severity;

@@ -750,9 +750,7 @@ foreach my $host (sort keys %netlinklines) {
     foreach my ($test, $desc) (@netlinkdesc) {
 	my $key = $test;
 	$key =~ s/{line}/$line/g;
-	$key =~ s/{left}/$left/g;
-	$key =~ s/{right}/$right/g;
-	my %value = (%$desc, host => $host, name => $desc->{name}."-$line");
+	my %value = (%$desc, host => $host, line => $line, left => $left, right => $right);
 	push @testdesc, ($key, \%value);
     }
 }
@@ -760,11 +758,10 @@ foreach my $host (sort keys %netlinklines) {
 if (2 * keys %TESTDESC != @testdesc) {
     die "testdesc keys not unique";
 }
-my (%num, %vals);
+my %vals;
 foreach my ($test, $desc) (@testdesc) {
     my $name = ref $desc ? $desc->{name} : $desc;
-    $TESTNAME{$test} = $num{$name} ? "$name-$num{$name}" : $name;
-    $num{$name}++;
+    $TESTNAME{$test} = $name;
     if (ref $desc) {
 	my %desc = %$desc;
 	my $descvalues = "@desc{@TESTKEYS}";
