@@ -212,7 +212,7 @@ sub html_hier_test_head_utilization {
     foreach my $hier (@HIERS) {
 	my $te = $hier eq "date" ? "th" : "td";
 	print $html "  <tr>\n";
-	print $html "    <td></td>", "<td></td>" x (@TESTKEYS-1), "\n";
+	print $html "    <td></td>", "<td></td>" x @TESTKEYS, "\n";
 	foreach my $hv (@hiers) {
 	    my $title = "";
 	    my $name = $hv->{$hier} || "";
@@ -239,7 +239,7 @@ sub html_hier_test_row {
     my ($html, $desc, $td, @hiers) = @_;
 
     my $test = $td->{test};
-    (my $testcmd = $test) =~ s/_/ /g;
+    (my $testcmd = $desc) =~ s/_/ /g;
     my $testname = $TESTNAME{$desc} || "";
     print $html "  <tr>\n";
     print $html "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
@@ -260,6 +260,7 @@ sub html_hier_test_row {
 
 	print $html "    <td$class$title>$href$status$enda$stats_href</td>\n";
     }
+    ($testcmd = $test) =~ s/_/ /g;
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     print $html "  </tr>\n";
 
@@ -305,7 +306,7 @@ sub html_hier_test_row_utilization {
     my ($html, $desc, $td, @hiers) = @_;
 
     my $test = $td->{test};
-    (my $testcmd = $td->{test}) =~ s/_/ /g;
+    (my $testcmd = $desc) =~ s/_/ /g;
     my $testname = $TESTNAME{$desc} || "";
     my $vt = $V{$test};
     my $maxval = max map { scalar @{$_ || []} } values %$vt;
@@ -331,7 +332,6 @@ sub html_hier_test_row_utilization {
     print $html "    <th class=\"desc name\" title=\"$testcmd\">".
 	"$testname</th>\n";
     foreach my $testkey (@TESTKEYS) {
-	next if $testkey eq "host";
 	print $html "    <td class=\"desc $testkey\">".
 	    "$TESTDESC{$desc}{$testkey}</td>\n";
     }
@@ -373,6 +373,7 @@ sub html_hier_test_row_utilization {
 	printf $html "    <td$class$style$title>$href%.1f%%$enda</td>\n",
 	    $rate * 100;
     }
+    ($testcmd = $test) =~ s/_/ /g;
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     print $html "  </tr>\n";
 }
@@ -702,6 +703,11 @@ sub parse_result_files {
 		    $desc =~ s/(?<=_-[RS])[1-9][0-9.]+_/{ifaddr}_/g;
 		    $desc =~ s/(?<=_-[RS])[a-z][a-z0-9.]+_/{ifname}_/g;
 		}
+		# netlink line is after ipv4 or ipv6 prefix
+		$desc =~ s/\.10\.[0-9](?=[0-9]\.)/.10.{line}/g;
+		$desc =~ s/:10[0-9](?=[0-9]:)/:10{line}/g;
+		$desc =~ s/(?<![0-9.])10\.10\./{prefix}/g;
+		$desc =~ s/(?<![:])fdd7:e83e:66bd:10/{prefix}/g;
 		$testdesc{$test} = $desc;
 	    }
 	    my $tv = $T{$desc}{$date}{$hk} ||= {};
