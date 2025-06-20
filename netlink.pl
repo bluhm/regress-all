@@ -861,10 +861,18 @@ if ($obsd_r_ipdev) {
 print "waiting for interface link\n" if $opts{v};
 sleep(3);
 sleep(5) if $pseudo eq 'carp';
-printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
-printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
-printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
-printcmd('ping6', '-n', '-c1', '-w5', $lnx_r_addr6);
+my %ping;
+$ping{IPv4}{left} = printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
+$ping{IPv4}{right} = printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
+$ping{IPv6}{left} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
+$ping{IPv6}{right} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_r_addr6);
+print "\n";
+foreach my $family (sort keys %ping) {
+    foreach my $side (sort keys %{$ping{$family}}) {
+	print "ping link check $family $side:\t",
+	    $ping{$family}{$side} ? "FAIL" : "PASS", "\n";
+    }
+}
 
 print "\nnew config created: modify $modify, iface $iface, pseudo $pseudo\n\n";
 
