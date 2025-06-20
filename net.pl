@@ -351,6 +351,8 @@ foreach my $modifydir (@modifies ? @modifies : ".") {
 
 collect_dmesg();
 powerdown_hosts(cvsdate => $cvsdate, patch => $patch) if $opts{p};
+bsdcons_hosts();
+undef $odate;
 
 # create html output
 

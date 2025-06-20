@@ -132,6 +132,8 @@ collect_result("$opts{h}:/root/release");
 collect_dmesg();
 setup_html();
 powerdown_hosts(patch => $patch) if $opts{p};
+bsdcons_hosts();
+undef $odate;
 
 # create html output
 

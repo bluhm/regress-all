@@ -128,6 +128,8 @@ collect_result("$opts{h}:/root/portstest");
 collect_dmesg();
 setup_html();
 powerdown_hosts() if $opts{p};
+bsdcons_hosts();
+undef $odate;
 
 # create html output
 
