@@ -33,17 +33,28 @@ use Testvars qw(%TESTNAME %TESTDESC @TESTKEYS);
 
 my $fgdir = "/home/bluhm/github/FlameGraph";  # XXX
 
-my %LINERATES = (
+my %IFACERATES = (
     "iface-bge"  =>       10 ** 9,
     "iface-bnxt" =>  10 * 10 ** 9,
+    "iface-dwqe" =>       10 ** 9,
     "iface-em"   =>       10 ** 9,
-    "iface-ice"  =>  10 * 10 ** 9,  # XXX faster devices exist
-    "iface-igc"  => 2.5 * 10 ** 9,
+    "iface-ice"  => 100 * 10 ** 9,  # slower devices exist
+    "iface-igc"  => 2.5 * 10 ** 9,  # slower devices exist
     "iface-ix"   =>  10 * 10 ** 9,
-    "iface-ixl"  =>  10 * 10 ** 9,
+    "iface-ixl"  =>  25 * 10 ** 9,  # slower devices exist
     "iface-re"   =>  .1 * 10 ** 9,
     "iface-vio"  =>  20 * 10 ** 9,
     "iface-vmx"  =>  20 * 10 ** 9,
+);
+# more specific dmesg entries
+my %DMESGRATES = (
+    qr/\Q"Intel I225-IT"/       =>   1 * 10 ** 9,  # igc
+    qr/\Q"Intel I225-LM"/       => 2.5 * 10 ** 9,  # igc
+    qr/\Q"Intel E810 XXV SFP"/  =>  25 * 10 ** 9,  # ice
+    qr/\Q"Intel E810 C QSFP"/   => 100 * 10 ** 9,  # ice
+    qr/\Q"Intel X710 10GBaseT"/ =>  10 * 10 ** 9,  # ixl
+    qr/\Q"Intel X710 SFP+"/     =>  10 * 10 ** 9,  # ixl
+    qr/\Q"Intel XXV710 SFP28"/  =>  25 * 10 ** 9,  # ixl
 );
 
 my $now = strftime("%FT%TZ", gmtime);
@@ -356,8 +367,8 @@ sub html_hier_test_row_utilization {
 	}
 	my $title = " title=\"$value $unit\"";
 	my $class = " class=\"status $status\"";
-	$iface =~ s/\d+$//;
-	my $linerate = $LINERATES{$iface} || 10 ** 9;
+	(my $iftype = $iface) =~ s/\d+$//;
+	my $linerate = $IFACERATES{$iface} || $IFACERATES{$iftype} || 10 ** 9;
 	my $rate = $value / $linerate;
 	my $rgb = $status eq 'PASS' ? "128, 255, 128" : "255, 128, 128";
 	my $style = sprintf(
@@ -793,6 +804,13 @@ sub parse_result_files {
 		    or next;
 		chomp;
 		$ifdmesg{"iface-$1"} = $_;
+	    }
+	    while (my ($iface, $dmesg) = each %ifdmesg) {
+		while (my ($re, $rate) = each %DMESGRATES) {
+		    next unless $dmesg =~ /$re/;
+		    $IFACERATES{$iface} = $rate;
+		    last;
+		}
 	    }
 	    $dv->{ifdmesg} = \%ifdmesg;
 	}
