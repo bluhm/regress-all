@@ -432,10 +432,11 @@ sub cleanup_server_tcp {
     my ($proc) = @_;
 
     my @cmd = ('tcpbench', '-s');
-    unshift @cmd, ('pkill', '-f');
     push @cmd, "-b$proc->{addr}";
     push @cmd, "-p$proc->{port}";
     push @cmd, "-S$opts{b}" if defined($opts{b});
+    @cmd = "'@cmd'" if $proc->{ssh};
+    unshift @cmd, ('pkill', '-f');
     unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
     print "command: @cmd\n" if $opts{v};
     system(@cmd);
