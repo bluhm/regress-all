@@ -1,6 +1,5 @@
-# em4 is management, not enough switch ports for em2 and em3
-export MANAGEMENT_IF=em4
-export SKIP_IF=em4,em2,em3
+export MANAGEMENT_IF=em0
+export SKIP_IF=em1
 export NETLINK_LINE=1
 export LINUX_IF=enp1s0f0np0
 export LINUX_LEFT_SSH=root@lt40
