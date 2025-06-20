@@ -448,8 +448,7 @@ sub write_html_date_file {
 	All     => (($opts{l} || $host) && -f "netlink.html" ?
 	    "netlink.html" : undef),
 	Current => "current/netlink.html",
-	Latest  => ($opts{l} ? undef :
-	    $host ? "latest-$host/netlink.html" : "latest/netlink.html"),
+	Latest  => ($opts{l} ? undef : "latest/netlink.html"),
 	Running => "run.html");
     html_header($html, "OpenBSD $typename Results",
 	"OpenBSD ". lc($typename). " $topic test results",
