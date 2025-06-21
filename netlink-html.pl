@@ -33,7 +33,7 @@ use Testvars qw(%TESTNAME %TESTDESC @TESTKEYS);
 
 my $fgdir = "/home/bluhm/github/FlameGraph";  # XXX
 
-my %IFACERATES = (
+my %IFTYPERATES = (
     "iface-bge"  =>       10 ** 9,
     "iface-bnxt" =>  10 * 10 ** 9,
     "iface-dwqe" =>       10 ** 9,
@@ -127,6 +127,7 @@ my (%T, %D, %H, %V, %S, %B);
 # $D{$date}{build}		snapshot or custom build
 # $D{$date}{arch}		sysctl hardware machine architecture
 # $D{$date}{ncpu}		sysctl hardware ncpu cores
+# $D{$data}{rate}{$ifname}	bit rate of interface according to dmesg
 # $S{$test}{$hk}{stdir}		directory of stats diff output file
 # $S{$test}{$hk}{stinput}	array of statistics input files
 # $S{$test}{$hk}{stats}		relative path to stats-diff.txt
@@ -314,7 +315,7 @@ sub html_hier_test_row {
 }
 
 sub html_hier_test_row_utilization {
-    my ($html, $desc, $td, @hiers) = @_;
+    my ($html, $dv, $desc, $td, @hiers) = @_;
 
     my $test = $td->{test};
     (my $testcmd = $desc) =~ s/_/ /g;
@@ -368,7 +369,7 @@ sub html_hier_test_row_utilization {
 	my $title = " title=\"$value $unit\"";
 	my $class = " class=\"status $status\"";
 	(my $iftype = $iface) =~ s/\d+$//;
-	my $linerate = $IFACERATES{$iface} || $IFACERATES{$iftype} || 10 ** 9;
+	my $linerate = $dv->{rate}{$iface} || $IFTYPERATES{$iftype} || 10 ** 9;
 	my $rate = $value / $linerate;
 	my $rgb = $status eq 'PASS' ? "128, 255, 128" : "255, 128, 128";
 	my $style = sprintf(
@@ -435,7 +436,7 @@ sub write_html_hier_files {
 	foreach my $desc (@tests) {
 	    my $td = $T{$desc}{$date}
 		or next;
-	    html_hier_test_row_utilization($html, $desc, $td, @hv);
+	    html_hier_test_row_utilization($html, $dv, $desc, $td, @hv);
 	}
 	print $html "  </tbody>\n";
 	print $html "</table>\n";
@@ -808,7 +809,7 @@ sub parse_result_files {
 	    while (my ($iface, $dmesg) = each %ifdmesg) {
 		while (my ($re, $rate) = each %DMESGRATES) {
 		    next unless $dmesg =~ /$re/;
-		    $IFACERATES{$iface} = $rate;
+		    $dv->{rate}{$iface} = $rate;
 		    last;
 		}
 	    }
