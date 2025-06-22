@@ -247,6 +247,29 @@ sub html_hier_test_head_utilization {
 	}
 	print $html "    <th></th>\n  </tr>\n";
     }
+    print $html "  <tr>\n";
+    print $html "    <td></td>", "<td></td>" x @TESTKEYS, "\n";
+    foreach my $hv (@hiers) {
+	my $iface = $hv->{iface};
+	unless ($iface) {
+	    printf $html "    <td style=\"background-color: red\"></td>\n";
+	    next;
+	}
+	(my $iftype = $iface) =~ s/\d+$//;
+	my $rate = $dv->{rate}{$iface} || $IFTYPERATES{$iftype};
+	unless ($rate) {
+	    printf $html "    <td style=\"background-color: red\"></td>\n";
+	    next;
+	}
+	my $bits = "$rate bit";
+	$bits =~ s/000 bit$/ Kbit/;
+	$bits =~ s/000 Kbit$/ Mbit/;
+	$bits =~ s/000 Mbit$/ Gbit/;
+	$bits =~ s/000 Gbit$/ Tbit/;
+	my $style = " style=\"background-color: rgba(128, 255, 128, 1.0)\"";
+	print $html "    <td class=\"hier bits\"$style>$bits</td>\n";
+    }
+    print $html "    <th></th>\n  </tr>\n";
 }
 
 sub html_hier_test_row {
