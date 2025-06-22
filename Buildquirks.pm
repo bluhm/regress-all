@@ -1131,6 +1131,18 @@ my %quirks = (
 	    "gnu/usr.bin/clang",
 	],
     },
+    '2025-06-18T16:15:46Z' => {
+	comment => "netstat TCP counter",
+	updatedirs => [ "sys", "usr.bin/netstat" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "usr.bin/netstat" ],
+    },
+    '2025-06-21T22:08:44Z' => {
+	comment => "sysctl netstat divert6 counter",
+	updatedirs => [ "sys", "sbin/sysctl", "usr.bin/netstat" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/sysctl", "usr.bin/netstat" ],
+    },
 );
 
 #### Patches ####
