@@ -15,6 +15,7 @@ inetutils-inetd
 inetutils-telnet
 inetutils-tools
 inetutils-traceroute
+iperf3
 iproute2
 iputils-arping
 iputils-clockdiff
