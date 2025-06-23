@@ -301,7 +301,7 @@ sub html_hier_test_row {
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     print $html "  </tr>\n";
 
-    my $vt = $V{$test};
+    my $vt = $V{$desc};
     my $maxval = max map { scalar @{$_ || []} } values %$vt;
     for (my $i = 0; $i < $maxval; $i++) {
 	my $value0 = first { $_ } map { $_->[$i] } values %$vt;
@@ -345,7 +345,7 @@ sub html_hier_test_row_utilization {
     my $test = $td->{test};
     (my $testcmd = $desc) =~ s/_/ /g;
     my $testname = $TESTNAME{$desc} || "";
-    my $vt = $V{$test};
+    my $vt = $V{$desc};
     my $maxval = max map { scalar @{$_ || []} } values %$vt;
 
     my $valsum = 0;
@@ -778,7 +778,7 @@ sub parse_result_files {
 		    svgfile => $svgfile,
 		} if -s $btfile && ! -f $svgfile;
 	    }
-	    $V{$test}{$hk} = [ @values ];
+	    $V{$desc}{$hk} = [ @values ];
 	    undef @values;
 	    my $severity = status2severity($status);
 	    $T{$desc}{severity} += $severity;
