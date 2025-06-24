@@ -25,6 +25,7 @@ libbsd-dev
 libevent-dev
 make
 manpages
+net-tools
 netcat-openbsd
 nvi
 openntpd
