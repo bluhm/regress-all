@@ -442,6 +442,7 @@ sub write_html_hier_files {
 	html_hier_test_head($html, $dv, @hv);
 	print $html "  </thead>\n  <tbody>\n";
 
+	# most frequent and severe errors at top
 	my @tests = sort { $T{$b}{severity} <=> $T{$a}{severity} ||
 	    $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
 	foreach my $desc (@tests) {
@@ -457,7 +458,9 @@ sub write_html_hier_files {
 	html_hier_test_head_utilization($html, $dv, @hv);
 	print $html "  </thead>\n  <tbody>\n";
 
-	@tests = sort { $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
+	# use the execution order to find interference between tests
+	@tests = sort { $T{$b}{order} <=> $T{$a}{order} ||
+	    $TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
 	foreach my $desc (@tests) {
 	    my $td = $T{$desc}{$date}
 		or next;
@@ -711,6 +714,7 @@ sub parse_result_files {
 	open(my $fh, '<', $file->{name})
 	    or die "Open '$file->{name}' for reading failed: $!";
 	my @values;
+	my $order = 0;
 	while (<$fh>) {
 	    chomp;
 	    my ($status, $test, $message) = split(" ", $_, 3);
@@ -789,6 +793,10 @@ sub parse_result_files {
 	    if (($tv->{severity} || 0) < $severity) {
 		$tv->{status} = $status;
 		$tv->{severity} = $severity;
+	    }
+	    $order--;
+	    if (($T{$desc}{order} || 0) > $order) {
+		$T{$desc}{order} = $order;
 	    }
 	}
 	close($fh)
