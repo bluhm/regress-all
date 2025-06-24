@@ -68,12 +68,14 @@ my $line = $ENV{NETLINK_LINE}
     or die "NETLINK_LINE is not in env";
 my $management_if = $ENV{MANAGEMENT_IF}
     or die "MANAGEMENT_IF is not in env";
-my $linux_if = $ENV{LINUX_IF}
+my @linux_if = split(/,/, $ENV{LINUX_IF} // "")
     or die "LINUX_IF is not in env";
-my $linux_left_ssh = $ENV{LINUX_LEFT_SSH}
+my @linux_left_ssh = split(/,/, $ENV{LINUX_LEFT_SSH} // "")
     or die "LINUX_LEFT_SSH is not in env";
-my $linux_right_ssh = $ENV{LINUX_RIGHT_SSH}
+my @linux_right_ssh = split(/,/, $ENV{LINUX_RIGHT_SSH} // "")
     or die "LINUX_RIGHT_SSH is not in env";
+@linux_if == @linux_left_ssh && @linux_if == @linux_right_ssh
+    or die "LINUX_IF, LINUX_LEFT_SSH, LINUX_RIGHT_SSH differ in cardinal";
 
 my ($iftype, $ifnum) = $iface =~ /^([a-z]+)([0-9]+)?$/;
 grep { $_ eq $iftype } @allifaces
@@ -180,7 +182,7 @@ my $obsd_r_tunnel_addr6 = "${ip6prefix}${line}4::3";
 my $obsd_r_tunnel_net6 = "${ip6prefix}${line}3::/64";
 my $mcast_r_tunnel_addr = "234.${ip4mshort}${line}4.1";
 
-my $lnx_if = $linux_if;
+my $lnx_if = $linux_if[0];
 my $lnx_pdev = "$lnx_if.$line";
 my $lnx_ipdev = $lnx_if;
 
@@ -191,7 +193,7 @@ my $lnx_l_net_flat = "$lnx_l_addr/21";
 my $lnx_l_addr6 = "${ip6prefix}${line}1::1";
 my $lnx_l_net6 = "$lnx_l_addr6/64";
 my $lnx_l_net6_flat = "$lnx_l_addr6/60";
-my $lnx_l_ssh = $linux_left_ssh;
+my $lnx_l_ssh = $linux_left_ssh[0];
 
 my $lnx_l_tunnel_addr = "${ip4prefix}${line}3.1";
 my $lnx_l_tunnel_net = "$lnx_l_tunnel_addr/24";
@@ -205,7 +207,7 @@ my $lnx_r_net_flat = "$lnx_r_addr/21";
 my $lnx_r_addr6 = "${ip6prefix}${line}2::4";
 my $lnx_r_net6 = "$lnx_r_addr6/64";
 my $lnx_r_net6_flat = "$lnx_r_addr6/60";
-my $lnx_r_ssh = $linux_right_ssh;
+my $lnx_r_ssh = $linux_right_ssh[0];
 
 my @lnx_r_addr_range = map { "$lnx_r_addr$_" } 0..9;
 my @lnx_r_net_range = map { "$_/24" } @lnx_r_addr_range;
@@ -222,6 +224,13 @@ my $mcast_l_addr = "234.${ip4mshort}${line}1.10";
 my $mcast_r_addr = "234.${ip4mshort}${line}2.10";
 my $mcast_l_addr6 = "ff34:40:${ip6prefix}${line}1::10";
 my $mcast_r_addr6 = "ff34:40:${ip6prefix}${line}2::10";
+
+my $obsd_li_addr = "${ip4prefix}${line}1.6";
+my $obsd_li_addr6 = "${ip6prefix}${line}1::6";
+my $lnx_li_addr = "${ip4prefix}${line}1.5";
+my $lnx_li_addr6 = "${ip6prefix}${line}1::5";
+my $lnx_ri_addr = "${ip4prefix}${line}2.8";
+my $lnx_ri_addr6 = "${ip6prefix}${line}2::8";
 
 my (@obsd_l_dest_addr, @obsd_l_dest_addr6,
     @obsd_r_dest_addr, @obsd_r_dest_addr6);
@@ -333,6 +342,19 @@ printcmd('ssh', $lnx_r_ssh, qw(
 	ip route delete $net ;
     done));
 
+if (@linux_if > 1) {
+    for (my $i = 0; $i < @linux_if; $i++) {
+	printcmd('ssh', $linux_left_ssh[$i], qw(
+	    for net in), "$lnx_li_addr$i/24", "$lnx_li_addr6$i/64", qw(; do
+		    ip address delete $net dev), $linux_if[$i], qw(;
+	    done));
+	printcmd('ssh', $linux_right_ssh[$i], qw(
+	    for net in), "$lnx_ri_addr$i/24", "$lnx_ri_addr6$i/64", qw(; do
+		    ip address delete $net dev), $linux_if[$i], qw(;
+	    done));
+    }
+}
+
 # flush ARP and ND6 entries on OpenBSD and Linux
 printcmd('arp', '-da');
 printcmd('ndp', '-c');
@@ -344,7 +366,7 @@ foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	    done ;
 	done));
     printcmd('ssh', $ssh, 'ip', 'link', 'delete', 'dev', $lnx_pdev);
-    printcmd('ssh', $ssh, 'ip', 'link', 'set', $lnx_if, 'up');
+    printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
 }
 
 printcmd('sysctl', 'net.inet.ip.forwarding=1');
@@ -844,9 +866,6 @@ printcmd('ssh', $lnx_r_ssh, qw(
     $lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range, qw(; do
 	ip address add $net dev), $lnx_ipdev, qw(;
     done));
-foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
-    printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_ipdev, 'up');
-}
 if ($obsd_r_ipdev) {
     printcmd('ssh', $lnx_l_ssh, 'ip', 'route', 'add', $obsd_r_net,
 	'via', $obsd_l_addr, 'dev', $lnx_ipdev);
@@ -858,6 +877,30 @@ if ($obsd_r_ipdev) {
 	'via', $obsd_r_addr6, 'dev', $lnx_ipdev);
 }
 
+# configure addresses for multiple Linux hosts
+
+if ($pseudo eq 'none' && @linux_if > 1) {
+    for (my $i = 0; $i < @linux_if; $i++) {
+	printcmd('ifconfig', $obsd_l_ipdev, 'inet', "$obsd_li_addr$i/32",
+	    'alias');
+	printcmd('ifconfig', $obsd_l_ipdev, 'inet6', "$obsd_li_addr6$i/128",
+	    'alias');
+	printcmd('ssh', $linux_left_ssh[$i], qw(
+	    for net in), "$lnx_li_addr$i/24", "$lnx_li_addr6$i/64", qw(; do
+		ip address add $net dev), $linux_if[$i], qw(;
+	    done));
+	printcmd('ssh', $linux_right_ssh[$i], qw(
+	    for net in), "$lnx_ri_addr$i/24", "$lnx_ri_addr6$i/64", qw(; do
+		ip address add $net dev), $linux_if[$i], qw(;
+	    done));
+    }
+}
+for (my $i = 0; $i < @linux_if; $i++) {
+    foreach my $ssh ($linux_left_ssh[$i], $linux_right_ssh[$i]) {
+	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $linux_if[$i], 'up');
+    }
+}
+
 print "waiting for interface link\n" if $opts{v};
 sleep(3);
 sleep(5) if $pseudo eq 'carp';
@@ -866,6 +909,18 @@ $ping{IPv4}{left} = printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
 $ping{IPv4}{right} = printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
 $ping{IPv6}{left} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
 $ping{IPv6}{right} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_r_addr6);
+if ($pseudo eq 'none' && @linux_if > 1) {
+    for (my $i = 0; $i < @linux_if; $i++) {
+	$ping{IPv4}{"left$i"} = printcmd('ping', '-n', '-c1', '-w5',
+	    "$lnx_li_addr$i");
+	$ping{IPv4}{"right$i"} = printcmd('ping', '-n', '-c1', '-w5',
+	    "$lnx_ri_addr$i");
+	$ping{IPv6}{"left$i"} = printcmd('ping6', '-n', '-c1', '-w5',
+	    "$lnx_li_addr6$i");
+	$ping{IPv6}{"right$i"} = printcmd('ping6', '-n', '-c1', '-w5',
+	    "$lnx_ri_addr6$i");
+    }
+}
 print "\n";
 foreach my $family (sort keys %ping) {
     foreach my $side (sort keys %{$ping{$family}}) {
