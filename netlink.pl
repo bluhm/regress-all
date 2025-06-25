@@ -1474,12 +1474,14 @@ push @tests, {
 push @tests, (
     {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', "-c${lnx_li_addr}0",
+	multiple => scalar @linux_if,
+	testcmd => ['iperf3', "-c${lnx_li_addr}{multiple}",
 	    '-w200k', '-P15', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }, {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', "-c${lnx_ri_addr}0",
+	multiple => scalar @linux_if,
+	testcmd => ['iperf3', "-c${lnx_ri_addr}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
@@ -1487,12 +1489,14 @@ push @tests, (
 push @tests, (
     {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', '-6', "-c${lnx_li_addr6}0",
+	multiple => scalar @linux_if,
+	testcmd => ['iperf3', '-6', "-c${lnx_li_addr6}{multiple}",
 	    '-w200k', '-P15', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }, {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', '-6', "-c${lnx_ri_addr6}0",
+	multiple => scalar @linux_if,
+	testcmd => ['iperf3', '-6', "-c${lnx_ri_addr6}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
@@ -1572,20 +1576,29 @@ foreach my $t (@tests) {
 
     statistics($test, "before");
 
-    defined(my $pid = open(my $out, '-|'))
-	or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
-    if ($pid == 0) {
-	# child process
-	close($out);
-	open(STDIN, '<', "/dev/null")
-	    or warn "Redirect stdin to /dev/null failed: $!";
-	open(STDERR, '>&', \*STDOUT)
-	    or warn "Redirect stderr to stdout failed: $!";
-	setsid()
-	    or warn "Setsid $$ failed: $!";
-	exec(@runcmd);
-	warn "Exec '@runcmd' failed: $!";
-	_exit(126);
+    my (@pids, @outs);
+    my $multiple = $t->{multiple} || 1;
+    for (my $i = 0; $i < $multiple; $i++) {
+	defined(my $pid = open(my $out, '-|'))
+	    or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
+	if ($pid == 0) {
+	    # child process
+	    close($out);
+	    open(STDIN, '<', "/dev/null")
+		or warn "Redirect stdin to /dev/null failed: $!";
+	    open(STDERR, '>&', \*STDOUT)
+		or warn "Redirect stderr to stdout failed: $!";
+	    setsid()
+		or warn "Setsid $$ failed: $!";
+	    if ($multiple > 1) {
+		s/{multiple}/$i/ foreach @runcmd;
+	    }
+	    exec(@runcmd);
+	    warn "Exec '@runcmd' failed: $!";
+	    _exit(126);
+	}
+	push @pids, $pid;
+	push @outs, $out;
     }
 
     my $btpid;
@@ -1647,7 +1660,11 @@ foreach my $t (@tests) {
 	$t->{initialize}($log)
 	    or bad $test, 'FAIL', "Could not initialize test", $log
 	    if $t->{initialize};
-	while (<$out>) {
+	while (@outs) {
+	    my $out = shift @outs;
+	    local $_ = <$out>;
+	    next unless defined;
+	    push @outs, $out;
 	    print $log $_;
 	    if ($t->{parser}) {
 		local $_ = $_;
@@ -1662,7 +1679,7 @@ foreach my $t (@tests) {
 	    if $t->{finalize};
 	alarm(0);
     };
-    kill 'KILL', -$pid;
+    kill '-KILL', @pids;
     if ($@) {
 	chomp($@);
 	bad $test, 'NOTERM', $@, $log;
@@ -1678,10 +1695,12 @@ foreach my $t (@tests) {
 	    or bad $test, 'XFAIL', "Btrace failed: $?", $log;
     }
 
-    close($out)
-	or bad $test, 'NOEXIT', $! ?
-	"Close pipe from '@runcmd' failed: $!" :
-	"Command '@runcmd' failed: $?", $log;
+    foreach (@outs) {
+	close($_)
+	    or bad $test, 'NOEXIT', $! ?
+	    "Close pipe from '@runcmd' failed: $!" :
+	    "Command '@runcmd' failed: $?", $log;
+    }
 
     eval { $t->{shutdown}($log) if $t->{shutdown}; };
     if ($@) {

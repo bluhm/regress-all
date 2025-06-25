@@ -708,10 +708,10 @@ my @testdesc = (
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-R{ifname}_-S{ifname}_-c{left}_-aff34:40:fdd7:e83e:66bd:10{line}1::10_-t10_udpbench'	=> { ipv => "IPv6", proto => "MCast",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-mcast6bench-parallel-mtu" },
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-R{ifaddr}_-S{ifaddr}_-s{right}_-a234.10.{line}2.10_-t10_udpbench'				=> { ipv => "IPv4", proto => "MCast",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-mcast4bench-parallel-mtu" },
     'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-R{ifname}_-S{ifname}_-s{right}_-aff34:40:fdd7:e83e:66bd:10{line}2::10_-t10_udpbench'	=> { ipv => "IPv6", proto => "MCast",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-mcast6bench-parallel-mtu" },
-    'iperf3_-c{prefix}{line}1.50_{window}_-P15_-t10_-R'		=> { ipv => "IPv4", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-15", name => "linux-openbsd-tcp4iperf-parallel" },
-    'iperf3_-c{prefix}{line}2.80_{window}_-P15_-t10'		=> { ipv => "IPv4", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-15", name => "openbsd-linux-tcp4iperf-parallel" },
-    'iperf3_-6_-c{prefix}{line}1::50_{window}_-P15_-t10_-R'	=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-15", name => "linux-openbsd-tcp6iperf-parallel" },
-    'iperf3_-6_-c{prefix}{line}2::80_{window}_-P15_-t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-15", name => "openbsd-linux-tcp6iperf-parallel" },
+    'iperf3_-c{prefix}{line}1.5{multiple}_{window}_-P15_-t10_-R'		=> { ipv => "IPv4", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-15", name => "linux-openbsd-tcp4iperf-parallel" },
+    'iperf3_-c{prefix}{line}2.8{multiple}_{window}_-P15_-t10'		=> { ipv => "IPv4", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-15", name => "openbsd-linux-tcp4iperf-parallel" },
+    'iperf3_-6_-c{prefix}{line}1::5{multiple}_{window}_-P15_-t10_-R'	=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-15", name => "linux-openbsd-tcp6iperf-parallel" },
+    'iperf3_-6_-c{prefix}{line}2::8{multiple}_{window}_-P15_-t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-15", name => "openbsd-linux-tcp6iperf-parallel" },
 );
 
 %TESTDESC = @testdesc;
