@@ -1474,22 +1474,26 @@ push @tests, {
 push @tests, (
     {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', "-c${lnx_li_addr}0", '-P10', '-t10', '-R'],
+	testcmd => ['iperf3', "-c${lnx_li_addr}0",
+	    '-w200k', '-P15', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }, {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', "-c${lnx_ri_addr}0", '-P10', '-t10'],
+	testcmd => ['iperf3', "-c${lnx_ri_addr}0",
+	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{iperf4} && @linux_if > 1;
 push @tests, (
     {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', '-6', "-c${lnx_li_addr6}0", '-P10', '-t10', '-R'],
+	testcmd => ['iperf3', '-6', "-c${lnx_li_addr6}0",
+	    '-w200k', '-P15', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }, {
 	initialize => \&iperf3_initialize,
-	testcmd => ['iperf3', '-6', "-c${lnx_ri_addr6}0", '-P10', '-t10'],
+	testcmd => ['iperf3', '-6', "-c${lnx_ri_addr6}0",
+	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{iperf6} && @linux_if > 1;
