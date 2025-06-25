@@ -43,7 +43,7 @@ my %IFTYPERATES = (
     "iface-ix"   =>  10 * 10 ** 9,
     "iface-ixl"  =>  25 * 10 ** 9,  # slower devices exist
     "iface-re"   =>  .1 * 10 ** 9,
-    "iface-vio"  =>  20 * 10 ** 9,
+    "iface-vio"  =>  50 * 10 ** 9,
     "iface-vmx"  =>  20 * 10 ** 9,
 );
 # more specific dmesg entries
@@ -357,9 +357,10 @@ sub html_hier_test_row_utilization {
 	    or next;
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
-	    if ($value0 && $value0->{name} eq "recv" || $maxval == 1) {
-		my $vv = $vt->{$hv->{key}};
-		$valsum += $vv->[$i]{number};
+	    if (($value0 && $value0->{name} =~ /^(recv|receiver)$/) ||
+		$maxval == 1) {
+		    my $vv = $vt->{$hv->{key}};
+		    $valsum += $vv->[$i]{number};
 	    }
 	}
     }
@@ -378,7 +379,7 @@ sub html_hier_test_row_utilization {
 	my ($unit, $iface, $value);
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
-	    if ($value0->{name} eq "recv" || $maxval == 1) {
+	    if ($value0->{name} =~ /^(recv|receiver)$/ || $maxval == 1) {
 		$unit = $value0->{unit} || "";
 		$iface = $hv->{iface};
 		if ($status =~ /^X?PASS$/) {
@@ -729,6 +730,19 @@ sub parse_result_files {
 		    number => $number,
 		};
 		next;
+	    }
+	    if ($status eq 'PASS' && $test =~ /{multiple}/) {
+		my ($prev, @new);
+		foreach my $next (@values) {
+		    if (($prev->{name} || "") eq $next->{name} &&
+			($prev->{unit} || "") eq $next->{unit}) {
+			    $prev->{number} += $next->{number};
+			    next;
+		    }
+		    $prev = $next;
+		    push @new, $next;
+		}
+		@values = @new;
 	    }
 	    my $desc = $testdesc{$test};
 	    unless ($desc) {

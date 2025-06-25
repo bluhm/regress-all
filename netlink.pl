@@ -1471,6 +1471,34 @@ push @tests, {
 	'udpbench'],
     parser => \&netbench_parser,
 } if $testmode{mcast6};
+
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', "-c${lnx_l_addr}",
+	    '-w200k', '-P15', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', "-c${lnx_r_addr}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{iperf4};
+push @tests, (
+    {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', '-6', "-c${lnx_l_addr6}",
+	    '-w200k', '-P15', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['iperf3', '-6', "-c${lnx_r_addr6}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }
+) if $testmode{iperf6};
+
 push @tests, (
     {
 	initialize => \&iperf3_initialize,
