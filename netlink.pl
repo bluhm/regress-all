@@ -346,11 +346,11 @@ if (@linux_if > 1) {
     for (my $i = 0; $i < @linux_if; $i++) {
 	printcmd('ssh', $linux_left_ssh[$i], qw(
 	    for net in), "$lnx_li_addr$i/24", "$lnx_li_addr6$i/64", qw(; do
-		    ip address delete $net dev), $linux_if[$i], qw(;
+		ip address delete $net dev), $linux_if[$i], qw(;
 	    done));
 	printcmd('ssh', $linux_right_ssh[$i], qw(
 	    for net in), "$lnx_ri_addr$i/24", "$lnx_ri_addr6$i/64", qw(; do
-		    ip address delete $net dev), $linux_if[$i], qw(;
+		ip address delete $net dev), $linux_if[$i], qw(;
 	    done));
     }
 }
@@ -866,6 +866,9 @@ printcmd('ssh', $lnx_r_ssh, qw(
     $lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range, qw(; do
 	ip address add $net dev), $lnx_ipdev, qw(;
     done));
+foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+    printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_ipdev, 'up');
+}
 if ($obsd_r_ipdev) {
     printcmd('ssh', $lnx_l_ssh, 'ip', 'route', 'add', $obsd_r_net,
 	'via', $obsd_l_addr, 'dev', $lnx_ipdev);
