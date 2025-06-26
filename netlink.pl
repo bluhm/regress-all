@@ -1723,8 +1723,8 @@ foreach my $t (@tests) {
 	    or bad $test, 'XFAIL', "Btrace failed: $?", $log;
     }
 
-    foreach (@outs) {
-	close($_)
+    foreach my $out (@outs) {
+	close($out)
 	    or bad $test, 'NOEXIT', $! ?
 	    "Close pipe from '@runcmd' failed: $!" :
 	    "Command '@runcmd' failed: $?", $log;
