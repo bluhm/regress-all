@@ -1688,11 +1688,12 @@ foreach my $t (@tests) {
 	$t->{initialize}($log)
 	    or bad $test, 'FAIL', "Could not initialize test", $log
 	    if $t->{initialize};
-	while (@outs) {
-	    my $out = shift @outs;
+	my @reading = @outs;
+	while (@reading) {
+	    my $out = shift @reading;
 	    local $_ = <$out>;
 	    next unless defined;
-	    push @outs, $out;
+	    push @reading, $out;
 	    print $log $_;
 	    if ($t->{parser}) {
 		local $_ = $_;
