@@ -165,7 +165,7 @@ sub create_html_running {
 	Perform => "../perform/results/perform.html",
 	Ports   => "../portstest/results/latest.html",
 	Release => "../release/results/latest.html",
-	Net => "../netlink/results/latest/netlink.html",
+	Net => "../netlink/results/latest.html",
 	Running => undef);
     html_header($html, "OpenBSD Running",
 	"OpenBSD test running",
