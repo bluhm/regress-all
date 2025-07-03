@@ -1513,7 +1513,7 @@ push @tests, (
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
-) if $testmode{iperf4} && @linux_if > 1;
+) if $testmode{iperf4} && $pseudo eq 'none' && @linux_if > 1;
 push @tests, (
     {
 	initialize => \&iperf3_initialize,
@@ -1528,7 +1528,7 @@ push @tests, (
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
-) if $testmode{iperf6} && @linux_if > 1;
+) if $testmode{iperf6} && $pseudo eq 'none' && @linux_if > 1;
 
 my @stats = (
     { statcmd => [ netstat => '-s' ] },
