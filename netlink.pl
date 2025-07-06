@@ -333,14 +333,13 @@ printcmd('ssh', $lnx_r_ssh, qw(
 	done ;
     done));
 
-printcmd('ssh', $lnx_l_ssh, qw(
-    for net in), $obsd_r_net, $obsd_r_net6, $obsd_l_net, $obsd_l_net6, qw(; do
-	ip route delete $net ;
-    done));
-printcmd('ssh', $lnx_r_ssh, qw(
-    for net in), $obsd_l_net, $obsd_l_net6, $obsd_r_net, $obsd_r_net6, qw(; do
-	ip route delete $net ;
-    done));
+foreach my $ssh (@linux_left_ssh, @linux_right_ssh) {
+    printcmd('ssh', $ssh, qw(
+	for net in),
+	$obsd_l_net, $obsd_l_net6, $obsd_r_net, $obsd_r_net6, qw(; do
+	    ip route delete $net ;
+	done));
+}
 
 if (@linux_if > 1) {
     for (my $i = 0; $i < @linux_if; $i++) {
@@ -880,7 +879,7 @@ if ($obsd_r_ipdev) {
 	'via', $obsd_r_addr6, 'dev', $lnx_ipdev);
 }
 
-# configure addresses for multiple Linux hosts
+# configure addresses and routes for multiple Linux hosts
 
 if ($pseudo eq 'none' && @linux_if > 1) {
     for (my $i = 0; $i < @linux_if; $i++) {
@@ -902,6 +901,16 @@ for (my $i = 0; $i < @linux_if; $i++) {
     foreach my $ssh ($linux_left_ssh[$i], $linux_right_ssh[$i]) {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $linux_if[$i], 'up');
     }
+}
+for (my $i = 1; $i < @linux_if; $i++) {
+    printcmd('ssh', $linux_left_ssh[$i], 'ip', 'route', 'add', $obsd_r_net,
+	'via', $obsd_l_addr, 'dev', $linux_if[$i]);
+    printcmd('ssh', $linux_left_ssh[$i], 'ip', 'route', 'add', $obsd_r_net6,
+	'via', $obsd_l_addr6, 'dev', $linux_if[$i]);
+    printcmd('ssh', $linux_right_ssh[$i], 'ip', 'route', 'add', $obsd_l_net,
+	'via', $obsd_r_addr, 'dev', $linux_if[$i]);
+    printcmd('ssh', $linux_right_ssh[$i], 'ip', 'route', 'add', $obsd_l_net6,
+	'via', $obsd_r_addr6, 'dev', $linux_if[$i]);
 }
 
 print "waiting for interface link\n" if $opts{v};
@@ -1483,6 +1492,11 @@ push @tests, (
 	testcmd => ['iperf3', "-c${lnx_r_addr}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $lnx_l_ssh, 'iperf3', "-c${lnx_r_addr}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
     }
 ) if $testmode{iperf4};
 push @tests, (
@@ -1494,6 +1508,11 @@ push @tests, (
     }, {
 	initialize => \&iperf3_initialize,
 	testcmd => ['iperf3', '-6', "-c${lnx_r_addr6}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $lnx_l_ssh, 'iperf3', '-6', "-c${lnx_r_addr6}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
@@ -1512,6 +1531,13 @@ push @tests, (
 	testcmd => ['iperf3', "-c${lnx_ri_addr}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	multiple => scalar @linux_if,
+	testcmd => ['ssh', "{multileft}",
+	    'iperf3', "-c${lnx_ri_addr}{multiple}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
     }
 ) if $testmode{iperf4} && $pseudo eq 'none' && @linux_if > 1;
 push @tests, (
@@ -1525,6 +1551,13 @@ push @tests, (
 	initialize => \&iperf3_initialize,
 	multiple => scalar @linux_if,
 	testcmd => ['iperf3', '-6', "-c${lnx_ri_addr6}{multiple}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	initialize => \&iperf3_initialize,
+	multiple => scalar @linux_if,
+	testcmd => ['ssh', "{multileft}",
+	    'iperf3', '-6', "-c${lnx_ri_addr6}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
@@ -1619,7 +1652,10 @@ foreach my $t (@tests) {
 	    setsid()
 		or warn "Setsid $$ failed: $!";
 	    if ($multiple > 1) {
-		s/{multiple}/$i/ foreach @runcmd;
+		foreach (@runcmd) {
+		    s/{multiple}/$i/;
+		    s/{multileft}/$linux_left_ssh[$i]/
+		}
 	    }
 	    exec(@runcmd);
 	    warn "Exec '@runcmd' failed: $!";

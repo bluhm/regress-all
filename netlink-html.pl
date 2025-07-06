@@ -757,7 +757,7 @@ sub parse_result_files {
 		    $desc =~ s/(?<=_-[RS])[1-9][0-9.]+_/{ifaddr}_/g;
 		    $desc =~ s/(?<=_-[RS])[a-z][a-z0-9.]+_/{ifname}_/g;
 		}
-		if ($test =~ /^iperf3_/) {
+		if ($test =~ /perf3_/) {
 		    # iperf needs fine tuning of window size, do not care
 		    $desc =~ s/(?<=_)-w\d+[kmgt]?_/{window}_/g;
 		}
