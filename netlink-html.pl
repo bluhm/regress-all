@@ -582,7 +582,7 @@ HEADER
 	    my $link = uri_escape($hierhtml, "^A-Za-z0-9\-\._~/");
 	    my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
 	    my $enda = $href ? "</a>" : "";
-	    ($testcmd = $tv->{test}) =~ s/_/ /g;
+	    ($testcmd = $tv->{test}) =~ s/_/ /g if $tv->{test};
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
 	print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
