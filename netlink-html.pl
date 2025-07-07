@@ -659,7 +659,7 @@ sub glob_result_files {
 	    -d $latest[0]
 		or die "No latest test.result for $host";
 	} else {
-	    @latest = grep { -d } glob("latest-*");
+	    @latest = grep { -d } bsd_glob("latest-*", GLOB_NOSORT);
 	}
 	find($wanted, map { (readlink($_) or die
 	    "Readlink latest '$_' failed: $!") }  @latest);
@@ -776,7 +776,7 @@ sub parse_result_files {
 	    my $logfile = "$file->{dir}/logs/$test.log";
 	    $tv->{logfile} = $logfile if -f $logfile;
 	    (my $stfile = $logfile) =~ s,\.log$,.stats-*-diff.txt,;
-	    my @stinput = glob($stfile);
+	    my @stinput = bsd_glob($stfile, 0);
 	    if (@stinput) {
 		my $difffile = "$file->{dir}/stats/$test.stats-diff.txt";
 		$tv->{stats} = $difffile;
@@ -823,7 +823,7 @@ sub parse_result_files {
 	$dv->{total} += $total;
 
 	# parse version file
-	foreach my $version (sort glob("$date/version-*.txt")) {
+	foreach my $version (bsd_glob("$date/version-*.txt", 0)) {
 	    $version =~ m,/version-(.+)\.txt$,;
 	    my $hostname = $1;
 
@@ -838,7 +838,7 @@ sub parse_result_files {
 	    %$dv = (parse_version_file($version), %$dv);
 	}
 	if ($file->{patch}) {
-	    foreach my $diff (sort glob("$date/$file->{patch}/diff-*.txt")) {
+	    foreach my $diff (bsd_glob("$date/$file->{patch}/diff-*.txt", 0)) {
 		$hiers{diff} ||= $diff if -s $diff;
 	    }
 	}
