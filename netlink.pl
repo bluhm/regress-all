@@ -1485,7 +1485,26 @@ push @tests, (
     {
 	# forward
 	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $lnx_l_ssh, 'iperf3', "-c${lnx_r_addr}",
+	testcmd => ['ssh', $lnx_l_ssh,
+	    'iperf3', "-c${lnx_r_addr}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	# splice
+	initialize => \&iperf3_initialize,
+	initcmd => ['splicebench', '-I', '-b204800', '-n15', '-t10',
+	    $obsd_l_addr, $lnx_r_addr],
+	testcmd => ['ssh', $lnx_l_ssh,
+	    'iperf3', "-c${obsd_l_addr}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	# copy
+	initialize => \&iperf3_initialize,
+	initcmd => ['splicebench', '-c', '-I', '-b204800', '-n15', '-t10',
+	    $obsd_l_addr, $lnx_r_addr],
+	testcmd => ['ssh', $lnx_l_ssh,
+	    'iperf3', '-i1', "-c${obsd_l_addr}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }, {
@@ -1506,7 +1525,26 @@ push @tests, (
     {
 	# forward
 	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $lnx_l_ssh, 'iperf3', '-6', "-c${lnx_r_addr6}",
+	testcmd => ['ssh', $lnx_l_ssh,
+	    'iperf3', '-6', "-c${lnx_r_addr6}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	# splice
+	initialize => \&iperf3_initialize,
+	initcmd => ['splicebench', '-I', '-b204800', '-n15', '-t10',
+	    "[${obsd_l_addr6}]", "[${lnx_r_addr6}]"],
+	testcmd => ['ssh', $lnx_l_ssh,
+	    'iperf3', '-6', "-c${obsd_l_addr6}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	# copy
+	initialize => \&iperf3_initialize,
+	initcmd => ['splicebench', '-c', '-I', '-b204800', '-n15', '-t10',
+	    "[${obsd_l_addr6}]", "[${lnx_r_addr6}]"],
+	testcmd => ['ssh', $lnx_l_ssh,
+	    'iperf3', '-i1', '-6', "-c${obsd_l_addr6}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }, {
@@ -1534,6 +1572,28 @@ push @tests, (
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }, {
+	# splice
+	initialize => \&iperf3_initialize,
+	multiple => scalar @linux_if,
+	initcmd => ['splicebench', '-I', '-b204800', '-n15', '-t10',
+	    '-N'. scalar @linux_if,
+	    "${obsd_li_addr}0", "${lnx_ri_addr}0"],
+	testcmd => ['ssh', "{multileft}",
+	    'iperf3', "-c${obsd_li_addr}{multiple}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	# copy
+	initialize => \&iperf3_initialize,
+	multiple => scalar @linux_if,
+	initcmd => ['splicebench', '-c', '-I', '-b204800', '-n15', '-t10',
+	    '-N'. scalar @linux_if,
+	    "${obsd_li_addr}0", "${lnx_ri_addr}0"],
+	testcmd => ['ssh', "{multileft}",
+	    'iperf3', '-i1', "-c${obsd_li_addr}{multiple}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
 	# receive
 	initialize => \&iperf3_initialize,
 	multiple => scalar @linux_if,
@@ -1556,6 +1616,28 @@ push @tests, (
 	multiple => scalar @linux_if,
 	testcmd => ['ssh', "{multileft}",
 	    'iperf3', '-6', "-c${lnx_ri_addr6}{multiple}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	# splice
+	initialize => \&iperf3_initialize,
+	multiple => scalar @linux_if,
+	initcmd => ['splicebench', '-I', '-b204800', '-n15', '-t10',
+	    '-N'. scalar @linux_if,
+	    "[${obsd_li_addr6}0]", "[${lnx_ri_addr6}0]"],
+	testcmd => ['ssh', "{multileft}",
+	    'iperf3', '-6', "-c${obsd_li_addr6}{multiple}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	# copy
+	initialize => \&iperf3_initialize,
+	multiple => scalar @linux_if,
+	initcmd => ['splicebench', '-c', '-I', '-b204800', '-n15', '-t10',
+	    '-N'. scalar @linux_if,
+	    "[${obsd_li_addr6}0]", "[${lnx_ri_addr6}0]"],
+	testcmd => ['ssh', "{multileft}",
+	    'iperf3', '-i1', '-6', "-c${obsd_li_addr6}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }, {
@@ -1649,6 +1731,29 @@ foreach my $t (@tests) {
 
     statistics($test, "before");
 
+    my $initpid;
+    my @initcmd = @{$t->{initcmd} || []};
+    if (@initcmd) {
+	defined($initpid = fork())
+	    or bad $test, 'NORUN', "Fork init command failed: $!", $log;
+	if ($initpid == 0) {
+	    # child process
+	    open(STDIN, '<', "/dev/null")
+		or warn "Redirect stdin to /dev/null failed: $!";
+	    open(STDOUT, '>&', $log)
+		or warn "Redirect stderr to log failed: $!";
+	    open(STDERR, '>&', $log)
+		or warn "Redirect stderr to log failed: $!";
+	    setsid()
+		or warn "Setsid $$ failed: $!";
+	    print $log "@initcmd\n";
+	    print "@initcmd\n" if $opts{v};
+	    exec(@initcmd);
+	    warn "Exec '@initcmd' failed: $!";
+	    _exit(126);
+	}
+    }
+
     my (@pids, @outs);
     my $multiple = $t->{multiple} || 1;
     for (my $i = $multiple - 1; $i >= 0; $i--) {
@@ -1669,6 +1774,8 @@ foreach my $t (@tests) {
 		    s/{multileft}/$linux_left_ssh[$i]/
 		}
 	    }
+	    print $log "@runcmd\n";
+	    print "@runcmd\n" if $opts{v};
 	    exec(@runcmd);
 	    warn "Exec '@runcmd' failed: $!";
 	    _exit(126);
@@ -1694,7 +1801,7 @@ foreach my $t (@tests) {
 	    sleep 10;
 
 	    defined(my $btracepid = fork())
-		or warn "Fork btrace '@btcmd' failed: $!";
+		or warn "Fork btrace command failed: $!";
 	    if ($btracepid == 0) {
 		# child process
 		open(STDOUT, '>&', $bt)
@@ -1723,8 +1830,8 @@ foreach my $t (@tests) {
 	    waitpid($btracepid, 0) == $btracepid && $? == 0
 		and _exit(0);
 	    warn $! ?
-		"Wait for btrace '@btcmd' failed: $!" :
-		"Btrace '@btcmd' failed: $?";
+		"Wait for btrace command failed: $!" :
+		"Btrace command '@btcmd' failed: $?";
 	    _exit(126);
 	}
 	close($bt);
@@ -1777,6 +1884,12 @@ foreach my $t (@tests) {
 	    or bad $test, 'NOEXIT', $! ?
 	    "Close pipe from '@runcmd' failed: $!" :
 	    "Command '@runcmd' failed: $?", $log;
+    }
+    if (@initcmd) {
+	waitpid($initpid, 0) == $initpid
+	    or bad $test, 'NOEXIT', "Wait for init command failed: $!";
+	$? == 0
+	    or bad $test, 'NOEXIT', "Init command '@initcmd' failed: $?";
     }
 
     eval { $t->{shutdown}($log) if $t->{shutdown}; };
@@ -1849,7 +1962,7 @@ sub statistics {
 	open(my $fh, '>', $name)
 	    or die "Open '$name' for writing failed: $!";
 	defined(my $pid = fork())
-	    or die "Fork failed: $!";
+	    or die "Fork stat command failed: $!";
 	unless ($pid) {
 	    # child process
 	    open(STDOUT, ">&", $fh)
@@ -1860,10 +1973,10 @@ sub statistics {
 	    warn "Exec '@statcmd' failed: $!";
 	    _exit(126);
 	}
-	waitpid($pid, 0)
-	    or die "Wait for pid '$pid' failed: $!";
+	waitpid($pid, 0) == $pid
+	    or die "Wait for stat command failed: $!";
 	$? == 0
-	    or die "Command '@statcmd' failed: $?";
+	    or die "Stat command '@statcmd' failed: $?";
     }
 }
 
