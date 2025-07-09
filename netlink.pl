@@ -1483,36 +1483,42 @@ push @tests, {
 
 push @tests, (
     {
+	# forward
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $lnx_l_ssh, 'iperf3', "-c${lnx_r_addr}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	# receive
 	initialize => \&iperf3_initialize,
 	testcmd => ['iperf3', "-c${lnx_l_addr}",
 	    '-w200k', '-P15', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }, {
+	# send
 	initialize => \&iperf3_initialize,
 	testcmd => ['iperf3', "-c${lnx_r_addr}",
-	    '-w200k', '-P15', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $lnx_l_ssh, 'iperf3', "-c${lnx_r_addr}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
 ) if $testmode{iperf4};
 push @tests, (
     {
+	# forward
+	initialize => \&iperf3_initialize,
+	testcmd => ['ssh', $lnx_l_ssh, 'iperf3', '-6', "-c${lnx_r_addr6}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	# receive
 	initialize => \&iperf3_initialize,
 	testcmd => ['iperf3', '-6', "-c${lnx_l_addr6}",
 	    '-w200k', '-P15', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }, {
+	# send
 	initialize => \&iperf3_initialize,
 	testcmd => ['iperf3', '-6', "-c${lnx_r_addr6}",
-	    '-w200k', '-P15', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	testcmd => ['ssh', $lnx_l_ssh, 'iperf3', '-6', "-c${lnx_r_addr6}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
@@ -1520,44 +1526,50 @@ push @tests, (
 
 push @tests, (
     {
-	initialize => \&iperf3_initialize,
-	multiple => scalar @linux_if,
-	testcmd => ['iperf3', "-c${lnx_li_addr}{multiple}",
-	    '-w200k', '-P15', '-t10', '-R'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	multiple => scalar @linux_if,
-	testcmd => ['iperf3', "-c${lnx_ri_addr}{multiple}",
-	    '-w200k', '-P15', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
+	# forward
 	initialize => \&iperf3_initialize,
 	multiple => scalar @linux_if,
 	testcmd => ['ssh', "{multileft}",
 	    'iperf3', "-c${lnx_ri_addr}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
+    }, {
+	# receive
+	initialize => \&iperf3_initialize,
+	multiple => scalar @linux_if,
+	testcmd => ['iperf3', "-c${lnx_li_addr}{multiple}",
+	    '-w200k', '-P15', '-t10', '-R'],
+	parser => \&iperf3_parser,
+    }, {
+	# send
+	initialize => \&iperf3_initialize,
+	multiple => scalar @linux_if,
+	testcmd => ['iperf3', "-c${lnx_ri_addr}{multiple}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
     }
 ) if $testmode{iperf4} && $pseudo eq 'none' && @linux_if > 1;
 push @tests, (
     {
+	# forward
+	initialize => \&iperf3_initialize,
+	multiple => scalar @linux_if,
+	testcmd => ['ssh', "{multileft}",
+	    'iperf3', '-6', "-c${lnx_ri_addr6}{multiple}",
+	    '-w200k', '-P15', '-t10'],
+	parser => \&iperf3_parser,
+    }, {
+	# receive
 	initialize => \&iperf3_initialize,
 	multiple => scalar @linux_if,
 	testcmd => ['iperf3', '-6', "-c${lnx_li_addr6}{multiple}",
 	    '-w200k', '-P15', '-t10', '-R'],
 	parser => \&iperf3_parser,
     }, {
+	# send
 	initialize => \&iperf3_initialize,
 	multiple => scalar @linux_if,
 	testcmd => ['iperf3', '-6', "-c${lnx_ri_addr6}{multiple}",
-	    '-w200k', '-P15', '-t10'],
-	parser => \&iperf3_parser,
-    }, {
-	initialize => \&iperf3_initialize,
-	multiple => scalar @linux_if,
-	testcmd => ['ssh', "{multileft}",
-	    'iperf3', '-6', "-c${lnx_ri_addr6}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
@@ -1639,7 +1651,7 @@ foreach my $t (@tests) {
 
     my (@pids, @outs);
     my $multiple = $t->{multiple} || 1;
-    for (my $i = 0; $i < $multiple; $i++) {
+    for (my $i = $multiple - 1; $i >= 0; $i--) {
 	defined(my $pid = open(my $out, '-|'))
 	    or bad $test, 'NORUN', "Open pipe from '@runcmd' failed: $!", $log;
 	if ($pid == 0) {
