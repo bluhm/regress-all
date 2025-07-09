@@ -902,7 +902,7 @@ for (my $i = 0; $i < @linux_if; $i++) {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $linux_if[$i], 'up');
     }
 }
-for (my $i = 1; $i < @linux_if; $i++) {
+for (my $i = 1; $pseudo eq 'none' && $i < @linux_if; $i++) {
     printcmd('ssh', $linux_left_ssh[$i], 'ip', 'route', 'add', $obsd_r_net,
 	'via', $obsd_l_addr, 'dev', $linux_if[$i]);
     printcmd('ssh', $linux_left_ssh[$i], 'ip', 'route', 'add', $obsd_r_net6,
