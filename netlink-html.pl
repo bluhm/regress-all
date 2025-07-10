@@ -317,7 +317,7 @@ sub html_hier_test_row {
 		print $html "    <td></td>\n";
 	    }
 	}
-	print $html "    <th></th>\n  </tr>\n";
+	print $html "    <td>$unit0</td>\n  </tr>\n";
     }
     if ($B{$test}) {
 	print $html "  <tr>\n";
