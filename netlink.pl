@@ -18,6 +18,7 @@
 use strict;
 use warnings;
 use Cwd;
+use Errno qw(EAGAIN);
 use File::Basename;
 use File::Path qw(remove_tree);
 use Getopt::Std;
@@ -1844,11 +1845,22 @@ foreach my $t (@tests) {
 	$t->{initialize}($log)
 	    or bad $test, 'FAIL', "Could not initialize test", $log
 	    if $t->{initialize};
+	if (@outs > 1) {
+	    $_->blocking(0) foreach @outs;
+	}
 	my @reading = @outs;
-	while (@reading) {
+	my @blocking;
+	while (@reading || @blocking) {
+	    unless (@reading) {
+		@reading = splice @blocking;
+		sleep(1);
+	    }
 	    my $out = shift @reading;
-	    local $_ = <$out>;
-	    next unless defined;
+	    local $_ = $out->getline();
+	    unless (defined) {
+		push @blocking, $out if $!{EAGAIN};
+		next;
+	    }
 	    push @reading, $out;
 	    print $log $_;
 	    if ($t->{parser}) {
