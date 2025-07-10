@@ -1680,6 +1680,7 @@ foreach my $t (@tests) {
 	next;
     }
 
+    my @initcmd = @{$t->{initcmd} || []};
     my @runcmd = @{$t->{testcmd}};
     (my $test = join("_", @runcmd)) =~ s,/.*/,,;
     print " $test\n";
@@ -1695,6 +1696,7 @@ foreach my $t (@tests) {
 	# run the test for 80 seconds to measure btrace during 1 minute
 	if (grep { /^-t10$/ } @runcmd) {
 	    s/^-t10$/-t80/ foreach @runcmd;
+	    s/^-t10$/-t80/ foreach @initcmd;
 	    $sampletime = 60;
 	} elsif (grep { /^make$/ } @runcmd) {
 	    # kernel build usually takes longer than 5 minutes
@@ -1732,7 +1734,6 @@ foreach my $t (@tests) {
     statistics($test, "before");
 
     my $initpid;
-    my @initcmd = @{$t->{initcmd} || []};
     if (@initcmd) {
 	defined($initpid = fork())
 	    or bad $test, 'NORUN', "Fork init command failed: $!", $log;
