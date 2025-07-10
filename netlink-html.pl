@@ -731,18 +731,20 @@ sub parse_result_files {
 		};
 		next;
 	    }
-	    if ($status eq 'PASS' && $test =~ /{multiple}/) {
-		my ($prev, @new);
-		foreach my $next (@values) {
-		    if (($prev->{name} || "") eq $next->{name} &&
-			($prev->{unit} || "") eq $next->{unit}) {
-			    $prev->{number} += $next->{number};
-			    next;
-		    }
-		    $prev = $next;
-		    push @new, $next;
+	    if ($test =~ /{multiple}/) {
+		my %sum;
+		foreach my $v (@values) {
+		    $sum{$v->{name},$v->{unit}} += $v->{number};
 		}
-		@values = @new;
+		undef @values;
+		foreach my $k (sort keys %sum) {
+		    my ($n, $u, $v) = (split($;, $k), $sum{$k});
+		    push @values, {
+			name => $n,
+			unit => $u,
+			number => $v,
+		    };
+		}
 	    }
 	    my $desc = $testdesc{$test};
 	    unless ($desc) {
@@ -800,8 +802,7 @@ sub parse_result_files {
 		    svgfile => $svgfile,
 		} if -s $btfile && ! -f $svgfile;
 	    }
-	    $V{$desc}{$hk} = [ @values ];
-	    undef @values;
+	    $V{$desc}{$hk} = [ splice @values ];
 	    my $severity = status2severity($status);
 	    $T{$desc}{severity} += $severity;
 	    $total++ unless $status eq 'SKIP' || $status eq 'XFAIL';
