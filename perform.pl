@@ -1276,6 +1276,8 @@ foreach my $t (@tests) {
 	    or warn "Redirect stderr to stdout failed: $!";
 	setsid()
 	    or warn "Setsid $$ failed: $!";
+	print $log "@runcmd\n";
+	print "@runcmd\n" if $opts{v};
 	exec(@runcmd);
 	warn "Exec '@runcmd' failed: $!";
 	_exit(126);
@@ -1298,7 +1300,7 @@ foreach my $t (@tests) {
 	    sleep 10;
 
 	    defined(my $btracepid = fork())
-		or warn "Fork btrace '@btcmd' failed: $!";
+		or warn "Fork btrace command failed: $!";
 	    if ($btracepid == 0) {
 		# child process
 		open(STDOUT, '>&', $bt)
@@ -1327,8 +1329,8 @@ foreach my $t (@tests) {
 	    waitpid($btracepid, 0) == $btracepid && $? == 0
 		and _exit(0);
 	    warn $! ?
-		"Wait for btrace '@btcmd' failed: $!" :
-		"Btrace '@btcmd' failed: $?";
+		"Wait for btrace command failed: $!" :
+		"Btrace command '@btcmd' failed: $?";
 	    _exit(126);
 	}
 	close($bt);
@@ -1449,7 +1451,7 @@ sub statistics {
 	open(my $fh, '>', $name)
 	    or die "Open '$name' for writing failed: $!";
 	defined(my $pid = fork())
-	    or die "Fork failed: $!";
+	    or die "Fork stat command failed: $!";
 	unless ($pid) {
 	    # child process
 	    open(STDOUT, ">&", $fh)
