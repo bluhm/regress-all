@@ -137,6 +137,7 @@ devel/p5-Module-Implementation
 devel/p5-Module-Install
 devel/p5-Module-Pluggable
 devel/p5-Module-Runtime
+devel/p5-MooX-late
 devel/p5-Moose
 devel/p5-MooseX-Aliases
 devel/p5-MooseX-Attribute-Chained
@@ -194,6 +195,7 @@ devel/p5-Sub-Attribute
 devel/p5-Sub-Exporter
 devel/p5-Sub-Exporter-ForMethods
 devel/p5-Sub-Exporter-Progressive
+devel/p5-Sub-HandlesVia
 devel/p5-Sub-Identify
 devel/p5-Sub-Info
 devel/p5-Sub-Install
@@ -474,6 +476,7 @@ www/p5-Apache-Session-Generate-UUID
 www/p5-CGI
 www/p5-CGI-Simple
 www/p5-Dancer2
+www/p5-FCGI
 www/p5-Gravatar-URL
 www/p5-HTML-Display
 www/p5-HTML-Escape
