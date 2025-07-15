@@ -881,7 +881,8 @@ sub html_repeat_test_row {
     my $reldate = $dv->{reldate};
     (my $testcmd = $test) =~ s/_/ /g;
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\" id=\"$test\">$TESTNAME{$test}</th>\n";
+    print $html "    <th class=\"desc\" id=\"$test\" title=\"$testcmd\">".
+	"$TESTNAME{$test}</th>\n";
     foreach my $repeat (@repeats) {
 	html_status_data($html, "$reldate/$cvsdate", $repeat, $test,
 	    $td->{$repeat});
@@ -1201,7 +1202,8 @@ sub html_cvsdate_test_row {
     my $reldate = $dv->{reldate};
     (my $testcmd = $test) =~ s/_/ /g;
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\" id=\"$test\">$TESTNAME{$test}</th>\n";
+    print $html "    <th class=\"desc\" id=\"$test\" title=\"$testcmd\">".
+	"$TESTNAME{$test}</th>\n";
     foreach my $cvsdate (@cvsdates) {
 	html_status_data($html, $reldate, $cvsdate, $test, $td->{$cvsdate});
     }
@@ -1441,7 +1443,8 @@ sub html_date_test_row {
     my ($html, $test, $td, $release, @dates) = @_;
     (my $testcmd = $test) =~ s/_/ /g;
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\" id=\"$test\">$TESTNAME{$test}</th>\n";
+    print $html "    <th class=\"desc\" id=\"$test\" title=\"$testcmd\">".
+	"$TESTNAME{$test}</th>\n";
     foreach my $date (@dates) {
 	if ($release) {
 	    html_status_data($html, $release, $date, $test, $td->{$date});

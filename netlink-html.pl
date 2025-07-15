@@ -279,7 +279,8 @@ sub html_hier_test_row {
     (my $testcmd = $desc) =~ s/_/ /g;
     my $testname = $TESTNAME{$desc} || "";
     print $html "  <tr>\n";
-    print $html "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
+    print $html "    <th class=\"desc\" id=\"$desc\" title=\"$testcmd\">".
+	"$testname</th>\n";
     foreach my $hv (@hiers) {
 	my $tv = $td->{$hv->{key}};
 	my $status = $tv->{status} || "";
@@ -570,8 +571,8 @@ HEADER
 	(my $testcmd = $desc) =~ s/_/ /g;
 	my $testname = $TESTNAME{$desc} || "";
 	print $html "  <tr>\n";
-	print $html
-	    "    <th class=\"desc\" title=\"$testcmd\">$testname</th>\n";
+	print $html "    <th class=\"desc\" id=\"$desc\" title=\"$testcmd\">".
+	    "$testname</th>\n";
 	foreach my $date (@dates) {
 	    my $tv = $T{$desc}{$date};
 	    my $status = $tv->{status} || "";
@@ -580,6 +581,7 @@ HEADER
 	    my $title = $message ? " title=\"$message\"" : "";
 	    my $hierhtml = "$date/netlink.html";
 	    my $link = uri_escape($hierhtml, "^A-Za-z0-9\-\._~/");
+	    $link .= "#$desc";
 	    my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
 	    my $enda = $href ? "</a>" : "";
 	    ($testcmd = $tv->{test}) =~ s/_/ /g if $tv->{test};
