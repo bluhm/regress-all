@@ -390,7 +390,7 @@ sub html_hier_test_row_utilization {
 	    }
 	}
 	unless (defined $value) {
-	    printf $html "    <td style=\"background-color: red\"></td>\n";
+	    printf $html "    <td class=\"status $status\"></td>\n";
 	    next;
 	}
 	my $title = " title=\"$value $unit\"";
@@ -398,7 +398,7 @@ sub html_hier_test_row_utilization {
 	(my $iftype = $iface) =~ s/\d+$//;
 	my $linerate = $dv->{rate}{$iface} || $IFTYPERATES{$iftype} || 10 ** 9;
 	my $rate = $value / $linerate;
-	my $rgb = $status eq 'PASS' ? "128, 255, 128" : "255, 128, 128";
+	my $rgb = $status eq 'PASS' ? "128, 255, 128" : "255, 128, 192";
 	my $style = sprintf(
 	    " style=\"background-color: rgba($rgb, %.1f)\"", $rate);
 	my ($href, $enda) = ("", "");
