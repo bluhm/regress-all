@@ -1143,6 +1143,11 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	builddirs => [ "sbin/sysctl", "usr.bin/netstat" ],
     },
+    '2025-07-17T04:58:00Z' => {
+	comment => "keep dns pledge for resolv.conf in kernel",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-pledge-resolv' => patch_sys_pledge_resolv() },
+    },
 );
 
 #### Patches ####
@@ -2926,7 +2931,7 @@ diff -u -p -r1.359 ip_carp.c
 PATCH
 }
 
-# Fix last commit; the flag has a slightly different prefix
+# Fix last commit; the flag has a slightly different prefix.
 sub patch_sys_dev_qwx {
 	return <<'PATCH';
 Index: sys/dev/pci/if_qwx_pci.c
@@ -2947,7 +2952,7 @@ diff -u -p -r1.21 -r1.22
 PATCH
 }
 
-# Fix last commit; qcscm was missing for non-arm64 architectures
+# Fix last commit; qcscm was missing for non-arm64 architectures.
 sub patch_sys_files_qcscm {
 	return <<'PATCH';
 Index: sys/conf/files
@@ -2980,6 +2985,33 @@ diff -u -p -r1.207 -r1.208
 +#device	qcscm	# XXX in sys/conf/files, because shared between ACPI and FDT 
  attach	qcscm at fdt
  file	dev/fdt/qcscm.c			qcscm
+PATCH
+}
+
+# Pledge for stat resolv.conf is needed with old libc.
+sub patch_sys_pledge_resolv {
+	return <<'PATCH';
+Index: sys/kern/kern_pledge.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/kern/kern_pledge.c,v
+diff -u -p -r1.329 -r1.328
+--- sys/kern/kern_pledge.c	17 Jul 2025 04:58:00 -0000	1.329
++++ sys/kern/kern_pledge.c	4 Jul 2025 04:24:37 -0000	1.328
+@@ -716,9 +716,13 @@ pledge_namei(struct proc *p, struct name
+ 
+ 		break;
+ 	case SYS_stat:
+-		/* XXX go library stats /etc/hosts, remove this soon */
++		/* DNS needs /etc/{resolv.conf,hosts}. */
+ 		if ((ni->ni_pledge == PLEDGE_RPATH) &&
+ 		    (pledge & PLEDGE_DNS)) {
++			if (strcmp(path, "/etc/resolv.conf") == 0) {
++				ni->ni_cnd.cn_flags |= BYPASSUNVEIL;
++				return (0);
++			}
+ 			if (strcmp(path, "/etc/hosts") == 0) {
+ 				ni->ni_cnd.cn_flags |= BYPASSUNVEIL;
+ 				return (0);
 PATCH
 }
 
