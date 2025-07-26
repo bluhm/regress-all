@@ -1147,6 +1147,15 @@ my %quirks = (
 	comment => "keep dns pledge for resolv.conf in kernel",
 	updatedirs => [ "sys" ],
 	patches => { 'sys-pledge-resolv' => patch_sys_pledge_resolv() },
+	prebuildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	    "{ echo -n 'cvs : '; ".
+	    "cat sys/arch/amd64/compile/GENERIC.MP/CVS/Tag; } ".
+	    ">sys/arch/amd64/compile/GENERIC.MP/obj/version",
+	],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	commands => [ "reboot" ],
     },
 );
 
