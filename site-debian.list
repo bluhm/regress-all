@@ -1,5 +1,5 @@
 /etc/apt/apt.conf
-/etc/apt/sources.list
+/etc/apt/sources.list.d/debian.sources
 /etc/default/grub
 /etc/hostname
 /etc/network/interfaces
