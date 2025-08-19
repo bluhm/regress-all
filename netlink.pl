@@ -79,6 +79,17 @@ my @linux_right_ssh = split(/,/, $ENV{LINUX_RIGHT_SSH} // "")
     or die "LINUX_IF, LINUX_LEFT_SSH, LINUX_RIGHT_SSH differ in cardinal";
 my $multi = @linux_if > 1;
 
+my $trex = $ENV{TREX_LEFT_IF} || $ENV{TREX_RIGHT_IF} || $ENV{TREX_SSH} ? 1 : 0;
+my ($trex_left_if, $trex_right_if, $trex_ssh);
+if ($trex) {
+    $trex_left_if = $ENV{TREX_LEFT_IF}
+	or die "TREX_LEFT_IF is not in env";
+    $trex_right_if = $ENV{TREX_RIGHT_IF}
+	or die "TREX_RIGHT_IF is not in env";
+    $trex_ssh = $ENV{TREX_SSH}
+	or die "TREX_SSH is not in env";
+}
+
 my ($iftype, $ifnum) = $iface =~ /^([a-z]+)([0-9]+)?$/;
 grep { $_ eq $iftype } @allifaces
     or die "Unknown interface '$iface'";
@@ -237,6 +248,13 @@ my $lnx_ri_addr6 = "${ip6prefix}${line}2::8";
 my (@obsd_l_dest_addr, @obsd_l_dest_addr6,
     @obsd_r_dest_addr, @obsd_r_dest_addr6);
 
+my $trex_l_net = "16.0.0.0/16";
+my $trex_lnx_l_addr = "${ip4prefix}${line}7.1";
+my $trex_obsd_l_addr = "${ip4prefix}${line}7.2";
+my $trex_obsd_r_addr = "${ip4prefix}${line}8.3";
+my $trex_lnx_r_addr = "${ip4prefix}${line}8.4";
+my $trex_r_net = "48.0.0.0/16";
+
 my $dir = dirname($0);
 chdir($dir)
     or die "Change directory to '$dir' failed: $!";
@@ -311,7 +329,8 @@ foreach my $if (@allinterfaces) {
     my $pdevre = join '|', (@allpseudos, "vether", "vport");
     printcmd('ifconfig', $if, 'destroy') if ($if =~ m{^($pdevre)\d+});
 }
-foreach my $net ($obsd_l_net, $obsd_l_net6, $obsd_r_net, $obsd_r_net6) {
+foreach my $net ($obsd_l_net, $obsd_l_net6, $obsd_r_net, $obsd_r_net6,
+    $trex_l_net, $trex_r_net) {
     printcmd('route', 'delete', $net);
 }
 
@@ -913,6 +932,25 @@ for (my $i = 1; $pseudo eq 'none' && $i < @linux_if; $i++) {
 	'via', $obsd_r_addr, 'dev', $linux_if[$i]);
     printcmd('ssh', $linux_right_ssh[$i], 'ip', 'route', 'add', $obsd_l_net6,
 	'via', $obsd_r_addr6, 'dev', $linux_if[$i]);
+}
+
+# configure addresses and routes for trex setup on linux and openbsd
+
+if ($pseudo eq 'none' && $trex) {
+    my $trexpath = "/home/user/github/trex-core/scripts";
+    printcmd('ssh', $trex_ssh,
+	qw(cd /home/user/github/trex-core/scripts && ./dpdk_setup_ports.py),
+	'--no-prompt',
+	'--create', $trex_left_if, $trex_right_if,
+	'--ips', $trex_lnx_l_addr, $trex_lnx_r_addr,
+	'--def-gws', $trex_obsd_l_addr, $trex_obsd_r_addr,
+	'-o', '/etc/trex_cfg.yaml');
+    printcmd('ifconfig', $obsd_l_ipdev, 'inet', "$trex_obsd_l_addr/24",
+	'alias');
+    printcmd('ifconfig', $obsd_r_ipdev, 'inet', "$trex_obsd_r_addr/24",
+	'alias');
+    printcmd('route', 'add', $trex_l_net, $trex_lnx_l_addr);
+    printcmd('route', 'add', $trex_r_net, $trex_lnx_r_addr);
 }
 
 print "waiting for interface link\n" if $opts{v};
