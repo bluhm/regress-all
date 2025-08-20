@@ -35,7 +35,7 @@ my @startcmd = ($0, @ARGV);
 my @allifaces = qw(none bge bnxt em ice igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gif6 gre veb vlan vxlan wg);
-my @alltestmodes = sort qw(all icmp tcp udp splice mcast iperf);
+my @alltestmodes = sort qw(all icmp tcp udp splice mcast iperf trex);
 
 my %opts;
 getopts('b:c:e:i:m:st:v', \%opts) or do {
@@ -254,6 +254,7 @@ my $trex_obsd_l_addr = "${ip4prefix}${line}7.2";
 my $trex_obsd_r_addr = "${ip4prefix}${line}8.3";
 my $trex_lnx_r_addr = "${ip4prefix}${line}8.4";
 my $trex_r_net = "48.0.0.0/16";
+my $trexpath = "/home/user/github/trex-core/scripts";
 
 my $dir = dirname($0);
 chdir($dir)
@@ -937,9 +938,8 @@ for (my $i = 1; $pseudo eq 'none' && $i < @linux_if; $i++) {
 # configure addresses and routes for trex setup on linux and openbsd
 
 if ($pseudo eq 'none' && $trex) {
-    my $trexpath = "/home/user/github/trex-core/scripts";
     printcmd('ssh', $trex_ssh,
-	qw(cd /home/user/github/trex-core/scripts && ./dpdk_setup_ports.py),
+	'cd', $trexpath, '&&', './dpdk_setup_ports.py',
 	'--no-prompt',
 	'--create', $trex_left_if, $trex_right_if,
 	'--ips', $trex_lnx_l_addr, $trex_lnx_r_addr,
@@ -1115,6 +1115,28 @@ sub iperf3_parser {
 		undef %iperf3_ids;
 	    }
 	}
+    }
+    return 1;
+}
+
+my %trex_ids;
+sub trex_initialize {
+    undef %trex_ids;
+    return 1;
+}
+
+sub trex_parser {
+    my ($line, $log) = @_;
+    my $byte = qr/(\d+) bytes?/;
+    if ($line =~ m{ Total-(tx|rx)-bytes *: $byte}) {
+	$trex_ids{$1} = $2;
+    }
+    my $sec = qr/([\d.]+)  sec/;
+    if ($line =~ m{ m_traffic_duration [| ]+ $sec [| ]+ $sec [| ]+}) {
+	my $value = $trex_ids{tx} * 8 / $1;
+	print $tr "VALUE $value bits/sec tx\n";
+	$value = $trex_ids{rx} * 8 / $2;
+	print $tr "VALUE $value bits/sec rx\n";
     }
     return 1;
 }
@@ -1697,6 +1719,19 @@ push @tests, (
     }
 ) if $testmode{iperf6} && $pseudo eq 'none' && $multi;
 
+push @tests, (
+    {
+	# splice
+	initialize => sub { relayd_conf(); relayd_startup();
+	    trex_initialize() },
+	testcmd => ['ssh', $trex_ssh,
+	    'cd', $trexpath, '&&', './t-rex-64',
+	    qw(--astf -f astf/http_simple.py -m 1000 -d 10)],
+	parser => \&trex_parser,
+	finalize => sub { relayd_shutdown(); 1 },
+    }
+) if $testmode{trex4} && $pseudo eq 'none' && $trex;
+
 my @stats = (
     { statcmd => [ netstat => '-s' ] },
     { statcmd => [ netstat => '-m' ] },
@@ -1722,7 +1757,8 @@ foreach my $t (@tests) {
 
     my @initcmd = @{$t->{initcmd} || []};
     my @runcmd = @{$t->{testcmd}};
-    (my $test = join("_", @runcmd)) =~ s,/.*/,,;
+    (my $test = join("_", @runcmd)) =~ s,^/.*/,,;
+    $test =~ s,/,%,g;
     print " $test\n";
     if ($pseudo && $runcmd[0] eq $netbench) {
 	splice(@runcmd, 1, 0, "-C$pseudo");
@@ -2184,4 +2220,54 @@ EOF
 	or die "Close '/etc/rc.d/tcpbench' after writing failed: $!";
     chmod 0555, "/etc/rc.d/tcpbench"
 	or die "Chmod 0555 '/etc/rc.d/tcpbench' files: $!";
+}
+
+sub relayd_conf {
+    open(my $fh, '>', "/etc/relayd.conf")
+	or die "Open '/etc/relayd.conf' for writing failed: $!";
+
+    print $fh <<'EOF';
+protocol "tcp" {
+	tcp socket buffer 1000000
+	tcp splice
+}
+relay "tcp" {
+	listen on 127.0.0.1 port 1234
+	protocol "tcp"
+
+	forward to destination
+}
+EOF
+
+    close($fh)
+	or die "Close '/etc/relayd.conf' after writing failed: $!";
+}
+
+sub relayd_startup {
+    my @cmd = qw(rcctl -f restart relayd);
+    printcmd(@cmd)
+	and die "Start relayd with '@cmd' failed: $?";
+
+    @cmd = qw(pfctl -aregress -f-);
+    print "@cmd\n";
+    open(my $fh, '|-', @cmd)
+	or die "Open pipe to command '@cmd' failed: $?";
+
+    print $fh <<'EOF';
+pass in proto tcp from 16.0.0.0/16 to 48.0.0.0/16 divert-to 127.0.0.1 port 1234
+EOF
+
+    close($fh) or die $! ?
+	"Close pipe to command '@cmd' failed: $?" :
+	"Divert pf anchor from trex to relayd with '@cmd' failed: $?";
+}
+
+sub relayd_shutdown {
+    my @cmd = qw(rcctl -f stop relayd);
+    printcmd(@cmd)
+	and die "Stop relayd with '@cmd' failed: $?";
+
+    @cmd = qw(pfctl -aregress -Fr);
+    printcmd(@cmd)
+	and die "Flush pf anchor with '@cmd' failed: $?";
 }
