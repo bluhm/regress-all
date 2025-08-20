@@ -115,7 +115,7 @@ logmsg("$now Script '$scriptname' started.\n");
 createhost($user, $host);
 
 my %sysctl = get_version();
-my ($before, $clean);
+my $before;
 if ($sysctl{'kern.version'} =~
     /#cvs : D(\d{4}).(\d\d).(\d\d).(\d\d).(\d\d).(\d\d):/) {
     # date format is from CVS/Tag
@@ -127,7 +127,6 @@ if ($sysctl{'kern.version'} =~
     # date format is from snapshot
     # OpenBSD 7.3-current (GENERIC.MP) #1314: Tue Jul 25 17:02:17 MDT 2023
     $before = $1;
-    $clean = "C";
 }
 if ($before && $cvsdate) {
     my %q = quirks($before, $cvsdate);
@@ -139,13 +138,25 @@ if ($before && $cvsdate) {
     foreach my $cmd (quirk_commands($before, $cvsdate, \%sysctl)) {
 	if ($cmd eq "reboot") {
 	    reboot();
+	    # quirks might have changed kernel version
+	    %sysctl = get_version();
 	} else {
 	    logcmd('ssh', "$user\@$host", $cmd);
 	}
     }
 }
 
-$clean = "C" if $patch;
+# keep old patches from quirks
+my $clean;
+if ($patch) {
+    $clean = "C";
+} elsif ($sysctl{'kern.version'} =~
+    /: (\w{3} \w{3}  ?\d?\d \d\d:\d\d:\d\d \w+ \d{4})\n/) {
+    # date format is from snapshot
+    # OpenBSD 7.3-current (GENERIC.MP) #1314: Tue Jul 25 17:02:17 MDT 2023
+    $clean = "C";
+}
+
 update_cvs(undef, $cvsdate, "sys", $clean) if $cvsdate;
 if ($patch) {
     clean_cvs("sys") unless $cvsdate;
