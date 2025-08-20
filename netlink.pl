@@ -77,6 +77,7 @@ my @linux_right_ssh = split(/,/, $ENV{LINUX_RIGHT_SSH} // "")
     or die "LINUX_RIGHT_SSH is not in env";
 @linux_if == @linux_left_ssh && @linux_if == @linux_right_ssh
     or die "LINUX_IF, LINUX_LEFT_SSH, LINUX_RIGHT_SSH differ in cardinal";
+my $multi = @linux_if > 1;
 
 my ($iftype, $ifnum) = $iface =~ /^([a-z]+)([0-9]+)?$/;
 grep { $_ eq $iftype } @allifaces
@@ -342,7 +343,7 @@ foreach my $ssh (@linux_left_ssh, @linux_right_ssh) {
 	done));
 }
 
-if (@linux_if > 1) {
+if ($multi) {
     for (my $i = 0; $i < @linux_if; $i++) {
 	printcmd('ssh', $linux_left_ssh[$i], qw(
 	    for net in), "$lnx_li_addr$i/24", "$lnx_li_addr6$i/64", qw(; do
@@ -882,7 +883,7 @@ if ($obsd_r_ipdev) {
 
 # configure addresses and routes for multiple Linux hosts
 
-if ($pseudo eq 'none' && @linux_if > 1) {
+if ($pseudo eq 'none' && $multi) {
     for (my $i = 0; $i < @linux_if; $i++) {
 	printcmd('ifconfig', $obsd_l_ipdev, 'inet', "$obsd_li_addr$i/32",
 	    'alias');
@@ -922,7 +923,7 @@ $ping{IPv4}{left} = printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
 $ping{IPv4}{right} = printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
 $ping{IPv6}{left} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
 $ping{IPv6}{right} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_r_addr6);
-if ($pseudo eq 'none' && @linux_if > 1) {
+if ($pseudo eq 'none' && $multi) {
     for (my $i = 0; $i < @linux_if; $i++) {
 	$ping{IPv4}{"left$i"} = printcmd('ping', '-n', '-c1', '-w5',
 	    "$lnx_li_addr$i");
@@ -1609,7 +1610,7 @@ push @tests, (
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
-) if $testmode{iperf4} && $pseudo eq 'none' && @linux_if > 1;
+) if $testmode{iperf4} && $pseudo eq 'none' && $multi;
 push @tests, (
     {
 	# forward
@@ -1656,7 +1657,7 @@ push @tests, (
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
     }
-) if $testmode{iperf6} && $pseudo eq 'none' && @linux_if > 1;
+) if $testmode{iperf6} && $pseudo eq 'none' && $multi;
 
 my @stats = (
     { statcmd => [ netstat => '-s' ] },
