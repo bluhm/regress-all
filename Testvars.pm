@@ -728,6 +728,7 @@ my @testdesc = (
     'ssh_{multileft}_iperf3_-i1_-6_-c{prefix}{line}1::6{multiple}_{window}_-P15_-t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp6iperf-multiple-copy" },
     'iperf3_-6_-c{prefix}{line}1::5{multiple}_{window}_-P15_-t10_-R'			=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-30", name => "linux-openbsd-tcp6iperf-multiple-receive" },
     'iperf3_-6_-c{prefix}{line}2::8{multiple}_{window}_-P15_-t10'			=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-30", name => "openbsd-linux-tcp6iperf-multiple-send" },
+    'ssh_{left}_cd_%home%user%github%trex-core%scripts_&&_.%t-rex-64_--astf_-f_astf%http_simple.py_-m_1000_-d_10'	=> { ipv => "IPv4", proto => "TCP",  op => "Splice",    len => "",      streams => "trex", name => "trex-tcp4-splice" },
 );
 
 %TESTDESC = @testdesc;
