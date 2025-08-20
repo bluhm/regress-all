@@ -183,12 +183,13 @@ sub write_html_ostest_file {
 	or die "Wait failed: $!";
     $? and die "Command '@cmd' failed: $?";
 
+    print "." if $verbose;
+
     rename("$htmlfile.new", "$htmlfile")
 	or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
-
-    print "." if $verbose;
-    system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-	and die "Gzip '$htmlfile' failed: $?";
+    my @gzcmd = (qw(gzip -f -k -S .gz.new), $htmlfile);
+    system(@gzcmd)
+	and die "Gzip '@gzcmd' failed: $?";
     rename("$htmlfile.gz.new", "$htmlfile.gz")
 	or die "Rename '$htmlfile.gz.new' to '$htmlfile.gz' failed: $!";
 }
@@ -220,12 +221,13 @@ sub write_html_posixtestsuite_file {
 	or die "Wait failed: $!";
     $? and die "Command '@cmd' failed: $?";
 
+    print "." if $verbose;
+
     rename("$htmlfile.new", "$htmlfile")
 	or die "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
-
-    print "." if $verbose;
-    system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-	and die "Gzip '$htmlfile' failed: $?";
+    my @gzcmd = (qw(gzip -f -k -S .gz.new), $htmlfile);
+    system(@gzcmd)
+	and die "Gzip '@gzcmd' failed: $?";
     rename("$htmlfile.gz.new", "$htmlfile.gz")
 	or die "Rename '$htmlfile.gz.new' to '$htmlfile.gz' failed: $!";
 }

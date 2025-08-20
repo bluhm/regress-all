@@ -897,8 +897,9 @@ sub create_stats_files {
 		or die "Close '$difffile.new' after writing failed: $!";
 	    rename("$difffile.new", $difffile)
 		or die "Rename '$difffile.new' to '$difffile' failed: $!";
-	    system("gzip -f -c $difffile >$difffile.gz.new")
-		and die "Gzip '$difffile' failed: $?";
+	    my @gzcmd = (qw(gzip -f -k -S .gz.new), $difffile);
+	    system(@gzcmd)
+		and die "Gzip '@gzcmd' failed: $?";
 	    rename("$difffile.gz.new", "$difffile.gz") or die
 		"Rename '$difffile.gz.new' to '$difffile.gz' failed: $!";
 	}
@@ -923,8 +924,9 @@ sub create_btrace_files {
 		and die "Command '$fgcmd' failed: $?";
 	    rename("$svgfile.new", $svgfile)
 		or die "Rename '$svgfile.new' to '$svgfile' failed: $!";
-	    system("gzip -f -c $svgfile >$svgfile.gz.new")
-		and die "Gzip '$svgfile' failed: $?";
+	    my @gzcmd = (qw(gzip -f -k -S .gz.new), $svgfile);
+	    system(@gzcmd)
+		and die "Gzip '@gzcmd' failed: $?";
 	    rename("$svgfile.gz.new", "$svgfile.gz") or die
 		"Rename '$svgfile.gz.new' to '$svgfile.gz' failed: $!";
 	}

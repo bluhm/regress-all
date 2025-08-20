@@ -57,11 +57,13 @@ sub html_close {
     rename("$htmlfile.new", "$htmlfile")
 	or croak "Rename '$htmlfile.new' to '$htmlfile' failed: $!";
     return if $nozip;
-    system("gzip -f -c $htmlfile >$htmlfile.gz.new")
-	and croak "Gzip '$htmlfile' failed: $?";
+    my @gzcmd = (qw(gzip -f -k -S .gz.new), $htmlfile);
+    system(@gzcmd)
+	and croak "Gzip '@gzcmd' failed: $?";
     rename("$htmlfile.gz.new", "$htmlfile.gz")
 	or croak "Rename '$htmlfile.gz.new' to '$htmlfile.gz' failed: $!";
 }
+
 # open html page, print head, open body
 sub html_header {
     my ($html, $title, $headline, @nav) = @_;
