@@ -123,7 +123,7 @@ if ($sysctl{'kern.version'} =~
     #    Wed Jul 19 11:28:11 CEST 2023
     $before = "$1-$2-${3}T$4:$5:${6}Z";
 } elsif ($sysctl{'kern.version'} =~
-    /: (\w{3} \w{3}  ?\d?\d \d\d:\d\d:\d\d \w+ \d{4})\n/) {
+    /#\d+: (\w{3} \w{3}  ?\d?\d \d\d:\d\d:\d\d \w+ \d{4})\n/) {
     # date format is from snapshot
     # OpenBSD 7.3-current (GENERIC.MP) #1314: Tue Jul 25 17:02:17 MDT 2023
     $before = $1;
@@ -151,7 +151,7 @@ my $clean;
 if ($patch) {
     $clean = "C";
 } elsif ($sysctl{'kern.version'} =~
-    /: (\w{3} \w{3}  ?\d?\d \d\d:\d\d:\d\d \w+ \d{4})\n/) {
+    /#\d+: (\w{3} \w{3}  ?\d?\d \d\d:\d\d:\d\d \w+ \d{4})\n/) {
     # date format is from snapshot
     # OpenBSD 7.3-current (GENERIC.MP) #1314: Tue Jul 25 17:02:17 MDT 2023
     $clean = "C";
