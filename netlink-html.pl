@@ -276,7 +276,7 @@ sub html_hier_test_row {
     my ($html, $desc, $td, @hiers) = @_;
 
     my $test = $td->{test};
-    (my $testcmd = $desc) =~ s/_/ /g;
+    my $testcmd = $desc;
     my $testname = $TESTNAME{$desc} || "";
     print $html "  <tr>\n";
     print $html "    <th class=\"desc\" id=\"$desc\" title=\"$testcmd\">".
@@ -298,7 +298,7 @@ sub html_hier_test_row {
 
 	print $html "    <td$class$title>$href$status$enda$stats_href</td>\n";
     }
-    ($testcmd = $test) =~ s/_/ /g;
+    $testcmd = uri_unescape($test);
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     print $html "  </tr>\n";
 
@@ -344,7 +344,7 @@ sub html_hier_test_row_utilization {
     my ($html, $dv, $desc, $td, @hiers) = @_;
 
     my $test = $td->{test};
-    (my $testcmd = $desc) =~ s/_/ /g;
+    my $testcmd = $desc;
     my $testname = $TESTNAME{$desc} || "";
     my $vt = $V{$desc};
     my $maxval = max map { scalar @{$_ || []} } values %$vt;
@@ -358,7 +358,7 @@ sub html_hier_test_row_utilization {
 	    or next;
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
-	    if (($value0 && $value0->{name} =~ /^(recv|receiver)$/) ||
+	    if (($value0 && $value0->{name} =~ /^(recv|receiver|rx)$/) ||
 		$maxval == 1) {
 		    my $vv = $vt->{$hv->{key}};
 		    $valsum += $vv->[$i]{number};
@@ -380,7 +380,7 @@ sub html_hier_test_row_utilization {
 	my ($unit, $iface, $value);
 	for (my $i = 0; $i < $maxval; $i++) {
 	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
-	    if ($value0->{name} =~ /^(recv|receiver)$/ || $maxval == 1) {
+	    if ($value0->{name} =~ /^(recv|receiver|rx)$/ || $maxval == 1) {
 		$unit = $value0->{unit} || "";
 		$iface = $hv->{iface};
 		if ($status =~ /^X?PASS$/) {
@@ -412,7 +412,7 @@ sub html_hier_test_row_utilization {
 	printf $html "    <td$class$style$title>$href%.1f%%$enda</td>\n",
 	    $rate * 100;
     }
-    ($testcmd = $test) =~ s/_/ /g;
+    $testcmd = uri_unescape($test);
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     print $html "  </tr>\n";
 }
@@ -568,7 +568,7 @@ HEADER
 	$TESTNAME{$a} cmp $TESTNAME{$b} } keys %T;
     foreach my $desc (@tests) {
 	print "." if $verbose;
-	(my $testcmd = $desc) =~ s/_/ /g;
+	my $testcmd = $desc;
 	my $testname = $TESTNAME{$desc} || "";
 	print $html "  <tr>\n";
 	print $html "    <th class=\"desc\" id=\"$desc\" title=\"$testcmd\">".
@@ -584,7 +584,7 @@ HEADER
 	    $link .= "#$desc";
 	    my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
 	    my $enda = $href ? "</a>" : "";
-	    ($testcmd = $tv->{test}) =~ s/_/ /g if $tv->{test};
+	    $testcmd = uri_unescape($tv->{test}) if $tv->{test};
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
 	print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
@@ -750,20 +750,20 @@ sub parse_result_files {
 	    }
 	    my $desc = $testdesc{$test};
 	    unless ($desc) {
-		$desc = $test;
+		$desc = uri_unescape($test);
 		# direct ssh login happens only to client
-		$desc =~ s/(?<=^ssh_)root\@lt[0-9]+_/{left}_/g;
-		if ($test =~ /^netbench\.pl_/) {
+		$desc =~ s/(?<=^ssh[ _])root\@lt[0-9]+(?=[ _])/{left}/g;
+		if ($desc =~ /^netbench\.pl[ _]/) {
 		    # netbench does client and server login
-		    $desc =~ s/(?<=_-c)root\@lt[0-9]+_/{left}_/g;
-		    $desc =~ s/(?<=_-s)root\@lt[0-9]+_/{right}_/g;
+		    $desc =~ s/(?<=[ _]-c)root\@lt[0-9]+(?=[ _])/{left}/g;
+		    $desc =~ s/(?<=[ _]-s)root\@lt[0-9]+(?=[ _])/{right}/g;
 		    # multicast interfaces depend on test and hardware
-		    $desc =~ s/(?<=_-[RS])[1-9][0-9.]+_/{ifaddr}_/g;
-		    $desc =~ s/(?<=_-[RS])[a-z][a-z0-9.]+_/{ifname}_/g;
+		    $desc =~ s/(?<=[ _]-[RS])[1-9][0-9.]+(?=[ _])/{ifaddr}/g;
+		    $desc =~ s/(?<=[ _]-[RS])[a-z][a-z0-9.]+(?=[ _])/{ifname}/g;
 		}
-		if ($test =~ /perf3_/) {
+		if ($desc =~ /iperf3[ _]/) {
 		    # iperf needs fine tuning of window size, do not care
-		    $desc =~ s/(?<=_)-w\d+[kmgt]?_/{window}_/g;
+		    $desc =~ s/(?<=[ _])-w\d+[kmgt]?(?=[ _])/{window}/g;
 		}
 		# netlink line is after ipv4 or ipv6 prefix
 		$desc =~ s/\.10\.[0-9](?=[0-9]\.)/.10.{line}/g;

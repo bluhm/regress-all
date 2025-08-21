@@ -24,6 +24,7 @@ use File::Path qw(remove_tree);
 use Getopt::Std;
 use POSIX;
 use Time::HiRes;
+use URI::Escape;
 
 use lib dirname($0);
 use Netstat;
@@ -1133,9 +1134,9 @@ sub trex_parser {
     }
     my $sec = qr/([\d.]+)  sec/;
     if ($line =~ m{ m_traffic_duration [| ]+ $sec [| ]+ $sec [| ]+}) {
-	my $value = $trex_ids{tx} * 8 / $1;
+	my $value = int($trex_ids{tx} * 8 / $1);
 	print $tr "VALUE $value bits/sec tx\n";
-	$value = $trex_ids{rx} * 8 / $2;
+	$value = int($trex_ids{rx} * 8 / $2);
 	print $tr "VALUE $value bits/sec rx\n";
     }
     return 1;
@@ -1757,8 +1758,10 @@ foreach my $t (@tests) {
 
     my @initcmd = @{$t->{initcmd} || []};
     my @runcmd = @{$t->{testcmd}};
-    (my $test = join("_", @runcmd)) =~ s,^/.*/,,;
-    $test =~ s,/,%,g;
+    my $test = "@runcmd";
+    $test =~ s, cd $trexpath && \./, ,;
+    $test =~ s,^$netbench,netbench.pl,;
+    $test = uri_escape($test, "^A-Za-z0-9\-\._");
     print " $test\n";
     if ($pseudo && $runcmd[0] eq $netbench) {
 	splice(@runcmd, 1, 0, "-C$pseudo");

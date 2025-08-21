@@ -318,8 +318,7 @@ while (my ($k, $v) = each %TESTPLOT) {
 our (%TESTNAME, %TESTDESC);
 our @TESTKEYS = qw(ipv proto op len streams);
 # add a test description
-my @testdesc = (
-    # perform
+my @performdesc = (
     'iperf3_-c10.3.45.35_-w1m_-t10'					=> "openbsd-openbsd-stack-tcp-ip3fwd-single",
     'iperf3_-c10.3.45.35_-w1m_-t10_-R'					=> "openbsd-openbsd-stack-tcp-ip3rev-single",
     'iperf3_-c10.3.45.35_-w1m_-P10_-t10'				=> "openbsd-openbsd-stack-tcp-ip3fwd-parallel",
@@ -636,115 +635,122 @@ my @testdesc = (
     'iperf3_-c10.9.12.52_-P10_-t10_-R'					=> "openbsd-openbsd-ipsec-transport-tcp-ip3rev-ot31",
     'iperf3_-6_-cfdd7:e83e:66bc:0912::52_-P10_-t10'			=> "openbsd-openbsd-ipsec-transport-tcp6-ip3fwd-ot31",
     'iperf3_-6_-cfdd7:e83e:66bc:0912::52_-P10_-t10_-R'			=> "openbsd-openbsd-ipsec-transport-tcp6-ip3rev-ot31",
-
-    # netlink
-    'ping6_-qfc10000_{prefix}{line}2::4'				=> { ipv => "IPv6", proto => "ICMP", op => "Send",    len => "",      streams => "",             name => "openbsd-linux-icmp6" },
-    'ping_-qfc10000_{prefix}{line}2.4'					=> { ipv => "IPv4", proto => "ICMP", op => "Send",    len => "",      streams => "",             name => "openbsd-linux-icmp4" },
-    'ssh_{left}_ping6_-qfc10000_{prefix}{line}1::2'			=> { ipv => "IPv6", proto => "ICMP", op => "Receive", len => "",      streams => "",             name => "linux-openbsd-icmp6" },
-    'ssh_{left}_ping6_-qfc10000_{prefix}{line}2::4'			=> { ipv => "IPv6", proto => "ICMP", op => "Forward", len => "",      streams => "",             name => "linux-openbsd-linux-icmp6" },
-    'ssh_{left}_ping_-qfc10000_{prefix}{line}1.2'			=> { ipv => "IPv4", proto => "ICMP", op => "Receive", len => "",      streams => "",             name => "linux-openbsd-icmp4" },
-    'ssh_{left}_ping_-qfc10000_{prefix}{line}2.4'			=> { ipv => "IPv4", proto => "ICMP", op => "Forward", len => "",      streams => "",             name => "linux-openbsd-linux-icmp4" },
-    'tcpbench_-S1000000_-t10_-n100_{prefix}{line}2.4'			=> { ipv => "IPv4", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-100", name => "openbsd-linux-tcp4bench-parallel" },
-    'tcpbench_-S1000000_-t10_{prefix}{line}2.4'				=> { ipv => "IPv4", proto => "TCP",  op => "Send",    len => "",      streams => "single",       name => "openbsd-linux-tcp4bench-single" },
-    'netbench.pl_-v_-b1000000_-f0_-c{left}_-a{prefix}{line}1.20_-t10_udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "Empty", streams => "single",       name => "linux-openbsd-udp4bench-single-empty" },
-    'netbench.pl_-v_-b1000000_-f0_-c{left}_-a{prefix}{line}1::20_-t10_udpbench'			=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "Empty", streams => "single",       name => "linux-openbsd-udp6bench-single-empty" },
-    'netbench.pl_-v_-b1000000_-f0_-c{left}_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "Empty", streams => "single",       name => "linux-openbsd-linux-udp4bench-single-empty" },
-    'netbench.pl_-v_-b1000000_-f0_-c{left}_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "Empty", streams => "single",       name => "linux-openbsd-linux-udp6bench-single-empty" },
-    'netbench.pl_-v_-b1000000_-f0_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "Empty", streams => "single",       name => "openbsd-linux-udp4bench-single-empty" },
-    'netbench.pl_-v_-b1000000_-f0_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "Empty", streams => "single",       name => "openbsd-linux-udp6bench-single-empty" },
-    'netbench.pl_-v_-b1000000_-f1_-c{left}_-a{prefix}{line}1.20_-t10_udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "MTU",   streams => "single",       name => "linux-openbsd-udp4bench-single-mtu" },
-    'netbench.pl_-v_-b1000000_-f1_-c{left}_-a{prefix}{line}1::20_-t10_udpbench'			=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "MTU",   streams => "single",       name => "linux-openbsd-udp6bench-single-mtu" },
-    'netbench.pl_-v_-b1000000_-f1_-c{left}_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "MTU",   streams => "single",       name => "linux-openbsd-linux-udp4bench-single-mtu" },
-    'netbench.pl_-v_-b1000000_-f1_-c{left}_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "MTU",   streams => "single",       name => "linux-openbsd-linux-udp6bench-single-mtu" },
-    'netbench.pl_-v_-b1000000_-f1_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "MTU",   streams => "single",       name => "openbsd-linux-udp4bench-single-mtu" },
-    'netbench.pl_-v_-b1000000_-f1_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "MTU",   streams => "single",       name => "openbsd-linux-udp6bench-single-mtu" },
-    'netbench.pl_-v_-b1000000_-f2_-c{left}_-a{prefix}{line}1.20_-t10_udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "Frag2", streams => "single",       name => "linux-openbsd-udp4bench-single-frag" },
-    'netbench.pl_-v_-b1000000_-f2_-c{left}_-a{prefix}{line}1::20_-t10_udpbench'			=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "Frag2", streams => "single",       name => "linux-openbsd-udp6bench-single-frag" },
-    'netbench.pl_-v_-b1000000_-f2_-c{left}_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "Frag2", streams => "single",       name => "linux-openbsd-linux-udp4bench-single-frag" },
-    'netbench.pl_-v_-b1000000_-f2_-c{left}_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "Frag2", streams => "single",       name => "linux-openbsd-linux-udp6bench-single-frag" },
-    'netbench.pl_-v_-b1000000_-f2_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "Frag2", streams => "single",       name => "openbsd-linux-udp4bench-single-frag" },
-    'netbench.pl_-v_-b1000000_-f2_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "Frag2", streams => "single",       name => "openbsd-linux-udp6bench-single-frag" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i0_-N10_-c{left}_-a{prefix}{line}1.20_-t10_udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "Empty", streams => "parallel-10",  name => "linux-openbsd-udp4bench-parallel-empty" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i0_-N10_-c{left}_-a{prefix}{line}1::20_-t10_udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "Empty", streams => "parallel-10",  name => "linux-openbsd-udp6bench-parallel-empty" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i0_-N10_-c{left}_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "Empty", streams => "parallel-10",  name => "linux-openbsd-linux-udp4bench-parallel-empty" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i0_-N10_-c{left}_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "Empty", streams => "parallel-10",  name => "linux-openbsd-linux-udp6bench-parallel-empty" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i0_-N10_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "Empty", streams => "parallel-10",  name => "openbsd-linux-udp4bench-parallel-empty" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i0_-N10_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "Empty", streams => "parallel-10",  name => "openbsd-linux-udp6bench-parallel-empty" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-c{left}_-a{prefix}{line}1.20_-t10_udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-udp4bench-parallel-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-c{left}_-a{prefix}{line}1::20_-t10_udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-udp6bench-parallel-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-c{left}_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-linux-udp4bench-parallel-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-c{left}_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-linux-udp6bench-parallel-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-udp4bench-parallel-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-udp6bench-parallel-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f2_-i0_-N10_-c{left}_-a{prefix}{line}1.20_-t10_udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "Frag2", streams => "parallel-10",  name => "linux-openbsd-udp4bench-parallel-frag" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f2_-i0_-N10_-c{left}_-a{prefix}{line}1::20_-t10_udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "Frag2", streams => "parallel-10",  name => "linux-openbsd-udp6bench-parallel-frag" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f2_-i0_-N10_-c{left}_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "Frag2", streams => "parallel-10",  name => "linux-openbsd-linux-udp4bench-parallel-frag" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f2_-i0_-N10_-c{left}_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "Frag2", streams => "parallel-10",  name => "linux-openbsd-linux-udp6bench-parallel-frag" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f2_-i0_-N10_-s{right}_-a{prefix}{line}2.40_-t10_udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "Frag2", streams => "parallel-10",  name => "openbsd-linux-udp4bench-parallel-frag" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f2_-i0_-N10_-s{right}_-a{prefix}{line}2::40_-t10_udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "Frag2", streams => "parallel-10",  name => "openbsd-linux-udp6bench-parallel-frag" },
-    'tcpbench_-S1000000_-t10_-n100_{prefix}{line}2::4'			=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-100", name => "openbsd-linux-tcp6bench-parallel" },
-    'tcpbench_-S1000000_-t10_{prefix}{line}2::4'			=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "single",       name => "openbsd-linux-tcp6bench-single" },
-    'ssh_{left}_tcpbench_-S1000000_-t10_-n100_{prefix}{line}2.4'	=> { ipv => "IPv4", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-100", name => "linux-openbsd-linux-tcp4bench-parallel" },
-    'ssh_{left}_tcpbench_-S1000000_-t10_-n100_{prefix}{line}2::4'	=> { ipv => "IPv6", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-100", name => "linux-openbsd-linux-tcp6bench-parallel" },
-    'ssh_{left}_tcpbench_-S1000000_-t10_{prefix}{line}2.4'		=> { ipv => "IPv4", proto => "TCP",  op => "Forward", len => "",      streams => "single",       name => "linux-openbsd-linux-tcp4bench-single" },
-    'ssh_{left}_tcpbench_-S1000000_-t10_{prefix}{line}2::4'		=> { ipv => "IPv6", proto => "TCP",  op => "Forward", len => "",      streams => "single",       name => "linux-openbsd-linux-tcp6bench-single" },
-    'ssh_{left}_tcpbench_-S1000000_-t10_-n100_{prefix}{line}1.2'	=> { ipv => "IPv4", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-100", name => "linux-openbsd-tcp4bench-parallel" },
-    'ssh_{left}_tcpbench_-S1000000_-t10_-n100_{prefix}{line}1::2'	=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-100", name => "linux-openbsd-tcp6bench-parallel" },
-    'ssh_{left}_tcpbench_-S1000000_-t10_{prefix}{line}1.2'		=> { ipv => "IPv4", proto => "TCP",  op => "Receive", len => "",      streams => "single",       name => "linux-openbsd-tcp4bench-single" },
-    'ssh_{left}_tcpbench_-S1000000_-t10_{prefix}{line}1::2'		=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "single",       name => "linux-openbsd-tcp6bench-single" },
-    'netbench.pl_-v_-b1000000_-N10_-c{left}_-s{right}_-A{prefix}{line}1.20_-a{prefix}{line}2.40_-t10_tcpsplice'		=> { ipv => "IPv4", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-10",  name => "linux-openbsd-linux-tcp4splice-parallel" },
-    'netbench.pl_-v_-b1000000_-N10_-c{left}_-s{right}_-A{prefix}{line}1::20_-a{prefix}{line}2::40_-t10_tcpsplice'	=> { ipv => "IPv6", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-10",  name => "linux-openbsd-linux-tcp6splice-parallel" },
-    'netbench.pl_-v_-b1000000_-c{left}_-s{right}_-A{prefix}{line}1.20_-a{prefix}{line}2.40_-t10_tcpsplice'		=> { ipv => "IPv4", proto => "TCP",  op => "Splice",  len => "",      streams => "single",       name => "linux-openbsd-linux-tcp4splice-single" },
-    'netbench.pl_-v_-b1000000_-c{left}_-s{right}_-A{prefix}{line}1::20_-a{prefix}{line}2::40_-t10_tcpsplice'		=> { ipv => "IPv6", proto => "TCP",  op => "Splice",  len => "",      streams => "single",       name => "linux-openbsd-linux-tcp6splice-single" },
-    'netbench.pl_-v_-b1000000_-N10_-c{left}_-s{right}_-A{prefix}{line}1.20_-a{prefix}{line}2.40_-t10_tcpcopy'		=> { ipv => "IPv4", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-10",  name => "linux-openbsd-linux-tcp4copy-parallel" },
-    'netbench.pl_-v_-b1000000_-N10_-c{left}_-s{right}_-A{prefix}{line}1::20_-a{prefix}{line}2::40_-t10_tcpcopy'		=> { ipv => "IPv6", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-10",  name => "linux-openbsd-linux-tcp6copy-parallel" },
-    'netbench.pl_-v_-b1000000_-c{left}_-s{right}_-A{prefix}{line}1.20_-a{prefix}{line}2.40_-t10_tcpcopy'		=> { ipv => "IPv4", proto => "TCP",  op => "Copy",    len => "",      streams => "single",       name => "linux-openbsd-linux-tcp4copy-single" },
-    'netbench.pl_-v_-b1000000_-c{left}_-s{right}_-A{prefix}{line}1::20_-a{prefix}{line}2::40_-t10_tcpcopy'		=> { ipv => "IPv6", proto => "TCP",  op => "Copy",    len => "",      streams => "single",       name => "linux-openbsd-linux-tcp6copy-single" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i0_-N10_-c{left}_-s{right}_-A{prefix}{line}1.20_-a{prefix}{line}2.40_-t10_udpsplice'	=> { ipv => "IPv4", proto => "UDP",  op => "Splice",  len => "Empty", streams => "parallel-10",  name => "linux-openbsd-linux-udp4splice-empty" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f0_-i0_-N10_-c{left}_-s{right}_-A{prefix}{line}1::20_-a{prefix}{line}2::40_-t10_udpsplice'	=> { ipv => "IPv6", proto => "UDP",  op => "Splice",  len => "Empty", streams => "parallel-10",  name => "linux-openbsd-linux-udp6splice-empty" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-c{left}_-s{right}_-A{prefix}{line}1.20_-a{prefix}{line}2.40_-t10_udpsplice'	=> { ipv => "IPv4", proto => "UDP",  op => "Splice",  len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-linux-udp4splice-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-c{left}_-s{right}_-A{prefix}{line}1::20_-a{prefix}{line}2::40_-t10_udpsplice'	=> { ipv => "IPv6", proto => "UDP",  op => "Splice",  len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-linux-udp6splice-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-R{ifaddr}_-S{ifaddr}_-c{left}_-a234.10.{line}1.10_-t10_udpbench'				=> { ipv => "IPv4", proto => "MCast",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-mcast4bench-parallel-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-R{ifname}_-S{ifname}_-c{left}_-aff34:40:fdd7:e83e:66bd:10{line}1::10_-t10_udpbench'	=> { ipv => "IPv6", proto => "MCast",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-mcast6bench-parallel-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-R{ifaddr}_-S{ifaddr}_-s{right}_-a234.10.{line}2.10_-t10_udpbench'				=> { ipv => "IPv4", proto => "MCast",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-mcast4bench-parallel-mtu" },
-    'netbench.pl_-v_-B1000000000_-b1000000_-d1_-f1_-i0_-N10_-R{ifname}_-S{ifname}_-s{right}_-aff34:40:fdd7:e83e:66bd:10{line}2::10_-t10_udpbench'	=> { ipv => "IPv6", proto => "MCast",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-mcast6bench-parallel-mtu" },
-    'ssh_{left}_iperf3_-c{prefix}{line}2.4_{window}_-P15_-t10'		=> { ipv => "IPv4", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp4iperf-parallel-forward" },
-    'ssh_{left}_iperf3_-c{prefix}{line}1.2_{window}_-P15_-t10'		=> { ipv => "IPv4", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp4iperf-parallel-splice" },
-    'ssh_{left}_iperf3_-i1_-c{prefix}{line}1.2_{window}_-P15_-t10'	=> { ipv => "IPv4", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp4iperf-parallel-copy" },
-    'iperf3_-c{prefix}{line}1.1_{window}_-P15_-t10_-R'			=> { ipv => "IPv4", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-15", name => "linux-openbsd-tcp4iperf-parallel-receive" },
-    'iperf3_-c{prefix}{line}2.4_{window}_-P15_-t10'			=> { ipv => "IPv4", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-15", name => "openbsd-linux-tcp4iperf-parallel-send" },
-    'ssh_{left}_iperf3_-6_-c{prefix}{line}2::4_{window}_-P15_-t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp6iperf-parallel-forward" },
-    'ssh_{left}_iperf3_-6_-c{prefix}{line}1::2_{window}_-P15_-t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp6iperf-parallel-splice" },
-    'ssh_{left}_iperf3_-i1_-6_-c{prefix}{line}1::2_{window}_-P15_-t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp6iperf-parallel-copy" },
-    'iperf3_-6_-c{prefix}{line}1::1_{window}_-P15_-t10_-R'		=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-15", name => "linux-openbsd-tcp6iperf-parallel-receive" },
-    'iperf3_-6_-c{prefix}{line}2::4_{window}_-P15_-t10'			=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-15", name => "openbsd-linux-tcp6iperf-parallel-send" },
-    'ssh_{multileft}_iperf3_-c{prefix}{line}2.8{multiple}_{window}_-P15_-t10'		=> { ipv => "IPv4", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp4iperf-multiple-forward" },
-    'ssh_{multileft}_iperf3_-c{prefix}{line}1.6{multiple}_{window}_-P15_-t10'		=> { ipv => "IPv4", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp4iperf-multiple-splice" },
-    'ssh_{multileft}_iperf3_-i1_-c{prefix}{line}1.6{multiple}_{window}_-P15_-t10'	=> { ipv => "IPv4", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp4iperf-multiple-copy" },
-    'iperf3_-c{prefix}{line}1.5{multiple}_{window}_-P15_-t10_-R'			=> { ipv => "IPv4", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-30", name => "linux-openbsd-tcp4iperf-multiple-receive" },
-    'iperf3_-c{prefix}{line}2.8{multiple}_{window}_-P15_-t10'				=> { ipv => "IPv4", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-30", name => "openbsd-linux-tcp4iperf-multiple-send" },
-    'ssh_{multileft}_iperf3_-6_-c{prefix}{line}2::8{multiple}_{window}_-P15_-t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp6iperf-multiple-forward" },
-    'ssh_{multileft}_iperf3_-6_-c{prefix}{line}1::6{multiple}_{window}_-P15_-t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp6iperf-multiple-splice" },
-    'ssh_{multileft}_iperf3_-i1_-6_-c{prefix}{line}1::6{multiple}_{window}_-P15_-t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp6iperf-multiple-copy" },
-    'iperf3_-6_-c{prefix}{line}1::5{multiple}_{window}_-P15_-t10_-R'			=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-30", name => "linux-openbsd-tcp6iperf-multiple-receive" },
-    'iperf3_-6_-c{prefix}{line}2::8{multiple}_{window}_-P15_-t10'			=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-30", name => "openbsd-linux-tcp6iperf-multiple-send" },
-    'ssh_{left}_cd_%home%user%github%trex-core%scripts_&&_.%t-rex-64_--astf_-f_astf%http_simple.py_-m_1000_-d_10'	=> { ipv => "IPv4", proto => "TCP",  op => "Splice",    len => "",      streams => "trex", name => "trex-tcp4-splice" },
 );
 
-%TESTDESC = @testdesc;
-if (2 * keys %TESTDESC != @testdesc) {
+my @netlinkdesc = (
+    'ping6 -qfc10000 {prefix}{line}2::4'				=> { ipv => "IPv6", proto => "ICMP", op => "Send",    len => "",      streams => "",             name => "openbsd-linux-icmp6" },
+    'ping -qfc10000 {prefix}{line}2.4'					=> { ipv => "IPv4", proto => "ICMP", op => "Send",    len => "",      streams => "",             name => "openbsd-linux-icmp4" },
+    'ssh {left} ping6 -qfc10000 {prefix}{line}1::2'			=> { ipv => "IPv6", proto => "ICMP", op => "Receive", len => "",      streams => "",             name => "linux-openbsd-icmp6" },
+    'ssh {left} ping6 -qfc10000 {prefix}{line}2::4'			=> { ipv => "IPv6", proto => "ICMP", op => "Forward", len => "",      streams => "",             name => "linux-openbsd-linux-icmp6" },
+    'ssh {left} ping -qfc10000 {prefix}{line}1.2'			=> { ipv => "IPv4", proto => "ICMP", op => "Receive", len => "",      streams => "",             name => "linux-openbsd-icmp4" },
+    'ssh {left} ping -qfc10000 {prefix}{line}2.4'			=> { ipv => "IPv4", proto => "ICMP", op => "Forward", len => "",      streams => "",             name => "linux-openbsd-linux-icmp4" },
+    'tcpbench -S1000000 -t10 -n100 {prefix}{line}2.4'			=> { ipv => "IPv4", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-100", name => "openbsd-linux-tcp4bench-parallel" },
+    'tcpbench -S1000000 -t10 {prefix}{line}2.4'				=> { ipv => "IPv4", proto => "TCP",  op => "Send",    len => "",      streams => "single",       name => "openbsd-linux-tcp4bench-single" },
+    'netbench.pl -v -b1000000 -f0 -c{left} -a{prefix}{line}1.20 -t10 udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "Empty", streams => "single",       name => "linux-openbsd-udp4bench-single-empty" },
+    'netbench.pl -v -b1000000 -f0 -c{left} -a{prefix}{line}1::20 -t10 udpbench'			=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "Empty", streams => "single",       name => "linux-openbsd-udp6bench-single-empty" },
+    'netbench.pl -v -b1000000 -f0 -c{left} -s{right} -a{prefix}{line}2.40 -t10 udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "Empty", streams => "single",       name => "linux-openbsd-linux-udp4bench-single-empty" },
+    'netbench.pl -v -b1000000 -f0 -c{left} -s{right} -a{prefix}{line}2::40 -t10 udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "Empty", streams => "single",       name => "linux-openbsd-linux-udp6bench-single-empty" },
+    'netbench.pl -v -b1000000 -f0 -s{right} -a{prefix}{line}2.40 -t10 udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "Empty", streams => "single",       name => "openbsd-linux-udp4bench-single-empty" },
+    'netbench.pl -v -b1000000 -f0 -s{right} -a{prefix}{line}2::40 -t10 udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "Empty", streams => "single",       name => "openbsd-linux-udp6bench-single-empty" },
+    'netbench.pl -v -b1000000 -f1 -c{left} -a{prefix}{line}1.20 -t10 udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "MTU",   streams => "single",       name => "linux-openbsd-udp4bench-single-mtu" },
+    'netbench.pl -v -b1000000 -f1 -c{left} -a{prefix}{line}1::20 -t10 udpbench'			=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "MTU",   streams => "single",       name => "linux-openbsd-udp6bench-single-mtu" },
+    'netbench.pl -v -b1000000 -f1 -c{left} -s{right} -a{prefix}{line}2.40 -t10 udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "MTU",   streams => "single",       name => "linux-openbsd-linux-udp4bench-single-mtu" },
+    'netbench.pl -v -b1000000 -f1 -c{left} -s{right} -a{prefix}{line}2::40 -t10 udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "MTU",   streams => "single",       name => "linux-openbsd-linux-udp6bench-single-mtu" },
+    'netbench.pl -v -b1000000 -f1 -s{right} -a{prefix}{line}2.40 -t10 udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "MTU",   streams => "single",       name => "openbsd-linux-udp4bench-single-mtu" },
+    'netbench.pl -v -b1000000 -f1 -s{right} -a{prefix}{line}2::40 -t10 udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "MTU",   streams => "single",       name => "openbsd-linux-udp6bench-single-mtu" },
+    'netbench.pl -v -b1000000 -f2 -c{left} -a{prefix}{line}1.20 -t10 udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "Frag2", streams => "single",       name => "linux-openbsd-udp4bench-single-frag" },
+    'netbench.pl -v -b1000000 -f2 -c{left} -a{prefix}{line}1::20 -t10 udpbench'			=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "Frag2", streams => "single",       name => "linux-openbsd-udp6bench-single-frag" },
+    'netbench.pl -v -b1000000 -f2 -c{left} -s{right} -a{prefix}{line}2.40 -t10 udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "Frag2", streams => "single",       name => "linux-openbsd-linux-udp4bench-single-frag" },
+    'netbench.pl -v -b1000000 -f2 -c{left} -s{right} -a{prefix}{line}2::40 -t10 udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "Frag2", streams => "single",       name => "linux-openbsd-linux-udp6bench-single-frag" },
+    'netbench.pl -v -b1000000 -f2 -s{right} -a{prefix}{line}2.40 -t10 udpbench'			=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "Frag2", streams => "single",       name => "openbsd-linux-udp4bench-single-frag" },
+    'netbench.pl -v -b1000000 -f2 -s{right} -a{prefix}{line}2::40 -t10 udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "Frag2", streams => "single",       name => "openbsd-linux-udp6bench-single-frag" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f0 -i0 -N10 -c{left} -a{prefix}{line}1.20 -t10 udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "Empty", streams => "parallel-10",  name => "linux-openbsd-udp4bench-parallel-empty" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f0 -i0 -N10 -c{left} -a{prefix}{line}1::20 -t10 udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "Empty", streams => "parallel-10",  name => "linux-openbsd-udp6bench-parallel-empty" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f0 -i0 -N10 -c{left} -s{right} -a{prefix}{line}2.40 -t10 udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "Empty", streams => "parallel-10",  name => "linux-openbsd-linux-udp4bench-parallel-empty" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f0 -i0 -N10 -c{left} -s{right} -a{prefix}{line}2::40 -t10 udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "Empty", streams => "parallel-10",  name => "linux-openbsd-linux-udp6bench-parallel-empty" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f0 -i0 -N10 -s{right} -a{prefix}{line}2.40 -t10 udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "Empty", streams => "parallel-10",  name => "openbsd-linux-udp4bench-parallel-empty" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f0 -i0 -N10 -s{right} -a{prefix}{line}2::40 -t10 udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "Empty", streams => "parallel-10",  name => "openbsd-linux-udp6bench-parallel-empty" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -c{left} -a{prefix}{line}1.20 -t10 udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-udp4bench-parallel-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -c{left} -a{prefix}{line}1::20 -t10 udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-udp6bench-parallel-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -c{left} -s{right} -a{prefix}{line}2.40 -t10 udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-linux-udp4bench-parallel-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -c{left} -s{right} -a{prefix}{line}2::40 -t10 udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-linux-udp6bench-parallel-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -s{right} -a{prefix}{line}2.40 -t10 udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-udp4bench-parallel-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -s{right} -a{prefix}{line}2::40 -t10 udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-udp6bench-parallel-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f2 -i0 -N10 -c{left} -a{prefix}{line}1.20 -t10 udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Receive", len => "Frag2", streams => "parallel-10",  name => "linux-openbsd-udp4bench-parallel-frag" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f2 -i0 -N10 -c{left} -a{prefix}{line}1::20 -t10 udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Receive", len => "Frag2", streams => "parallel-10",  name => "linux-openbsd-udp6bench-parallel-frag" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f2 -i0 -N10 -c{left} -s{right} -a{prefix}{line}2.40 -t10 udpbench'	=> { ipv => "IPv4", proto => "UDP",  op => "Forward", len => "Frag2", streams => "parallel-10",  name => "linux-openbsd-linux-udp4bench-parallel-frag" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f2 -i0 -N10 -c{left} -s{right} -a{prefix}{line}2::40 -t10 udpbench'	=> { ipv => "IPv6", proto => "UDP",  op => "Forward", len => "Frag2", streams => "parallel-10",  name => "linux-openbsd-linux-udp6bench-parallel-frag" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f2 -i0 -N10 -s{right} -a{prefix}{line}2.40 -t10 udpbench'		=> { ipv => "IPv4", proto => "UDP",  op => "Send",    len => "Frag2", streams => "parallel-10",  name => "openbsd-linux-udp4bench-parallel-frag" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f2 -i0 -N10 -s{right} -a{prefix}{line}2::40 -t10 udpbench'		=> { ipv => "IPv6", proto => "UDP",  op => "Send",    len => "Frag2", streams => "parallel-10",  name => "openbsd-linux-udp6bench-parallel-frag" },
+    'tcpbench -S1000000 -t10 -n100 {prefix}{line}2::4'			=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-100", name => "openbsd-linux-tcp6bench-parallel" },
+    'tcpbench -S1000000 -t10 {prefix}{line}2::4'			=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "single",       name => "openbsd-linux-tcp6bench-single" },
+    'ssh {left} tcpbench -S1000000 -t10 -n100 {prefix}{line}2.4'	=> { ipv => "IPv4", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-100", name => "linux-openbsd-linux-tcp4bench-parallel" },
+    'ssh {left} tcpbench -S1000000 -t10 -n100 {prefix}{line}2::4'	=> { ipv => "IPv6", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-100", name => "linux-openbsd-linux-tcp6bench-parallel" },
+    'ssh {left} tcpbench -S1000000 -t10 {prefix}{line}2.4'		=> { ipv => "IPv4", proto => "TCP",  op => "Forward", len => "",      streams => "single",       name => "linux-openbsd-linux-tcp4bench-single" },
+    'ssh {left} tcpbench -S1000000 -t10 {prefix}{line}2::4'		=> { ipv => "IPv6", proto => "TCP",  op => "Forward", len => "",      streams => "single",       name => "linux-openbsd-linux-tcp6bench-single" },
+    'ssh {left} tcpbench -S1000000 -t10 -n100 {prefix}{line}1.2'	=> { ipv => "IPv4", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-100", name => "linux-openbsd-tcp4bench-parallel" },
+    'ssh {left} tcpbench -S1000000 -t10 -n100 {prefix}{line}1::2'	=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-100", name => "linux-openbsd-tcp6bench-parallel" },
+    'ssh {left} tcpbench -S1000000 -t10 {prefix}{line}1.2'		=> { ipv => "IPv4", proto => "TCP",  op => "Receive", len => "",      streams => "single",       name => "linux-openbsd-tcp4bench-single" },
+    'ssh {left} tcpbench -S1000000 -t10 {prefix}{line}1::2'		=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "single",       name => "linux-openbsd-tcp6bench-single" },
+    'netbench.pl -v -b1000000 -N10 -c{left} -s{right} -A{prefix}{line}1.20 -a{prefix}{line}2.40 -t10 tcpsplice'		=> { ipv => "IPv4", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-10",  name => "linux-openbsd-linux-tcp4splice-parallel" },
+    'netbench.pl -v -b1000000 -N10 -c{left} -s{right} -A{prefix}{line}1::20 -a{prefix}{line}2::40 -t10 tcpsplice'	=> { ipv => "IPv6", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-10",  name => "linux-openbsd-linux-tcp6splice-parallel" },
+    'netbench.pl -v -b1000000 -c{left} -s{right} -A{prefix}{line}1.20 -a{prefix}{line}2.40 -t10 tcpsplice'		=> { ipv => "IPv4", proto => "TCP",  op => "Splice",  len => "",      streams => "single",       name => "linux-openbsd-linux-tcp4splice-single" },
+    'netbench.pl -v -b1000000 -c{left} -s{right} -A{prefix}{line}1::20 -a{prefix}{line}2::40 -t10 tcpsplice'		=> { ipv => "IPv6", proto => "TCP",  op => "Splice",  len => "",      streams => "single",       name => "linux-openbsd-linux-tcp6splice-single" },
+    'netbench.pl -v -b1000000 -N10 -c{left} -s{right} -A{prefix}{line}1.20 -a{prefix}{line}2.40 -t10 tcpcopy'		=> { ipv => "IPv4", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-10",  name => "linux-openbsd-linux-tcp4copy-parallel" },
+    'netbench.pl -v -b1000000 -N10 -c{left} -s{right} -A{prefix}{line}1::20 -a{prefix}{line}2::40 -t10 tcpcopy'		=> { ipv => "IPv6", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-10",  name => "linux-openbsd-linux-tcp6copy-parallel" },
+    'netbench.pl -v -b1000000 -c{left} -s{right} -A{prefix}{line}1.20 -a{prefix}{line}2.40 -t10 tcpcopy'		=> { ipv => "IPv4", proto => "TCP",  op => "Copy",    len => "",      streams => "single",       name => "linux-openbsd-linux-tcp4copy-single" },
+    'netbench.pl -v -b1000000 -c{left} -s{right} -A{prefix}{line}1::20 -a{prefix}{line}2::40 -t10 tcpcopy'		=> { ipv => "IPv6", proto => "TCP",  op => "Copy",    len => "",      streams => "single",       name => "linux-openbsd-linux-tcp6copy-single" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f0 -i0 -N10 -c{left} -s{right} -A{prefix}{line}1.20 -a{prefix}{line}2.40 -t10 udpsplice'	=> { ipv => "IPv4", proto => "UDP",  op => "Splice",  len => "Empty", streams => "parallel-10",  name => "linux-openbsd-linux-udp4splice-empty" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f0 -i0 -N10 -c{left} -s{right} -A{prefix}{line}1::20 -a{prefix}{line}2::40 -t10 udpsplice'	=> { ipv => "IPv6", proto => "UDP",  op => "Splice",  len => "Empty", streams => "parallel-10",  name => "linux-openbsd-linux-udp6splice-empty" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -c{left} -s{right} -A{prefix}{line}1.20 -a{prefix}{line}2.40 -t10 udpsplice'	=> { ipv => "IPv4", proto => "UDP",  op => "Splice",  len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-linux-udp4splice-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -c{left} -s{right} -A{prefix}{line}1::20 -a{prefix}{line}2::40 -t10 udpsplice'	=> { ipv => "IPv6", proto => "UDP",  op => "Splice",  len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-linux-udp6splice-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -R{ifaddr} -S{ifaddr} -c{left} -a234.10.{line}1.10 -t10 udpbench'				=> { ipv => "IPv4", proto => "MCast",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-mcast4bench-parallel-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -R{ifname} -S{ifname} -c{left} -aff34:40:fdd7:e83e:66bd:10{line}1::10 -t10 udpbench'	=> { ipv => "IPv6", proto => "MCast",  op => "Receive", len => "MTU",   streams => "parallel-10",  name => "linux-openbsd-mcast6bench-parallel-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -R{ifaddr} -S{ifaddr} -s{right} -a234.10.{line}2.10 -t10 udpbench'				=> { ipv => "IPv4", proto => "MCast",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-mcast4bench-parallel-mtu" },
+    'netbench.pl -v -B1000000000 -b1000000 -d1 -f1 -i0 -N10 -R{ifname} -S{ifname} -s{right} -aff34:40:fdd7:e83e:66bd:10{line}2::10 -t10 udpbench'	=> { ipv => "IPv6", proto => "MCast",  op => "Send",    len => "MTU",   streams => "parallel-10",  name => "openbsd-linux-mcast6bench-parallel-mtu" },
+    'ssh {left} iperf3 -c{prefix}{line}2.4 {window} -P15 -t10'		=> { ipv => "IPv4", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp4iperf-parallel-forward" },
+    'ssh {left} iperf3 -c{prefix}{line}1.2 {window} -P15 -t10'		=> { ipv => "IPv4", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp4iperf-parallel-splice" },
+    'ssh {left} iperf3 -i1 -c{prefix}{line}1.2 {window} -P15 -t10'	=> { ipv => "IPv4", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp4iperf-parallel-copy" },
+    'iperf3 -c{prefix}{line}1.1 {window} -P15 -t10 -R'			=> { ipv => "IPv4", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-15", name => "linux-openbsd-tcp4iperf-parallel-receive" },
+    'iperf3 -c{prefix}{line}2.4 {window} -P15 -t10'			=> { ipv => "IPv4", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-15", name => "openbsd-linux-tcp4iperf-parallel-send" },
+    'ssh {left} iperf3 -6 -c{prefix}{line}2::4 {window} -P15 -t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp6iperf-parallel-forward" },
+    'ssh {left} iperf3 -6 -c{prefix}{line}1::2 {window} -P15 -t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp6iperf-parallel-splice" },
+    'ssh {left} iperf3 -i1 -6 -c{prefix}{line}1::2 {window} -P15 -t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-15", name => "linux-openbsd-linux-tcp6iperf-parallel-copy" },
+    'iperf3 -6 -c{prefix}{line}1::1 {window} -P15 -t10 -R'		=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-15", name => "linux-openbsd-tcp6iperf-parallel-receive" },
+    'iperf3 -6 -c{prefix}{line}2::4 {window} -P15 -t10'			=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-15", name => "openbsd-linux-tcp6iperf-parallel-send" },
+    'ssh {multileft} iperf3 -c{prefix}{line}2.8{multiple} {window} -P15 -t10'		=> { ipv => "IPv4", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp4iperf-multiple-forward" },
+    'ssh {multileft} iperf3 -c{prefix}{line}1.6{multiple} {window} -P15 -t10'		=> { ipv => "IPv4", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp4iperf-multiple-splice" },
+    'ssh {multileft} iperf3 -i1 -c{prefix}{line}1.6{multiple} {window} -P15 -t10'	=> { ipv => "IPv4", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp4iperf-multiple-copy" },
+    'iperf3 -c{prefix}{line}1.5{multiple} {window} -P15 -t10 -R'			=> { ipv => "IPv4", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-30", name => "linux-openbsd-tcp4iperf-multiple-receive" },
+    'iperf3 -c{prefix}{line}2.8{multiple} {window} -P15 -t10'				=> { ipv => "IPv4", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-30", name => "openbsd-linux-tcp4iperf-multiple-send" },
+    'ssh {multileft} iperf3 -6 -c{prefix}{line}2::8{multiple} {window} -P15 -t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Forward", len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp6iperf-multiple-forward" },
+    'ssh {multileft} iperf3 -6 -c{prefix}{line}1::6{multiple} {window} -P15 -t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Splice",  len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp6iperf-multiple-splice" },
+    'ssh {multileft} iperf3 -i1 -6 -c{prefix}{line}1::6{multiple} {window} -P15 -t10'	=> { ipv => "IPv6", proto => "TCP",  op => "Copy",    len => "",      streams => "parallel-30", name => "linux-openbsd-linux-tcp6iperf-multiple-copy" },
+    'iperf3 -6 -c{prefix}{line}1::5{multiple} {window} -P15 -t10 -R'			=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-30", name => "linux-openbsd-tcp6iperf-multiple-receive" },
+    'iperf3 -6 -c{prefix}{line}2::8{multiple} {window} -P15 -t10'			=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-30", name => "openbsd-linux-tcp6iperf-multiple-send" },
+    'ssh {left} t-rex-64 --astf -f astf/http_simple.py -m 1000 -d 10'	=> { ipv => "IPv4", proto => "TCP",  op => "Splice",    len => "",      streams => "trex", name => "trex-tcp4-splice" },
+    # XXX legacy
+    'ssh {left} cd %home%user%github%trex-core%scripts && .%t-rex-64 --astf -f astf%http_simple.py -m 1000 -d 10'	=> { ipv => "IPv4", proto => "TCP",  op => "Splice",    len => "",      streams => "trex-legacy", name => "trex-tcp4-splice" },
+);
+
+%TESTDESC = (@performdesc, @netlinkdesc);
+if (2 * keys %TESTDESC != @performdesc + @netlinkdesc) {
     die "testdesc keys not unique";
 }
 my %vals;
-foreach my ($test, $desc) (@testdesc) {
-    my $name = ref $desc ? $desc->{name} : $desc;
+foreach my ($test, $name) (@performdesc) {
     $TESTNAME{$test} = $name;
-    if (ref $desc) {
-	my %desc = %$desc;
-	my $descvalues = "@desc{@TESTKEYS}";
-	if ($vals{$descvalues}++) {
-	    die "test $test testdesc values not uniqe: $descvalues";
-	}
+}
+foreach my ($test, $desc) (@netlinkdesc) {
+    my $name = $desc->{name};
+    $TESTNAME{$test} = $name;
+    (my $legacy = $test) =~ s/ /_/g;
+    $TESTNAME{$legacy} = $name;
+    $TESTDESC{$legacy} = $desc;
+    my %desc = %$desc;
+    my $descvalues = "@desc{@TESTKEYS}";
+    if ($vals{$descvalues}++) {
+	die "test $test testdesc values not uniqe: $descvalues";
     }
 }
 foreach (keys %TESTPLOT) {
