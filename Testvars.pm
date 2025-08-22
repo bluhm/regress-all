@@ -729,8 +729,6 @@ my @netlinkdesc = (
     'iperf3 -6 -c{prefix}{line}1::5{multiple} {window} -P15 -t10 -R'			=> { ipv => "IPv6", proto => "TCP",  op => "Receive", len => "",      streams => "parallel-30", name => "linux-openbsd-tcp6iperf-multiple-receive" },
     'iperf3 -6 -c{prefix}{line}2::8{multiple} {window} -P15 -t10'			=> { ipv => "IPv6", proto => "TCP",  op => "Send",    len => "",      streams => "parallel-30", name => "openbsd-linux-tcp6iperf-multiple-send" },
     'ssh {left} t-rex-64 --astf -f astf/http_simple.py -m 1000 -d 10'	=> { ipv => "IPv4", proto => "TCP",  op => "Splice",    len => "",      streams => "trex", name => "trex-tcp4-splice" },
-    # XXX legacy
-    'ssh {left} cd %home%user%github%trex-core%scripts && .%t-rex-64 --astf -f astf%http_simple.py -m 1000 -d 10'	=> { ipv => "IPv4", proto => "TCP",  op => "Splice",    len => "",      streams => "trex-legacy", name => "trex-tcp4-splice" },
 );
 
 %TESTDESC = (@performdesc, @netlinkdesc);
@@ -744,9 +742,6 @@ foreach my ($test, $name) (@performdesc) {
 foreach my ($test, $desc) (@netlinkdesc) {
     my $name = $desc->{name};
     $TESTNAME{$test} = $name;
-    (my $legacy = $test) =~ s/ /_/g;
-    $TESTNAME{$legacy} = $name;
-    $TESTDESC{$legacy} = $desc;
     my %desc = %$desc;
     my $descvalues = "@desc{@TESTKEYS}";
     if ($vals{$descvalues}++) {

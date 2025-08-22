@@ -298,7 +298,8 @@ sub html_hier_test_row {
 
 	print $html "    <td$class$title>$href$status$enda$stats_href</td>\n";
     }
-    $testcmd = uri_unescape($test);
+    ($testcmd = $test) =~ s/_/ /g;
+    $testcmd =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;  # uri_unescape
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     print $html "  </tr>\n";
 
@@ -412,7 +413,8 @@ sub html_hier_test_row_utilization {
 	printf $html "    <td$class$style$title>$href%.1f%%$enda</td>\n",
 	    $rate * 100;
     }
-    $testcmd = uri_unescape($test);
+    ($testcmd = $test) =~ s/_/ /g;
+    $testcmd =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;  # uri_unescape
     print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
     print $html "  </tr>\n";
 }
@@ -584,7 +586,10 @@ HEADER
 	    $link .= "#$desc";
 	    my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
 	    my $enda = $href ? "</a>" : "";
-	    $testcmd = uri_unescape($tv->{test}) if $tv->{test};
+	    if ($tv->{test}) {
+		($testcmd = $tv->{test}) =~ s/_/ /g;
+		$testcmd =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;  # uri_unescape
+	    }
 	    print $html "    <td$class$title>$href$status$enda</td>\n";
 	}
 	print $html "    <td class=\"test\"><code>$testcmd</code></td>\n";
@@ -750,7 +755,8 @@ sub parse_result_files {
 	    }
 	    my $desc = $testdesc{$test};
 	    unless ($desc) {
-		$desc = uri_unescape($test);
+		($desc = $test) =~ s/_/ /g;
+		$desc =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;  # uri_unescape
 		# direct ssh login happens only to client
 		$desc =~ s/(?<=^ssh[ _])root\@lt[0-9]+(?=[ _])/{left}/g;
 		if ($desc =~ /^netbench\.pl[ _]/) {

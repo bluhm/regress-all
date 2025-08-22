@@ -1759,9 +1759,13 @@ foreach my $t (@tests) {
     my @initcmd = @{$t->{initcmd} || []};
     my @runcmd = @{$t->{testcmd}};
     my $test = "@runcmd";
+    # do not care about path of tools
     $test =~ s, cd $trexpath && \./, ,;
     $test =~ s,^$netbench,netbench.pl,;
-    $test = uri_escape($test, "^A-Za-z0-9\-\._");
+    # trex test contains slashes, use big hammer, keep space, escape underscore
+    $test = uri_escape($test, "^A-Za-z0-9\-\.\@: ");
+    # keep readability, escape space with underscore
+    $test =~ s/ /_/g;
     print " $test\n";
     if ($pseudo && $runcmd[0] eq $netbench) {
 	splice(@runcmd, 1, 0, "-C$pseudo");
