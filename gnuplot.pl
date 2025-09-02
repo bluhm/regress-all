@@ -138,9 +138,11 @@ $gnuplotdir = getcwd();
 
 my $datafile = "$plot.data";
 if ($latex) {
+    $datafile = "results/$plot.data";
     $datafile = "results/$date/$plot.data" if $date;
     $datafile = "results/$release/$plot.data" if $release;
-    $datafile = "results/test.data" if ! -f $datafile;
+    $datafile = "results/test.data"
+	if ! -f $datafile && -f "results/test.data";
 }
 -f $datafile
     or die "No test data file '$datafile' in $gnuplotdir";
