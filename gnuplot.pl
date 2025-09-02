@@ -34,7 +34,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('vnB:d:E:LN:p:r:X:x:Y:y:', \%opts) or do {
+getopts('vnB:d:E:LN:p:Qr:X:x:Y:y:', \%opts) or do {
     print STDERR <<"EOF";
 usage: gnuplot.pl [-Lnv] [-B date] [-d date] [-E date] [-N numbers] -p plot
 	[-r release] [-x min] [-X max] [-y min] [-Y max]
@@ -46,6 +46,7 @@ usage: gnuplot.pl [-Lnv] [-B date] [-d date] [-E date] [-N numbers] -p plot
     -L		create LaTeX and EPS output instead of PNG and HTML
     -N numbers	list of test numbers
     -p plot	plot name: @PLOTORDER
+    -Q		do not print build quirks
     -r release	OpenBSD version number
     -x min	x range minimum
     -X max	x range maximum
@@ -108,6 +109,7 @@ my $plot = $opts{p}
     or die "Option -p plot missing";
 grep { $_ eq $plot } @PLOTORDER
     or die "Unknown plot name '$plot'";
+my @quirks = $opts{Q} ? () : sort keys %{{quirks()}};
 @ARGV and die "No arguments allowed";
 
 # better get an errno than random kill by SIGPIPE
@@ -195,7 +197,6 @@ sub create_plot_files {
     # sort by description, use test values for gnuplot
     my @tests = map { $SUBTESTS{$_} } sort keys %SUBTESTS;
     @tests = @tests[@numbers] if @numbers;
-    my @quirks = sort keys %{{quirks()}};
 
     my $title = uc($plot). " Performance";
 
