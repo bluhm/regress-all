@@ -29,7 +29,8 @@ use Hostctl;
 my $date = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
-my @allsetupmodes = qw(build cvs install keep kernel reboot restart sysupgrade upgrade);
+my @allsetupmodes = qw(build cvs install keep kernel reboot restart sysupgrade
+    upgrade);
 
 my %opts;
 getopts('h:P:pv', \%opts) or do {

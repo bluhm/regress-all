@@ -49,8 +49,8 @@ command_args="-s"
 command_user="tcpbench"
 
 depend() {
-        need net
-        after firewall
+	need net
+	after firewall
 }
 EOF
 $rcscript{iperf3} = <<'EOF';
@@ -62,8 +62,8 @@ command_args="-sD"
 command_user="iperf3"
 
 depend() {
-        need net
-        after firewall
+	need net
+	after firewall
 }
 EOF
 
