@@ -156,7 +156,8 @@ symlink($date, "results/latest-$host")
 unlink("results/latest");
 symlink($date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
-runcmd("bin/regress-html.pl", "-l", "src");
+# concurrent testruns on multiple hosts may fail when renaming
+logeval { runcmd("bin/regress-html.pl", "-l", "src") };
 
 # do not create all page, it is too slow and too large
 #runcmd("bin/regress-html.pl", "src");

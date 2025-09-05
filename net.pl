@@ -371,7 +371,8 @@ symlink($date, "results/latest")
 
 my @cmd = ("bin/netlink-html.pl");
 push @cmd, "-v" if $opts{v};
-runcmd(@cmd, "-l");
+# concurrent testruns on multiple hosts may fail when renaming
+logeval { runcmd(@cmd, "-l") };
 runcmd(@cmd, "-h", $host);
 # do not create all page, it is too slow and too large
 #runcmd(@cmd);
