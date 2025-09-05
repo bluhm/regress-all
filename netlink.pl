@@ -420,10 +420,10 @@ printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.core.rmem_max=67108864');
 printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.core.rmem_max=67108864');
 
 # increase Linux autotuning TCP buffer limit to 32MB
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_rmem=4096 87380 33554432');
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.tcp_rmem=4096 87380 33554432');
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_wmem=4096 65536 33554432');
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.tcp_wmem=4096 65536 33554432');
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_rmem="4096 87380 33554432"');
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.tcp_rmem="4096 87380 33554432"');
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_wmem="4096 65536 33554432"');
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.tcp_wmem="4096 65536 33554432"');
 
 # recommended for hosts with jumbo frames enabled
 printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_mtu_probing=1');
