@@ -410,39 +410,33 @@ printcmd('sysctl', 'net.inet.ip.forwarding=1');
 printcmd('sysctl', 'net.inet6.ip6.forwarding=1');
 printcmd('sysctl', 'net.inet.gre.allow=1');
 
-# allow tcpbench to bind on ipv6 addresses without explicitly providing it
-printcmd('ssh', $lnx_l_ssh, 'sysctl','net.ipv6.bindv6only=1');
-printcmd('ssh', $lnx_r_ssh, 'sysctl','net.ipv6.bindv6only=1');
+my @lnx_sysctls = (
+    # allow tcpbench to bind on ipv6 addresses without explicitly providing it
+    'net.ipv6.bindv6only=1',
 
-# allow fragment reassembly to use up to 1GiB of memory
-printcmd('ssh', $lnx_l_ssh, 'sysctl',
-    'net.ipv6.ip6frag_high_thresh=1073741824');
-printcmd('ssh', $lnx_r_ssh, 'sysctl',
-    'net.ipv6.ip6frag_high_thresh=1073741824');
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824');
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_high_thresh=1073741824');
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.ipfrag_time=2');
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_time=2');
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv6.ip6frag_time=2');
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv6.ip6frag_time=2');
+    # allow fragment reassembly to use up to 1GiB of memory
+    'net.ipv4.ipfrag_high_thresh=1073741824',
+    'net.ipv6.ip6frag_high_thresh=1073741824',
+    'net.ipv4.ipfrag_time=2',
+    'net.ipv6.ip6frag_time=2',
 
-# set CPUs into performance mode
-printcmd('ssh', $lnx_l_ssh, 'cpupower', 'frequency-set', '-g', 'performance');
-printcmd('ssh', $lnx_r_ssh, 'cpupower', 'frequency-set', '-g', 'performance');
+    # allow TCP with buffers up to 64MB
+    'net.core.rmem_max=67108864',
 
-# allow TCP with buffers up to 64MB
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.core.rmem_max=67108864');
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.core.rmem_max=67108864');
+    # increase Linux autotuning TCP buffer limit to 32MB
+    'net.ipv4.tcp_rmem="4096 87380 33554432"',
+    'net.ipv4.tcp_wmem="4096 65536 33554432"',
 
-# increase Linux autotuning TCP buffer limit to 32MB
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_rmem="4096 87380 33554432"');
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.tcp_rmem="4096 87380 33554432"');
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_wmem="4096 65536 33554432"');
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.tcp_wmem="4096 65536 33554432"');
-
-# recommended for hosts with jumbo frames enabled
-printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_mtu_probing=1');
-printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.tcp_mtu_probing=1');
+    # recommended for hosts with jumbo frames enabled
+    'net.ipv4.tcp_mtu_probing=1',
+);
+foreach my $lnx_ssh ($lnx_l_ssh, $lnx_r_ssh) {
+    # set CPUs into performance mode
+    printcmd('ssh', $lnx_ssh, 'cpupower', 'frequency-set', '-g', 'performance');
+    foreach my $sysctl (@lnx_sysctls) {
+	printcmd('ssh', $lnx_ssh, 'sysctl', $sysctl);
+    }
+}
 
 eval { tcpbench_service() };
 eval { tcpbench_init() };
