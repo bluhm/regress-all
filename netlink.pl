@@ -35,7 +35,7 @@ my @startcmd = ($0, @ARGV);
 
 my @allifaces = qw(none bge bnxt em ice igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
-my @allpseudos = qw(none bridge carp gif gif6 gre veb vlan vxlan wg);
+my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg);
 my @alltestmodes = sort qw(all icmp tcp udp splice mcast iperf trex);
 
 my %opts;
@@ -667,6 +667,15 @@ if ($pseudo eq 'aggr') {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
     }
     $lnx_ipdev = $lnx_pdev;
+} elsif ($pseudo eq 'trunk') {
+    printcmd('ifconfig', 'trunk0', 'create');
+    printcmd('ifconfig', 'trunk1', 'create');
+    printcmd('ifconfig', 'trunk0', 'trunkport', $obsd_l_if);
+    printcmd('ifconfig', 'trunk1', 'trunkport', $obsd_r_if);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    $obsd_l_ipdev = "trunk0";
+    $obsd_r_ipdev = "trunk1";
 } elsif ($pseudo eq 'veb') {
     printcmd('ifconfig', 'veb0', 'create');
     printcmd('ifconfig', 'vport0', 'create');
@@ -861,7 +870,7 @@ if ($pseudo eq 'aggr') {
     }
     $lnx_ipdev = $lnx_pdev;
 }
-# XXX: trunk, tpmr, nipsec
+# XXX: tpmr, ipsec
 
 # configure OpenBSD addresses
 
