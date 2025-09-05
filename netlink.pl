@@ -426,6 +426,24 @@ printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.ipfrag_time=2');
 printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv6.ip6frag_time=2');
 printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv6.ip6frag_time=2');
 
+# set CPUs into performance mode
+printcmd('ssh', $lnx_l_ssh, 'cpupower', 'frequency-set', '-g', 'performance');
+printcmd('ssh', $lnx_r_ssh, 'cpupower', 'frequency-set', '-g', 'performance');
+
+# allow TCP with buffers up to 64MB
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.core.rmem_max=67108864');
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.core.rmem_max=67108864');
+
+# increase Linux autotuning TCP buffer limit to 32MB
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_rmem=4096 87380 33554432');
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.tcp_rmem=4096 87380 33554432');
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_wmem=4096 65536 33554432');
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.tcp_wmem=4096 65536 33554432');
+
+# recommended for hosts with jumbo frames enabled
+printcmd('ssh', $lnx_l_ssh, 'sysctl', 'net.ipv4.tcp_mtu_probing=1');
+printcmd('ssh', $lnx_r_ssh, 'sysctl', 'net.ipv4.tcp_mtu_probing=1');
+
 eval { tcpbench_service() };
 eval { tcpbench_init() };
 tcpbench_rc();
