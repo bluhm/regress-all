@@ -306,12 +306,27 @@ sub good {
     my $netstat = "$test.stats-netstat-diff.txt";
     open(my $fh, '<', $netstat) or die("Could not open '$netstat'");
     while (<$fh>) {
-	$reason = "XPASS" if /error/;
+	next unless /error/;
+	$reason = "XPASS";
+	last;
     }
     my $kstat = "$test.stats-kstat_${obsd_l_if}:::_${obsd_r_if}:::-diff.txt";
-    open($fh, '<', $kstat) or die("Could not open '$kstat'");
-    while (<$fh>) {
-	$reason = "XPASS" if /oactive:/;
+    for (my $i = 5; $i > 0; $i--) {
+	open($fh, '<', $kstat) or die("Could not open '$kstat'");
+	while (<$fh>) {
+	    next unless /oactive:/;
+	    if ($i > 1) {
+		# may be transient error, try again one second later
+		print "kstat waiting: $i\n" if $opts{v};
+		sleep(1);
+		statistics($test, "after");
+		generate_diff_kstat($test, "${obsd_l_if}:::_${obsd_r_if}:::");
+	    } else {
+		print "kstat oactive: $i\n" if $opts{v};
+		$reason = "XPASS";
+	    }
+	    last;
+	}
     }
 
     print $log "\n$reason\t$test\tDuration $duration\n" if $log;
