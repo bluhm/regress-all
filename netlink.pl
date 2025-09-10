@@ -296,13 +296,12 @@ sub bad {
 
 sub good {
     my ($test, $diff, $log) = @_;
+    my $reason = "PASS";
     my $duration = sprintf("%dm%02d.%02ds", $diff/60, $diff%60, 100*$diff%100);
 
     statistics($test, "after");
-    generate_diff_netstat($test);
-    generate_diff_kstat($test, "${obsd_l_if}:::_${obsd_r_if}:::");
 
-    my $reason = "PASS";
+    generate_diff_netstat($test);
     my $netstat = "$test.stats-netstat-diff.txt";
     open(my $fh, '<', $netstat) or die("Could not open '$netstat'");
     while (<$fh>) {
@@ -310,24 +309,29 @@ sub good {
 	$reason = "XPASS";
 	last;
     }
-    my $kstat = "$test.stats-kstat_${obsd_l_if}:::_${obsd_r_if}:::-diff.txt";
+
+    my $kstat = "$test.stats-kstat_${obsd_l_if}:::_${obsd_r_if}:::-after.txt";
     for (my $i = 5; $i > 0; $i--) {
 	open($fh, '<', $kstat) or die("Could not open '$kstat'");
-	while (<$fh>) {
-	    next unless /oactive:/;
+	my $line;
+	while ($line = <$fh>) {
+	    next unless $line =~ /oactive: true/;
 	    if ($i > 1) {
 		# may be transient error, try again one second later
 		print "kstat waiting: $i\n" if $opts{v};
 		sleep(1);
 		statistics($test, "after");
-		generate_diff_kstat($test, "${obsd_l_if}:::_${obsd_r_if}:::");
 	    } else {
 		print "kstat oactive: $i\n" if $opts{v};
 		$reason = "XPASS";
 	    }
+	    # oactive was found, stop searching
 	    last;
 	}
+	# if no oactive was found, terminate
+	last unless $line;
     }
+    generate_diff_kstat($test, "${obsd_l_if}:::_${obsd_r_if}:::");
 
     print $log "\n$reason\t$test\tDuration $duration\n" if $log;
     print "\n$reason\t$test\tDuration $duration\n\n" if $opts{v};
