@@ -3,9 +3,14 @@ bash
 binutils
 bsdextrautils
 bsdutils
+build-essential
 bzip2
 ca-certificates
+doas
+ethtool
+firmware-intel-misc
 gcc
+git
 gzip
 hping3
 ifupdown
@@ -23,6 +28,7 @@ iputils-ping
 iputils-tracepath
 libbsd-dev
 libevent-dev
+linux-cpupower
 make
 manpages
 net-tools
@@ -31,8 +37,12 @@ nvi
 openntpd
 perl
 pkgconf
+python-is-python3
+python3-setuptools
+python3-standard-pipes
 qemu-guest-agent
 rsync
+scapy
 tcpbench
 tcpdump
 tmux
@@ -41,3 +51,4 @@ vim-tiny
 wget
 wireguard
 xz-utils
+zlib1g-dev
