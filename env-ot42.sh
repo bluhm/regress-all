@@ -4,6 +4,9 @@ export NETLINK_LINE=2
 export LINUX_IF=enp1s0f0np0
 export LINUX_LEFT_SSH=root@lt40
 export LINUX_RIGHT_SSH=root@lt43
+export TREX_LEFT_IF=01:00.0
+export TREX_RIGHT_IF=01:00.1
+export TREX_SSH=root@lt104
 
 # allow to manually run perform tests frag and splice on netlink hosts
 
