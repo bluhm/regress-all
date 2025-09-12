@@ -1824,6 +1824,20 @@ foreach my $t (@tests) {
 	} elsif (grep { /^make$/ } @runcmd) {
 	    # kernel build usually takes longer than 5 minutes
 	    $sampletime = 300;
+	} elsif ($test =~ /_-d_10$/) {
+	    # trex uses -d for runtime and needs space before option string
+	    my $isd;
+	    foreach (@runcmd) {
+		if (/^-d$/) {
+		    $isd = 1;
+		    next;
+		}
+		if ($isd) {
+		    s/^10$/80/;
+		    $isd = 0;
+		}
+	    }
+	    $sampletime = 60;
 	} else {
 	    next;
 	}
