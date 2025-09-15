@@ -35,7 +35,8 @@ my @startcmd = ($0, @ARGV);
 
 my @allifaces = qw(none bge bnxt em ice igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
-my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg);
+my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg
+    bridge+vlan vlan+bridge veb+vlan vlan+veb);
 my @alltestmodes = sort qw(all icmp tcp udp splice mcast iperf trex);
 
 my %opts;
@@ -524,7 +525,7 @@ if ($pseudo eq 'aggr') {
     $obsd_r_ipdev = undef;
     ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
 
-    # left and rigt network is flat by reducing prefix length
+    # left and right network is flat by reducing prefix length
     ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
 	($obsd_l_net_flat, $obsd_l_prefix_flat,
 	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
@@ -695,7 +696,7 @@ if ($pseudo eq 'aggr') {
     $obsd_r_ipdev = undef;
     ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
 
-    # left and rigt network is flat by reducing prefix length
+    # left and right network is flat by reducing prefix length
     ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
 	($obsd_l_net_flat, $obsd_l_prefix_flat,
 	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
@@ -873,6 +874,193 @@ if ($pseudo eq 'aggr') {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
     }
     $lnx_ipdev = $lnx_pdev;
+} elsif ($pseudo eq 'bridge+vlan') {
+    printcmd('ifconfig', 'bridge0', 'create');
+    printcmd('ifconfig', 'vether0', 'create');
+    printcmd('ifconfig', 'bridge0', 'add', $obsd_l_if);
+    printcmd('ifconfig', 'bridge0', 'add', $obsd_r_if);
+    printcmd('ifconfig', 'bridge0', 'add', 'vether0');
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    printcmd('ifconfig', 'bridge0', 'up');
+
+    # OpenBSD bridge port has only one vether interface
+    $obsd_l_ipdev = "vether0";
+    $obsd_r_ipdev = undef;
+    ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
+
+    # left and right network is flat by reducing prefix length
+    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
+	($obsd_l_net_flat, $obsd_l_prefix_flat,
+	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
+    ($lnx_r_net, $lnx_r_net6) = ($lnx_r_net_flat, $lnx_r_net6_flat);
+    (@lnx_r_net_range, @lnx_r_net6_range) =
+	(@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
+
+    # bridged vlans have a common id
+    my $vlan_vnetid = "2${line}0";
+
+    printcmd('ifconfig', 'vlan0', 'create');
+    printcmd('ifconfig', 'vlan0', 'parent', $obsd_l_ipdev,
+	'vnetid', $vlan_vnetid);
+    printcmd('ifconfig', $obsd_l_ipdev, 'up');
+    $obsd_l_ipdev = "vlan0";
+
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'modprobe', '8021q');
+    }
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_vnetid);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_vnetid);
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
+    }
+    $lnx_ipdev = $lnx_pdev;
+} elsif ($pseudo eq 'vlan+bridge') {
+    my $vlan_l_vnetid = "2${line}1";
+    my $vlan_r_vnetid = "2${line}2";
+
+    printcmd('ifconfig', 'vlan0', 'create');
+    printcmd('ifconfig', 'vlan1', 'create');
+    printcmd('ifconfig', 'vlan0', 'parent', $obsd_l_if,
+	'vnetid', $vlan_l_vnetid);
+    printcmd('ifconfig', 'vlan1', 'parent', $obsd_r_if,
+	'vnetid', $vlan_r_vnetid);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    $obsd_l_ipdev = "vlan0";
+    $obsd_r_ipdev = "vlan1";
+
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'modprobe', '8021q');
+    }
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_l_vnetid);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_r_vnetid);
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
+    }
+    $lnx_ipdev = $lnx_pdev;
+
+    printcmd('ifconfig', 'bridge0', 'create');
+    printcmd('ifconfig', 'vether0', 'create');
+    printcmd('ifconfig', 'bridge0', 'add', $obsd_l_ipdev);
+    printcmd('ifconfig', 'bridge0', 'add', $obsd_r_ipdev);
+    printcmd('ifconfig', 'bridge0', 'add', 'vether0');
+    printcmd('ifconfig', $obsd_l_ipdev, 'up');
+    printcmd('ifconfig', $obsd_r_ipdev, 'up');
+    printcmd('ifconfig', 'bridge0', 'up');
+
+    # OpenBSD bridge port has only one vether interface
+    $obsd_l_ipdev = "vether0";
+    $obsd_r_ipdev = undef;
+    ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
+
+    # left and right network is flat by reducing prefix length
+    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
+	($obsd_l_net_flat, $obsd_l_prefix_flat,
+	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
+    ($lnx_r_net, $lnx_r_net6) = ($lnx_r_net_flat, $lnx_r_net6_flat);
+    (@lnx_r_net_range, @lnx_r_net6_range) =
+	(@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
+} elsif ($pseudo eq 'veb+vlan') {
+    printcmd('ifconfig', 'veb0', 'create');
+    printcmd('ifconfig', 'vport0', 'create');
+    printcmd('ifconfig', 'veb0', 'add', $obsd_l_if);
+    printcmd('ifconfig', 'veb0', 'add', $obsd_r_if);
+    printcmd('ifconfig', 'veb0', 'add', 'vport0');
+    printcmd('ifconfig', 'veb0', 'link0');
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    printcmd('ifconfig', 'veb0', 'up');
+
+    # OpenBSD veb port has only one interface
+    $obsd_l_ipdev = "vport0";
+    $obsd_r_ipdev = undef;
+    ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
+
+    # left and right network is flat by reducing prefix length
+    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
+	($obsd_l_net_flat, $obsd_l_prefix_flat,
+	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
+    ($lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range) =
+	($lnx_r_net_flat, $lnx_r_net6_flat,
+	@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
+
+    # bridged vlans have a common id
+    my $vlan_vnetid = "2${line}0";
+
+    printcmd('ifconfig', 'vlan0', 'create');
+    printcmd('ifconfig', 'vlan0', 'parent', $obsd_l_ipdev,
+	'vnetid', $vlan_vnetid);
+    printcmd('ifconfig', $obsd_l_ipdev, 'up');
+    $obsd_l_ipdev = "vlan0";
+
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'modprobe', '8021q');
+    }
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_vnetid);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_vnetid);
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
+    }
+    $lnx_ipdev = $lnx_pdev;
+} elsif ($pseudo eq 'vlan+veb') {
+    my $vlan_l_vnetid = "2${line}1";
+    my $vlan_r_vnetid = "2${line}2";
+
+    printcmd('ifconfig', 'vlan0', 'create');
+    printcmd('ifconfig', 'vlan1', 'create');
+    printcmd('ifconfig', 'vlan0', 'parent', $obsd_l_if,
+	'vnetid', $vlan_l_vnetid);
+    printcmd('ifconfig', 'vlan1', 'parent', $obsd_r_if,
+	'vnetid', $vlan_r_vnetid);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    $obsd_l_ipdev = "vlan0";
+    $obsd_r_ipdev = "vlan1";
+
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'modprobe', '8021q');
+    }
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_l_vnetid);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_r_vnetid);
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
+    }
+    $lnx_ipdev = $lnx_pdev;
+
+    printcmd('ifconfig', 'veb0', 'create');
+    printcmd('ifconfig', 'vport0', 'create');
+    printcmd('ifconfig', 'veb0', 'add', $obsd_l_ipdev);
+    printcmd('ifconfig', 'veb0', 'add', $obsd_r_ipdev);
+    printcmd('ifconfig', 'veb0', 'add', 'vport0');
+    printcmd('ifconfig', $obsd_l_ipdev, 'up');
+    printcmd('ifconfig', $obsd_r_ipdev, 'up');
+    printcmd('ifconfig', 'veb0', 'up');
+
+    # OpenBSD veb port has only one interface
+    $obsd_l_ipdev = "vport0";
+    $obsd_r_ipdev = undef;
+    ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
+
+    # left and right network is flat by reducing prefix length
+    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
+	($obsd_l_net_flat, $obsd_l_prefix_flat,
+	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
+    ($lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range) =
+	($lnx_r_net_flat, $lnx_r_net6_flat,
+	@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
 }
 # XXX: tpmr, ipsec
 
