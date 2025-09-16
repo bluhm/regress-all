@@ -307,13 +307,13 @@ sub html_hier_test_row {
     my $maxval = max map { scalar @{$_ || []} } values %$vt;
     for (my $i = 0; $i < $maxval; $i++) {
 	my $value0 = first { $_ } map { $_->[$i] } values %$vt;
-	my ($name0, $unit0) = ($value0->{name}, $value0->{unit});
+	my ($name0, $unit0) = ($value0->{name} // "", $value0->{unit} // "");
 	print $html "  <tr>\n";
 	print $html "    <td><code>$name0</code></td>\n";
 	foreach my $hv (@hiers) {
 	    my $tv = $td->{$hv->{key}};
-	    if ($tv && ($tv->{status} =~ /^X?PASS$/)) {
-		my $vv = $vt->{$hv->{key}};
+	    my $vv = $vt->{$hv->{key}};
+	    if ($tv && ($tv->{status} =~ /^X?PASS$/) && $vv->[$i]) {
 		print $html "    <td>$vv->[$i]{number}</td>\n";
 	    } else {
 		print $html "    <td></td>\n";
@@ -358,11 +358,12 @@ sub html_hier_test_row_utilization {
 	$status =~ /^X?PASS$/
 	    or next;
 	for (my $i = 0; $i < $maxval; $i++) {
-	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
-	    if (($value0 && $value0->{name} =~ /^(recv|receiver|rx)$/) ||
-		$maxval == 1) {
+	    my $value0 = first { $_ } map { $_->[$i] } values %$vt
+		or next;
+	    if ($maxval == 1 || ($value0->{name} &&
+		$value0->{name} =~ /^(recv|receiver|rx)$/)) {
 		    my $vv = $vt->{$hv->{key}};
-		    $valsum += $vv->[$i]{number};
+		    $valsum += $vv->[$i]{number} // 0;
 	    }
 	}
     }
@@ -380,14 +381,16 @@ sub html_hier_test_row_utilization {
 	my $status = $tv->{status} || "NONE";
 	my ($unit, $iface, $value);
 	for (my $i = 0; $i < $maxval; $i++) {
-	    my $value0 = first { $_ } map { $_->[$i] } values %$vt;
-	    if ($value0->{name} =~ /^(recv|receiver|rx)$/ || $maxval == 1) {
-		$unit = $value0->{unit} || "";
-		$iface = $hv->{iface};
-		if ($status =~ /^X?PASS$/) {
-		    my $vv = $vt->{$hv->{key}};
-		    $value = $vv->[$i]{number};
-		}
+	    my $value0 = first { $_ } map { $_->[$i] } values %$vt
+		or next;
+	    if ($maxval == 1 || ($value0->{name} &&
+		$value0->{name} =~ /^(recv|receiver|rx)$/)) {
+		    $unit = $value0->{unit} || "";
+		    $iface = $hv->{iface};
+		    if ($status =~ /^X?PASS$/) {
+			my $vv = $vt->{$hv->{key}};
+			$value = $vv->[$i]{number};
+		    }
 	    }
 	}
 	unless (defined $value) {
