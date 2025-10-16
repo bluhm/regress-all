@@ -33,15 +33,17 @@ my @pluralys = qw(entr);
 my @plurals = qw(ACK Interface SYN TDB accept ack agreement allocation
     association attempt authentication byte calculation call change
     checksum cleanup collision connection datagram decapsulation
-    decryption destination drop duplicate episode error failure field
+    decryption destination drop episode error failure field
     flow fragment frame gap gateway global insert jump llx local
     lookup mbuf message mismatche node notification option overflow
     packet prediction probe quer redirect replay report request
     response rexmit route scan seed segment slide state table
     timeout transition upcall use);
+my @noplurals = qw(duplicate);
 my $regex_es = join('|', @plurales);
 my $regex_ys = join('|', @pluralys);
 my $regex_s = join('|', @plurals);
+my $regex_nos = join('|', @noplurals);
 
 sub canonicalize_key {
     local $_ = shift;
@@ -49,6 +51,7 @@ sub canonicalize_key {
     s/\b(?<=$regex_es)\b/es/;
     s/\b(?<=$regex_ys)\b/ies/;
     s/\b(?<=$regex_s)\b/s/;
+    s/\b(?<=regex_nos)s\b//;
     return $_;
 }
 
