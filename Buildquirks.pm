@@ -1157,6 +1157,11 @@ my %quirks = (
 	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	commands => [ "reboot" ],
     },
+# OpenBSD 7.7, newvers 2024-10-08Z
+    '2025-10-12T19:04:00Z' => {
+	comment => "OpenBSD/amd64 7.8 release",
+	release => '7.8',
+    },
 );
 
 #### Patches ####
