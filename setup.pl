@@ -76,8 +76,7 @@ foreach my $mode (@ARGV) {
 }
 my $release;
 if ($opts{r} && $opts{r} ne "current") {
-    die "Upgrade to release not supported"
-	if $mode{upgrade} || $mode{sysupgrade};
+    die "Upgrade to release not supported" if $mode{upgrade};
     ($release = $opts{r}) =~ /^\d+\.\d$/
 	or die "Release '$release' must be major.minor format";
 }
@@ -109,7 +108,7 @@ $cvspath = "sys" if $mode{kernel};
 power_up() if (!$mode{install} && !$mode{upgrade}) || $mode{keep};
 install_pxe($release) if $mode{install} && !$mode{keep};
 upgrade_pxe() if $mode{upgrade} && !$mode{keep};
-sysupgrade_fetch() if $mode{sysupgrade};
+sysupgrade_fetch($release) if $mode{sysupgrade};
 get_version();
 copy_scripts();
 checkout_cvs($release) if $mode{install} || $mode{upgrade} ||
