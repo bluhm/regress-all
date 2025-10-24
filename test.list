@@ -221,6 +221,7 @@ sys/altivec_ast
 sys/arch/amd64/ddb
 sys/arch/amd64/dump_tables
 sys/arch/amd64/fpu
+sys/arch/amd64/seves_mmio
 sys/arch/amd64/vmm
 sys/arch/hppa
 sys/arch/i386
