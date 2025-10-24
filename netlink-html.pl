@@ -763,6 +763,8 @@ sub parse_result_files {
 		# direct ssh login happens only to client
 		$desc =~ s/(?<=^ssh[ _])root\@lt[0-9]+(?=[ _])/{left}/g;
 		if ($desc =~ /^netbench\.pl[ _]/) {
+		    # netbench uses dynamic bitrate based on link speed
+		    $desc =~ s/(?<=[ _]-B)[0-9]+(?=[ _])/{bitrate}/g;
 		    # netbench does client and server login
 		    $desc =~ s/(?<=[ _]-c)root\@lt[0-9]+(?=[ _])/{left}/g;
 		    $desc =~ s/(?<=[ _]-s)root\@lt[0-9]+(?=[ _])/{right}/g;

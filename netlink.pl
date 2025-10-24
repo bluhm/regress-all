@@ -147,7 +147,7 @@ if ($stress) {
     );
     foreach my $k (sort keys %sysctl) {
 	my $v = $sysctl{$k};
-	my @cmd = ('/sbin/sysctl', "$k=$v");
+	my @cmd = ('sysctl', "$k=$v");
 	system(@cmd)
 	    and die "Sysctl '$k=$v' failed: $?";
     }
@@ -342,7 +342,21 @@ sub good {
 }
 
 # unconfigure all interfaces used in testing
-my @allinterfaces = map { m{^([a-z]+\d+):} } `ifconfig`;
+my @ifconfig = `ifconfig -a`
+    or die "ifconfig -a failed: $?";
+my (@allinterfaces, %ifrate, $ifname);
+foreach (@ifconfig) {
+    if (/^([a-z]+\d+):/) {
+	$ifname = $1;
+	push @allinterfaces, $ifname;
+    } elsif (/^\s+media:.*\D(\d+)base/) {
+	$ifrate{$ifname} = $1 * 1_000_000;
+    } elsif (/^\s+media:.*\D(\d+)Gbase/) {
+	$ifrate{$ifname} = $1 * 1_000_000_000;
+    }
+}
+my $bitrate = $ifrate{$iface} || 10_000_000_000;
+print "iface $iface, bitrate $bitrate\n";
 
 foreach my $if (@allinterfaces) {
     unless ($if =~ m{^(lo|enc|pflog|${management_if})}) {
@@ -448,9 +462,9 @@ eval { tcpbench_init() };
 tcpbench_rc();
 
 if ($modify eq 'nopf') {
-    printcmd('/sbin/pfctl', '-d');
+    printcmd('pfctl', '-d');
 } else {
-    printcmd('/sbin/pfctl', '-e', '-f', '/etc/pf.conf');
+    printcmd('pfctl', '-e', '-f', '/etc/pf.conf');
 }
 if ($modify eq 'notso') {
     printcmd('sysctl', 'net.inet.tcp.tso=0');
@@ -465,7 +479,7 @@ exit if $iface eq "none";
 
 my %hwfeatures;
 foreach my $if ($obsd_l_if, $obsd_r_if) {
-    my @cmd = ('/sbin/ifconfig', $if, 'hwfeatures');
+    my @cmd = ('ifconfig', $if, 'hwfeatures');
     open(my $fh, '-|', @cmd)
 	or die "Open pipe from command '@cmd' failed: $!";
     my @hwf = grep { /^\thwfeatures=/ } <$fh>;
@@ -483,9 +497,9 @@ foreach my $if (sort keys %hwfeatures) {
     my $hwlro = ($hwf =~ /\bLRO\b/);
     if ($hwlro) {
 	if ($modify eq 'nolro') {
-	    printcmd('/sbin/ifconfig', $if, '-tcplro');
+	    printcmd('ifconfig', $if, '-tcplro');
 	} else {
-	    printcmd('/sbin/ifconfig', $if, 'tcplro');
+	    printcmd('ifconfig', $if, 'tcplro');
 	}
     }
     my ($hwhardmtu) = ($hwf =~ /\bhardmtu (\d+)\b/);
@@ -496,7 +510,7 @@ foreach my $if (sort keys %hwfeatures) {
 	$obsd_l_mtu = $lnx_l_mtu = $mtu if $if eq $obsd_l_if;
 	$obsd_r_mtu = $lnx_r_mtu = $mtu if $if eq $obsd_r_if;
     }
-    printcmd('/sbin/ifconfig', $if, 'mtu', $mtu);
+    printcmd('ifconfig', $if, 'mtu', $mtu);
 }
 
 if ($pseudo eq 'aggr') {
@@ -1518,7 +1532,7 @@ foreach my $parallel (0, 10) {
 	push @tests, {
 	    testcmd => [$netbench,
 		'-v',
-		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
 		'-b1000000',
 		($parallel ? ('-d1') : ()),
 		"-f$frame",
@@ -1533,7 +1547,7 @@ foreach my $parallel (0, 10) {
 	push @tests, {
 	    testcmd => [$netbench,
 		'-v',
-		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
 		'-b1000000',
 		($parallel ? ('-d1') : ()),
 		"-f$frame",
@@ -1548,7 +1562,7 @@ foreach my $parallel (0, 10) {
 	push @tests, {
 	    testcmd => [$netbench,
 		'-v',
-		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
 		'-b1000000',
 		($parallel ? ('-d1') : ()),
 		"-f$frame",
@@ -1564,7 +1578,7 @@ foreach my $parallel (0, 10) {
 	push @tests, {
 	    testcmd => [$netbench,
 		'-v',
-		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
 		'-b1000000',
 		($parallel ? ('-d1') : ()),
 		"-f$frame",
@@ -1580,7 +1594,7 @@ foreach my $parallel (0, 10) {
 	push @tests, {
 	    testcmd => [$netbench,
 		'-v',
-		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
 		'-b1000000',
 		($parallel ? ('-d1') : ()),
 		"-f$frame",
@@ -1595,7 +1609,7 @@ foreach my $parallel (0, 10) {
 	push @tests, {
 	    testcmd => [$netbench,
 		'-v',
-		($parallel ? ('-B'.(10000000000 / $parallel)) : ()),
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
 		'-b1000000',
 		($parallel ? ('-d1') : ()),
 		"-f$frame",
@@ -1671,7 +1685,7 @@ foreach my $frame (0, 1) {
     push @tests, {
 	testcmd => [$netbench,
 	    '-v',
-	    '-B1000000000',
+	    '-B'.($bitrate / 10),
 	    '-b1000000',
 	    '-d1',
 	    "-f$frame",
@@ -1688,7 +1702,7 @@ foreach my $frame (0, 1) {
     push @tests, {
 	testcmd => [$netbench,
 	    '-v',
-	    '-B1000000000',
+	    '-B'.($bitrate / 10),
 	    '-b1000000',
 	    '-d1',
 	    "-f$frame",
@@ -1706,7 +1720,7 @@ foreach my $frame (0, 1) {
 push @tests, {
     testcmd => [$netbench,
 	'-v',
-	'-B1000000000',
+	'-B'.($bitrate / 10),
 	'-b1000000',
 	'-d1',
 	'-f1',
@@ -1723,7 +1737,7 @@ push @tests, {
 push @tests, {
     testcmd => [$netbench,
 	'-v',
-	'-B1000000000',
+	'-B'.($bitrate / 10),
 	'-b1000000',
 	'-d1',
 	'-f1',
@@ -1740,7 +1754,7 @@ push @tests, {
 push @tests, {
     testcmd => [$netbench,
 	'-v',
-	'-B1000000000',
+	'-B'.($bitrate / 10),
 	'-b1000000',
 	'-d1',
 	'-f1',
@@ -1757,7 +1771,7 @@ push @tests, {
 push @tests, {
     testcmd => [$netbench,
 	'-v',
-	'-B1000000000',
+	'-B'.($bitrate / 10),
 	'-b1000000',
 	'-d1',
 	'-f1',
