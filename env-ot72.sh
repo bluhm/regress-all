@@ -1,6 +1,6 @@
 export MANAGEMENT_IF=vio2
 export SKIP_IF=vio2
-export NETLINK_LINE=9
+export NETLINK_LINE=2
 export LINUX_IF=eth1
 export LINUX_LEFT_SSH=root@lt70
 export LINUX_RIGHT_SSH=root@lt75
