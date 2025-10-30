@@ -1527,6 +1527,64 @@ push @tests, (
 	finalize => \&tcpbench_finalize,
     }
 ) if ($testmode{tcp6});
+push @tests, {
+    testcmd => \&tcpbench_server_shutdown,
+} if ($testmode{tcp4} || $testmode{tcp6} ||
+    $testmode{splice4} || $testmode{splice6});
+foreach my $mode (qw(tcpsplice tcpcopy)) {
+    push @tests, (
+	{
+	    testcmd => [$netbench,
+		'-v',
+		'-b1000000',
+		"-c$lnx_l_ssh",
+		"-s$lnx_r_ssh",
+		"-A$obsd_l_addr_range[0]",
+		"-a$lnx_r_addr_range[0]",
+		'-t10',
+		$mode],
+	    parser => \&netbench_parser,
+	}, {
+	    testcmd => [$netbench,
+		'-v',
+		'-b1000000',
+		'-N10',
+		"-c$lnx_l_ssh",
+		"-s$lnx_r_ssh",
+		"-A$obsd_l_addr_range[0]",
+		"-a$lnx_r_addr_range[0]",
+		'-t10',
+		$mode],
+	    parser => \&netbench_parser,
+	}
+    ) if $testmode{splice4};
+    push @tests, (
+	{
+	    testcmd => [$netbench,
+		'-v',
+		'-b1000000',
+		"-c$lnx_l_ssh",
+		"-s$lnx_r_ssh",
+		"-A$obsd_l_addr6_range[0]",
+		"-a$lnx_r_addr6_range[0]",
+		'-t10',
+		$mode],
+	    parser => \&netbench_parser,
+	}, {
+	    testcmd => [$netbench,
+		'-v',
+		'-b1000000',
+		'-N10',
+		"-c$lnx_l_ssh",
+		"-s$lnx_r_ssh",
+		"-A$obsd_l_addr6_range[0]",
+		"-a$lnx_r_addr6_range[0]",
+		'-t10',
+		$mode],
+	    parser => \&netbench_parser,
+	}
+    ) if $testmode{splice6};
+}
 foreach my $parallel (0, 10) {
     foreach my $frame (0, 1, 2) {
 	push @tests, {
@@ -1622,6 +1680,42 @@ foreach my $parallel (0, 10) {
 	    parser => \&netbench_parser,
 	} if $testmode{udp6};
     }
+}
+foreach my $frame (0, 1) {
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B'.($bitrate / 10),
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i0',
+	    '-N10',
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-A$obsd_l_addr_range[0]",
+	    "-a$lnx_r_addr_range[0]",
+	    '-t10',
+	    'udpsplice'],
+	parser => \&netbench_parser,
+    } if $testmode{splice4};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    '-B'.($bitrate / 10),
+	    '-b1000000',
+	    '-d1',
+	    "-f$frame",
+	    '-i0',
+	    '-N10',
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-A$obsd_l_addr6_range[0]",
+	    "-a$lnx_r_addr6_range[0]",
+	    '-t10',
+	    'udpsplice'],
+	parser => \&netbench_parser,
+    } if $testmode{splice6};
 }
 {
     my $parallel = 10;
@@ -1724,100 +1818,6 @@ foreach my $parallel (0, 10) {
 	    'udpbench'],
 	parser => \&netbench_parser,
     } if $testmode{mmsg6};
-}
-push @tests, {
-    testcmd => \&tcpbench_server_shutdown,
-} if ($testmode{tcp4} || $testmode{tcp6} ||
-    $testmode{splice4} || $testmode{splice6});
-foreach my $mode (qw(tcpsplice tcpcopy)) {
-    push @tests, (
-	{
-	    testcmd => [$netbench,
-		'-v',
-		'-b1000000',
-		"-c$lnx_l_ssh",
-		"-s$lnx_r_ssh",
-		"-A$obsd_l_addr_range[0]",
-		"-a$lnx_r_addr_range[0]",
-		'-t10',
-		$mode],
-	    parser => \&netbench_parser,
-	}, {
-	    testcmd => [$netbench,
-		'-v',
-		'-b1000000',
-		'-N10',
-		"-c$lnx_l_ssh",
-		"-s$lnx_r_ssh",
-		"-A$obsd_l_addr_range[0]",
-		"-a$lnx_r_addr_range[0]",
-		'-t10',
-		$mode],
-	    parser => \&netbench_parser,
-	}
-    ) if $testmode{splice4};
-    push @tests, (
-	{
-	    testcmd => [$netbench,
-		'-v',
-		'-b1000000',
-		"-c$lnx_l_ssh",
-		"-s$lnx_r_ssh",
-		"-A$obsd_l_addr6_range[0]",
-		"-a$lnx_r_addr6_range[0]",
-		'-t10',
-		$mode],
-	    parser => \&netbench_parser,
-	}, {
-	    testcmd => [$netbench,
-		'-v',
-		'-b1000000',
-		'-N10',
-		"-c$lnx_l_ssh",
-		"-s$lnx_r_ssh",
-		"-A$obsd_l_addr6_range[0]",
-		"-a$lnx_r_addr6_range[0]",
-		'-t10',
-		$mode],
-	    parser => \&netbench_parser,
-	}
-    ) if $testmode{splice6};
-}
-foreach my $frame (0, 1) {
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    '-B'.($bitrate / 10),
-	    '-b1000000',
-	    '-d1',
-	    "-f$frame",
-	    '-i0',
-	    '-N10',
-	    "-c$lnx_l_ssh",
-	    "-s$lnx_r_ssh",
-	    "-A$obsd_l_addr_range[0]",
-	    "-a$lnx_r_addr_range[0]",
-	    '-t10',
-	    'udpsplice'],
-	parser => \&netbench_parser,
-    } if $testmode{splice4};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    '-B'.($bitrate / 10),
-	    '-b1000000',
-	    '-d1',
-	    "-f$frame",
-	    '-i0',
-	    '-N10',
-	    "-c$lnx_l_ssh",
-	    "-s$lnx_r_ssh",
-	    "-A$obsd_l_addr6_range[0]",
-	    "-a$lnx_r_addr6_range[0]",
-	    '-t10',
-	    'udpsplice'],
-	parser => \&netbench_parser,
-    } if $testmode{splice6};
 }
 push @tests, {
     testcmd => [$netbench,
