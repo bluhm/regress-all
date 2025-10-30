@@ -36,7 +36,7 @@ my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg
     bridge+vlan vlan+bridge veb+vlan vlan+veb);
 my @allsetupmodes = (qw(build install upgrade sysupgrade keep kernel reboot
     tools), "cvs,build", "cvs,kernel");
-my @alltestmodes = qw(all icmp tcp udp splice mcast iperf trex);
+my @alltestmodes = qw(all icmp tcp udp splice mcast mmsg iperf trex);
 
 my %opts;
 getopts('b:c:d:D:h:i:m:N:P:ps:v', \%opts) or do {

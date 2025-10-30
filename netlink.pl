@@ -37,7 +37,7 @@ my @allifaces = qw(none bge bnxt em ice igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg
     bridge+vlan vlan+bridge veb+vlan vlan+veb);
-my @alltestmodes = sort qw(all icmp tcp udp splice mcast iperf trex);
+my @alltestmodes = sort qw(all icmp tcp udp splice mcast mmsg iperf trex);
 
 my %opts;
 getopts('b:c:e:i:m:st:v', \%opts) or do {
@@ -1622,6 +1622,108 @@ foreach my $parallel (0, 10) {
 	    parser => \&netbench_parser,
 	} if $testmode{udp6};
     }
+}
+{
+    my $parallel = 10;
+    my $frame = 0;
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+	    '-b1000000',
+	    ($parallel ? ('-d1') : ()),
+	    "-f$frame",
+	    ($parallel ? ('-i0') : ()),
+	    '-m1000',
+	    ($parallel ? ("-N$parallel") : ()),
+	    "-c$lnx_l_ssh",
+	    "-a$obsd_l_addr_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{mmsg4};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+	    '-b1000000',
+	    ($parallel ? ('-d1') : ()),
+	    "-f$frame",
+	    ($parallel ? ('-i0') : ()),
+	    '-m1000',
+	    ($parallel ? ("-N$parallel") : ()),
+	    "-c$lnx_l_ssh",
+	    "-a$obsd_l_addr6_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{mmsg6};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+	    '-b1000000',
+	    ($parallel ? ('-d1') : ()),
+	    "-f$frame",
+	    ($parallel ? ('-i0') : ()),
+	    '-m1000',
+	    ($parallel ? ("-N$parallel") : ()),
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-a$lnx_r_addr_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{mmsg4};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+	    '-b1000000',
+	    ($parallel ? ('-d1') : ()),
+	    "-f$frame",
+	    ($parallel ? ('-i0') : ()),
+	    '-m1000',
+	    ($parallel ? ("-N$parallel") : ()),
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-a$lnx_r_addr6_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{mmsg6};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+	    '-b1000000',
+	    ($parallel ? ('-d1') : ()),
+	    "-f$frame",
+	    ($parallel ? ('-i0') : ()),
+	    '-m1000',
+	    ($parallel ? ("-N$parallel") : ()),
+	    "-s$lnx_r_ssh",
+	    "-a$lnx_r_addr_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{mmsg4};
+    push @tests, {
+	testcmd => [$netbench,
+	    '-v',
+	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+	    '-b1000000',
+	    ($parallel ? ('-d1') : ()),
+	    "-f$frame",
+	    ($parallel ? ('-i0') : ()),
+	    '-m1000',
+	    ($parallel ? ("-N$parallel") : ()),
+	    "-s$lnx_r_ssh",
+	    "-a$lnx_r_addr6_range[0]",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    } if $testmode{mmsg6};
 }
 push @tests, {
     testcmd => \&tcpbench_server_shutdown,
