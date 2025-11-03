@@ -2,6 +2,7 @@ export MANAGEMENT_IF=vio2
 export SKIP_IF=vio2
 export NETLINK_LINE=1
 export LINUX_IF=enp7s0,enp7s0
+export LINUX_DIRECT_IF=enp8s0,enp8s0
 export LINUX_LEFT_SSH=root@lt90,root@lt98
 export LINUX_RIGHT_SSH=root@lt95,root@lt99
 

@@ -34,7 +34,7 @@ my $startdir = getcwd();
 my @startcmd = ($0, @ARGV);
 
 my @allifaces = qw(none bge bnxt em ice igc ix ixl re vio vmx);
-my @allmodifymodes = qw(none jumbo nolro nopf notso);
+my @allmodifymodes = qw(none direct jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg
     bridge+vlan vlan+bridge veb+vlan vlan+veb);
 my @alltestmodes = sort qw(all icmp tcp udp splice mcast mmsg iperf trex);
@@ -73,6 +73,13 @@ my $management_if = $ENV{MANAGEMENT_IF}
     or die "MANAGEMENT_IF is not in env";
 my @linux_if = split(/,/, $ENV{LINUX_IF} // "")
     or die "LINUX_IF is not in env";
+my @linux_direct_if = split(/,/, $ENV{LINUX_DIRECT_IF} // "");
+if ($modify eq 'direct') {
+    @linux_direct_if > 0
+	or die "LINUX_DIRECT_IF needed in env for modifier direct";
+    @linux_direct_if == @linux_if
+	or die "LINUX_DIRECT_IF and LINUX_IF differ in cardinal";
+}
 my @linux_left_ssh = split(/,/, $ENV{LINUX_LEFT_SSH} // "")
     or die "LINUX_LEFT_SSH is not in env";
 my @linux_right_ssh = split(/,/, $ENV{LINUX_RIGHT_SSH} // "")
@@ -156,6 +163,12 @@ if ($stress) {
 my $ip4prefix = '10.10.';
 my $ip4mshort = '10.';
 my $ip6prefix = 'fdd7:e83e:66bd:10';
+my $pfxlen = 24;
+my $pfxlen_flat = 21;
+my $pfxlen6 = 64;
+my $pfxlen6_flat = 60;
+
+# OpenBSD Left
 
 my $obsd_l_if = $iftype . $left_ifidx;
 my $obsd_l_ipdev = $obsd_l_if;
@@ -164,13 +177,9 @@ my $obsd_l_mtu = 1500;
 my $obsd_l_addr = "${ip4prefix}${line}1.2";
 my $obsd_l_net = "${ip4prefix}${line}1.0/24";
 my $obsd_l_net_flat = "${ip4prefix}${line}0.0/21";
-my $obsd_l_prefix = 24;
-my $obsd_l_prefix_flat = 21;
 my $obsd_l_addr6 = "${ip6prefix}${line}1::2";
 my $obsd_l_net6 = "${ip6prefix}${line}1::/64";
 my $obsd_l_net6_flat = "${ip6prefix}${line}0::/60";
-my $obsd_l_prefix6 = 64;
-my $obsd_l_prefix6_flat = 60;
 
 my @obsd_l_addr_range = map { "$obsd_l_addr$_" } 0..9;
 my @obsd_l_addr6_range = map { "$obsd_l_addr6$_" } 0..9;
@@ -180,16 +189,16 @@ my $obsd_l_tunnel_addr6 = "${ip6prefix}${line}3::2";
 my $obsd_l_tunnel_net6 = "${ip6prefix}${line}3::/64";
 my $mcast_l_tunnel_addr = "234.${ip4mshort}${line}3.1";
 
+# OpenBSD Right
+
 my $obsd_r_if = $iftype . $right_ifidx;
 my $obsd_r_ipdev = $obsd_r_if;
 
 my $obsd_r_mtu = 1500;
 my $obsd_r_addr = "${ip4prefix}${line}2.3";
 my $obsd_r_net = "${ip4prefix}${line}2.0/24";
-my $obsd_r_prefix = 24;
 my $obsd_r_addr6 = "${ip6prefix}${line}2::3";
 my $obsd_r_net6 = "${ip6prefix}${line}2::/64";
-my $obsd_r_prefix6 = 64;
 
 my $obsd_r_tunnel_addr = "${ip4prefix}${line}4.3";
 my $obsd_r_tunnel_net = "${ip4prefix}${line}4.0/24";
@@ -197,9 +206,19 @@ my $obsd_r_tunnel_addr6 = "${ip6prefix}${line}4::3";
 my $obsd_r_tunnel_net6 = "${ip6prefix}${line}3::/64";
 my $mcast_r_tunnel_addr = "234.${ip4mshort}${line}4.1";
 
-my $lnx_if = $linux_if[0];
-my $lnx_pdev = "$lnx_if.$line";
+# Linux Interfaces
+
+my @lnx_ifs = my $lnx_if = $linux_if[0];
+my @lnx_pdevs = my $lnx_pdev = "$lnx_if.$line";
 my $lnx_ipdev = $lnx_if;
+
+my ($lnx_d_if, $lnx_d_pdev);
+if (@linux_direct_if) {
+    push @lnx_ifs, ($lnx_d_if = $linux_direct_if[0]);
+    push @lnx_pdevs, ($lnx_d_pdev = "$lnx_d_if.$line");
+}
+
+# Linux Left
 
 my $lnx_l_mtu = 1500;
 my $lnx_l_addr = "${ip4prefix}${line}1.1";
@@ -214,6 +233,8 @@ my $lnx_l_tunnel_addr = "${ip4prefix}${line}3.1";
 my $lnx_l_tunnel_net = "$lnx_l_tunnel_addr/24";
 my $lnx_l_tunnel_addr6 = "${ip6prefix}${line}3::1";
 my $lnx_l_tunnel_net6 = "$lnx_l_tunnel_addr6/64";
+
+# Linux Right
 
 my $lnx_r_mtu = 1500;
 my $lnx_r_addr = "${ip4prefix}${line}2.4";
@@ -249,6 +270,8 @@ my $lnx_ri_addr6 = "${ip6prefix}${line}2::8";
 
 my (@obsd_l_dest_addr, @obsd_l_dest_addr6,
     @obsd_r_dest_addr, @obsd_r_dest_addr6);
+
+# TRex
 
 my $trex_l_net = "16.0.0.0/16";
 my $trex_lnx_l_addr = "${ip4prefix}${line}7.1";
@@ -372,7 +395,7 @@ foreach my $net ($obsd_l_net, $obsd_l_net6, $obsd_r_net, $obsd_r_net6,
 
 # unconfigure Linux interfaces
 printcmd('ssh', $lnx_l_ssh, qw(
-    for if in), $lnx_if, $lnx_pdev, qw(; do
+    for if in), @lnx_ifs, @lnx_pdevs, qw(; do
 	for net in),
 	$lnx_l_net, $lnx_l_net6, $lnx_l_net_flat, $lnx_l_net6_flat,
 	$lnx_l_tunnel_net, $lnx_l_tunnel_net6, qw(; do
@@ -380,7 +403,7 @@ printcmd('ssh', $lnx_l_ssh, qw(
 	done ;
     done));
 printcmd('ssh', $lnx_r_ssh, qw(
-    for if in), $lnx_if, $lnx_pdev, qw(; do
+    for if in), @lnx_ifs, @lnx_pdevs, qw(; do
 	for net in),
 	$lnx_r_net, $lnx_r_net6, $lnx_r_net_flat, $lnx_r_net6_flat,
 	@lnx_r_net_range, @lnx_r_net6_range,
@@ -400,13 +423,27 @@ foreach my $ssh (@linux_left_ssh, @linux_right_ssh) {
 
 if ($multi) {
     for (my $i = 0; $i < @linux_if; $i++) {
+	my @ifs = $linux_if[$i];
+	push @ifs, $linux_direct_if[$i] if @linux_direct_if;
 	printcmd('ssh', $linux_left_ssh[$i], qw(
-	    for net in), "$lnx_li_addr$i/24", "$lnx_li_addr6$i/64", qw(; do
-		ip address delete $net dev), $linux_if[$i], qw(;
+	    for net in),
+	    "${lnx_li_addr}${i}/${pfxlen}", "${lnx_li_addr6}${i}/${pfxlen6}",
+	    "${lnx_li_addr}${i}/${pfxlen_flat}",
+	    "${lnx_li_addr6}${i}/${pfxlen6_flat}",
+	    qw(; do
+		for if in), @ifs, qw(; do
+		    ip address delete $net dev $if ;
+		done ;
 	    done));
 	printcmd('ssh', $linux_right_ssh[$i], qw(
-	    for net in), "$lnx_ri_addr$i/24", "$lnx_ri_addr6$i/64", qw(; do
-		ip address delete $net dev), $linux_if[$i], qw(;
+	    for net in),
+	    "${lnx_ri_addr}${i}/${pfxlen}", "${lnx_ri_addr6}${i}/${pfxlen6}",
+	    "${lnx_ri_addr}${i}/${pfxlen_flat}",
+	    "${lnx_ri_addr6}${i}/${pfxlen6_flat}",
+	    qw(; do
+		for if in), @ifs, qw(; do
+		    ip address delete $net dev $if ;
+		done ;
 	    done));
     }
 }
@@ -416,13 +453,19 @@ printcmd('arp', '-da');
 printcmd('ndp', '-c');
 foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
     printcmd('ssh', $ssh, qw(
-	for if in), $lnx_if, $lnx_pdev, qw(; do
+	for if in), @lnx_ifs, @lnx_pdevs, qw(; do
 	    for af in -4 -6 ; do
 		ip $af neigh flush all dev $if ;
 	    done ;
 	done));
-    printcmd('ssh', $ssh, 'ip', 'link', 'delete', 'dev', $lnx_pdev);
-    printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
+    printcmd('ssh', $ssh, qw(
+	for if in), @lnx_pdevs, qw(; do
+	    ip link delete dev $if ;
+	done));
+    printcmd('ssh', $ssh, qw(
+	for if in), @lnx_ifs, qw(; do
+	    ip link set dev $if up ;
+	done));
 }
 
 printcmd('sysctl', 'net.inet.ip.forwarding=1');
@@ -476,6 +519,26 @@ print "\nold config destroyed: modify $modify\n\n";
 
 # only run generic setup code, basically destroys interface config
 exit if $iface eq "none";
+
+if ($modify eq 'direct') {
+    @linux_if = @linux_direct_if;
+    ($lnx_if, $lnx_pdev) = ($lnx_d_if, $lnx_d_pdev);
+    $lnx_ipdev = $lnx_d_if;
+    ($pfxlen, $pfxlen6) = ($pfxlen_flat, $pfxlen6_flat);
+
+    # do not configure openbsd interfaces
+    ($obsd_l_ipdev, $obsd_r_ipdev,
+	@obsd_l_dest_addr, @obsd_l_dest_addr6,
+	@obsd_r_dest_addr, @obsd_r_dest_addr6,
+	$obsd_l_addr, $obsd_l_net, $obsd_r_addr6, $obsd_l_net6,
+	$obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
+
+    # left and right network is flat by reducing prefix length
+    ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
+    ($lnx_r_net, $lnx_r_net6) = ($lnx_r_net_flat, $lnx_r_net6_flat);
+    (@lnx_r_net_range, @lnx_r_net6_range) =
+	(@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
+}
 
 my %hwfeatures;
 foreach my $if ($obsd_l_if, $obsd_r_if) {
@@ -540,9 +603,8 @@ if ($pseudo eq 'aggr') {
     ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
 
     # left and right network is flat by reducing prefix length
-    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
-	($obsd_l_net_flat, $obsd_l_prefix_flat,
-	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($pfxlen, $pfxlen6, $obsd_l_net, $obsd_l_net6) =
+	($pfxlen_flat, $pfxlen6_flat, $obsd_l_net_flat, $obsd_l_net6_flat);
     ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
     ($lnx_r_net, $lnx_r_net6) = ($lnx_r_net_flat, $lnx_r_net6_flat);
     (@lnx_r_net_range, @lnx_r_net6_range) =
@@ -572,12 +634,10 @@ if ($pseudo eq 'aggr') {
 	'tunnel', $obsd_r_tunnel_addr, $lnx_r_tunnel_addr);
     printcmd('ifconfig', $obsd_l_if, 'up');
     printcmd('ifconfig', $obsd_r_if, 'up');
+    $pfxlen = 32;
+    $pfxlen6 = 128;
     $obsd_l_ipdev = "gif0";
     $obsd_r_ipdev = "gif1";
-    $obsd_l_prefix = 32;
-    $obsd_l_prefix6 = 128;
-    $obsd_r_prefix = 32;
-    $obsd_r_prefix6 = 128;
     @obsd_l_dest_addr = $lnx_l_addr;
     @obsd_l_dest_addr6 = $lnx_l_addr6;
     @obsd_r_dest_addr = $lnx_r_addr;
@@ -613,12 +673,10 @@ if ($pseudo eq 'aggr') {
 	'tunnel', $obsd_r_tunnel_addr6, $lnx_r_tunnel_addr6);
     printcmd('ifconfig', $obsd_l_if, 'up');
     printcmd('ifconfig', $obsd_r_if, 'up');
+    $pfxlen = 32;
+    $pfxlen6 = 128;
     $obsd_l_ipdev = "gif0";
     $obsd_r_ipdev = "gif1";
-    $obsd_l_prefix = 32;
-    $obsd_l_prefix6 = 128;
-    $obsd_r_prefix = 32;
-    $obsd_r_prefix6 = 128;
     @obsd_l_dest_addr = $lnx_l_addr;
     @obsd_l_dest_addr6 = $lnx_l_addr6;
     @obsd_r_dest_addr = $lnx_r_addr;
@@ -657,12 +715,10 @@ if ($pseudo eq 'aggr') {
 	'tunnel', $obsd_r_tunnel_addr, $lnx_r_tunnel_addr);
     printcmd('ifconfig', $obsd_l_if, 'up');
     printcmd('ifconfig', $obsd_r_if, 'up');
+    $pfxlen = 32;
+    $pfxlen6 = 128;
     $obsd_l_ipdev = "gre0";
     $obsd_r_ipdev = "gre1";
-    $obsd_l_prefix = 32;
-    $obsd_l_prefix6 = 128;
-    $obsd_r_prefix = 32;
-    $obsd_r_prefix6 = 128;
     @obsd_l_dest_addr = $lnx_l_addr;
     @obsd_l_dest_addr6 = $lnx_l_addr6;
     @obsd_r_dest_addr = $lnx_r_addr;
@@ -711,9 +767,8 @@ if ($pseudo eq 'aggr') {
     ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
 
     # left and right network is flat by reducing prefix length
-    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
-	($obsd_l_net_flat, $obsd_l_prefix_flat,
-	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($pfxlen, $pfxlen6, $obsd_l_net, $obsd_l_net6) =
+	($pfxlen_flat, $pfxlen6_flat, $obsd_l_net_flat, $obsd_l_net6_flat);
     ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
     ($lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range) =
 	($lnx_r_net_flat, $lnx_r_net6_flat,
@@ -733,6 +788,10 @@ if ($pseudo eq 'aggr') {
     $obsd_l_ipdev = "vlan0";
     $obsd_r_ipdev = "vlan1";
 
+    if ($modify eq 'direct') {
+	# both linux must be in same vlan
+	$vlan_r_vnetid = $vlan_l_vnetid;
+    }
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	printcmd('ssh', $ssh, 'modprobe', '8021q');
     }
@@ -904,9 +963,8 @@ if ($pseudo eq 'aggr') {
     ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
 
     # left and right network is flat by reducing prefix length
-    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
-	($obsd_l_net_flat, $obsd_l_prefix_flat,
-	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($pfxlen, $pfxlen6, $obsd_l_net, $obsd_l_net6) =
+	($pfxlen_flat, $pfxlen6_flat, $obsd_l_net_flat, $obsd_l_net6_flat);
     ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
     ($lnx_r_net, $lnx_r_net6) = ($lnx_r_net_flat, $lnx_r_net6_flat);
     (@lnx_r_net_range, @lnx_r_net6_range) =
@@ -947,6 +1005,10 @@ if ($pseudo eq 'aggr') {
     $obsd_l_ipdev = "vlan0";
     $obsd_r_ipdev = "vlan1";
 
+    if ($modify eq 'direct') {
+	# both linux must be in same vlan
+	$vlan_r_vnetid = $vlan_l_vnetid;
+    }
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	printcmd('ssh', $ssh, 'modprobe', '8021q');
     }
@@ -974,9 +1036,8 @@ if ($pseudo eq 'aggr') {
     ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
 
     # left and right network is flat by reducing prefix length
-    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
-	($obsd_l_net_flat, $obsd_l_prefix_flat,
-	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($pfxlen, $pfxlen6, $obsd_l_net, $obsd_l_net6) =
+	($pfxlen_flat, $pfxlen6_flat, $obsd_l_net_flat, $obsd_l_net6_flat);
     ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
     ($lnx_r_net, $lnx_r_net6) = ($lnx_r_net_flat, $lnx_r_net6_flat);
     (@lnx_r_net_range, @lnx_r_net6_range) =
@@ -998,9 +1059,8 @@ if ($pseudo eq 'aggr') {
     ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
 
     # left and right network is flat by reducing prefix length
-    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
-	($obsd_l_net_flat, $obsd_l_prefix_flat,
-	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($pfxlen, $pfxlen6, $obsd_l_net, $obsd_l_net6) =
+	($pfxlen_flat, $pfxlen6_flat, $obsd_l_net_flat, $obsd_l_net6_flat);
     ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
     ($lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range) =
 	($lnx_r_net_flat, $lnx_r_net6_flat,
@@ -1041,6 +1101,10 @@ if ($pseudo eq 'aggr') {
     $obsd_l_ipdev = "vlan0";
     $obsd_r_ipdev = "vlan1";
 
+    if ($modify eq 'direct') {
+	# both linux must be in same vlan
+	$vlan_r_vnetid = $vlan_l_vnetid;
+    }
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	printcmd('ssh', $ssh, 'modprobe', '8021q');
     }
@@ -1068,9 +1132,8 @@ if ($pseudo eq 'aggr') {
     ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
 
     # left and right network is flat by reducing prefix length
-    ($obsd_l_net, $obsd_l_prefix, $obsd_l_net6, $obsd_l_prefix6) =
-	($obsd_l_net_flat, $obsd_l_prefix_flat,
-	$obsd_l_net6_flat, $obsd_l_prefix6_flat);
+    ($pfxlen, $pfxlen6, $obsd_l_net, $obsd_l_net6) =
+	($pfxlen_flat, $pfxlen6_flat, $obsd_l_net_flat, $obsd_l_net6_flat);
     ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
     ($lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range) =
 	($lnx_r_net_flat, $lnx_r_net6_flat,
@@ -1078,26 +1141,39 @@ if ($pseudo eq 'aggr') {
 }
 # XXX: tpmr, ipsec
 
+if ($modify eq 'direct') {
+    $lnx_ipdev = $lnx_d_pdev if $lnx_ipdev eq $lnx_pdev;
+
+    # do not configure openbsd interfaces
+    ($obsd_l_ipdev, $obsd_r_ipdev,
+	@obsd_l_dest_addr, @obsd_l_dest_addr6,
+	@obsd_r_dest_addr, @obsd_r_dest_addr6,
+	$obsd_l_addr, $obsd_l_net, $obsd_r_addr6, $obsd_l_net6,
+	$obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
+}
+
 # configure OpenBSD addresses
 
-printcmd('ifconfig', $obsd_l_ipdev, 'inet', "$obsd_l_addr/$obsd_l_prefix",
-    @obsd_l_dest_addr);
-printcmd('ifconfig', $obsd_l_ipdev, 'inet6', "$obsd_l_addr6/$obsd_l_prefix6",
-    @obsd_l_dest_addr6);
-foreach my $addr (@obsd_l_addr_range) {
-    printcmd('ifconfig', $obsd_l_ipdev, 'inet', "$addr/32", 'alias');
+if ($obsd_l_ipdev) {
+    printcmd('ifconfig', $obsd_l_ipdev,
+	'inet', "$obsd_l_addr/$pfxlen", @obsd_l_dest_addr);
+    printcmd('ifconfig', $obsd_l_ipdev,
+	'inet6', "$obsd_l_addr6/$pfxlen6", @obsd_l_dest_addr6);
+    foreach my $addr (@obsd_l_addr_range) {
+	printcmd('ifconfig', $obsd_l_ipdev, 'inet', "$addr/32", 'alias');
+    }
+    foreach my $addr (@obsd_l_addr6_range) {
+	printcmd('ifconfig', $obsd_l_ipdev, 'inet6', "$addr/128", 'alias');
+    }
+    printcmd('ifconfig', $obsd_l_ipdev, 'mtu', $obsd_l_mtu)
+	if $obsd_l_ipdev ne $obsd_l_if && $obsd_l_mtu != 1500;
+    printcmd('ifconfig', $obsd_l_ipdev, 'up');
 }
-foreach my $addr (@obsd_l_addr6_range) {
-    printcmd('ifconfig', $obsd_l_ipdev, 'inet6', "$addr/128", 'alias');
-}
-printcmd('ifconfig', $obsd_l_ipdev, 'mtu', $obsd_l_mtu)
-    if $obsd_l_ipdev ne $obsd_l_if && $obsd_l_mtu != 1500;
-printcmd('ifconfig', $obsd_l_ipdev, 'up');
 if ($obsd_r_ipdev) {
     printcmd('ifconfig', $obsd_r_ipdev, 'inet',
-	"$obsd_r_addr/$obsd_r_prefix", @obsd_r_dest_addr);
+	"$obsd_r_addr/$pfxlen", @obsd_r_dest_addr);
     printcmd('ifconfig', $obsd_r_ipdev, 'inet6',
-	"$obsd_r_addr6/$obsd_r_prefix6", @obsd_r_dest_addr6);
+	"$obsd_r_addr6/$pfxlen6", @obsd_r_dest_addr6);
     printcmd('ifconfig', $obsd_r_ipdev, 'mtu', $obsd_r_mtu)
 	if $obsd_r_ipdev ne $obsd_r_if && $obsd_r_mtu != 1500;
     printcmd('ifconfig', $obsd_r_ipdev, 'up');
@@ -1148,16 +1224,22 @@ if ($obsd_r_ipdev) {
 
 if ($pseudo eq 'none' && $multi) {
     for (my $i = 0; $i < @linux_if; $i++) {
-	printcmd('ifconfig', $obsd_l_ipdev, 'inet', "$obsd_li_addr$i/32",
-	    'alias');
-	printcmd('ifconfig', $obsd_l_ipdev, 'inet6', "$obsd_li_addr6$i/128",
-	    'alias');
+	if ($obsd_l_ipdev) {
+	    printcmd('ifconfig', $obsd_l_ipdev,
+		'inet', "$obsd_li_addr$i/32", 'alias');
+	    printcmd('ifconfig', $obsd_l_ipdev,
+		'inet6', "$obsd_li_addr6$i/128", 'alias');
+	}
 	printcmd('ssh', $linux_left_ssh[$i], qw(
-	    for net in), "$lnx_li_addr$i/24", "$lnx_li_addr6$i/64", qw(; do
+	    for net in),
+	    "${lnx_li_addr}${i}/${pfxlen}", "${lnx_li_addr6}${i}/${pfxlen6}",
+	     qw(; do
 		ip address add $net dev), $linux_if[$i], qw(;
 	    done));
 	printcmd('ssh', $linux_right_ssh[$i], qw(
-	    for net in), "$lnx_ri_addr$i/24", "$lnx_ri_addr6$i/64", qw(; do
+	    for net in),
+	    "${lnx_ri_addr}${i}/${pfxlen}", "${lnx_ri_addr6}${i}/${pfxlen6}",
+	    qw(; do
 		ip address add $net dev), $linux_if[$i], qw(;
 	    done));
     }
@@ -1167,7 +1249,8 @@ for (my $i = 0; $i < @linux_if; $i++) {
 	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $linux_if[$i], 'up');
     }
 }
-for (my $i = 1; $pseudo eq 'none' && $i < @linux_if; $i++) {
+for (my $i = 1; $modify ne 'direct' && $pseudo eq 'none' && $i < @linux_if;
+    $i++) {
     printcmd('ssh', $linux_left_ssh[$i], 'ip', 'route', 'add', $obsd_r_net,
 	'via', $obsd_l_addr, 'dev', $linux_if[$i]);
     printcmd('ssh', $linux_left_ssh[$i], 'ip', 'route', 'add', $obsd_r_net6,
@@ -1180,7 +1263,7 @@ for (my $i = 1; $pseudo eq 'none' && $i < @linux_if; $i++) {
 
 # configure addresses and routes for trex setup on linux and openbsd
 
-if ($pseudo eq 'none' && $trex) {
+if ($modify ne 'direct' && $pseudo eq 'none' && $trex) {
     printcmd('ssh', $trex_ssh,
 	'cd', $trexpath, '&&', './dpdk_setup_ports.py',
 	'--no-prompt',
@@ -1199,28 +1282,30 @@ if ($pseudo eq 'none' && $trex) {
 print "waiting for interface link\n" if $opts{v};
 sleep(3);
 sleep(5) if $pseudo eq 'carp';
-my %ping;
-$ping{IPv4}{left} = printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
-$ping{IPv4}{right} = printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
-$ping{IPv6}{left} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
-$ping{IPv6}{right} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_r_addr6);
-if ($pseudo eq 'none' && $multi) {
-    for (my $i = 0; $i < @linux_if; $i++) {
-	$ping{IPv4}{"left$i"} = printcmd('ping', '-n', '-c1', '-w5',
-	    "$lnx_li_addr$i");
-	$ping{IPv4}{"right$i"} = printcmd('ping', '-n', '-c1', '-w5',
-	    "$lnx_ri_addr$i");
-	$ping{IPv6}{"left$i"} = printcmd('ping6', '-n', '-c1', '-w5',
-	    "$lnx_li_addr6$i");
-	$ping{IPv6}{"right$i"} = printcmd('ping6', '-n', '-c1', '-w5',
-	    "$lnx_ri_addr6$i");
+if ($modify ne 'direct') {
+    my %ping;
+    $ping{IPv4}{left} = printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
+    $ping{IPv4}{right} = printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
+    $ping{IPv6}{left} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
+    $ping{IPv6}{right} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_r_addr6);
+    if ($pseudo eq 'none' && $multi) {
+	for (my $i = 0; $i < @linux_if; $i++) {
+	    $ping{IPv4}{"left$i"} = printcmd('ping', '-n', '-c1', '-w5',
+		"$lnx_li_addr$i");
+	    $ping{IPv4}{"right$i"} = printcmd('ping', '-n', '-c1', '-w5',
+		"$lnx_ri_addr$i");
+	    $ping{IPv6}{"left$i"} = printcmd('ping6', '-n', '-c1', '-w5',
+		"$lnx_li_addr6$i");
+	    $ping{IPv6}{"right$i"} = printcmd('ping6', '-n', '-c1', '-w5',
+		"$lnx_ri_addr6$i");
+	}
     }
-}
-print "\n";
-foreach my $family (sort keys %ping) {
-    foreach my $side (sort keys %{$ping{$family}}) {
-	print "ping link check $family $side:\t",
-	    $ping{$family}{$side} ? "FAIL" : "PASS", "\n";
+    print "\n";
+    foreach my $family (sort keys %ping) {
+	foreach my $side (sort keys %{$ping{$family}}) {
+	    print "ping link check $family $side:\t",
+		$ping{$family}{$side} ? "FAIL" : "PASS", "\n";
+	}
     }
 }
 
@@ -1434,104 +1519,122 @@ sub pingflood_finalize {
 my @tests;
 push @tests, (
     {
+	# forward
+	testcmd => ['ssh', $lnx_l_ssh, 'ping', '-qfc10000', $lnx_r_addr],
+	parser => \&pingflood_parser,
+	finalize => \&pingflood_finalize,
+    }, $modify eq 'direct' ? () : ({
+	# receive
 	testcmd => ['ssh', $lnx_l_ssh, 'ping', '-qfc10000', $obsd_l_addr],
 	parser => \&pingflood_parser,
 	finalize => \&pingflood_finalize,
     }, {
+	# send
 	testcmd => ['ping', '-qfc10000', $lnx_r_addr],
 	parser => \&pingflood_parser,
 	finalize => \&pingflood_finalize,
-    }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'ping', '-qfc10000', $lnx_r_addr],
-	parser => \&pingflood_parser,
-	finalize => \&pingflood_finalize,
-    }
+    })
 ) if ($testmode{icmp4});
 push @tests, (
     {
+	# forward
+	testcmd => ['ssh', $lnx_l_ssh, 'ping6', '-qfc10000', $lnx_r_addr6],
+	parser => \&pingflood_parser,
+	finalize => \&pingflood_finalize,
+    }, $modify eq 'direct' ? () : ({
+	# receive
 	testcmd => ['ssh', $lnx_l_ssh, 'ping6', '-qfc10000', $obsd_l_addr6],
 	parser => \&pingflood_parser,
 	finalize => \&pingflood_finalize,
     }, {
+	# send
 	testcmd => ['ping6', '-qfc10000', $lnx_r_addr6],
 	parser => \&pingflood_parser,
 	finalize => \&pingflood_finalize,
-    }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'ping6', '-qfc10000', $lnx_r_addr6],
-	parser => \&pingflood_parser,
-	finalize => \&pingflood_finalize,
-    }
+    })
 ) if ($testmode{icmp6});
 push @tests, {
     testcmd => \&tcpbench_server_startup,
 } if ($testmode{tcp4} || $testmode{tcp6});
 push @tests, (
     {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
-	    $obsd_l_addr],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100',
-	    $obsd_l_addr],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', $lnx_r_addr],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $lnx_r_addr],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }, {
+	# forward
 	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
 	    $lnx_r_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
+	# forward
 	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
 	    '-n100', $lnx_r_addr],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
-    }
+    }, $modify eq 'direct' ? () : ({
+	# receive
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
+	    $obsd_l_addr],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
+    }, {
+	# receive
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10', '-n100',
+	    $obsd_l_addr],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
+    }, {
+	# send
+	testcmd => ['tcpbench', '-S1000000', '-t10', $lnx_r_addr],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
+    }, {
+	# send
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $lnx_r_addr],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
+    })
 ) if ($testmode{tcp4});
 push @tests, (
     {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
-	    $obsd_l_addr6],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }, {
-	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
-	    '-n100', $obsd_l_addr6],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', $lnx_r_addr6],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }, {
-	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $lnx_r_addr6],
-	parser => \&tcpbench_parser,
-	finalize => \&tcpbench_finalize,
-    }, {
+	# forward
 	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
 	    $lnx_r_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
     }, {
+	# forward
 	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
 	    '-n100', $lnx_r_addr6],
 	parser => \&tcpbench_parser,
 	finalize => \&tcpbench_finalize,
-    }
+    }, $modify eq 'direct' ? () : ({
+	# receive
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
+	    $obsd_l_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
+    }, {
+	# receive
+	testcmd => ['ssh', $lnx_l_ssh, 'tcpbench', '-S1000000', '-t10',
+	    '-n100', $obsd_l_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
+    }, {
+	# send
+	testcmd => ['tcpbench', '-S1000000', '-t10', $lnx_r_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
+    }, {
+	# send
+	testcmd => ['tcpbench', '-S1000000', '-t10', '-n100', $lnx_r_addr6],
+	parser => \&tcpbench_parser,
+	finalize => \&tcpbench_finalize,
+    })
 ) if ($testmode{tcp6});
 push @tests, {
     testcmd => \&tcpbench_server_shutdown,
 } if ($testmode{tcp4} || $testmode{tcp6} ||
     $testmode{splice4} || $testmode{splice6});
-foreach my $mode (qw(tcpsplice tcpcopy)) {
+foreach my $mode ($modify eq 'direct' ? () : qw(tcpsplice tcpcopy)) {
     push @tests, (
 	{
 	    testcmd => [$netbench,
@@ -1587,101 +1690,107 @@ foreach my $mode (qw(tcpsplice tcpcopy)) {
 }
 foreach my $parallel (0, 10) {
     foreach my $frame (0, 1, 2) {
-	push @tests, {
-	    testcmd => [$netbench,
-		'-v',
-		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-		'-b1000000',
-		($parallel ? ('-d1') : ()),
-		"-f$frame",
-		($parallel ? ('-i0') : ()),
-		($parallel ? ("-N$parallel") : ()),
-		"-c$lnx_l_ssh",
-		"-a$obsd_l_addr_range[0]",
-		'-t10',
-		'udpbench'],
-	    parser => \&netbench_parser,
-	} if $testmode{udp4};
-	push @tests, {
-	    testcmd => [$netbench,
-		'-v',
-		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-		'-b1000000',
-		($parallel ? ('-d1') : ()),
-		"-f$frame",
-		($parallel ? ('-i0') : ()),
-		($parallel ? ("-N$parallel") : ()),
-		"-c$lnx_l_ssh",
-		"-a$obsd_l_addr6_range[0]",
-		'-t10',
-		'udpbench'],
-	    parser => \&netbench_parser,
-	} if $testmode{udp6};
-	push @tests, {
-	    testcmd => [$netbench,
-		'-v',
-		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-		'-b1000000',
-		($parallel ? ('-d1') : ()),
-		"-f$frame",
-		($parallel ? ('-i0') : ()),
-		($parallel ? ("-N$parallel") : ()),
-		"-c$lnx_l_ssh",
-		"-s$lnx_r_ssh",
-		"-a$lnx_r_addr_range[0]",
-		'-t10',
-		'udpbench'],
-	    parser => \&netbench_parser,
-	} if $testmode{udp4};
-	push @tests, {
-	    testcmd => [$netbench,
-		'-v',
-		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-		'-b1000000',
-		($parallel ? ('-d1') : ()),
-		"-f$frame",
-		($parallel ? ('-i0') : ()),
-		($parallel ? ("-N$parallel") : ()),
-		"-c$lnx_l_ssh",
-		"-s$lnx_r_ssh",
-		"-a$lnx_r_addr6_range[0]",
-		'-t10',
-		'udpbench'],
-	    parser => \&netbench_parser,
-	} if $testmode{udp6};
-	push @tests, {
-	    testcmd => [$netbench,
-		'-v',
-		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-		'-b1000000',
-		($parallel ? ('-d1') : ()),
-		"-f$frame",
-		($parallel ? ('-i0') : ()),
-		($parallel ? ("-N$parallel") : ()),
-		"-s$lnx_r_ssh",
-		"-a$lnx_r_addr_range[0]",
-		'-t10',
-		'udpbench'],
-	    parser => \&netbench_parser,
-	} if $testmode{udp4};
-	push @tests, {
-	    testcmd => [$netbench,
-		'-v',
-		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-		'-b1000000',
-		($parallel ? ('-d1') : ()),
-		"-f$frame",
-		($parallel ? ('-i0') : ()),
-		($parallel ? ("-N$parallel") : ()),
-		"-s$lnx_r_ssh",
-		"-a$lnx_r_addr6_range[0]",
-		'-t10',
-		'udpbench'],
-	    parser => \&netbench_parser,
-	} if $testmode{udp6};
+	push @tests, (
+	    {
+		# forward
+		testcmd => [$netbench,
+		    '-v',
+		    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		    '-b1000000',
+		    ($parallel ? ('-d1') : ()),
+		    "-f$frame",
+		    ($parallel ? ('-i0') : ()),
+		    ($parallel ? ("-N$parallel") : ()),
+		    "-c$lnx_l_ssh",
+		    "-s$lnx_r_ssh",
+		    "-a$lnx_r_addr_range[0]",
+		    '-t10',
+		    'udpbench'],
+		parser => \&netbench_parser,
+	    }, $modify eq 'direct' ? () : ({
+		# receive
+		testcmd => [$netbench,
+		    '-v',
+		    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		    '-b1000000',
+		    ($parallel ? ('-d1') : ()),
+		    "-f$frame",
+		    ($parallel ? ('-i0') : ()),
+		    ($parallel ? ("-N$parallel") : ()),
+		    "-c$lnx_l_ssh",
+		    "-a$obsd_l_addr_range[0]",
+		    '-t10',
+		    'udpbench'],
+		parser => \&netbench_parser,
+	    }, {
+		# send
+		testcmd => [$netbench,
+		    '-v',
+		    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		    '-b1000000',
+		    ($parallel ? ('-d1') : ()),
+		    "-f$frame",
+		    ($parallel ? ('-i0') : ()),
+		    ($parallel ? ("-N$parallel") : ()),
+		    "-s$lnx_r_ssh",
+		    "-a$lnx_r_addr_range[0]",
+		    '-t10',
+		    'udpbench'],
+		parser => \&netbench_parser,
+	    })
+	) if $testmode{udp4};
+	push @tests, (
+	    {
+		# forward
+		testcmd => [$netbench,
+		    '-v',
+		    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		    '-b1000000',
+		    ($parallel ? ('-d1') : ()),
+		    "-f$frame",
+		    ($parallel ? ('-i0') : ()),
+		    ($parallel ? ("-N$parallel") : ()),
+		    "-c$lnx_l_ssh",
+		    "-s$lnx_r_ssh",
+		    "-a$lnx_r_addr6_range[0]",
+		    '-t10',
+		    'udpbench'],
+		parser => \&netbench_parser,
+	    }, $modify eq 'direct' ? () : ({
+		# receive
+		testcmd => [$netbench,
+		    '-v',
+		    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		    '-b1000000',
+		    ($parallel ? ('-d1') : ()),
+		    "-f$frame",
+		    ($parallel ? ('-i0') : ()),
+		    ($parallel ? ("-N$parallel") : ()),
+		    "-c$lnx_l_ssh",
+		    "-a$obsd_l_addr6_range[0]",
+		    '-t10',
+		    'udpbench'],
+		parser => \&netbench_parser,
+	    }, {
+		# send
+		testcmd => [$netbench,
+		    '-v',
+		    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		    '-b1000000',
+		    ($parallel ? ('-d1') : ()),
+		    "-f$frame",
+		    ($parallel ? ('-i0') : ()),
+		    ($parallel ? ("-N$parallel") : ()),
+		    "-s$lnx_r_ssh",
+		    "-a$lnx_r_addr6_range[0]",
+		    '-t10',
+		    'udpbench'],
+		parser => \&netbench_parser,
+	    })
+	) if $testmode{udp6};
     }
 }
-foreach my $frame (0, 1) {
+foreach my $frame ($modify eq 'direct' ? () : (0, 1)) {
     push @tests, {
 	testcmd => [$netbench,
 	    '-v',
@@ -1720,173 +1829,185 @@ foreach my $frame (0, 1) {
 {
     my $parallel = 10;
     my $frame = 0;
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-	    '-b1000000',
-	    ($parallel ? ('-d1') : ()),
-	    "-f$frame",
-	    ($parallel ? ('-i0') : ()),
-	    '-m1000',
-	    ($parallel ? ("-N$parallel") : ()),
-	    "-c$lnx_l_ssh",
-	    "-a$obsd_l_addr_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{mmsg4};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-	    '-b1000000',
-	    ($parallel ? ('-d1') : ()),
-	    "-f$frame",
-	    ($parallel ? ('-i0') : ()),
-	    '-m1000',
-	    ($parallel ? ("-N$parallel") : ()),
-	    "-c$lnx_l_ssh",
-	    "-a$obsd_l_addr6_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{mmsg6};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-	    '-b1000000',
-	    ($parallel ? ('-d1') : ()),
-	    "-f$frame",
-	    ($parallel ? ('-i0') : ()),
-	    '-m1000',
-	    ($parallel ? ("-N$parallel") : ()),
-	    "-c$lnx_l_ssh",
-	    "-s$lnx_r_ssh",
-	    "-a$lnx_r_addr_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{mmsg4};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-	    '-b1000000',
-	    ($parallel ? ('-d1') : ()),
-	    "-f$frame",
-	    ($parallel ? ('-i0') : ()),
-	    '-m1000',
-	    ($parallel ? ("-N$parallel") : ()),
-	    "-c$lnx_l_ssh",
-	    "-s$lnx_r_ssh",
-	    "-a$lnx_r_addr6_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{mmsg6};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-	    '-b1000000',
-	    ($parallel ? ('-d1') : ()),
-	    "-f$frame",
-	    ($parallel ? ('-i0') : ()),
-	    '-m1000',
-	    ($parallel ? ("-N$parallel") : ()),
-	    "-s$lnx_r_ssh",
-	    "-a$lnx_r_addr_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{mmsg4};
-    push @tests, {
-	testcmd => [$netbench,
-	    '-v',
-	    ($parallel ? ('-B'.($bitrate / $parallel)) : ()),
-	    '-b1000000',
-	    ($parallel ? ('-d1') : ()),
-	    "-f$frame",
-	    ($parallel ? ('-i0') : ()),
-	    '-m1000',
-	    ($parallel ? ("-N$parallel") : ()),
-	    "-s$lnx_r_ssh",
-	    "-a$lnx_r_addr6_range[0]",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-    } if $testmode{mmsg6};
+    push @tests, (
+	{
+	    # forward
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		'-m1000',
+		($parallel ? ("-N$parallel") : ()),
+		"-c$lnx_l_ssh",
+		"-s$lnx_r_ssh",
+		"-a$lnx_r_addr_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	}, $modify eq 'direct' ? () : ({
+	    # receive
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		'-m1000',
+		($parallel ? ("-N$parallel") : ()),
+		"-c$lnx_l_ssh",
+		"-a$obsd_l_addr_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	}, {
+	    # send
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		'-m1000',
+		($parallel ? ("-N$parallel") : ()),
+		"-s$lnx_r_ssh",
+		"-a$lnx_r_addr_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	})
+    ) if $testmode{mmsg4};
+    push @tests, (
+	{
+	    # forward
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		'-m1000',
+		($parallel ? ("-N$parallel") : ()),
+		"-c$lnx_l_ssh",
+		"-s$lnx_r_ssh",
+		"-a$lnx_r_addr6_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	}, $modify eq 'direct' ? () : ({
+	    # receive
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		'-m1000',
+		($parallel ? ("-N$parallel") : ()),
+		"-c$lnx_l_ssh",
+		"-a$obsd_l_addr6_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	}, {
+	    # send
+	    testcmd => [$netbench,
+		'-v',
+		($parallel ? ('-B'.($bitrate / $parallel)) : ()),
+		'-b1000000',
+		($parallel ? ('-d1') : ()),
+		"-f$frame",
+		($parallel ? ('-i0') : ()),
+		'-m1000',
+		($parallel ? ("-N$parallel") : ()),
+		"-s$lnx_r_ssh",
+		"-a$lnx_r_addr6_range[0]",
+		'-t10',
+		'udpbench'],
+	    parser => \&netbench_parser,
+	})
+    ) if $testmode{mmsg6};
 }
-push @tests, {
-    testcmd => [$netbench,
-	'-v',
-	'-B'.($bitrate / 10),
-	'-b1000000',
-	'-d1',
-	'-f1',
-	'-i0',
-	'-N10',
-	"-R$obsd_l_addr",
-	"-S$lnx_l_addr",
-	"-c$lnx_l_ssh",
-	"-a$mcast_l_addr",
-	'-t10',
-	'udpbench'],
-    parser => \&netbench_parser,
-} if $testmode{mcast4};
-push @tests, {
-    testcmd => [$netbench,
-	'-v',
-	'-B'.($bitrate / 10),
-	'-b1000000',
-	'-d1',
-	'-f1',
-	'-i0',
-	'-N10',
-	"-R$obsd_l_ipdev",
-	"-S$lnx_ipdev",
-	"-c$lnx_l_ssh",
-	"-a$mcast_l_addr6",
-	'-t10',
-	'udpbench'],
-    parser => \&netbench_parser,
-} if $testmode{mcast6};
-push @tests, {
-    testcmd => [$netbench,
-	'-v',
-	'-B'.($bitrate / 10),
-	'-b1000000',
-	'-d1',
-	'-f1',
-	'-i0',
-	'-N10',
-	"-R$lnx_r_addr",
-	'-S'.($obsd_r_addr // $obsd_l_addr),  # undef for bridge and veb
-	"-s$lnx_r_ssh",
-	"-a$mcast_r_addr",
-	'-t10',
-	'udpbench'],
-    parser => \&netbench_parser,
-} if $testmode{mcast4};
-push @tests, {
-    testcmd => [$netbench,
-	'-v',
-	'-B'.($bitrate / 10),
-	'-b1000000',
-	'-d1',
-	'-f1',
-	'-i0',
-	'-N10',
-	"-R$lnx_ipdev",
-	'-S'.($obsd_r_ipdev // $obsd_l_ipdev),  # undef for bridge and veb
-	"-s$lnx_r_ssh",
-	"-a$mcast_r_addr6",
-	'-t10',
-	'udpbench'],
-    parser => \&netbench_parser,
-} if $testmode{mcast6};
+push @tests, $modify eq 'direct' ? () : (
+    {
+	# receive
+	testcmd => [$netbench,
+	    '-v',
+	    '-B'.($bitrate / 10),
+	    '-b1000000',
+	    '-d1',
+	    '-f1',
+	    '-i0',
+	    '-N10',
+	    "-R$obsd_l_addr",
+	    "-S$lnx_l_addr",
+	    "-c$lnx_l_ssh",
+	    "-a$mcast_l_addr",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    }, {
+	# send
+	testcmd => [$netbench,
+	    '-v',
+	    '-B'.($bitrate / 10),
+	    '-b1000000',
+	    '-d1',
+	    '-f1',
+	    '-i0',
+	    '-N10',
+	    "-R$lnx_r_addr",
+	    '-S'.($obsd_r_addr // $obsd_l_addr),  # undef for bridge and veb
+	    "-s$lnx_r_ssh",
+	    "-a$mcast_r_addr",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    }
+) if $testmode{mcast4};
+push @tests, $modify eq 'direct' ? () : (
+    {
+	# receive
+	testcmd => [$netbench,
+	    '-v',
+	    '-B'.($bitrate / 10),
+	    '-b1000000',
+	    '-d1',
+	    '-f1',
+	    '-i0',
+	    '-N10',
+	    "-R$obsd_l_ipdev",
+	    "-S$lnx_ipdev",
+	    "-c$lnx_l_ssh",
+	    "-a$mcast_l_addr6",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    }, {
+	# send
+	testcmd => [$netbench,
+	    '-v',
+	    '-B'.($bitrate / 10),
+	    '-b1000000',
+	    '-d1',
+	    '-f1',
+	    '-i0',
+	    '-N10',
+	    "-R$lnx_ipdev",
+	    '-S'.($obsd_r_ipdev // $obsd_l_ipdev),  # undef for bridge and veb
+	    "-s$lnx_r_ssh",
+	    "-a$mcast_r_addr6",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    }
+) if $testmode{mcast6};
 
 push @tests, (
     {
@@ -1896,7 +2017,7 @@ push @tests, (
 	    'iperf3', "-c${lnx_r_addr}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
-    }, {
+    }, $modify eq 'direct' ? () : ({
 	# splice
 	initialize => \&iperf3_initialize,
 	initcmd => ['splicebench', '-I', '-b204800', '-n15', '-t10',
@@ -1926,7 +2047,7 @@ push @tests, (
 	testcmd => ['iperf3', "-c${lnx_r_addr}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
-    }
+    })
 ) if $testmode{iperf4};
 push @tests, (
     {
@@ -1936,7 +2057,7 @@ push @tests, (
 	    'iperf3', '-6', "-c${lnx_r_addr6}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
-    }, {
+    }, $modify eq 'direct' ? () : ({
 	# splice
 	initialize => \&iperf3_initialize,
 	initcmd => ['splicebench', '-I', '-b204800', '-n15', '-t10',
@@ -1966,7 +2087,7 @@ push @tests, (
 	testcmd => ['iperf3', '-6', "-c${lnx_r_addr6}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
-    }
+    })
 ) if $testmode{iperf6};
 
 push @tests, (
@@ -1978,7 +2099,7 @@ push @tests, (
 	    'iperf3', "-c${lnx_ri_addr}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
-    }, {
+    }, $modify eq 'direct' ? () : ({
 	# splice
 	initialize => \&iperf3_initialize,
 	multiple => scalar @linux_if,
@@ -2014,7 +2135,7 @@ push @tests, (
 	testcmd => ['iperf3', "-c${lnx_ri_addr}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
-    }
+    })
 ) if $testmode{iperf4} && $pseudo eq 'none' && $multi;
 push @tests, (
     {
@@ -2025,7 +2146,7 @@ push @tests, (
 	    'iperf3', '-6', "-c${lnx_ri_addr6}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
-    }, {
+    }, $modify eq 'direct' ? () : ({
 	# splice
 	initialize => \&iperf3_initialize,
 	multiple => scalar @linux_if,
@@ -2061,10 +2182,10 @@ push @tests, (
 	testcmd => ['iperf3', '-6', "-c${lnx_ri_addr6}{multiple}",
 	    '-w200k', '-P15', '-t10'],
 	parser => \&iperf3_parser,
-    }
+    })
 ) if $testmode{iperf6} && $pseudo eq 'none' && $multi;
 
-push @tests, (
+push @tests, $modify eq 'direct' ? () : (
     {
 	# splice
 	initialize => sub { relayd_conf(); relayd_startup();

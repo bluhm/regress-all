@@ -2,6 +2,7 @@ export MANAGEMENT_IF=em0
 export SKIP_IF=em0,em1
 export NETLINK_LINE=1
 export LINUX_IF=enp1s0f0np0,ens1f0np0
+export LINUX_DIRECT_IF=enp1s0f1np1,ens1f1np1
 export LINUX_LEFT_SSH=root@lt40,root@lt100
 export LINUX_RIGHT_SSH=root@lt43,root@lt101
 export TREX_LEFT_IF=09:00.0
