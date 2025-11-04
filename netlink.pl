@@ -1934,8 +1934,25 @@ foreach my $frame ($modify eq 'direct' ? () : (0, 1)) {
 	})
     ) if $testmode{mmsg6};
 }
-push @tests, $modify eq 'direct' ? () : (
-    {
+push @tests, $modify ne 'direct' ? () : ({
+	# forward
+	testcmd => [$netbench,
+	    '-v',
+	    '-B'.($bitrate / 10),
+	    '-b1000000',
+	    '-d1',
+	    '-f1',
+	    '-i0',
+	    '-N10',
+	    "-R$lnx_r_addr",
+	    "-S$lnx_l_addr",
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-a$mcast_r_addr",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    }, $modify eq 'direct' ? () : ({
 	# receive
 	testcmd => [$netbench,
 	    '-v',
@@ -1969,10 +1986,27 @@ push @tests, $modify eq 'direct' ? () : (
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
-    }
+    })
 ) if $testmode{mcast4};
-push @tests, $modify eq 'direct' ? () : (
-    {
+push @tests, $modify ne 'direct' ? () : ({
+	# forward
+	testcmd => [$netbench,
+	    '-v',
+	    '-B'.($bitrate / 10),
+	    '-b1000000',
+	    '-d1',
+	    '-f1',
+	    '-i0',
+	    '-N10',
+	    "-R$lnx_ipdev",
+	    "-S$lnx_ipdev",
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-a$mcast_r_addr6",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    }, $modify eq 'direct' ? () : ({
 	# receive
 	testcmd => [$netbench,
 	    '-v',
@@ -2006,7 +2040,7 @@ push @tests, $modify eq 'direct' ? () : (
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
-    }
+    })
 ) if $testmode{mcast6};
 
 push @tests, (
