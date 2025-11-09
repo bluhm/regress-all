@@ -1976,7 +1976,7 @@ foreach my $frame ($modify eq 'direct' ? () : (0, 1)) {
 	})
     ) if $testmode{mmsg6};
 }
-push @tests, $modify ne 'direct' ? () : ({
+push @tests, ($modify eq 'direct' ? {
 	# forward
 	testcmd => [$netbench,
 	    '-v',
@@ -1994,7 +1994,7 @@ push @tests, $modify ne 'direct' ? () : ({
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
-    }, $modify eq 'direct' ? () : ({
+    } : ({
 	# receive
 	testcmd => [$netbench,
 	    '-v',
@@ -2030,7 +2030,7 @@ push @tests, $modify ne 'direct' ? () : ({
 	parser => \&netbench_parser,
     })
 ) if $testmode{mcast4};
-push @tests, $modify ne 'direct' ? () : ({
+push @tests, ($modify eq 'direct' ? {
 	# forward
 	testcmd => [$netbench,
 	    '-v',
@@ -2048,7 +2048,7 @@ push @tests, $modify ne 'direct' ? () : ({
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
-    }, $modify eq 'direct' ? () : ({
+    }: ({
 	# receive
 	testcmd => [$netbench,
 	    '-v',
