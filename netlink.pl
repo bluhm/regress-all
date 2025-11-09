@@ -36,7 +36,7 @@ my @startcmd = ($0, @ARGV);
 my @allifaces = qw(none bge bnxt em ice igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none direct jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg
-    bridge+vlan vlan+bridge veb+vlan vlan+veb);
+    bridge+vlan vlan+bridge veb+vlan veb+vtag vlan+veb);
 my @alltestmodes = sort qw(all icmp tcp udp splice mcast mmsg iperf trex);
 
 my %opts;
@@ -1076,6 +1076,46 @@ if ($pseudo eq 'aggr') {
 	'vnetid', $vlan_vnetid);
     printcmd('ifconfig', $obsd_l_ipdev, 'up');
     $obsd_l_ipdev = "vlan0";
+
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'modprobe', '8021q');
+    }
+    printcmd('ssh', $lnx_l_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_vnetid);
+    printcmd('ssh', $lnx_r_ssh, 'ip', 'link', 'add', 'link', $lnx_if,
+	'name', $lnx_pdev, 'type', 'vlan', 'id', $vlan_vnetid);
+    foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
+	printcmd('ssh', $ssh, 'ip', 'link', 'set', 'dev', $lnx_if, 'up');
+    }
+    $lnx_ipdev = $lnx_pdev;
+} elsif ($pseudo eq 'veb+vtag') {
+    # bridged vlans have a common id
+    my $vlan_vnetid = "2${line}0";
+
+    printcmd('ifconfig', 'veb0', 'create');
+    printcmd('ifconfig', 'vport0', 'create');
+    printcmd('ifconfig', 'veb0', 'add', $obsd_l_if);
+    printcmd('ifconfig', 'veb0', 'add', $obsd_r_if);
+    printcmd('ifconfig', 'veb0', 'add', 'vport0');
+    printcmd('ifconfig', 'veb0', 'tagged', $obsd_l_if, $vlan_vnetid);
+    printcmd('ifconfig', 'veb0', 'tagged', $obsd_r_if, $vlan_vnetid);
+    printcmd('ifconfig', 'veb0', 'untagged', 'vport0', $vlan_vnetid);
+    printcmd('ifconfig', $obsd_l_if, 'up');
+    printcmd('ifconfig', $obsd_r_if, 'up');
+    printcmd('ifconfig', 'veb0', 'up');
+
+    # OpenBSD veb port has only one interface
+    $obsd_l_ipdev = "vport0";
+    $obsd_r_ipdev = undef;
+    ($obsd_r_addr, $obsd_r_net, $obsd_r_addr6, $obsd_r_net6) = ();
+
+    # left and right network is flat by reducing prefix length
+    ($pfxlen, $pfxlen6, $obsd_l_net, $obsd_l_net6) =
+	($pfxlen_flat, $pfxlen6_flat, $obsd_l_net_flat, $obsd_l_net6_flat);
+    ($lnx_l_net, $lnx_l_net6) = ($lnx_l_net_flat, $lnx_l_net6_flat);
+    ($lnx_r_net, $lnx_r_net6, @lnx_r_net_range, @lnx_r_net6_range) =
+	($lnx_r_net_flat, $lnx_r_net6_flat,
+	@lnx_r_net_range_flat, @lnx_r_net6_range_flat);
 
     foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 	printcmd('ssh', $ssh, 'modprobe', '8021q');
