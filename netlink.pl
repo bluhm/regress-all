@@ -1048,7 +1048,9 @@ if ($pseudo eq 'aggr') {
     printcmd('ifconfig', 'veb0', 'add', $obsd_l_if);
     printcmd('ifconfig', 'veb0', 'add', $obsd_r_if);
     printcmd('ifconfig', 'veb0', 'add', 'vport0');
-    printcmd('ifconfig', 'veb0', 'link0');
+    printcmd('ifconfig', 'veb0', 'tagged', $obsd_l_if, 'all');
+    printcmd('ifconfig', 'veb0', 'tagged', $obsd_r_if, 'all');
+    printcmd('ifconfig', 'veb0', 'tagged', 'vport0', 'all');
     printcmd('ifconfig', $obsd_l_if, 'up');
     printcmd('ifconfig', $obsd_r_if, 'up');
     printcmd('ifconfig', 'veb0', 'up');
