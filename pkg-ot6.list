@@ -9,6 +9,7 @@ gmake
 go
 gsed
 iperf3
+libretls
 net-snmp
 openldap-client--
 openssl%1.1

@@ -29,6 +29,7 @@ libidn2
 libksba
 libmagic
 libnettle
+libretls
 libsecret
 libtasn1
 libunbound
