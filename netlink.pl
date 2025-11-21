@@ -40,7 +40,7 @@ my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg
 my @alltestmodes = sort qw(all icmp tcp udp splice mcast mmsg iperf trex);
 
 my %opts;
-getopts('b:c:e:i:m:st:v', \%opts) or do {
+getopts('b:c:e:i:m:pst:v', \%opts) or do {
     print STDERR <<"EOF";
 usage: netlink.pl [-sv] [-b kstack] [-c pseudo] [-e environment] [-i iface]
     [-m modify] [-t timeout] [test ...]
@@ -49,6 +49,7 @@ usage: netlink.pl [-sv] [-b kstack] [-c pseudo] [-e environment] [-i iface]
     -e environ	parse environment for tests from shell script
     -i iface	interface, may contain number: @allifaces
     -m modify	modify mode: @allmodifymodes
+    -p		ping check and exit, do not configure
     -s		stress test, run tests longer, activate sysctl
     -t timeout	timeout for a single test, default 30 seconds
     -v		verbose
@@ -66,6 +67,7 @@ my $pseudo = $opts{c} || "none";
 my $iface = $opts{i} || "none";
 my $modify = $opts{m} || "none";
 my $stress = $opts{s};
+my $ping = $opts{p};
 
 my $line = $ENV{NETLINK_LINE}
     or die "NETLINK_LINE is not in env";
@@ -280,6 +282,11 @@ my $trex_obsd_r_addr = "${ip4prefix}${line}8.3";
 my $trex_lnx_r_addr = "${ip4prefix}${line}8.4";
 my $trex_r_net = "48.0.0.0/16";
 my $trexpath = "/home/user/github/trex-core/scripts";
+
+if ($ping) {
+    ping_check();
+    exit(0);
+}
 
 my $dir = dirname($0);
 chdir($dir)
@@ -1325,30 +1332,7 @@ print "waiting for interface link\n" if $opts{v};
 sleep(3);
 sleep(5) if $pseudo eq 'carp';
 if ($modify ne 'direct') {
-    my %ping;
-    $ping{IPv4}{left} = printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
-    $ping{IPv4}{right} = printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
-    $ping{IPv6}{left} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
-    $ping{IPv6}{right} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_r_addr6);
-    if ($pseudo eq 'none' && $multi) {
-	for (my $i = 0; $i < @linux_if; $i++) {
-	    $ping{IPv4}{"left$i"} = printcmd('ping', '-n', '-c1', '-w5',
-		"$lnx_li_addr$i");
-	    $ping{IPv4}{"right$i"} = printcmd('ping', '-n', '-c1', '-w5',
-		"$lnx_ri_addr$i");
-	    $ping{IPv6}{"left$i"} = printcmd('ping6', '-n', '-c1', '-w5',
-		"$lnx_li_addr6$i");
-	    $ping{IPv6}{"right$i"} = printcmd('ping6', '-n', '-c1', '-w5',
-		"$lnx_ri_addr6$i");
-	}
-    }
-    print "\n";
-    foreach my $family (sort keys %ping) {
-	foreach my $side (sort keys %{$ping{$family}}) {
-	    print "ping link check $family $side:\t",
-		$ping{$family}{$side} ? "FAIL" : "PASS", "\n";
-	}
-    }
+    ping_check();
 }
 
 print "\nnew config created: modify $modify, iface $iface, pseudo $pseudo\n\n";
@@ -2600,6 +2584,33 @@ sub environment {
 	    $ENV{$1}=$2;
 	} else {
 	    die "Unknown environment line in '$file': $_";
+	}
+    }
+}
+
+sub ping_check {
+    my %ping;
+    $ping{IPv4}{left} = printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
+    $ping{IPv4}{right} = printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
+    $ping{IPv6}{left} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
+    $ping{IPv6}{right} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_r_addr6);
+    if ($pseudo eq 'none' && $multi) {
+	for (my $i = 0; $i < @linux_if; $i++) {
+	    $ping{IPv4}{"left$i"} = printcmd('ping', '-n', '-c1', '-w5',
+		"$lnx_li_addr$i");
+	    $ping{IPv4}{"right$i"} = printcmd('ping', '-n', '-c1', '-w5',
+		"$lnx_ri_addr$i");
+	    $ping{IPv6}{"left$i"} = printcmd('ping6', '-n', '-c1', '-w5',
+		"$lnx_li_addr6$i");
+	    $ping{IPv6}{"right$i"} = printcmd('ping6', '-n', '-c1', '-w5',
+		"$lnx_ri_addr6$i");
+	}
+    }
+    print "\n";
+    foreach my $family (sort keys %ping) {
+	foreach my $side (sort keys %{$ping{$family}}) {
+	    print "ping link check $family $side:\t",
+		$ping{$family}{$side} ? "FAIL" : "PASS", "\n";
 	}
     }
 }
