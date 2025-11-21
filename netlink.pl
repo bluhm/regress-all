@@ -2589,13 +2589,21 @@ sub environment {
 }
 
 sub ping_check {
-    my %ping;
+    my (%addr, %ping);
+    $addr{IPv4}{left} = $lnx_l_addr;
+    $addr{IPv4}{right} = $lnx_r_addr;
+    $addr{IPv6}{left} = $lnx_l_addr6;
+    $addr{IPv6}{right} = $lnx_r_addr6;
     $ping{IPv4}{left} = printcmd('ping', '-n', '-c1', '-w5', $lnx_l_addr);
     $ping{IPv4}{right} = printcmd('ping', '-n', '-c1', '-w5', $lnx_r_addr);
     $ping{IPv6}{left} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_l_addr6);
     $ping{IPv6}{right} = printcmd('ping6', '-n', '-c1', '-w5', $lnx_r_addr6);
     if ($pseudo eq 'none' && $multi) {
 	for (my $i = 0; $i < @linux_if; $i++) {
+	    $addr{IPv4}{"left$i"} = "$lnx_li_addr$i";
+	    $addr{IPv4}{"right$i"} = "$lnx_ri_addr$i";
+	    $addr{IPv6}{"left$i"} = "$lnx_li_addr6$i";
+	    $addr{IPv6}{"right$i"} = "$lnx_ri_addr6$i";
 	    $ping{IPv4}{"left$i"} = printcmd('ping', '-n', '-c1', '-w5',
 		"$lnx_li_addr$i");
 	    $ping{IPv4}{"right$i"} = printcmd('ping', '-n', '-c1', '-w5',
@@ -2610,7 +2618,8 @@ sub ping_check {
     foreach my $family (sort keys %ping) {
 	foreach my $side (sort keys %{$ping{$family}}) {
 	    print "ping link check $family $side:\t",
-		$ping{$family}{$side} ? "FAIL" : "PASS", "\n";
+		$ping{$family}{$side} ? "FAIL" : "PASS", "\t",
+		$addr{$family}{$side}, "\n";
 	}
     }
 }
