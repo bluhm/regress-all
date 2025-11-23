@@ -1162,6 +1162,17 @@ my %quirks = (
 	comment => "OpenBSD/amd64 7.8 release",
 	release => '7.8',
     },
+    '2025-11-14T18:13:58Z' => {
+	comment => "backout ifconf netlock, does not compile",
+	updatedirs => [ "sys" ],
+	patches => { 'sys-ifconf-backout' => patch_sys_ifconf_backout() },
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	commands => [ "reboot" ],
+    },
+    '2025-11-15T00:07:22Z' => {
+	comment => "backout ifconf netlock commit",
+	updatedirs => [ "sys" ],
+    },
 );
 
 #### Patches ####
@@ -3026,6 +3037,164 @@ diff -u -p -r1.329 -r1.328
  			if (strcmp(path, "/etc/hosts") == 0) {
  				ni->ni_cnd.cn_flags |= BYPASSUNVEIL;
  				return (0);
+PATCH
+}
+
+# Backout ifconf netlock, does not compile.
+sub patch_sys_ifconf_backout {
+	return <<'PATCH';
+Index: sys/net/if.c
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if.c,v
+diff -u -p -r1.750 -r1.751
+--- sys/net/if.c	14 Nov 2025 18:13:58 -0000	1.750
++++ sys/net/if.c	15 Nov 2025 00:07:22 -0000	1.751
+@@ -2532,7 +2532,10 @@ ifioctl_get(u_long cmd, caddr_t data)
+ 
+ 	switch(cmd) {
+ 	case SIOCGIFCONF:
+-		return (ifconf(data));
++		NET_LOCK_SHARED();
++		error = ifconf(data);
++		NET_UNLOCK_SHARED();
++		return (error);
+ 	case SIOCIFGCLONERS:
+ 		return (if_clone_list((struct if_clonereq *)data));
+ 	case SIOCGIFGMEMB:
+@@ -2750,52 +2753,31 @@ ifconf(caddr_t data)
+ 					space += sizeof(ifr);
+ 				}
+ 		}
+-		NET_UNLOCK_SHARED();
+ 		ifc->ifc_len = space;
+ 		return (0);
+ 	}
+ 
+-	TAILQ_INIT(&if_tmplist);
+-	TAILQ_INIT(&addr_tmplist);
+-
+ 	ifrp = ifc->ifc_req;
+ 	memset(&ifr, 0, sizeof(ifr));
+-
+-	rw_enter_write(&if_tmplist_lock);
+-	NET_LOCK_SHARED();
+ 	TAILQ_FOREACH(ifp, &ifnetlist, if_list) {
+-		if_ref(ifp);
+-		TAILQ_INSERT_TAIL(&if_tmplist, ifp, if_tmplist);
+-	}
+-	NET_UNLOCK_SHARED();
+-
+-	TAILQ_FOREACH(ifp, &if_tmplist, if_tmplist) {
+ 		if (space < sizeof(ifr))
+-			goto free;
++			break;
+ 		memcpy(ifr.ifr_name, ifp->if_xname, IFNAMSIZ);
+-
+-		NET_LOCK_SHARED();
+-		TAILQ_FOREACH(ifa, &ifp->if_addrlist, ifa_list) {
+-			ifaref(ifa);
+-			TAILQ_INSERT_TAIL(&addr_tmplist, ifa, ifa_tmplist);
+-		}
+-		NET_UNLOCK_SHARED();
+-
+-		if (TAILQ_EMPTY(&addr_tmplist)) {
++		if (TAILQ_EMPTY(&ifp->if_addrlist)) {
+ 			memset(&ifr.ifr_addr, 0, sizeof(ifr.ifr_addr));
+ 			error = copyout((caddr_t)&ifr, (caddr_t)ifrp,
+ 			    sizeof(ifr));
+ 			if (error)
+-				goto free;
++				return (error);
+ 
+ 			space -= sizeof(ifr);
+ 			ifrp++;
+-		} else {
+-			TAILQ_FOREACH(ifa, &addr_tmplist, ifa_tmplist) {
++		} else
++			TAILQ_FOREACH(ifa, &ifp->if_addrlist, ifa_list) {
+ 				struct sockaddr *sa = ifa->ifa_addr;
+ 
+ 				if (space < sizeof(ifr))
+-					goto free;
++					goto out;
+ 				if (sa->sa_len <= sizeof(*sa)) {
+ 					memset(&ifr.ifr_addr, 0,
+ 					    sizeof(ifr.ifr_addr));
+@@ -2803,7 +2785,7 @@ ifconf(caddr_t data)
+ 					error = copyout((caddr_t)&ifr,
+ 					    (caddr_t)ifrp, sizeof (ifr));
+ 					if (error)
+-						goto free;
++						return (error);
+ 
+ 					space -= sizeof(ifr);
+ 					ifrp++;
+@@ -2812,45 +2794,27 @@ ifconf(caddr_t data)
+ 					    sa->sa_len;
+ 
+ 					if (space < total)
+-						goto free;
++						goto out;
+ 					error = copyout((caddr_t)&ifr,
+ 					    (caddr_t)ifrp,
+ 					    sizeof(ifr.ifr_name));
+ 					if (error)
+-						goto free;
++						return (error);
+ 					error = copyout((caddr_t)sa,
+ 					    (caddr_t)&ifrp->ifr_addr,
+ 					    sa->sa_len);
+ 					if (error)
+-						goto free;
++						return (error);
+ 
+ 					space -= total;
+ 					ifrp = (struct ifreq *)(
+ 					    (caddr_t)ifrp + total);
+ 				}
+ 			}
+-		}
+-
+-		while((ifa = TAILQ_FIRST(&addr_tmplist))) {
+-			TAILQ_REMOVE(&addr_tmplist, ifa, ifa_tmplist);
+-			ifafree(ifa);
+-		}
+-	}
+-
+-free:
+-	while((ifa = TAILQ_FIRST(&addr_tmplist))) {
+-		TAILQ_REMOVE(&addr_tmplist, ifa, ifa_tmplist);
+-		ifafree(ifa);
+-	}
+-	while ((ifp = TAILQ_FIRST(&if_tmplist))) {
+-		TAILQ_REMOVE(&if_tmplist, ifp, if_tmplist);
+-		if_put(ifp);
+ 	}
+-	rw_exit_write(&if_tmplist_lock);
+-
+-	if (error == 0)
+-		ifc->ifc_len -= space;
+-	return (error);
++out:
++	ifc->ifc_len -= space;
++	return (0);
+ }
+ 
+ void
+Index: sys/net/if_var.h
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/net/if_var.h,v
+diff -u -p -r1.140 -r1.141
+--- sys/net/if_var.h	14 Nov 2025 18:13:58 -0000	1.140
++++ sys/net/if_var.h	15 Nov 2025 00:07:22 -0000	1.141
+@@ -254,7 +254,6 @@ struct ifaddr {
+ 	struct	ifnet *ifa_ifp;		/* back-pointer to interface */
+ 	TAILQ_ENTRY(ifaddr) ifa_list;	/* [N] list of addresses for
+ 					    interface */
+-	TAILQ_ENTRY(ifaddr) ifa_tmplist;/* [T] temporary list */
+ 	u_int	ifa_flags;		/* interface flags, see below */
+ 	struct	refcnt ifa_refcnt;	/* number of `rt_ifa` references */
+ 	int	ifa_metric;		/* cost of going out this interface */
 PATCH
 }
 
