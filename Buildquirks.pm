@@ -1166,6 +1166,13 @@ my %quirks = (
 	comment => "backout ifconf netlock, does not compile",
 	updatedirs => [ "sys" ],
 	patches => { 'sys-ifconf-backout' => patch_sys_ifconf_backout() },
+	prebuildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	    "{ echo -n 'cvs : '; ".
+	    "cat sys/arch/amd64/compile/GENERIC.MP/CVS/Tag; } ".
+	    ">sys/arch/amd64/compile/GENERIC.MP/obj/version",
+	],
 	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	commands => [ "reboot" ],
     },
