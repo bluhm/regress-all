@@ -1176,6 +1176,11 @@ my %quirks = (
 	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	commands => [ "reboot" ],
     },
+    '2025-11-14T21:47:31Z' => {
+	comment => "tcpdump privsep after bpf kernel change",
+	updatedirs => [ "usr.sbin/tcpdump" ],
+	builddirs => [ "usr.sbin/tcpdump" ],
+    },
     '2025-11-15T00:07:22Z' => {
 	comment => "backout ifconf netlock commit",
 	updatedirs => [ "sys" ],
