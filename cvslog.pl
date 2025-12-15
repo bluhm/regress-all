@@ -250,6 +250,7 @@ print $html <<"HEADER";
 </table>
 HEADER
 
+my $cookie = 'ipk=dIG2g9zgxzm-TbASMaiFlJVMYR9efpZR1xGkhce1CPM';
 my $cvsweb = "https://cvsweb.openbsd.org";
 foreach my $date (sort keys %l) {
     while ((undef, my $commit) = each %{$l{$date}}) {
@@ -268,7 +269,7 @@ foreach my $date (sort keys %l) {
 	    my $link = "$cvsweb/$f#rev$rev";
 	    $files .= "    <td><a href=\"$link\">log</a></td>\n";
 	    (my $prev = $rev) =~ s/(?<=\.)\d+/$&-1/e;
-	    $link = "$cvsweb/$f.diff?r1=$prev&r2=$rev";
+	    $link = "$cvsweb/$f.diff?$cookie&r1=$prev&r2=$rev";
 	    $files .= "    <td><a href=\"$link\">diff</a></td>\n";
 	    $link = "$cvsweb/$f?annotate=$rev";
 	    $files .= "    <td><a href=\"$link\">annotate</a></td>";
