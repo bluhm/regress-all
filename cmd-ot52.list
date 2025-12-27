@@ -1,8 +1,12 @@
 -groupadd -g 999 vmm
--useradd -G vmm -m lt70
--useradd -G vmm -m lt75
--useradd -G vmm -m ot71
--useradd -G vmm -m ot72
--useradd -G vmm -m ot73
--useradd -G vmm -m ot74
-cd /dev && sh ./MAKEDEV `jot 16 0 | sed s/^/tap/`
+-useradd -G vmm -u 1001 -m lt70
+-useradd -G vmm -u 1002 -m ot71
+-useradd -G vmm -u 1003 -m ot72
+-useradd -G vmm -u 1004 -m ot73
+-useradd -G vmm -u 1005 -m ot74
+-useradd -G vmm -u 1006 -m lt75
+-useradd -G vmm -u 1009 -m ot76
+-useradd -G vmm -u 1010 -m ot77
+-useradd -G vmm -u 1011 -m ot78
+-useradd -G vmm -u 1012 -m ot79
+cd /dev && sh ./MAKEDEV `jot 40 0 | sed s/^/tap/`
