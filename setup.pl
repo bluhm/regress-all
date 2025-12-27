@@ -120,6 +120,7 @@ if ($patch) {
 }
 update_ports($release) if $mode{ports};
 make_kernel() if $mode{kernel} || $mode{build} || $mode{restart};
+reboot() if ($mode{kernel} || $mode{restart}) && $mode{build};
 make_build() if $mode{build};
 diff_cvs($cvspath) if $mode{kernel} || $mode{build} || $patch;
 reboot() if ($mode{kernel} || $mode{build} || $mode{restart} ||
