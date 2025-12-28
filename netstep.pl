@@ -22,6 +22,7 @@ use File::Basename;
 use Getopt::Std;
 use List::Util qw(pairkeys);
 use POSIX;
+use Time::Local;
 
 use lib dirname($0);
 use Logcmd;
@@ -350,8 +351,8 @@ foreach my $current (@steps) {
 		    if (@pseudos) {
 			-d $pseudodir || mkdir $pseudodir
 			    or die "Make directory '$pseudodir' failed: $!";
-			chdir($pseudodir)
-			    or die "Change directory to '$pseudodir' failed: $!";
+			chdir($pseudodir) or die
+			    "Change directory to '$pseudodir' failed: $!";
 		    }
 
 			logmsg sprintf("\nrun %d/%d %s %s %s %s %s\n\n",
@@ -487,4 +488,72 @@ sub mkdir_num {
 	}
     }
     die "Make directory '$dir' failed: $!";
+}
+
+sub get_commits {
+    my ($cvsbegin, $cvsend) = map { strftime("%FT%TZ", gmtime($_)) } @_;
+    my $year = 1900 + (gmtime($_[0]))[5];
+
+    my $cvstxt =
+	"$netlinkdir/results/cvslog/$year/src/sys/$cvsbegin--$cvsend.txt";
+    unless (-f $cvstxt) {
+	my @cmd = ("$netlinkdir/bin/cvslog.pl",
+	    "-B", $cvsbegin, "-E", $cvsend, "-P", "src/sys");
+	runcmd(@cmd);
+    }
+    open (my $fh, '<', $cvstxt)
+	or die "Open '$cvstxt' for reading failed: $!";
+
+    my @steps;
+    while (<$fh>) {
+	chomp;
+	my ($k, $v) = split(/\s+/, $_, 2)
+	    or next;
+	$k eq 'DATE'
+	    or next;
+	my $time = str2time($v)
+	    or die "Invalid date '$v' in $cvstxt";
+	# cvs commit is not atomic, ignore commits a few seconds ago
+	# also ignore regen commits or quick fixes within a minute
+	pop @steps if @steps && $steps[-1] + 60 > $time;
+	push @steps, $time;
+    }
+    return @steps;
+}
+
+sub get_quirks {
+    my ($before, $after) = map { strftime("%FT%TZ", gmtime($_)) } @_;
+
+    my %q = quirks($before, $after);
+    return map { $q{$_}{commit} } sort keys %q;
+}
+
+sub add_step {
+    my ($before, $step, $unit) = @_;
+
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime($before);
+
+    if ($unit eq "sec") {
+    } elsif ($unit eq "min") {
+	$step *= 60;
+    } elsif ($unit eq "hour") {
+	$step *= 60 * 60;
+    } elsif ($unit eq "day") {
+	$step *= 60 * 60 * 24;
+    } elsif ($unit eq "week") {
+	$step *= 60 * 60 * 24 * 7;
+    } elsif ($unit eq "month") {
+	$mon += $step;
+	$year += int($mon / 12);
+	$mon = $mon % 12;
+	$step = 0;
+    } elsif ($unit eq "$year") {
+	$year += $step;
+	$step = 0;
+    } else {
+	die "Invalid step unit '$unit'";
+    }
+
+    my $after = timegm($sec, $min, $hour, $mday, $mon, $year) + $step;
+    return $after;
 }
