@@ -34,20 +34,20 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my %opts;
-getopts('vnB:d:E:LN:p:Qr:X:x:Y:y:', \%opts) or do {
+getopts('B:d:E:LN:np:Qr:vX:x:Y:y:', \%opts) or do {
     print STDERR <<"EOF";
-usage: gnuplot.pl [-Lnv] [-B date] [-d date] [-E date] [-N numbers] -p plot
+usage: gnuplot.pl [-LnQv] [-B date] [-d date] [-E date] [-N numbers] -p plot
 	[-r release] [-x min] [-X max] [-y min] [-Y max]
-    -v		verbose
-    -n		dry run
     -B date	begin date of x range, inclusive
     -d date	run date of performance test
     -E date	end date of x range, inclusive
     -L		create LaTeX and EPS output instead of PNG and HTML
     -N numbers	list of test numbers
+    -n		dry run
     -p plot	plot name: @PLOTORDER
     -Q		do not print build quirks
     -r release	OpenBSD version number
+    -v		verbose
     -x min	x range minimum
     -X max	x range maximum
     -y min	y range minimum
