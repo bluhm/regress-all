@@ -52,8 +52,8 @@ usage: net.pl [-pv] [-b kstack] [-c pseudo] [-d date] [-D cvsdate] -h host
     -m modify	list of modify modes: all @allmodifymodes
     -N repeat	number of build, reboot, test repetitions per step
     -P patch	apply patch to clean kernel source
-    -s setup	setup mode: @allsetupmodes
     -p		power down after testing
+    -s setup	setup mode: @allsetupmodes
     -v		verbose
     test ...	test mode: @alltestmodes
 EOF
