@@ -216,6 +216,14 @@ if ($unit eq "commit") {
 
 setup_html(date => 1);
 
+my @repeats;
+# use repeats subdirs only if there are any
+push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1) if $repeat;
+# after all regular repeats, make one with btrace turned on
+push @repeats, "btrace-$btrace.0" if $btrace;
+
+my $allruns = @steps * (@repeats || 1);
+my $run = 0;
 foreach my $current (@steps) {
     chdir($performdir)
 	or die "Change directory to '$performdir' failed: $!";
@@ -241,12 +249,6 @@ foreach my $current (@steps) {
 
     # run repetitions if requested
 
-    my @repeats;
-    # use repeats subdirs only if there are any
-    push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1) if $repeat;
-    # after all regular repeats, make one with btrace turned on
-    push @repeats, "btrace-$btrace.0" if $btrace;
-
     foreach my $repeatdir (@repeats ? @repeats : ".") {
 	if (@repeats) {
 	    mkdir $repeatdir
@@ -254,6 +256,9 @@ foreach my $current (@steps) {
 	    chdir($repeatdir)
 		or die "Change directory to '$repeatdir' failed: $!";
 	}
+
+	logmsg sprintf("\nrun %d/%d %s %s %s %s\n\n",
+	    ++$run, $allruns, $current, $repeatdir);
 
 	# run performance tests remotely
 
