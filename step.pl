@@ -28,7 +28,7 @@ use Buildquirks;
 use Logcmd;
 use Hostctl;
 
-my $date = strftime("%FT%TZ", gmtime);
+my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my @allkernelmodes = qw(align gap sort reorder reboot keep);
@@ -141,6 +141,7 @@ if ($release) {
     -d $resultdir || mkdir $resultdir
 	or die "Make directory '$resultdir' failed: $!";
 }
+my $date = $now;
 $resultdir .= "/$date";
 mkdir $resultdir
     or die "Make directory '$resultdir' failed: $!";
@@ -151,7 +152,7 @@ chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
 createlog(file => "step.log", verbose => $opts{v});
-logmsg("$date Script '$scriptname' started.\n");
+logmsg("$now Script '$scriptname' started.\n");
 
 open(my $fh, '>', "stepconf.txt")
     or die "Open 'stepconf.txt' for writing failed: $!";
@@ -318,7 +319,7 @@ unlink("results/latest");
 symlink($release ? "$release/$date" : $date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
 
-my $now = strftime("%FT%TZ", gmtime);
+$now = strftime("%FT%TZ", gmtime);
 logmsg("$now Script '$scriptname' finished.\n");
 
 exit;

@@ -26,7 +26,7 @@ use lib dirname($0);
 use Logcmd;
 use Hostctl;
 
-my $date = strftime("%FT%TZ", gmtime);
+my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my @allsetupmodes = qw(cvs keep kernel restart);
@@ -70,6 +70,7 @@ my $regressdir = dirname($0). "/..";
 chdir($regressdir)
     or die "Change directory to '$regressdir' failed: $!";
 $regressdir = getcwd();
+my $date = $now;
 my $resultdir = "$regressdir/results/$date";
 mkdir $resultdir
     or die "Make directory '$resultdir' failed: $!";
@@ -80,7 +81,7 @@ chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
 createlog(file => "make.log", verbose => $opts{v});
-logmsg("$date Script '$scriptname' started.\n");
+logmsg("$now Script '$scriptname' started.\n");
 
 open(my $fh, '>', "makeconf.txt")
     or die "Open 'makeconf.txt' for writing failed: $!";
@@ -153,7 +154,7 @@ logeval { runcmd("bin/regress-html.pl", "-l", "release") };
 
 runcmd("bin/regress-html.pl", "release");
 
-my $now = strftime("%FT%TZ", gmtime);
+$now = strftime("%FT%TZ", gmtime);
 logmsg("$now Script '$scriptname' finished.\n");
 
 exit;
