@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2018-2025 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2025 Alexander Bluhm <bluhm@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -34,62 +34,85 @@ my @allifaces = qw(bge bnxt em ice igc ix ixl re vio vmx);
 my @allmodifymodes = qw(none direct jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg
     bridge+vlan vlan+bridge veb+vlan veb+vtag vlan+veb);
-my @allsetupmodes = (qw(build install upgrade sysupgrade keep kernel reboot
-    tools), "cvs,build", "cvs,kernel");
+my @allkernelmodes = qw(align gap sort reorder reboot keep);
+my @allsetupmodes = (qw(build install upgrade sysupgrade keep), "cvs,build");
 my @alltestmodes = qw(all icmp tcp udp splice mcast mmsg iperf trex);
 
 my %opts;
-getopts('b:c:d:D:h:i:m:N:P:ps:v', \%opts) or do {
+getopts('B:b:c:E:h:i:m:k:N:pr:S:s:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: net.pl [-pv] [-b kstack] [-c pseudo] [-d date] [-D cvsdate] -h host
-	[-i iface] [-m modify] [-N repeat] [-P patch] [-s setup] [test ...]
+usage: netstep.pl [-pv] -B date [-b kstack] [-c pseudo] [-E date] -h host
+	[-i iface] [-m modify] [-k kernel] [-N repeat] [-r release]
+	[-S interval] [-s setup] [test ...]
+    -B date	begin date, inclusive
     -b kstack	measure with btrace and create kernel stack map
     -c pseudo	list of pseudo network devices: all @allpseudos
-    -d date	set date string and change to sub directory, may be current
-    -D cvsdate	update sources from cvs to this date
+    -E date	end date, inclusive
     -h host	user and host for network link test, user defaults to root
     -i iface	list of interfaces, may contain number: all @allifaces
     -m modify	list of modify modes: all @allmodifymodes
+    -k kernel	kernel mode: @allkernelmodes
     -N repeat	number of build, reboot, test repetitions per step
-    -P patch	apply patch to clean kernel source
     -p		power down after testing
+    -r release	use release for install and cvs checkout, X.Y or current
+    -S interval	step in sec, min, hour, day, week, month, year
     -s setup	setup mode: @allsetupmodes
     -v		verbose
     test ...	test mode: @alltestmodes
 EOF
     exit(2);
 };
+my $btrace = $opts{b};
+$btrace && $btrace ne "kstack"
+    and die "Btrace -b '$btrace' not supported, use 'kstack'";
 $opts{h} or die "No -h specified";
 (my $host = $opts{h}) =~ s/.*\@//;
-!$opts{d} || $opts{d} =~ /^(current|latest|latest-\w+)$/ || str2time($opts{d})
-    or die "Invalid -d date '$opts{d}'";
-my $date = $opts{d} || $now;
-my $cvsdate;
-if ($opts{D}) {
-    my $cd = str2time($opts{D})
-	or die "Invalid -D cvsdate '$opts{D}'";
-    $cvsdate = strftime("%FT%TZ", gmtime($cd));
+$opts{r} or die "No -r specified";
+my $release;
+if ($opts{r} ne "current") {
+    ($release = $opts{r}) =~ /^\d+\.\d$/
+	or die "Release '$opts{r}' must be major.minor format";
 }
-my $patch = $opts{P};
+$opts{B} or die "No -B begin date";
+my $begin = str2time($opts{B})
+    or die "Invalid -B date '$opts{B}'";
+my $end = str2time($opts{E} || $opts{B})
+    or die "Invalid -E date '$opts{E}'";
+my ($step, $unit);
+if ($opts{S}) {
+    if ($opts{S} eq "commit") {
+	$unit = "commit";
+    } else {
+	($step, $unit) = $opts{S} =~ /^(\d+)(\w+)$/
+	    or die "Invalid -S step '$opts{S}'";
+	# unit syntax check
+	add_step(0 , $step, $unit);
+    }
+} else {
+    $step = $end - $begin;
+    $unit = "sec";
+}
+$end >= $begin
+    or die "Begin date '$opts{B}' before end date '$opts{E}'";
+$end == $begin || $unit eq "commit" || $step > 0
+    or die "Step '$opts{S}' cannot reach end date";
+
 my $iface = $opts{i} || "all";
 my $modify = $opts{m};
 my $pseudo = $opts{c};
 my $repeat = $opts{N};
 !$repeat || $repeat >= 1
     or die "Repeat -N repeat must be positive integer";
-my $btrace = $opts{b};
-$btrace && $btrace ne "kstack"
-    and die "Btrace -b '$btrace' not supported, use 'kstack'";
+!$opts{k} || grep { $_ eq $opts{k} } @allkernelmodes
+    or die "Unknown kernel mode '$opts{k}'";
+
+my %kernelmode;
+$kernelmode{$opts{k}} = 1 if $opts{k};
 
 !$opts{s} || grep { $_ eq $opts{s} } @allsetupmodes
     or die "Unknown setup mode '$opts{s}'";
 my %setupmode;
 $setupmode{$_} = 1 foreach split(/,/, $opts{s} || "");
-
-keys %setupmode && $opts{d}
-    and die "Cannot combine -s setup and -d date";
-keys %setupmode && $patch
-    and die "Cannot combine -s setup and -P patch";
 
 my %testmode;
 foreach my $mode (@ARGV) {
@@ -106,25 +129,23 @@ chdir($netlinkdir)
     or die "Change directory to '$netlinkdir' failed: $!";
 $netlinkdir = getcwd();
 my $resultdir = "$netlinkdir/results";
+-d $resultdir || mkdir $resultdir
+    or die "Make directory '$resultdir' failed: $!";
 
-if ($date && $date =~ /^(current|latest|latest-\w+)$/) {
-    my $current = readlink("$resultdir/$date")
-	or die "Read link '$resultdir/$date' failed: $!";
-    -d "$resultdir/$current"
-	or die "Test directory '$resultdir/$current' failed: $!";
-    $date = basename($current);
-}
+# hierarchy: release date cvsdate iface pseudo repeat btrace
 
-# hierarchy: date cvsdate patch iface pseudo repeat btrace
-
-$resultdir .= "/$date";
-unless ($opts{d}) {
-    mkdir $resultdir
+if ($release) {
+    $resultdir .= "/$release";
+    -d $resultdir || mkdir $resultdir
 	or die "Make directory '$resultdir' failed: $!";
-    unlink("results/current");
-    symlink("$date", "results/current")
-	or die "Make symlink 'results/current' failed: $!";
 }
+my $date = $now;
+$resultdir .= "/$date";
+mkdir $resultdir
+    or die "Make directory '$resultdir' failed: $!";
+unlink("results/current");
+symlink("$date", "results/current")
+    or die "Make symlink 'results/current' failed: $!";
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
@@ -135,6 +156,12 @@ open(my $fh, '>', "netconf.txt")
     or die "Open 'netconf.txt' for writing failed: $!";
 print $fh "ARGUMENTS @ARGV\n";
 print $fh "HOST $opts{h}\n";
+print $fh "RELEASE $opts{r}\n";
+print $fh strftime("BEGIN %FT%TZ\n", gmtime($begin));
+print $fh strftime("END %FT%TZ\n", gmtime($end));
+print $fh "STEP ", $unit eq "commit" ? $unit : "$step $unit", "\n";
+print $fh "REPEAT ", $repeat || "", "\n";
+print $fh "KERNELMODES ", join(" ", sort keys %kernelmode), "\n";
 print $fh "SETUPMODES ", join(" ", sort keys %setupmode), "\n";
 print $fh "TESTMODES ", join(" ", sort keys %testmode), "\n";
 close($fh);
@@ -163,39 +190,34 @@ END {
 	system(@cmd);
     }
 };
-$resultdir .= "/$cvsdate" if $cvsdate;
--d $resultdir || mkdir $resultdir
-    or die "Make directory '$resultdir' failed: $!";
-if ($patch) {
-    my $patchdir = "patch-".
-	join(',', map { s,\.[^/]*,,; basename($_) } split(/,/, $patch));
-    $resultdir = mkdir_num("$resultdir/$patchdir");
-}
-chdir($resultdir)
-    or die "Change directory to '$resultdir' failed: $!";
-if (keys %setupmode) {
-    if ($patch || !($setupmode{keep} || $setupmode{reboot})) {
-	setup_hosts(patch => $patch, mode => \%setupmode);
-    } elsif (!$setupmode{reboot}) {
-	powerup_hosts(cvsdate => $cvsdate, patch => $patch);
-    } else {
-	reboot_hosts(cvsdate => $cvsdate, patch => $patch);
-    }
-    collect_version();
-    setup_html();
+if (!$setupmode{keep}) {
+    setup_hosts(release => $release, mode => \%setupmode);
 } else {
-    powerup_hosts(cvsdate => $cvsdate, patch => $patch);
+    powerup_hosts(release => $release);
 }
-if (($cvsdate && ! -f "$resultdir/cvsbuild-$host.log") || $patch) {
-    cvsbuild_hosts(cvsdate => $cvsdate, patch => $patch);
-    collect_version();
-    setup_html();
-} elsif ($cvsdate &&
-    !($patch || $iface || $modify || $pseudo || $repeat || $btrace)) {
-	die "Directory '$resultdir' exists and no subdir given";
+collect_version();
+setup_html();
+
+# update in single steps
+
+my @steps;
+if ($unit eq "commit") {
+    my %times;
+    @times{(get_commits($begin, $end), get_quirks($begin, $end))} = ();
+    @steps = sort keys %times;
+    unshift @steps, $begin unless @steps && $steps[0] == $begin;
+    push @steps, $end unless $steps[-1] == $end;
+} else {
+    for (my $current = $begin; $current < $end;
+	$current = add_step($current, $step, $unit)) {
+
+	push @steps, $current;
+    }
+    # if next step does not hit the end exactly, do an additional test
+    push @steps, $end;
 }
 
-collect_version();
+setup_html(date => 1);
 
 my @ifaces;
 if ($iface) {
@@ -268,98 +290,133 @@ my @repeats;
 # use repeats subdirs only if there are any
 push @repeats, map { sprintf("%03d", $_) } (0 .. $repeat - 1) if $repeat;
 # after all regular repeats, make one with btrace turned on
-push @repeats, "btrace-$btrace" if $btrace;
+push @repeats, "btrace-$btrace.0" if $btrace;
 
-setup_html(date => 1);
-
-my $allruns =
+my $allruns = @steps *
     (@modifies || 1) * (@ifaces || 1) * (@pseudos || 1) * (@repeats || 1);
 my $run = 0;
-foreach my $modifydir (@modifies ? @modifies : ".") {
-    if (@modifies) {
-	-d $modifydir || mkdir $modifydir
-	    or die "Make directory '$modifydir' failed: $!";
-	chdir($modifydir)
-	    or die "Change directory to '$modifydir' failed: $!";
-    }
+foreach my $current (@steps) {
+    chdir($netlinkdir)
+	or die "Change directory to '$netlinkdir' failed: $!";
 
-    foreach my $ifacedir (@ifaces ? @ifaces : ".") {
-	if (@ifaces) {
-	    -d $ifacedir || mkdir $ifacedir
-		or die "Make directory '$ifacedir' failed: $!";
-	    chdir($ifacedir)
-		or die "Change directory to '$ifacedir' failed: $!";
+    my $cvsdate = strftime("%FT%TZ", gmtime($current));
+    my $cvsdir = "results";
+    $cvsdir .= "/$release" if $release;
+    $cvsdir .= "/$date/$cvsdate";
+    mkdir $cvsdir
+	or die "Make directory '$cvsdir' failed: $!";
+    chdir($cvsdir)
+	or die "Change directory to '$cvsdir' failed: $!";
+    my %cvsmode = %kernelmode;
+    if ($kernelmode{keep}) {
+	# cannot keep the kernel after building a new one
+	delete $cvsmode{keep};
+	$cvsmode{reboot} = 1;
+    }
+    cvsbuild_hosts(cvsdate => $cvsdate, release => $release,
+	mode => \%cvsmode);
+    collect_version();
+    setup_html();
+
+    foreach my $repeatdir (@repeats ? @repeats : ".") {
+	if (@repeats) {
+	    if ($repeatdir =~ /^btrace-/) {
+		$repeatdir = mkdir_num($repeatdir);
+	    } else {
+		-d $repeatdir || mkdir $repeatdir
+		    or die "Make directory '$repeatdir' failed: $!";
+	    }
+	    chdir($repeatdir) or die
+		"Change directory to '$repeatdir' failed: $!";
 	}
 
-	foreach my $pseudodir (@pseudos ? @pseudos : ".") {
-	    if (@pseudos) {
-		-d $pseudodir || mkdir $pseudodir
-		    or die "Make directory '$pseudodir' failed: $!";
-		chdir($pseudodir)
-		    or die "Change directory to '$pseudodir' failed: $!";
+	foreach my $modifydir (@modifies ? @modifies : ".") {
+	    if (@modifies) {
+		-d $modifydir || mkdir $modifydir
+		    or die "Make directory '$modifydir' failed: $!";
+		chdir($modifydir)
+		    or die "Change directory to '$modifydir' failed: $!";
 	    }
 
-	    foreach my $repeatdir (@repeats ? @repeats : ".") {
-		if (@repeats) {
-		    if ($repeatdir =~ /^btrace-/) {
-			$repeatdir = mkdir_num($repeatdir);
-		    } else {
-			-d $repeatdir || mkdir $repeatdir
-			    or die "Make directory '$repeatdir' failed: $!";
-		    }
-		    chdir($repeatdir)
-			or die "Change directory to '$repeatdir' failed: $!";
+	    foreach my $ifacedir (@ifaces ? @ifaces : ".") {
+		if (@ifaces) {
+		    -d $ifacedir || mkdir $ifacedir
+			or die "Make directory '$ifacedir' failed: $!";
+		    chdir($ifacedir)
+			or die "Change directory to '$ifacedir' failed: $!";
 		}
 
-		logmsg sprintf("\nrun %d/%d %s %s %s %s\n\n",
-		    ++$run, $allruns,
-		    $modifydir, $ifacedir, $pseudodir, $repeatdir);
+		foreach my $pseudodir (@pseudos ? @pseudos : ".") {
+		    if (@pseudos) {
+			-d $pseudodir || mkdir $pseudodir
+			    or die "Make directory '$pseudodir' failed: $!";
+			chdir($pseudodir)
+			    or die "Change directory to '$pseudodir' failed: $!";
+		    }
 
-		# run network link tests remotely
+			logmsg sprintf("\nrun %d/%d %s %s %s %s %s\n\n",
+			    ++$run, $allruns, $cvsdate,
+			    $modifydir, $ifacedir, $pseudodir, $repeatdir);
 
-		my @sshcmd = ('ssh', $opts{h}, 'perl',
-		    '/root/netlink/netlink.pl');
-		push @sshcmd, '-c', $1 if $pseudodir =~ /-(.+)/;
-		push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
-		push @sshcmd, '-e', "/root/netlink/env-$host.sh";
-		push @sshcmd, '-i', $1 if $ifacedir =~ /-(.+)/;
-		push @sshcmd, '-m', $1 if $modifydir =~ /-(.+)/;
-		push @sshcmd, '-v' if $opts{v};
-		push @sshcmd, keys %testmode;
-		logcmd(@sshcmd);
+			# run network link tests remotely
 
-		# get result and logs
+			my @sshcmd = ('ssh', $opts{h}, 'perl',
+			    '/root/netlink/netlink.pl');
+			push @sshcmd, '-c', $1 if $pseudodir =~ /-(.+)/;
+			push @sshcmd, '-b', $btrace if $repeatdir =~ /^btrace-/;
+			push @sshcmd, '-e', "/root/netlink/env-$host.sh";
+			push @sshcmd, '-i', $1 if $ifacedir =~ /-(.+)/;
+			push @sshcmd, '-m', $1 if $modifydir =~ /-(.+)/;
+			push @sshcmd, '-v' if $opts{v};
+			push @sshcmd, keys %testmode;
+			logcmd(@sshcmd);
 
-		collect_result("$opts{h}:/root/netlink");
-		wait_html();
-		collect_version();
-		setup_html();
-		current_html();
+			# get result and logs
 
-		if (@repeats) {
+			collect_result("$opts{h}:/root/netlink");
+			wait_html();
+			collect_version();
+			setup_html();
+			current_html();
+
+		    if (@pseudos) {
+			chdir("..")
+			    or die "Change directory to '..' failed: $!";
+		    }
+		}
+		if (@ifaces) {
 		    chdir("..")
 			or die "Change directory to '..' failed: $!";
 		}
 	    }
-	    if (@pseudos) {
+	    if (@modifies) {
 		chdir("..")
 		    or die "Change directory to '..' failed: $!";
 	    }
 	}
-	if (@ifaces) {
+	if (@repeats) {
+	    # align and sort do not change kernel image randomly at each reboot.
+	    # This has been done by cvsbuild_hosts(), avoid doing it again.
+	    my %rebootmode = %kernelmode;
+	    delete @rebootmode{qw(align sort)};
+
+	    unless ($rebootmode{keep} ||
+		$repeatdir eq $repeats[-1]) {
+		    reboot_hosts(cvsdate => $cvsdate,
+			repeatdir => $repeatdir,
+			release => $release, mode => \%rebootmode);
+	    }
+	    collect_version();
+	    setup_html();
+
 	    chdir("..")
 		or die "Change directory to '..' failed: $!";
 	}
     }
-    if (@modifies) {
-	chdir("..")
-	    or die "Change directory to '..' failed: $!";
-    }
 }
-
 collect_dmesg();
-powerdown_hosts(cvsdate => $cvsdate, patch => $patch) if $opts{p};
-bsdcons_hosts();
+powerdown_hosts(release => $release) if $opts{p};
+bsdcons_hosts(release => $release);
 undef $odate;
 
 # create html output

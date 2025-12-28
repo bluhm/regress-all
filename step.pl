@@ -32,7 +32,7 @@ my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
 my @allkernelmodes = qw(align gap sort reorder reboot keep);
-my @allsetupmodes = qw(build cvs install upgrade sysupgrade keep);
+my @allsetupmodes = (qw(build install upgrade sysupgrade keep), "cvs,build");
 my @alltestmodes = qw(
     all net tcp udp make fs iperf tcpbench udpbench iperftcp
     iperfudp net4 tcp4 udp4 iperf4 tcpbench4 udpbench4 iperftcp4 iperfudp4
@@ -81,11 +81,11 @@ if ($opts{r} ne "current") {
 	or die "Release '$opts{r}' must be major.minor format";
 }
 $opts{B} or die "No -B begin date";
-my ($begin, $end, $step, $unit, $repeat);
-$begin = str2time($opts{B})
+my $begin = str2time($opts{B})
     or die "Invalid -B date '$opts{B}'";
-$end = str2time($opts{E} || $opts{B})
+my $end = str2time($opts{E} || $opts{B})
     or die "Invalid -E date '$opts{E}'";
+my ($step, $unit);
 if ($opts{S}) {
     if ($opts{S} eq "commit") {
 	$unit = "commit";
@@ -104,7 +104,7 @@ $end >= $begin
 $end == $begin || $unit eq "commit" || $step > 0
     or die "Step '$opts{S}' cannot reach end date";
 
-$repeat = $opts{N};
+my $repeat = $opts{N};
 !$repeat || $repeat >= 1
     or die "Repeat '$opts{N}' must be positive integer";
 !$opts{k} || grep { $_ eq $opts{k} } @allkernelmodes
