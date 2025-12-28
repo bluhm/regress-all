@@ -184,7 +184,7 @@ sub diff_cvs {
 sub clean_cvs {
     my ($path) = @_;
     $path = $path ? " $path" : "";
-    logcmd('ssh', "$user\@$host", "cd /usr/src && cvs -qR up -C$path");
+    logcmd('ssh', "$user\@$host", "cd /usr/src && cvs -qR up -PdC$path");
 }
 
 sub patch_cvs {
