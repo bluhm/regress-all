@@ -272,6 +272,9 @@ push @repeats, "btrace-$btrace" if $btrace;
 
 setup_html(date => 1);
 
+my $allruns =
+    (@modifies || 1) * (@ifaces || 1) * (@pseudos || 1) * (@repeats || 1);
+my $run = 0;
 foreach my $modifydir (@modifies ? @modifies : ".") {
     if (@modifies) {
 	-d $modifydir || mkdir $modifydir
@@ -307,6 +310,10 @@ foreach my $modifydir (@modifies ? @modifies : ".") {
 		    chdir($repeatdir)
 			or die "Change directory to '$repeatdir' failed: $!";
 		}
+
+		logmsg sprintf("\nrun %d/%d %s %s %s %s\n\n",
+		    ++$run, $allruns,
+		    $modifydir, $ifacedir, $pseudodir, $repeatdir);
 
 		# run network link tests remotely
 
