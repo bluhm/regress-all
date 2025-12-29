@@ -194,6 +194,8 @@ if ($repeat) {
 # after all regular repeats, make one with btrace turned on
 push @repeats, "btrace-$btrace" if $btrace;
 
+my $allruns = (@repeats || 1);
+my $run = 0;
 foreach my $repeatdir (@repeats ? @repeats : ".") {
     if (@repeats) {
 	if ($repeatdir =~ /^btrace-/) {
@@ -205,6 +207,9 @@ foreach my $repeatdir (@repeats ? @repeats : ".") {
 	chdir($repeatdir)
 	    or die "Change directory to '$repeatdir' failed: $!";
     }
+
+    logmsg sprintf("\nrun %d/%d %s\n\n",
+	++$run, $allruns, $repeatdir);
 
     # run performance tests remotely
 
