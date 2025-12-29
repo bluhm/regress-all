@@ -32,11 +32,12 @@ use Html;
 my $now = strftime("%FT%TZ", gmtime);
 
 my %opts;
-getopts('ad:v', \%opts) or do {
+getopts('ad:r:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: setup-html.pl [-a] [-d date]
+usage: setup-html.pl [-a] [-d date] [-r release]
     -a		create setup.html for all dates
     -d date	create setup.html for a specific date, may be current
+    -r release  date is relative to release
     -v		verbose
 EOF
     exit(2);
@@ -46,6 +47,11 @@ $opts{a} && $opts{d}
 !$opts{d} || $opts{d} eq "current" || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
 my $date = $opts{d};
+my $release;
+if ($opts{r} && $opts{r} ne "current") {
+    ($release = $opts{r}) =~ /^\d+\.\d$/
+	or die "Release '$opts{r}' must be major.minor format";
+}
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 @ARGV and die "No arguments allowed";
@@ -55,6 +61,7 @@ chdir($regressdir)
     or die "Change directory to '$regressdir' failed: $!";
 $regressdir = getcwd();
 my $resultdir = "$regressdir/results";
+$resultdir .= "/$release" if $release;
 if ($date && $date eq "current") {
     my $current = readlink("$resultdir/$date")
 	or die "Read link '$resultdir/$date' failed: $!";
@@ -76,12 +83,12 @@ my (%D, %M, %N);
 # $N{run}		navigation link to run.html
 # $N{current}		navigation link to current/perform.html
 # $N{latest}		navigation link to latest/perform.html
-# $N{release}		navigation link to latest release perform.html
+# $N{release}		navigation link to latest perform or netlink release
 
 my $typename;
 {
     print "glob log files" if $verbose;
-    my @reldates = glob_log_files($date);
+    my @reldates = glob_log_files($date, $release);
     print "\nparse log files" if $verbose;
     $typename = parse_log_files(@reldates);
     print "\n" if $verbose;
@@ -109,26 +116,21 @@ print "\n" if $verbose;
 exit;
 
 sub glob_log_files {
-    my ($date) = @_;
+    my ($date, $release) = @_;
+
+    my $dateglob = $date ? $date : "*T*Z";
+    my $relglob = $release ? $release : "[0-9]*.[0-9]";
 
     print "." if $verbose;
-    if ($date) {
-	return (bsd_glob("$date", GLOB_NOSORT),
-	    bsd_glob("[0-9]*.[0-9]/$date", GLOB_NOSORT));
-    }
-
     my @dates =
-	map { dirname($_) } (
-	bsd_glob("*T*/run.log", GLOB_NOSORT),
-	bsd_glob("*T*/step.log", GLOB_NOSORT),
-	bsd_glob("*T*/test.log", GLOB_NOSORT),
-	bsd_glob("*T*/make.log", GLOB_NOSORT),
-	bsd_glob("*T*/net.log", GLOB_NOSORT),
-	bsd_glob("*T*/netstep.log", GLOB_NOSORT));
+	map { dirname($_) }
+	map { bsd_glob("$dateglob/${_}.log", GLOB_NOSORT) }
+	qw(run step test make net netstep);
+    print "." if $verbose;
     my @reldates =
-	map { dirname($_) } (
-	bsd_glob("[0-9]*.[0-9]/*T*/step.log", GLOB_NOSORT),
-	bsd_glob("[0-9]*.[0-9]/*T*/netstep.log", GLOB_NOSORT));
+	map { dirname($_) }
+	map { bsd_glob("$relglob/$dateglob/${_}.log", GLOB_NOSORT) }
+	qw(step netstep);
     print "." if $verbose;
     $date = $reldates[-1];
     if (!$opts{a}) {
@@ -158,7 +160,7 @@ sub parse_log_files {
 	print "." if $verbose;
 	my $date = basename($reldate);
 	$D{$date}{reldate} = $reldate;
-	my $dir = "$regressdir/results/$reldate";
+	my $dir = "$resultdir/$reldate";
 	chdir($dir)
 	    or die "Change directory to '$dir' failed: $!";
 
@@ -274,7 +276,7 @@ sub create_html_files {
 	my $dv = $D{$date};
 	my $reldate = $dv->{reldate};
 	print "." if $verbose;
-	my $dir = "$regressdir/results/$reldate";
+	my $dir = "$resultdir/$reldate";
 	chdir($dir)
 	    or die "Change directory to '$dir' failed: $!";
 
@@ -719,7 +721,7 @@ sub fill_navigation_links {
     foreach my $result (qw(current latest)) {
 	$N{$result} = "$result/perform.html" if -f "$result/perform.html";
     }
-    if (my @releases = glob("[0-9]*.[0-9]/perform.html")) {
+    if (my @releases = glob("[0-9]*.[0-9]/{perform,netlink}.html")) {
 	$N{release} = $releases[-1];
     }
 }
