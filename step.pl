@@ -258,8 +258,8 @@ foreach my $current (@steps) {
 		or die "Change directory to '$repeatdir' failed: $!";
 	}
 
-	logmsg sprintf("\nrun %d/%d %s %s %s %s\n\n",
-	    ++$run, $allruns, $current, $repeatdir);
+	logmsg sprintf("\nrun %d/%d %s %s\n\n",
+	    ++$run, $allruns, $cvsdate, $repeatdir);
 
 	# run performance tests remotely
 
