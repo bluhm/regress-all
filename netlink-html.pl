@@ -341,9 +341,8 @@ sub html_hier_test_row {
 	    my $btrace = $tv->{btrace};
 	    if ($btrace) {
 		my $svgfile = $tv->{svgfile};
-		my $link = uri_escape("$absresult/$svgfile",
-		    "^A-Za-z0-9\-\._~/");
-		my $href = -f $svgfile ? "<a href=\"$link\">" : "";
+		my $link = uri_escape($svgfile, "^A-Za-z0-9\-\._~/");
+		my $href = -f $svgfile ? "<a href=\"$absresult/$link\">" : "";
 		my $enda = $href ? "</a>" : "";
 		print $html "    <td>$href$btrace$enda</td>\n";
 	    } else {
@@ -421,9 +420,9 @@ sub html_hier_test_row_utilization {
 	my ($href, $enda) = ("", "");
 	if ($tv->{btrace}) {
 	    my $svgfile = $tv->{svgfile};
-	    my $link = uri_escape("$absresult/$svgfile", "^A-Za-z0-9\-\._~/");
+	    my $link = uri_escape($svgfile, "^A-Za-z0-9\-\._~/");
 	    $link =~ s,%,%%,g;  # printf escape
-	    $href = -f $svgfile ? "<a href=\"$link\">" : "";
+	    $href = -f $svgfile ? "<a href=\"$absresult/$link\">" : "";
 	    $enda = $href ? "</a>" : "";
 	}
 	printf $html "    <td$class$style$title>$href%.1f%%$enda</td>\n",
@@ -444,9 +443,12 @@ sub write_html_hier_files {
 	my $short = $dv->{short};
 
 	my ($html, $htmlfile) = html_open("$reldate/netlink");
+	my @releases = $release ? "$absresult/$release/netlink.html" :
+	    glob("[0-9]*.[0-9]/netlink.html");
 	my @nav = (
 	    Top     => "/test.html",
 	    All     => (-f "netlink.html" ? "$absresult/netlink.html" : undef),
+	    Release => (@releases ? $releases[-1] : undef),
 	    Current => "$absresult/current/netlink.html",
 	    Latest  => "$absresult/latest.html",
 	    Running => "$absresult/run.html");
@@ -499,14 +501,17 @@ sub write_html_hier_files {
 sub write_html_date_file {
     my $file = $opts{l} ? "latest" : "netlink";
     $file .= "-$host" if $host;
+    $file = "$release/$file" if $release;
     my $topic = $host ? ($opts{l} ? "latest $host" : $host) :
-	($opts{l} ? "latest" : "all");
+	($opts{l} ? "latest" : $release ? $release : "all");
 
     my ($html, $htmlfile) = html_open($file);
+    my @releases = $release ? () : glob("[0-9]*.[0-9]/netlink.html");
     my @nav = (
 	Top     => "/test.html",
-	All     => (($opts{l} || $host) && -f "netlink.html" ?
+	All     => (($opts{l} || $host || $release) && -f "netlink.html" ?
 	    "$absresult/netlink.html" : undef),
+	Release => (@releases ? $releases[-1] : undef),
 	Current => "$absresult/current/netlink.html",
 	Latest  => ($opts{l} ? undef : "$absresult/latest.html"),
 	Running => "$absresult/run.html");
@@ -542,7 +547,7 @@ HEADER
 	my $time = encode_entities($date);
 	my $hierhtml = "$reldate/netlink.html";
 	my $link = uri_escape($hierhtml, "^A-Za-z0-9\-\._~/");
-	my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
+	my $href = -f $hierhtml ? "<a href=\"$absresult/$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th title=\"$time\">$href$short$enda</th>\n";
     }
@@ -555,7 +560,7 @@ HEADER
     foreach my $date (@dates) {
 	my $setup = $D{$date}{setup};
 	my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
-	my $href = $setup ? "<a href=\"$link\">" : "";
+	my $href = $setup ? "<a href=\"$absresult/$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>${href}setup info$enda</th>\n";
     }
@@ -564,7 +569,7 @@ HEADER
 	my $arch = $D{$date}{arch};
 	my $dmesg = $D{$date}{dmesg};
 	my $link = uri_escape($dmesg, "^A-Za-z0-9\-\._~/");
-	my $href = $dmesg ? "<a href=\"$link\">" : "";
+	my $href = $dmesg ? "<a href=\"$absresult/$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	print $html "    <th>$href$arch$enda</th>\n";
     }
@@ -603,7 +608,7 @@ HEADER
 	    my $hierhtml = "$reldate/netlink.html";
 	    my $link = uri_escape($hierhtml, "^A-Za-z0-9\-\._~/");
 	    $link .= "#$desc";
-	    my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
+	    my $href = -f $hierhtml ? "<a href=\"$absresult/$link\">" : "";
 	    my $enda = $href ? "</a>" : "";
 	    if ($tv->{test}) {
 		($testcmd = $tv->{test}) =~ s/_/ /g;

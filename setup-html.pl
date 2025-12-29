@@ -711,9 +711,10 @@ sub write_html_reboot {
 sub fill_navigation_links {
     foreach my $result (qw(regress perform netlink latest run)) {
 	$N{$result} = "$result.html" if -f "$result.html";
-    }
-    foreach my $result (qw(current latest)) {
-	$N{$result} = "$result/perform.html" if -f "$result/perform.html";
+	foreach my $symlink (qw(current latest)) {
+	    $N{$symlink} = "$symlink/$result.html"
+		if -f "$symlink/$result.html";
+	}
     }
     if (my @releases = glob("[0-9]*.[0-9]/{perform,netlink}.html")) {
 	$N{release} = $releases[-1];
