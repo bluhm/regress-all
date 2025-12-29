@@ -145,7 +145,7 @@ $resultdir .= "/$date";
 mkdir $resultdir
     or die "Make directory '$resultdir' failed: $!";
 unlink("results/current");
-symlink("$date", "results/current")
+symlink($release ? "$release/$date" : $date, "results/current")
     or die "Make symlink 'results/current' failed: $!";
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
@@ -181,8 +181,8 @@ usehosts(bindir => "$netlinkdir/bin", htmlprog => "netlink", date => $date,
 my $odate = $date;
 END {
     if ($odate) {
-	my @cmd = ("$netlinkdir/bin/bsdcons.pl", '-h', $opts{h}, '-d', $odate);
-	system(@cmd);
+	bsdcons_hosts(release => $release);
+	relogdie();
     }
     if ($netlinkdir) {
 	my @cmd = ("$netlinkdir/bin/setup-html.pl");
@@ -429,13 +429,14 @@ wait_html();
 setup_html(date => 1);
 
 unlink("results/latest-$host");
-symlink($date, "results/latest-$host")
+symlink($release ? "$release/$date" : $date, "results/latest-$host")
     or die "Make symlink 'results/latest-$host' failed: $!";
 unlink("results/latest");
-symlink($date, "results/latest")
+symlink($release ? "$release/$date" : $date, "results/latest")
     or die "Make symlink 'results/latest' failed: $!";
 
 my @cmd = ("bin/netlink-html.pl");
+push @cmd, "-r", $release if $release;
 push @cmd, "-v" if $opts{v};
 # concurrent testruns on multiple hosts may fail when renaming
 logeval { runcmd(@cmd, "-l") };

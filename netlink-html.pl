@@ -64,17 +64,23 @@ my $now = strftime("%FT%TZ", gmtime);
 my @allifaces = qw(bge bnxt em ice igc ix ixl re vio vmx);
 
 my %opts;
-getopts('d:h:lv', \%opts) or do {
+getopts('d:h:lr:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: netlink-html.pl [-lv] [-d date] [-h host]
+usage: netlink-html.pl [-lv] [-d date] [-h host] [-r release]
     -d date	run date of netlink test, may be current or latest host
     -h host	user and host for version information, user defaults to root
     -l		create latest.html with one column of the latest results
+    -r release	fill only release sub directory
     -v		verbose
 EOF
     exit(2);
 };
 my $date = $opts{d};
+my $release;
+if ($opts{r} && $opts{r} ne "current") {
+    ($release = $opts{r}) =~ /^\d+\.\d$/
+	or die "Release '$opts{r}' must be major.minor format";
+}
 my $verbose = $opts{v};
 $| = 1 if $verbose;
 @ARGV and die "No arguments allowed";
@@ -90,6 +96,7 @@ if ($date && $date =~ /^(current|latest|latest-\w+)$/) {
     -d "$resultdir/$current"
 	or die "Test directory '$resultdir/$current' failed: $!";
     $date = basename($current);
+    $release ||= dirname($current) if $date ne $current;
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
@@ -115,6 +122,7 @@ my (%T, %D, %H, %V, %S, %B);
 # $T{$desc}{$date}{$hk}{svgfile}	relative path to btrace-kstat.svg file
 # %D
 # $date				date and time when test was executed as string
+# $D{$date}{reldate}		path to optional release and date
 # $D{$date}{pass}		percentage of not skipped tests that passed
 # $D{$date}{short}		date without time
 # $D{$date}{result}		path to test.result file
@@ -140,7 +148,7 @@ my (%T, %D, %H, %V, %S, %B);
 
 {
     print "glob result files" if $verbose;
-    my @results = glob_result_files($date);
+    my @results = glob_result_files($date, $release);
     print "\nparse result files" if $verbose;
     parse_result_files(@results);
 }
@@ -164,6 +172,7 @@ exit;
 sub html_hier_top {
     my ($html, $date, @cvsdates) = @_;
     my $dv = $D{$date};
+    my $reldate = $dv->{reldate};
     my $setup = $dv->{setup};
     my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
     my $href = $setup ? "<a href=\"../$link\">" : "";
@@ -178,7 +187,7 @@ sub html_hier_top {
   </tr>
   <tr>
     <th>run at</th>
-    <td><a href="../$date/netlink.html">$date</a></td>
+    <td><a href="../$reldate/netlink.html">$date</a></td>
   </tr>
   <tr>
     <th>test host with cpu cores</th>
@@ -427,9 +436,10 @@ sub write_html_hier_files {
     foreach my $date (@dates) {
 	print "." if $verbose;
 	my $dv = $D{$date};
+	my $reldate = $dv->{reldate};
 	my $short = $dv->{short};
 
-	my ($html, $htmlfile) = html_open("$date/netlink");
+	my ($html, $htmlfile) = html_open("$reldate/netlink");
 	my @nav = (
 	    Top     => "../../../test.html",
 	    All     => (-f "netlink.html" ? "../netlink.html" : undef),
@@ -524,9 +534,11 @@ HEADER
     }
     print $html "    <th></th>\n  <tr>\n    <td>run at date</td>\n";
     foreach my $date (@dates) {
-	my $short = $D{$date}{short};
+	my $dv = $D{$date};
+	my $reldate = $dv->{reldate};
+	my $short = $dv->{short};
 	my $time = encode_entities($date);
-	my $hierhtml = "$date/netlink.html";
+	my $hierhtml = "$reldate/netlink.html";
 	my $link = uri_escape($hierhtml, "^A-Za-z0-9\-\._~/");
 	my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
 	my $enda = $href ? "</a>" : "";
@@ -579,12 +591,14 @@ HEADER
 	print $html "    <th class=\"desc\" id=\"$desc\" title=\"$testcmd\">".
 	    "$testname</th>\n";
 	foreach my $date (@dates) {
+	    my $dv = $D{$date};
+	    my $reldate = $dv->{reldate};
 	    my $tv = $T{$desc}{$date};
 	    my $status = $tv->{status} || "";
 	    my $class = " class=\"status $status\"";
 	    my $message = encode_entities($tv->{message});
 	    my $title = $message ? " title=\"$message\"" : "";
-	    my $hierhtml = "$date/netlink.html";
+	    my $hierhtml = "$reldate/netlink.html";
 	    my $link = uri_escape($hierhtml, "^A-Za-z0-9\-\._~/");
 	    $link .= "#$desc";
 	    my $href = -f $hierhtml ? "<a href=\"$link\">" : "";
@@ -607,7 +621,7 @@ HEADER
 }
 
 sub glob_result_files {
-    my ($date) = @_;
+    my ($date, $release) = @_;
 
     print "." if $verbose;
 
@@ -619,11 +633,16 @@ sub glob_result_files {
 	$File::Find::name =~ s,^\./,,;
 	my @dirs = split(m,/,, $File::Find::dir);
 	$_ = shift @dirs;
-	unless (defined && /^[0-9-]+T[0-9:]+Z/) {
+	if (defined && /^\d+\.\d$/) {
+	    $f{release} = $_;
+	    $_ = shift @dirs;
+	}
+	unless (defined && /^[0-9-]+T[0-9:]+Z$/) {
 	    warn "Invalid date '$_' in result '$File::Find::name'";
 	    return;
 	}
 	$f{date} = $_;
+	$f{reldate} = $f{release} ? "$f{release}/$_" : $_;
 	$_ = shift @dirs;
 	if (defined && /^[0-9-]+T[0-9:]+Z$/) {
 	    $f{cvsdate} = $_;
@@ -678,11 +697,13 @@ sub glob_result_files {
 
     # create the html files only for a single date
     my $dateglob = $date ? $date : "*T*Z";
+    my $relglob = $release ? $release : "[0-9]*.[0-9]";
 
-    find($wanted, bsd_glob($dateglob, GLOB_NOSORT));
+    find($wanted, bsd_glob($dateglob, GLOB_NOSORT)) unless $release;
+    find($wanted, bsd_glob("$relglob/$dateglob", GLOB_NOSORT));
     if ($host) {
 	return sort { $a->{dir} cmp $b->{dir} }
-	    grep { -f "$_->{date}/version-$host.txt" } @files;
+	    grep { -f "$_->{reldate}/version-$host.txt" } @files;
     } else {
 	return sort { $a->{dir} cmp $b->{dir} } @files;
     }
@@ -699,15 +720,21 @@ sub parse_result_files {
 	print "." if $verbose;
 
 	# parse result file
-	my ($date, $short) = $file->{date} =~ m,^(([^/]+)T[^/]+Z)$,
-	    or next;
+	my ($release, $date, $short) = $file->{reldate} =~
+	    m,
+		^(?:(\d+\.\d)/)?		# release
+		(([^/]+)T[^/]+Z)$		# date
+	    ,x or next;
+	my $reldate = "$date";
+	$reldate = "$release/$reldate" if $release;
 	my $dv = $D{$date} ||= {
+	    reldate => $reldate,
 	    short => $short,
 	    result => $file->{name},
 	    pass => 0,
 	    total => 0,
 	};
-	$dv->{setup} = "$date/setup.html" if -f "$date/setup.html";
+	$dv->{setup} = "$reldate/setup.html" if -f "$reldate/setup.html";
 	$_->{severity} *= .5 foreach values %T;
 	my %hiers;
 	foreach my $hier (@HIERARCHY) {
@@ -837,7 +864,7 @@ sub parse_result_files {
 	$dv->{total} += $total;
 
 	# parse version file
-	foreach my $version (bsd_glob("$date/version-*.txt", 0)) {
+	foreach my $version (bsd_glob("$reldate/version-*.txt", 0)) {
 	    $version =~ m,/version-(.+)\.txt$,;
 	    my $hostname = $1;
 
@@ -852,8 +879,9 @@ sub parse_result_files {
 	    %$dv = (parse_version_file($version), %$dv);
 	}
 	if ($file->{patch}) {
-	    foreach my $diff (bsd_glob("$date/$file->{patch}/diff-*.txt", 0)) {
-		$hiers{diff} ||= $diff if -s $diff;
+	    foreach my $diff
+		(bsd_glob("$reldate/$file->{patch}/diff-*.txt", 0)) {
+		    $hiers{diff} ||= $diff if -s $diff;
 	    }
 	}
 	$dv->{build} = ($dv->{location} =~ /^deraadt@\w+.openbsd.org:/) ?
