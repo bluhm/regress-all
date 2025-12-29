@@ -98,11 +98,11 @@ sub glob_log_files {
 	perform   => "{step,once}",
 	portstest => "test",
 	release   => "make",
-	netlink   => "net",
+	netlink   => "{net,netstep}",
     );
 
     my @logs = glob("$resultdir/${dateglob}T*Z/$logglob{$type}.log");
-    if ($type eq "perform") {
+    if ($type =~ /^(perform|netlink)$/) {
 	push @logs, glob(
 	    "$resultdir/[0-9]*.[0-9]/${dateglob}T*Z/$logglob{$type}.log");
     }

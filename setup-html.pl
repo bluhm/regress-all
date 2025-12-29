@@ -123,11 +123,13 @@ sub glob_log_files {
 	bsd_glob("*T*/step.log", GLOB_NOSORT),
 	bsd_glob("*T*/test.log", GLOB_NOSORT),
 	bsd_glob("*T*/make.log", GLOB_NOSORT),
-	bsd_glob("*T*/net.log", GLOB_NOSORT));
-    print "." if $verbose;
+	bsd_glob("*T*/net.log", GLOB_NOSORT),
+	bsd_glob("*T*/netstep.log", GLOB_NOSORT));
     my @reldates =
 	map { dirname($_) } (
-	bsd_glob("[0-9]*.[0-9]/*T*/step.log", GLOB_NOSORT));
+	bsd_glob("[0-9]*.[0-9]/*T*/step.log", GLOB_NOSORT),
+	bsd_glob("[0-9]*.[0-9]/*T*/netstep.log", GLOB_NOSORT));
+    print "." if $verbose;
     $date = $reldates[-1];
     if (!$opts{a}) {
 	# run times older than two weeks are irrelevant
@@ -248,6 +250,9 @@ sub parse_log_files {
 	    $typename = "Release";
 	} elsif (-f "net.log") {
 	    $D{$date}{log} = "net.log";
+	    $typename = "Net";
+	} elsif (-f "netstep.log") {
+	    $D{$date}{log} = "netstep.log";
 	    $typename = "Net";
 	}
 	$D{$date}{logmtime} = (stat($D{$date}{log}))[9] if $D{$date}{log};

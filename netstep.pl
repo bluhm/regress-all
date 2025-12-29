@@ -150,11 +150,11 @@ symlink($release ? "$release/$date" : $date, "results/current")
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
 
-createlog(file => "net.log", verbose => $opts{v});
+createlog(file => "netstep.log", verbose => $opts{v});
 logmsg("$now Script '$scriptname' started.\n");
 
-open(my $fh, '>', "netconf.txt")
-    or die "Open 'netconf.txt' for writing failed: $!";
+open(my $fh, '>', "netstepconf.txt")
+    or die "Open 'netstepconf.txt' for writing failed: $!";
 print $fh "ARGUMENTS @ARGV\n";
 print $fh "HOST $opts{h}\n";
 print $fh "RELEASE $opts{r}\n";
