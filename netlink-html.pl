@@ -100,6 +100,8 @@ if ($date && $date =~ /^(current|latest|latest-\w+)$/) {
 }
 chdir($resultdir)
     or die "Change directory to '$resultdir' failed: $!";
+# absolute patch relative to web server
+my $absresult = "/netlink/results";
 
 my ($user, $host) = split('@', $opts{h} || "", 2);
 ($user, $host) = ("root", $user) unless $host;
@@ -175,7 +177,7 @@ sub html_hier_top {
     my $reldate = $dv->{reldate};
     my $setup = $dv->{setup};
     my $link = uri_escape($setup, "^A-Za-z0-9\-\._~/");
-    my $href = $setup ? "<a href=\"../$link\">" : "";
+    my $href = $setup ? "<a href=\"$absresult/$link\">" : "";
     my $enda = $href ? "</a>" : "";
     my $hostname = $dv->{host};
     my $ncpu = $dv->{ncpu};
@@ -187,7 +189,7 @@ sub html_hier_top {
   </tr>
   <tr>
     <th>run at</th>
-    <td><a href="../$reldate/netlink.html">$date</a></td>
+    <td><a href="$absresult/$reldate/netlink.html">$date</a></td>
   </tr>
   <tr>
     <th>test host with cpu cores</th>
@@ -219,7 +221,7 @@ sub html_hier_test_head {
 		$title = "  title=\"$ifdmesg\"";
 	    } elsif ($hier eq "patch" && $hv->{diff}) {
 		my $link = uri_escape($hv->{diff}, "^A-Za-z0-9\-\._~/");
-		$name = "<a href=\"../$link\">$name</a>";
+		$name = "<a href=\"$absresult/$link\">$name</a>";
 	    } else {
 		$name =~ s/.*-none$//;
 	    }
@@ -248,7 +250,7 @@ sub html_hier_test_head_utilization {
 		$title = "  title=\"$ifdmesg\"";
 	    } elsif ($hier eq "patch" && $hv->{diff}) {
 		my $link = uri_escape($hv->{diff}, "^A-Za-z0-9\-\._~/");
-		$name = "<a href=\"../$link\">$name</a>";
+		$name = "<a href=\"$absresult/$link\">$name</a>";
 	    } else {
 		$name =~ s/.*-none$//;
 	    }
@@ -298,12 +300,13 @@ sub html_hier_test_row {
 	my $title = $message ? " title=\"$message\"" : "";
 	my $logfile = $tv->{logfile};
 	my $link = uri_escape($logfile, "^A-Za-z0-9\-\._~/");
-	my $href = $logfile ? "<a href=\"../$link\">" : "";
+	my $href = $logfile ? "<a href=\"$absresult/$link\">" : "";
 	my $enda = $href ? "</a>" : "";
 	my $stats = $tv->{stats};
 	my $stats_link = uri_escape($stats, "^A-Za-z0-9\-\._~/");
 	my $stats_href = $stats ?
-	    "<a style='float: right' href=\"../$stats_link\">stats</a>" : "";
+	    "<a style='float: right' href=\"$absresult/$stats_link\">stats</a>"
+	    : "";
 
 	print $html "    <td$class$title>$href$status$enda$stats_href</td>\n";
     }
@@ -338,7 +341,8 @@ sub html_hier_test_row {
 	    my $btrace = $tv->{btrace};
 	    if ($btrace) {
 		my $svgfile = $tv->{svgfile};
-		my $link = uri_escape("../$svgfile", "^A-Za-z0-9\-\._~/");
+		my $link = uri_escape("$absresult/$svgfile",
+		    "^A-Za-z0-9\-\._~/");
 		my $href = -f $svgfile ? "<a href=\"$link\">" : "";
 		my $enda = $href ? "</a>" : "";
 		print $html "    <td>$href$btrace$enda</td>\n";
@@ -417,7 +421,7 @@ sub html_hier_test_row_utilization {
 	my ($href, $enda) = ("", "");
 	if ($tv->{btrace}) {
 	    my $svgfile = $tv->{svgfile};
-	    my $link = uri_escape("../$svgfile", "^A-Za-z0-9\-\._~/");
+	    my $link = uri_escape("$absresult/$svgfile", "^A-Za-z0-9\-\._~/");
 	    $link =~ s,%,%%,g;  # printf escape
 	    $href = -f $svgfile ? "<a href=\"$link\">" : "";
 	    $enda = $href ? "</a>" : "";
@@ -441,11 +445,11 @@ sub write_html_hier_files {
 
 	my ($html, $htmlfile) = html_open("$reldate/netlink");
 	my @nav = (
-	    Top     => "../../../test.html",
-	    All     => (-f "netlink.html" ? "../netlink.html" : undef),
-	    Current => "../current/netlink.html",
-	    Latest  => "../latest.html",
-	    Running => "../run.html");
+	    Top     => "/test.html",
+	    All     => (-f "netlink.html" ? "$absresult/netlink.html" : undef),
+	    Current => "$absresult/current/netlink.html",
+	    Latest  => "$absresult/latest.html",
+	    Running => "$absresult/run.html");
 	html_header($html, "OpenBSD Netlink Hierarchie",
 	    "OpenBSD netlink $short test results",
 	    @nav);
@@ -495,21 +499,19 @@ sub write_html_hier_files {
 sub write_html_date_file {
     my $file = $opts{l} ? "latest" : "netlink";
     $file .= "-$host" if $host;
-    my ($html, $htmlfile) = html_open($file);
     my $topic = $host ? ($opts{l} ? "latest $host" : $host) :
 	($opts{l} ? "latest" : "all");
 
-    my $typename = "Netlink";
+    my ($html, $htmlfile) = html_open($file);
     my @nav = (
-	Top     => "../../test.html",
+	Top     => "/test.html",
 	All     => (($opts{l} || $host) && -f "netlink.html" ?
-	    "netlink.html" : undef),
-	Current => "current/netlink.html",
-	Latest  => ($opts{l} ? undef : "latest/netlink.html"),
-	Running => "run.html");
-    html_header($html, "OpenBSD $typename Results",
-	"OpenBSD ". lc($typename). " $topic test results",
-	@nav);
+	    "$absresult/netlink.html" : undef),
+	Current => "$absresult/current/netlink.html",
+	Latest  => ($opts{l} ? undef : "$absresult/latest.html"),
+	Running => "$absresult/run.html");
+    html_header($html, "OpenBSD Netlink Results",
+	"OpenBSD netlink $topic test results", @nav);
 
     print $html <<"HEADER";
 <table>
