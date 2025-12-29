@@ -25,6 +25,7 @@ use POSIX;
 use Time::Local;
 
 use lib dirname($0);
+use Buildquirks;
 use Logcmd;
 use Hostctl;
 
@@ -495,9 +496,10 @@ sub get_commits {
     my ($cvsbegin, $cvsend) = map { strftime("%FT%TZ", gmtime($_)) } @_;
     my $year = 1900 + (gmtime($_[0]))[5];
 
-    my $cvstxt =
-	"$netlinkdir/results/cvslog/$year/src/sys/$cvsbegin--$cvsend.txt";
+    my $cvstxt = "$netlinkdir/../perform/".
+	"results/cvslog/$year/src/sys/$cvsbegin--$cvsend.txt";
     unless (-f $cvstxt) {
+	die "Cannot reuse cvslog from perform directory";
 	my @cmd = ("$netlinkdir/bin/cvslog.pl",
 	    "-B", $cvsbegin, "-E", $cvsend, "-P", "src/sys");
 	runcmd(@cmd);
