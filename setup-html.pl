@@ -122,12 +122,12 @@ sub glob_log_files {
     my $relglob = $release ? $release : "[0-9]*.[0-9]";
 
     print "." if $verbose;
-    my @dates =
+    my @reldates =
 	map { dirname($_) }
 	map { bsd_glob("$dateglob/${_}.log", GLOB_NOSORT) }
 	qw(run step test make net netstep);
     print "." if $verbose;
-    my @reldates =
+    push @reldates,
 	map { dirname($_) }
 	map { bsd_glob("$relglob/$dateglob/${_}.log", GLOB_NOSORT) }
 	qw(step netstep);
@@ -135,21 +135,15 @@ sub glob_log_files {
     $date = $reldates[-1];
     if (!$opts{a}) {
 	# run times older than two weeks are irrelevant
-	@dates =
-	    grep { str2time($now) - str2time($_) <= 60*60*24*14 }
-	    splice(@dates);
 	@reldates =
 	    grep { str2time($now) - str2time(basename($_)) <= 60*60*24*14 }
 	    splice(@reldates);
 	# keep at least the newest date
-	@dates = $date unless @dates || @reldates;
+	@reldates = $date unless @reldates;
     }
-    if (@reldates) {
-	return sort { basename($a) cmp basename($b) } (
-	    splice(@dates), splice(@reldates));
-    } else {
-	return splice(@dates);
-    }
+    @reldates = sort { basename($a) cmp basename($b) } splice(@reldates);
+    print "." if $verbose;
+    return @reldates;
 }
 
 sub parse_log_files {
