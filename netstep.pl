@@ -378,6 +378,7 @@ foreach my $current (@steps) {
 			collect_result("$opts{h}:/root/netlink");
 			wait_html();
 			collect_version();
+			collect_dmesg();
 			setup_html();
 			current_html();
 
@@ -416,7 +417,6 @@ foreach my $current (@steps) {
 	}
     }
 }
-collect_dmesg();
 powerdown_hosts(release => $release) if $opts{p};
 bsdcons_hosts(release => $release);
 undef $odate;
