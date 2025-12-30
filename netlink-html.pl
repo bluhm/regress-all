@@ -443,12 +443,12 @@ sub write_html_hier_files {
 	my $short = $dv->{short};
 
 	my ($html, $htmlfile) = html_open("$reldate/netlink");
-	my @releases = $release ? "$absresult/$release/netlink.html" :
+	my @releases = $release ? "$release/netlink.html" :
 	    glob("[0-9]*.[0-9]/netlink.html");
 	my @nav = (
 	    Top     => "/test.html",
 	    All     => (-f "netlink.html" ? "$absresult/netlink.html" : undef),
-	    Release => (@releases ? $releases[-1] : undef),
+	    Release => (@releases ? "$absresult/$releases[-1]" : undef),
 	    Current => "$absresult/current/netlink.html",
 	    Latest  => "$absresult/latest.html",
 	    Running => "$absresult/run.html");
@@ -511,7 +511,7 @@ sub write_html_date_file {
 	Top     => "/test.html",
 	All     => (($opts{l} || $host || $release) && -f "netlink.html" ?
 	    "$absresult/netlink.html" : undef),
-	Release => (@releases ? $releases[-1] : undef),
+	Release => (@releases ? "$absresult/$releases[-1]" : undef),
 	Current => "$absresult/current/netlink.html",
 	Latest  => ($opts{l} ? undef : "$absresult/latest.html"),
 	Running => "$absresult/run.html");
