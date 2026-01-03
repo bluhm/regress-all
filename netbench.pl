@@ -243,6 +243,7 @@ sub start_server_udp {
     push @cmd, "-P$opts{P}" if defined($opts{P});
     push @cmd, "-I$opts{R}" if defined($opts{R});
     push @cmd, '-p0';
+    push @cmd, "-T2" if $opts{R} && $opts{S} && $opts{c} && $opts{s};
     push @cmd, "-t$timeout" if defined($opts{t});
     push @cmd, ('recv', $proc->{addr});
     unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};
@@ -266,6 +267,7 @@ sub start_client_udp {
     push @cmd, "-P$opts{P}" if defined($opts{P});
     push @cmd, "-I$opts{S}" if defined($opts{S});
     push @cmd, "-p$proc->{port}";
+    push @cmd, "-T2" if $opts{R} && $opts{S} && $opts{c} && $opts{s};
     push @cmd, "-t$opts{t}" if defined($opts{t});
     push @cmd, ('send', $proc->{addr});
     unshift @cmd, ('ssh', '-nT', $proc->{ssh}) if $proc->{ssh};

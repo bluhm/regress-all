@@ -101,6 +101,8 @@ if ($trex) {
 	or die "TREX_SSH is not in env";
 }
 
+my $mroute = -f "/usr/local/sbin/igmpproxy";
+
 my ($iftype, $ifnum) = $iface =~ /^([a-z]+)([0-9]+)?$/;
 grep { $_ eq $iftype } @allifaces
     or die "Unknown interface '$iface'";
@@ -259,7 +261,10 @@ my $lnx_r_tunnel_addr6 = "${ip6prefix}${line}4::4";
 my $lnx_r_tunnel_net6 = "$lnx_r_tunnel_addr6/64";
 
 my $mcast_l_addr = "234.${ip4mshort}${line}1.10";
+my @igmp_l_net = map { "${ip4prefix}${_}1.0/24" } (1..9);
 my $mcast_r_addr = "234.${ip4mshort}${line}2.10";
+my $mcast_r_net = "234.${ip4mshort}${line}2.0/24";
+my @igmp_r_net = map { "${ip4prefix}${_}2.0/24" } (1..9);
 my $mcast_l_addr6 = "ff34:40:${ip6prefix}${line}1::10";
 my $mcast_r_addr6 = "ff34:40:${ip6prefix}${line}2::10";
 
@@ -477,6 +482,7 @@ foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 
 printcmd('sysctl', 'net.inet.ip.forwarding=1');
 printcmd('sysctl', 'net.inet6.ip6.forwarding=1');
+printcmd('sysctl', 'net.inet.ip.mforwarding=1') if $mroute;
 printcmd('sysctl', 'net.inet.gre.allow=1');
 
 my @lnx_sysctls = (
@@ -2014,6 +2020,35 @@ push @tests, ($modify eq 'direct' ? {
 	parser => \&netbench_parser,
     })
 ) if $testmode{mcast4};
+push @tests, (
+    {
+	# forward
+	initialize => sub {
+	    igmpproxy_conf(
+		$obsd_l_ipdev, $obsd_r_ipdev,
+		\@igmp_l_net, \@igmp_r_net, $mcast_r_net);
+	    igmpproxy_startup(); 1;
+	},
+	testcmd => [$netbench,
+	    '-v',
+	    '-B'.($bitrate / 10),
+	    '-b1000000',
+	    '-d1',
+	    '-f1',
+	    '-i0',
+	    '-N10',
+	    "-R$lnx_r_addr",
+	    "-S$lnx_l_addr",
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-a$mcast_r_addr",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+	finalize => sub { igmpproxy_shutdown(); 1 },
+    }
+) if $testmode{mcast4} && $mroute &&
+    $pseudo =~ /^(none|carp|trunk|vlan)$/ && $modify ne 'direct';
 push @tests, ($modify eq 'direct' ? {
 	# forward
 	testcmd => [$netbench,
@@ -2256,7 +2291,7 @@ push @tests, $modify eq 'direct' ? () : (
 	parser => \&trex_parser,
 	finalize => sub { relayd_shutdown(); 1 },
     }
-) if $testmode{trex4} && $pseudo eq 'none' && $trex;
+) if $testmode{trex4} && $trex && $pseudo eq 'none';
 
 my @stats = (
     { statcmd => [ netstat => '-s' ] },
@@ -2852,4 +2887,39 @@ sub relayd_shutdown {
     @cmd = qw(pfctl -aregress -Fr);
     printcmd(@cmd)
 	and die "Flush pf anchor with '@cmd' failed: $?";
+}
+
+sub igmpproxy_conf {
+    my ($upif, $downif, $srcigmp, $dstigmp, $group) = @_;
+
+    open(my $fh, '>', "/etc/igmpproxy.conf")
+	or die "Open '/etc/igmpproxy.conf' for writing failed: $!";
+
+    my $srcnet = join("\n\t", map { "altnet $_" } @$srcigmp);
+    my $dstnet = join("\n\t", map { "altnet $_" } @$dstigmp);
+    print $fh <<"EOF";
+chroot /var/empty
+user _igmpproxy
+phyint $upif upstream  ratelimit 0  threshold 1
+	$srcnet
+	whitelist $group
+phyint $downif downstream  ratelimit 0  threshold 1
+	$dstnet
+	whitelist $group
+EOF
+
+    close($fh)
+	or die "Close '/etc/igmpproxy.conf' after writing failed: $!";
+}
+
+sub igmpproxy_startup {
+    my @cmd = qw(rcctl -f restart igmpproxy);
+    printcmd(@cmd)
+	and die "Start igmpproxy with '@cmd' failed: $?";
+}
+
+sub igmpproxy_shutdown {
+    my @cmd = qw(rcctl -f stop igmpproxy);
+    printcmd(@cmd)
+	and die "Stop igmpproxy with '@cmd' failed: $?";
 }
