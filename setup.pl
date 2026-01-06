@@ -178,7 +178,7 @@ sub copy_scripts {
     runcmd(@scpcmd);
 
     @copy = grep { -f $_ }
-	("release.pl", "env-$host.sh");
+	("release.pl", "env-$host.sh", "pkg-$host.list");
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};
     push @scpcmd, (@copy, "$user\@$host:/root/release");

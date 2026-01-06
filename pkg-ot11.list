@@ -563,6 +563,7 @@ sudo--
 sysclean
 texlive_texmf-full
 u-boot-aarch64
+u-boot-rpi
 ucspi-tcp
 unzip--
 wycheproof-testvectors
