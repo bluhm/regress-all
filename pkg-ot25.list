@@ -24,6 +24,7 @@ go
 graphviz
 gsed
 gtar--
+igmpproxy
 iperf3
 jansson
 libassuan
