@@ -101,8 +101,6 @@ if ($trex) {
 	or die "TREX_SSH is not in env";
 }
 
-my $mroute = -f "/usr/local/sbin/igmpproxy";
-
 my ($iftype, $ifnum) = $iface =~ /^([a-z]+)([0-9]+)?$/;
 grep { $_ eq $iftype } @allifaces
     or die "Unknown interface '$iface'";
@@ -263,7 +261,6 @@ my $lnx_r_tunnel_net6 = "$lnx_r_tunnel_addr6/64";
 my $mcast_l_addr = "234.${ip4mshort}${line}1.10";
 my @igmp_l_net = map { "${ip4prefix}${_}1.0/24" } (1..9);
 my $mcast_r_addr = "234.${ip4mshort}${line}2.10";
-my $mcast_r_net = "234.${ip4mshort}${line}2.0/24";
 my @igmp_r_net = map { "${ip4prefix}${_}2.0/24" } (1..9);
 my $mcast_l_addr6 = "ff34:40:${ip6prefix}${line}1::10";
 my $mcast_r_addr6 = "ff34:40:${ip6prefix}${line}2::10";
@@ -482,7 +479,8 @@ foreach my $ssh ($lnx_l_ssh, $lnx_r_ssh) {
 
 printcmd('sysctl', 'net.inet.ip.forwarding=1');
 printcmd('sysctl', 'net.inet6.ip6.forwarding=1');
-printcmd('sysctl', 'net.inet.ip.mforwarding=1') if $mroute;
+printcmd('sysctl', 'net.inet.ip.mforwarding=1');
+printcmd('sysctl', 'net.inet6.ip6.mforwarding=1');
 printcmd('sysctl', 'net.inet.gre.allow=1');
 
 my @lnx_sysctls = (
@@ -2024,10 +2022,12 @@ push @tests, (
     {
 	# forward
 	initialize => sub {
-	    igmpproxy_conf(
+	    mrouted_conf(
 		$obsd_l_ipdev, $obsd_r_ipdev,
-		\@igmp_l_net, \@igmp_r_net, $mcast_r_net);
-	    igmpproxy_startup(); 1;
+		\@igmp_l_net, \@igmp_r_net,
+		[$management_if, $trex_obsd_l_addr, $trex_obsd_r_addr]
+	    );
+	    mrouted_startup(); sleep 3; 1;
 	},
 	testcmd => [$netbench,
 	    '-v',
@@ -2045,9 +2045,9 @@ push @tests, (
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
-	finalize => sub { igmpproxy_shutdown(); 1 },
+	finalize => sub { mrouted_shutdown(); 1 },
     }
-) if $testmode{mcast4} && $mroute &&
+) if $testmode{mcast4} &&
     $pseudo =~ /^(none|carp|trunk|vlan)$/ && $modify ne 'direct';
 push @tests, ($modify eq 'direct' ? {
 	# forward
@@ -2922,4 +2922,37 @@ sub igmpproxy_shutdown {
     my @cmd = qw(rcctl -f stop igmpproxy);
     printcmd(@cmd)
 	and die "Stop igmpproxy with '@cmd' failed: $?";
+}
+
+sub mrouted_conf {
+    my ($upif, $downif, $srcigmp, $dstigmp, $badigmp) = @_;
+
+    open(my $fh, '>', "/etc/mrouted.conf")
+	or die "Open '/etc/mrouted.conf' for writing failed: $!";
+
+    my $srcnet = join("\n\t", map { "altnet $_" } @$srcigmp);
+    my $dstnet = join("\n\t", map { "altnet $_" } @$dstigmp);
+    my $disable = join("\n", map { "phyint $_ disable" } @$badigmp);
+    print $fh <<"EOF";
+phyint $upif
+	$srcnet
+phyint $downif
+	$dstnet
+$disable
+EOF
+
+    close($fh)
+	or die "Close '/etc/mrouted.conf' after writing failed: $!";
+}
+
+sub mrouted_startup {
+    my @cmd = qw(rcctl -f restart mrouted);
+    printcmd(@cmd)
+	and die "Start mrouted with '@cmd' failed: $?";
+}
+
+sub mrouted_shutdown {
+    my @cmd = qw(rcctl -f stop mrouted);
+    printcmd(@cmd)
+	and die "Stop mrouted with '@cmd' failed: $?";
 }
