@@ -1185,6 +1185,22 @@ my %quirks = (
 	comment => "backout ifconf netlock commit",
 	updatedirs => [ "sys" ],
     },
+    '2026-01-07T02:21:04Z' => {
+	comment => "genassym chunk forgotten",
+	patches => { 'sys-genassym-pcid' => patch_sys_genassym_pcid() },
+	updatedirs => [ "sys" ],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+    },
+    '2026-01-07T03:25:44Z' => {
+	comment => "update chunk forgotten by previous commit",
+	updatedirs => [ "sys" ],
+    },
+    '2026-01-07T13:50:05Z' => {
+	comment => "pfctl extend pf limiters",
+	updatedirs => [ "sys", "sbin/pfctl" ],
+	prebuildcommands => [ "make includes" ],
+	builddirs => [ "sbin/pfctl" ],
+    },
 );
 
 #### Patches ####
@@ -3207,6 +3223,24 @@ diff -u -p -r1.140 -r1.141
  	u_int	ifa_flags;		/* interface flags, see below */
  	struct	refcnt ifa_refcnt;	/* number of `rt_ifa` references */
  	int	ifa_metric;		/* cost of going out this interface */
+PATCH
+}
+
+# Fix last commit: genassym chunk forgotten
+sub patch_sys_genassym_pcid {
+	return <<'PATCH';
+Index: sys/arch/amd64/amd64/genassym.cf
+===================================================================
+RCS file: /data/mirror/openbsd/cvs/src/sys/arch/amd64/amd64/genassym.cf,v
+diff -u -p -r1.49 -r1.50
+--- sys/arch/amd64/amd64/genassym.cf	9 Sep 2025 08:50:56 -0000	1.49
++++ sys/arch/amd64/amd64/genassym.cf	7 Jan 2026 03:25:44 -0000	1.50
+@@ -165,4 +165,5 @@ export	NPDPG
+ export	PDIR_SLOT_DIRECT
+ export	PCID_PROC
+ export	PCID_PROC_INTEL
++export	PCID_TEMP
+ export	INVPCID_PCID
 PATCH
 }
 
