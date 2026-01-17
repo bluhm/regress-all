@@ -1000,6 +1000,7 @@ my %quirks = (
 	updatedirs => [ "sys" ],
 	prebuildcommands => [
 	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
 	],
 	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	commands => [ "reboot" ],
@@ -1189,7 +1190,10 @@ my %quirks = (
 	comment => "genassym chunk forgotten",
 	patches => { 'sys-genassym-pcid' => patch_sys_genassym_pcid() },
 	updatedirs => [ "sys" ],
-	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	prebuildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
     },
     '2026-01-07T03:25:44Z' => {
 	comment => "update chunk forgotten by previous commit",
