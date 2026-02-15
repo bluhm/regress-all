@@ -372,6 +372,7 @@ net/p5-Net-IPv4Addr
 net/p5-Net-IPv6Addr
 net/p5-Net-Inspect
 net/p5-Net-Netmask
+net/p5-Net-OAuth
 net/p5-Net-Patricia
 net/p5-Net-Pcap
 net/p5-Net-PcapWriter
