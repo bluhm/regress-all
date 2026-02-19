@@ -2025,7 +2025,8 @@ push @tests, (
 	    mrouted_conf(
 		$obsd_l_ipdev, $obsd_r_ipdev,
 		\@igmp_l_net, \@igmp_r_net,
-		[$management_if, $trex_obsd_l_addr, $trex_obsd_r_addr]
+		[$management_if,
+		$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : 0]
 	    );
 	    mrouted_startup(); sleep 3; 1;
 	},
