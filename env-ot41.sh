@@ -1,13 +1,13 @@
 export MANAGEMENT_IF=em0
 export SKIP_IF=em0,em1
 export NETLINK_LINE=1
-export LINUX_IF=enp1s0f0np0
-export LINUX_DIRECT_IF=enp1s0f1np1
+export LINUX_IF=ens10f0np0
+export LINUX_DIRECT_IF=ens10f1np1
 export LINUX_LEFT_SSH=root@lt40
 export LINUX_RIGHT_SSH=root@lt43
-export TREX_LEFT_IF=09:00.0
-export TREX_RIGHT_IF=0a:00.0
-export TREX_SSH=root@lt40
+#export TREX_LEFT_IF=09:00.0
+#export TREX_RIGHT_IF=0a:00.0
+#export TREX_SSH=root@lt40
 
 # allow to manually run perform tests frag and splice on netlink hosts
 

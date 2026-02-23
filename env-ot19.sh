@@ -4,7 +4,7 @@
 export MANAGEMENT_IF=em18
 export SKIP_IF=em18,em4,em5,em12,em13
 export NETLINK_LINE=3
-export LINUX_IF=enp1s0f0np0
+export LINUX_IF=ens10f0np0
 export LINUX_LEFT_SSH=root@lt40
 export LINUX_RIGHT_SSH=root@lt43
 
