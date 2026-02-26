@@ -26,3 +26,10 @@ LOCAL_ADDR6_RANGE=fdd7:e83e:66bd:1021::20
 LINUX_ADDR_RANGE=10.10.22.40
 LINUX_ADDR6_RANGE=fdd7:e83e:66bd:1022::40
 export LOCAL_ADDR_RANGE LOCAL_ADDR6_RANGE LINUX_ADDR_RANGE LINUX_ADDR6_RANGE
+
+# proxy for building ports localy
+
+ftp_proxy=http://10.0.1.3:8000/
+http_proxy=http://10.0.1.3:8000/
+https_proxy=http://10.0.1.3:8000/
+export ftp_proxy http_proxy https_proxy
