@@ -32,7 +32,7 @@ use Hostctl;
 my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
-my @allifaces = qw(bge bnxt em ice igc ix ixl re vio vmx);
+my @allifaces = qw(iavf bge bnxt em ice igc ix ixl ixv re vio vmx);
 my @allmodifymodes = qw(none direct jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg
     bridge+vlan vlan+bridge veb+vlan veb+vtag vlan+veb);

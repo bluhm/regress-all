@@ -34,6 +34,7 @@ use Testvars qw(%TESTNAME %TESTDESC @TESTKEYS);
 my $fgdir = "/home/bluhm/github/FlameGraph";  # XXX
 
 my %IFTYPERATES = (
+    "iface-iavf" =>  10 * 10 ** 9,  # faster devices exist
     "iface-bge"  =>       10 ** 9,
     "iface-bnxt" =>  10 * 10 ** 9,
     "iface-dwqe" =>       10 ** 9,
@@ -42,6 +43,7 @@ my %IFTYPERATES = (
     "iface-igc"  => 2.5 * 10 ** 9,  # slower devices exist
     "iface-ix"   =>  10 * 10 ** 9,
     "iface-ixl"  =>  25 * 10 ** 9,  # slower devices exist
+    "iface-ixv"  =>  10 * 10 ** 9,
     "iface-re"   =>  .1 * 10 ** 9,
     "iface-vio"  =>  50 * 10 ** 9,
     "iface-vmx"  =>  20 * 10 ** 9,
@@ -61,7 +63,7 @@ my %DMESGRATES = (
 
 my $now = strftime("%FT%TZ", gmtime);
 
-my @allifaces = qw(bge bnxt em ice igc ix ixl re vio vmx);
+my @allifaces = qw(iavf bge bnxt em ice igc ix ixl ixv re vio vmx);
 
 my %opts;
 getopts('d:h:lr:v', \%opts) or do {
