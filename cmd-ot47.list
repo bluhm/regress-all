@@ -1,0 +1,2 @@
+-useradd -m ftp
+rm -f /var/db/kernel.SHA256
