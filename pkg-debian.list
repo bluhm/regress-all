@@ -29,6 +29,7 @@ iputils-tracepath
 libbsd-dev
 libevent-dev
 linux-cpupower
+locate
 make
 manpages
 net-tools
