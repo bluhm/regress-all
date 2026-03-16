@@ -1247,6 +1247,32 @@ my %quirks = (
 	    "pkg_add -u iperf3 || true",
 	]
     },
+    '2026-03-09T02:44:04Z' => {
+	comment => "kernel implements syscall __pledge_open",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [
+	    "make includes",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
+	commands => [ "reboot" ],
+    },
+    '2026-03-09T23:58:04Z' => {
+	comment => "update drm to linux 6.18.16",
+	updatedirs => [ "sys" ],
+	prebuildcommands => [
+	    "make -C sys/arch/amd64/compile/GENERIC.MP config",
+	    "make -C sys/arch/amd64/compile/GENERIC.MP clean",
+	],
+    },
+    '2026-03-10T00:06:39Z' => {
+	comment => "libc uses syscall __pledge_open",
+	updatedirs => [ "sys", "include", "lib/libc" ],
+	prebuildcommands => [ "make includes" ],
+	cleandirs => [ "lib/libc" ],
+	builddirs => [ "lib/libc" ],
+    },
 );
 
 #### Patches ####
