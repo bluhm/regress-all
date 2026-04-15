@@ -503,6 +503,7 @@ textproc/p5-XML-SAX-Expat
 textproc/p5-XML-SAX-ExpatXS
 textproc/p5-XML-SAX-Writer
 textproc/p5-XML-Simple
+textproc/p5-XML-Twig
 textproc/p5-XML-XPath
 www/p5-Apache-Session-Generate-UUID
 www/p5-CGI
