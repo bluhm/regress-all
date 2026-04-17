@@ -1,6 +1,6 @@
 # put common statistics parsing functions in a module
 
-# Copyright (c) 2025 Alexander Bluhm <bluhm@genua.de>
+# Copyright (c) 2026 Alexander Bluhm <bluhm@genua.de>
 # Copyright (c) 2023 Moritz Buhl <mbuhl@genua.de>
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -15,42 +15,42 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-package Kstat;
+package Vmstat;
 
 use strict;
 use warnings;
+use List::Util qw(uniq);
 
 use parent 'Exporter';
 our @EXPORT= qw(
-    kstat_diff
-    generate_diff_kstat
+    vmstat_diff
+    generate_diff_vmstat
 );
 
-# map kstat indentation to perl hash
+# map vmstat to perl hash
 sub parse {
     my ($file) = @_;
-    my %kstat;
+    my %vmstat;
     open(my $fh, '<', $file)
 	or die "Open '$file' for reading failed: $!";
 
     my ($l1, $l2);
     while(<$fh>) {
 	chomp;
-	if (m{^([\w:-]+)$}) {
-	    $l1 = $1;
-	    $kstat{$l1} = {};
-	} elsif (m{^( +)([^:]+:) ((\d+)(?: (\w+))?|.*)$}) {
-	    $l2 = $2;
-	    $kstat{$l1}{$l2}{indent} = $1;
-	    $kstat{$l1}{$l2}{string} = $3;
-	    $kstat{$l1}{$l2}{value} = $4;
-	    $kstat{$l1}{$l2}{unit} = $5;
+	if (m{^(interrupt)\s+total\s+rate$}) {
+	    $l1 = "$1:";
+	    $vmstat{$l1} = {};
+	} elsif (m{^([\w/:]+)\s+(\d+)\s+(\d+)$}) {
+	    $l2 = $1;
+	    $vmstat{$l1}{$l2}{indent} = "\t";
+	    $vmstat{$l1}{$l2}{string} = $_;
+	    $vmstat{$l1}{$l2}{value} = $2;
 	} else {
 	    die "Cannot parse '$_'";
 	}
     }
 
-    return %kstat;
+    return %vmstat;
 }
 
 # iterate over all key value pairs and print them
@@ -65,10 +65,7 @@ sub myprint {
 		my $l3 = $l2->{$k2};
 		print $fh "$l3->{indent}$k2 ",
 		    defined $l3->{value} ?
-			defined $l3->{unit} ?
-			    "$l3->{value} $l3->{unit}" :
-			    "$l3->{value}" :
-			"$l3->{string}",
+			"$l3->{value}" : "$l3->{string}",
 		    "\n";
 	    }
 	} else {
@@ -106,11 +103,11 @@ sub diff {
     return %res;
 }
 
-sub kstat_diff {
+sub vmstat_diff {
     my ($fh, $test, $arg) = @_;
 
-    my $before = "$test.stats-kstat_$arg-before.txt";
-    my $after = "$test.stats-kstat_$arg-after.txt";
+    my $before = "$test.stats-vmstat_$arg-before.txt";
+    my $after = "$test.stats-vmstat_$arg-after.txt";
     -r $before && -r $after
 	or return;
     my %bef = parse($before);
@@ -119,13 +116,13 @@ sub kstat_diff {
     myprint($fh, \%dif);
 }
 
-sub generate_diff_kstat {
-    my ($test, $arg) = @_;
+sub generate_diff_vmstat {
+    my ($test) = @_;
 
-    my $diff = "$test.stats-kstat_$arg-diff.txt";
+    my $diff = "$test.stats-vmstat-diff.txt";
     open(my $fh, '>', $diff)
 	or die "Open '$diff' for writing failed: $!";
-    kstat_diff($fh, $test, $arg);
+    vmstat_diff($fh, $test, '-iz');
     close($fh)
 	or die "Close '$diff' after writing failed: $!";
 }

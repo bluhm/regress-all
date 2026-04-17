@@ -185,7 +185,7 @@ sub copy_scripts {
     runcmd(@scpcmd);
 
     @copy = grep { -f $_ }
-	("netlink.pl", "Netstat.pm", "Kstat.pm", "netbench.pl",
+	("netlink.pl", "Netstat.pm", "Kstat.pm", "Vmstat.pm", "netbench.pl",
 	"env-$host.sh", "pkg-$host.list");
     @scpcmd = ('scp');
     push @scpcmd, '-q' unless $opts{v};

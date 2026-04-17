@@ -29,6 +29,7 @@ use URI::Escape;
 use lib dirname($0);
 use Netstat;
 use Kstat;
+use Vmstat;
 
 my $startdir = getcwd();
 my @startcmd = ($0, @ARGV);
@@ -318,6 +319,7 @@ sub bad {
     statistics($test, "after");
     generate_diff_netstat($test);
     generate_diff_kstat($test, "${obsd_l_if}:::_${obsd_r_if}:::");
+    generate_diff_vmstat($test);
 
     $log->sync() if $log;
     $tr->sync();
@@ -365,6 +367,7 @@ sub good {
 	last unless $line;
     }
     generate_diff_kstat($test, "${obsd_l_if}:::_${obsd_r_if}:::");
+    generate_diff_vmstat($test);
 
     print $log "\n$reason\t$test\tDuration $duration\n" if $log;
     print "\n$reason\t$test\tDuration $duration\n\n" if $opts{v};
