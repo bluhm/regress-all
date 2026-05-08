@@ -382,6 +382,7 @@ net/p5-MaxMind-DB-Reader
 net/p5-MaxMind-DB-Reader-XS
 net/p5-Net-CIDR
 net/p5-Net-CIDR-Lite
+net/p5-Net-DHCP
 net/p5-Net-DNS
 net/p5-Net-DNS-SEC
 net/p5-Net-FTPSSL
