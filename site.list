@@ -2,6 +2,7 @@
 /etc/exports
 /etc/fstab.site
 /etc/hostname.*
+/etc/hosts
 /etc/hosts.site
 /etc/iked.conf
 /etc/inetd.conf
