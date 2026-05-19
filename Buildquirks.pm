@@ -1158,7 +1158,7 @@ my %quirks = (
 	builddirs => [ "sys/arch/amd64/compile/GENERIC.MP" ],
 	commands => [ "reboot" ],
     },
-# OpenBSD 7.7, newvers 2024-10-08Z
+# OpenBSD 7.8, newvers 2025-10-08Z
     '2025-10-12T19:04:00Z' => {
 	comment => "OpenBSD/amd64 7.8 release",
 	release => '7.8',
@@ -1272,6 +1272,11 @@ my %quirks = (
 	prebuildcommands => [ "make includes" ],
 	cleandirs => [ "lib/libc" ],
 	builddirs => [ "lib/libc" ],
+    },
+# OpenBSD 7.9, newvers 2026-04-20Z
+    '2026-05-06T19:26:21Z' => {
+	comment => "OpenBSD/amd64 7.9 release",
+	release => '7.9',
     },
 );
 
