@@ -1278,6 +1278,32 @@ my %quirks = (
 	comment => "OpenBSD/amd64 7.9 release",
 	release => '7.9',
     },
+    '2026-05-29T11:53:08Z' => {
+	comment => "clang, lld, and lib update LLVM to 22.1.6",
+	updatedirs => [
+	    "gnu/llvm",
+	    "gnu/lib/libclang_rt",
+	    "gnu/lib/libcompiler_rt",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	    "gnu/usr.bin/clang",
+	],
+	cleandirs => [
+	    "gnu/lib/libclang_rt",
+	    "gnu/lib/libcompiler_rt",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	    "gnu/usr.bin/clang",
+	    "sys/arch/amd64/compile/GENERIC.MP",
+	],
+	builddirs => [
+	    "gnu/lib/libclang_rt",
+	    "gnu/lib/libcompiler_rt",
+	    "gnu/lib/libcxx",
+	    "gnu/lib/libcxxabi",
+	    "gnu/usr.bin/clang",
+	],
+    },
 );
 
 #### Patches ####
