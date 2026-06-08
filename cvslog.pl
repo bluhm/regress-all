@@ -267,12 +267,12 @@ foreach my $date (sort keys %l) {
 	    $files .= "\n  </tr>\n  <tr>\n" if $files;
 	    $files .= "    <td>$f</td>\n";
 	    my $rev = shift @revisions;
-	    my $link = "$cvsweb/$f#rev$rev";
+	    my $link = "$cvsweb/log/$f#rev$rev";
 	    $files .= "    <td><a href=\"$link\">log</a></td>\n";
 	    (my $prev = $rev) =~ s/(?<=\.)\d+/$&-1/e;
-	    $link = "$cvsweb/$f.diff?${ipk}r1=$prev&r2=$rev";
+	    $link = "$cvsweb/diff/$f?rev=$rev&prev=$prev";
 	    $files .= "    <td><a href=\"$link\">diff</a></td>\n";
-	    $link = "$cvsweb/$f?annotate=$rev";
+	    $link = "$cvsweb/annotate/$f?rev=$rev";
 	    $files .= "    <td><a href=\"$link\">annotate</a></td>";
 	}
 	print $fh "FILES @files\n";
