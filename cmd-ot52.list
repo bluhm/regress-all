@@ -5,8 +5,11 @@
 -useradd -G vmm -u 1004 -m ot73
 -useradd -G vmm -u 1005 -m ot74
 -useradd -G vmm -u 1006 -m lt75
+-useradd -G vmm -u 1007 vm1
+-useradd -G vmm -u 1008 vm2
 -useradd -G vmm -u 1009 -m ot76
 -useradd -G vmm -u 1010 -m ot77
 -useradd -G vmm -u 1011 -m ot78
 -useradd -G vmm -u 1012 -m ot79
+-useradd -G vmm -u 1013 -m ot69
 cd /dev && sh ./MAKEDEV `jot 40 0 | sed s/^/tap/`
