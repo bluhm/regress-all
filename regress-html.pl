@@ -196,7 +196,7 @@ HEADER
     print $html "  </tr>\n";
     print $html "  </thead>\n  <tbody>\n";
 
-    my $cvsweb = "http://cvsweb.openbsd.org/cgi-bin/cvsweb/";
+    my $cvsweb = "http://cvsweb.openbsd.org/";
     $cvsweb .= "src/regress/" if $mode{src};
     $cvsweb .= "ports/" if $mode{ports};
     if ($mode{release}) {
