@@ -36,7 +36,8 @@ my @startcmd = ($0, @ARGV);
 
 my @allifaces = qw(none bge bnxt em iavf ice igc ix ixl ixv mcx re vio vmx);
 my @allmodifymodes = qw(none direct jumbo nolro nopf notso);
-my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan vxlan wg
+my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan
+    vxlan vxlan-pointtopoint vxlan-learning wg
     bridge+vlan vlan+bridge veb+vlan veb+vtag vlan+veb);
 my @alltestmodes = sort qw(all icmp tcp udp splice mcast mmsg iperf trex);
 
