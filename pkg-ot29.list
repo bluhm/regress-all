@@ -25,6 +25,7 @@ go
 graphviz
 gsed
 gtar--
+illumos-os-tests
 iperf3
 jansson
 libassuan
