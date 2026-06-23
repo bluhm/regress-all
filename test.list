@@ -44,6 +44,7 @@ lib/libc/hash
 lib/libc/hsearch
 lib/libc/ieeefp
 lib/libc/ifnameindex
+lib/libc/illumos/oclo
 lib/libc/ldexp
 lib/libc/locale
 lib/libc/longjmp
@@ -52,6 +53,7 @@ lib/libc/mkstemp
 lib/libc/modf
 lib/libc/netdb
 lib/libc/open_memstream
+lib/libc/open_wmemstream
 lib/libc/orientation
 lib/libc/popen
 lib/libc/printf
@@ -87,6 +89,7 @@ lib/libcrypto/aead
 lib/libcrypto/aes
 lib/libcrypto/aeswrap
 lib/libcrypto/asn1
+lib/libcrypto/assembly
 lib/libcrypto/base64
 lib/libcrypto/bf
 lib/libcrypto/bio
@@ -177,6 +180,7 @@ lib/libssl/pqueue
 lib/libssl/quic
 lib/libssl/record
 lib/libssl/record_layer
+lib/libssl/renegotiation
 lib/libssl/rust-openssl
 lib/libssl/server
 lib/libssl/shutdown
@@ -217,12 +221,15 @@ sbin/newfs
 sbin/pfctl
 sbin/route
 sbin/slaacd
+sbin/sysctl
 sys/altivec_ast
 sys/arch/amd64/ddb
 sys/arch/amd64/dump_tables
 sys/arch/amd64/fpu
 sys/arch/amd64/seves_mmio
+sys/arch/amd64/vmcall
 sys/arch/amd64/vmm
+sys/arch/amd64/vmmcall
 sys/arch/hppa
 sys/arch/i386
 sys/arch/m88k
@@ -398,6 +405,7 @@ sys/uvm/mmap_size
 sys/uvm/mmap_write_self
 sys/uvm/vnode
 usr.bin/apply
+usr.bin/awk
 usr.bin/basename
 usr.bin/bc
 usr.bin/calendar
