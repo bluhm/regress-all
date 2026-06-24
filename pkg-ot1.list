@@ -4,6 +4,7 @@ bzip2
 c2sp-testvectors
 diffstat
 exabgp
+gcc
 git
 gmake
 go

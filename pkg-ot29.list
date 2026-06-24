@@ -16,6 +16,7 @@ curl
 db%v4
 diffstat
 exabgp
+gcc
 gd
 git
 gmake
