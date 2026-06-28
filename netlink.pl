@@ -2030,7 +2030,7 @@ push @tests, (
 		$obsd_l_ipdev, $obsd_r_ipdev,
 		\@igmp_l_net, \@igmp_r_net,
 		[$management_if,
-		$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : 0]
+		$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : ()]
 	    );
 	    mrouted_startup(); sleep 3; 1;
 	},
