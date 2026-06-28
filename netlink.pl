@@ -2050,7 +2050,6 @@ push @tests, (
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
-	finalize => sub { mrouted_shutdown(); 1 },
     }
 ) if $testmode{mcast4} &&
     $pseudo =~ /^(none|carp|trunk|vlan)$/ && $modify ne 'direct';
