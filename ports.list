@@ -349,6 +349,7 @@ graphics/p5-Geometry-Primitive
 graphics/p5-Graphics-Color
 graphics/p5-Graphics-Primitive
 graphics/p5-Graphics-Primitive-Driver-Cairo
+graphics/p5-Imager
 graphics/p5-Layout-Manager
 mail/p5-MIME-Types
 mail/p5-MIME-tools
@@ -488,6 +489,7 @@ textproc/p5-Pod-Parser
 textproc/p5-Pod-Spell
 textproc/p5-Regexp-Common
 textproc/p5-String-RewritePrefix
+textproc/p5-String-Util
 textproc/p5-Template
 textproc/p5-Text-CSV
 textproc/p5-Text-CSV_XS
