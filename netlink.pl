@@ -263,9 +263,13 @@ my $lnx_r_tunnel_net6 = "$lnx_r_tunnel_addr6/64";
 my $mcast_l_addr = "234.${ip4mshort}${line}1.10";
 my @igmp_l_net = map { "${ip4prefix}${_}1.0/24" } (1..9);
 my $mcast_r_addr = "234.${ip4mshort}${line}2.10";
+my $mcast_r_net = "234.${ip4mshort}${line}2.0/24";
 my @igmp_r_net = map { "${ip4prefix}${_}2.0/24" } (1..9);
 my $mcast_l_addr6 = "ff34:40:${ip6prefix}${line}1::10";
+my @icmp6_l_net6 = map { "${ip6prefix}${_}1::/120" } (1..9);
 my $mcast_r_addr6 = "ff34:40:${ip6prefix}${line}2::10";
+my $mcast_r_net6 = "ff34:40:${ip6prefix}${line}2::/120";
+my @icmp6_r_net6 = map { "${ip6prefix}${_}2::/120" } (1..9);
 
 my $obsd_li_addr = "${ip4prefix}${line}1.6";
 my $obsd_li_addr6 = "${ip6prefix}${line}1::6";
@@ -2026,13 +2030,13 @@ push @tests, (
     {
 	# forward
 	initialize => sub {
-	    mrouted_conf(
-		$obsd_l_ipdev, $obsd_r_ipdev,
-		\@igmp_l_net, \@igmp_r_net,
+	    smcrouted_conf(
+		[$obsd_l_ipdev, $obsd_l_addr], [$obsd_r_ipdev, $obsd_r_addr],
+		\@igmp_l_net, \@igmp_r_net, $mcast_r_net,
 		[$management_if,
 		$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : ()]
 	    );
-	    mrouted_startup(); sleep 3; 1;
+	    smcrouted_startup(); sleep 3; 1;
 	},
 	testcmd => [$netbench,
 	    '-v',
@@ -2107,6 +2111,36 @@ push @tests, ($modify eq 'direct' ? {
 	parser => \&netbench_parser,
     })
 ) if $testmode{mcast6};
+push @tests, (
+    {
+	# forward
+	initialize => sub {
+	    smcrouted_conf(
+		[$obsd_l_ipdev, $obsd_l_addr6], [$obsd_r_ipdev, $obsd_r_addr6],
+		\@icmp6_l_net6, \@icmp6_r_net6, $mcast_r_net6,
+		[$management_if]
+	    );
+	    smcrouted_startup(); sleep 3; 1;
+	},
+	testcmd => [$netbench,
+	    '-v',
+	    '-B'.($bitrate / 10),
+	    '-b1000000',
+	    '-d1',
+	    '-f1',
+	    '-i0',
+	    '-N10',
+	    "-R$lnx_ipdev",
+	    "-S$lnx_ipdev",
+	    "-c$lnx_l_ssh",
+	    "-s$lnx_r_ssh",
+	    "-a$mcast_r_addr6",
+	    '-t10',
+	    'udpbench'],
+	parser => \&netbench_parser,
+    }
+) if $testmode{mcast6} &&
+    $pseudo =~ /^(none|carp|trunk|vlan)$/ && $modify ne 'direct';
 
 push @tests, (
     {
@@ -2894,7 +2928,10 @@ sub relayd_shutdown {
 }
 
 sub igmpproxy_conf {
-    my ($upif, $downif, $srcigmp, $dstigmp, $group) = @_;
+    my ($upif, $downif, $srcigmp, $dstigmp, $groupnet, $badigmp) = @_;
+    my ($upaddr, $downaddr);
+    ($upif, $upaddr) = @$upif if ref $upif;
+    ($downif, $downaddr) = @$downif if ref $downif;
 
     open(my $fh, '>', "/etc/igmpproxy.conf")
 	or die "Open '/etc/igmpproxy.conf' for writing failed: $!";
@@ -2906,10 +2943,10 @@ chroot /var/empty
 user _igmpproxy
 phyint $upif upstream  ratelimit 0  threshold 1
 	$srcnet
-	whitelist $group
+	whitelist $groupnet
 phyint $downif downstream  ratelimit 0  threshold 1
 	$dstnet
-	whitelist $group
+	whitelist $groupnet
 EOF
 
     close($fh)
@@ -2929,7 +2966,10 @@ sub igmpproxy_shutdown {
 }
 
 sub mrouted_conf {
-    my ($upif, $downif, $srcigmp, $dstigmp, $badigmp) = @_;
+    my ($upif, $downif, $srcigmp, $dstigmp, $groupnet, $badigmp) = @_;
+    my ($upaddr, $downaddr);
+    ($upif, $upaddr) = @$upif if ref $upif;
+    ($downif, $downaddr) = @$downif if ref $downif;
 
     open(my $fh, '>', "/etc/mrouted.conf")
 	or die "Open '/etc/mrouted.conf' for writing failed: $!";
@@ -2959,4 +2999,43 @@ sub mrouted_shutdown {
     my @cmd = qw(rcctl -f stop mrouted);
     printcmd(@cmd)
 	and die "Stop mrouted with '@cmd' failed: $?";
+}
+
+sub smcrouted_conf {
+    my ($upif, $downif, $srcigmp, $dstigmp, $groupnet, $badigmp) = @_;
+    my ($upaddr, $downaddr);
+    ($upif, $upaddr) = @$upif if ref $upif;
+    ($downif, $downaddr) = @$downif if ref $downif;
+
+    open(my $fh, '>', "/etc/smcroute.conf")
+	or die "Open '/etc/smcroute.conf' for writing failed: $!";
+
+    my $mroute = join("\n", map {
+	"mroute from $upif source $_ group $groupnet to $downif" } @$srcigmp);
+    my $disable = join("\n", map { "phyint $_ disable" } @$badigmp);
+    print $fh <<"EOF";
+phyint $upif enable
+phyint $downif enable
+
+mgroup from $upif source $upaddr group $groupnet
+
+$mroute
+
+$disable
+EOF
+
+    close($fh)
+	or die "Close '/etc/mrouted.conf' after writing failed: $!";
+}
+
+sub smcrouted_startup {
+    my @cmd = qw(rcctl -f restart smcrouted);
+    printcmd(@cmd)
+	and die "Start smcrouted with '@cmd' failed: $?";
+}
+
+sub smcrouted_shutdown {
+    my @cmd = qw(rcctl -f stop smcrouted);
+    printcmd(@cmd)
+	and die "Stop smcrouted with '@cmd' failed: $?";
 }
