@@ -4,6 +4,7 @@ igmpproxy
 iperf3
 p5-URI
 rsync--
+smcroute
 splicebench
 sysclean
 udpbench
