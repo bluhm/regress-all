@@ -2029,7 +2029,7 @@ push @tests, ($modify eq 'direct' ? {
 push @tests, (
     {
 	# forward
-	initialize => sub {
+	initialize => -f "/usr/local/sbin/smcrouted" ? sub {
 	    smcrouted_conf(
 		[$obsd_l_ipdev, $obsd_l_addr], [$obsd_r_ipdev, $obsd_r_addr],
 		\@igmp_l_net, \@igmp_r_net, $mcast_r_net,
@@ -2037,6 +2037,22 @@ push @tests, (
 		$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : ()]
 	    );
 	    smcrouted_startup(); sleep 3; 1;
+	} : -f "/usr/local/sbin/igmpproxy" ? sub {
+	    igmpproxy_conf(
+		[$obsd_l_ipdev, $obsd_l_addr], [$obsd_r_ipdev, $obsd_r_addr],
+		\@igmp_l_net, \@igmp_r_net, $mcast_r_net,
+		[$management_if,
+		$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : ()]
+	    );
+	    igmpproxy_startup(); sleep 3; 1;
+	} : sub {
+	    mrouted_conf(
+		[$obsd_l_ipdev, $obsd_l_addr], [$obsd_r_ipdev, $obsd_r_addr],
+		\@igmp_l_net, \@igmp_r_net, $mcast_r_net,
+		[$management_if,
+		$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : ()]
+	    );
+	    mrouted_startup(); sleep 3; 1;
 	},
 	testcmd => [$netbench,
 	    '-v',
@@ -2140,7 +2156,8 @@ push @tests, (
 	parser => \&netbench_parser,
     }
 ) if $testmode{mcast6} &&
-    $pseudo =~ /^(none|carp|trunk|vlan)$/ && $modify ne 'direct';
+    $pseudo =~ /^(none|carp|trunk|vlan)$/ && $modify ne 'direct' &&
+    -f "/usr/local/sbin/smcrouted";
 
 push @tests, (
     {
