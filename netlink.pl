@@ -2070,6 +2070,9 @@ push @tests, (
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
+	finalize => sub { eval {
+	    mrouted_shutdown(); igmpproxy_shutdown(); smcrouted_shutdown()
+	}; 1 },
     }
 ) if $testmode{mcast4} &&
     $pseudo =~ /^(none|carp|trunk|vlan)$/ && $modify ne 'direct';
@@ -2154,6 +2157,7 @@ push @tests, (
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
+	finalize => sub { eval { smcrouted_shutdown() }; 1 },
     }
 ) if $testmode{mcast6} &&
     $pseudo =~ /^(none|carp|trunk|vlan)$/ && $modify ne 'direct' &&
@@ -2955,6 +2959,7 @@ sub igmpproxy_conf {
 
     my $srcnet = join("\n\t", map { "altnet $_" } @$srcigmp);
     my $dstnet = join("\n\t", map { "altnet $_" } @$dstigmp);
+    my $disable = join("\n", map { "phyint $_ disabled" } @$badigmp);
     print $fh <<"EOF";
 chroot /var/empty
 user _igmpproxy
@@ -2964,6 +2969,7 @@ phyint $upif upstream  ratelimit 0  threshold 1
 phyint $downif downstream  ratelimit 0  threshold 1
 	$dstnet
 	whitelist $groupnet
+$disable
 EOF
 
     close($fh)
