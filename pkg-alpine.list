@@ -14,10 +14,9 @@ iperf3
 iproute2
 iputils
 kmod
-libbsd
 libbsd-dev
-libevent
 libevent-dev
+libretls-dev
 linux-headers
 linux-virt-dev
 make
@@ -28,7 +27,7 @@ net-tools
 openntpd
 openrc
 openssh
-openssl
+openssl-dev
 pkgconf
 rsync
 tcpdump

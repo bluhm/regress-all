@@ -28,6 +28,8 @@ iputils-ping
 iputils-tracepath
 libbsd-dev
 libevent-dev
+libssl-dev
+libtls-dev
 linux-cpupower
 locate
 make
