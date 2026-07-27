@@ -2030,28 +2030,13 @@ push @tests, (
     {
 	# forward
 	initialize => -f "/usr/local/sbin/smcrouted" ? sub {
-	    smcrouted_conf(
-		[$obsd_l_ipdev, $obsd_l_addr], [$obsd_r_ipdev, $obsd_r_addr],
-		\@igmp_l_net, \@igmp_r_net, $mcast_r_net,
-		[$management_if,
-		$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : ()]
-	    );
+	    all4routed_conf();
 	    smcrouted_startup(); sleep 3; 1;
 	} : -f "/usr/local/sbin/igmpproxy" ? sub {
-	    igmpproxy_conf(
-		[$obsd_l_ipdev, $obsd_l_addr], [$obsd_r_ipdev, $obsd_r_addr],
-		\@igmp_l_net, \@igmp_r_net, $mcast_r_net,
-		[$management_if,
-		$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : ()]
-	    );
+	    all4routed_conf();
 	    igmpproxy_startup(); sleep 3; 1;
 	} : sub {
-	    mrouted_conf(
-		[$obsd_l_ipdev, $obsd_l_addr], [$obsd_r_ipdev, $obsd_r_addr],
-		\@igmp_l_net, \@igmp_r_net, $mcast_r_net,
-		[$management_if,
-		$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : ()]
-	    );
+	    all4routed_conf();
 	    mrouted_startup(); sleep 3; 1;
 	},
 	testcmd => [$netbench,
@@ -3061,4 +3046,16 @@ sub smcrouted_shutdown {
     my @cmd = qw(rcctl -f stop smcrouted);
     printcmd(@cmd)
 	and die "Stop smcrouted with '@cmd' failed: $?";
+}
+
+sub all4routed_conf {
+    my @args = (
+	[$obsd_l_ipdev, $obsd_l_addr], [$obsd_r_ipdev, $obsd_r_addr],
+	\@igmp_l_net, \@igmp_r_net, $mcast_r_net,
+	[$management_if,
+	$trex ? ($trex_obsd_l_addr, $trex_obsd_r_addr) : ()]
+    );
+    smcrouted_conf(@args);
+    igmpproxy_conf(@args);
+    mrouted_conf(@args);
 }
