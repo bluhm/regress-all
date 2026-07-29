@@ -1972,8 +1972,20 @@ foreach my $frame ($modify eq 'direct' ? () : (0, 1)) {
 	})
     ) if $testmode{mmsg6};
 }
-push @tests, ($modify eq 'direct' ? {
+
+push @tests, (
+    {
 	# forward
+	initialize => -f "/usr/local/sbin/smcrouted" ? sub {
+	    all4routed_conf();
+	    smcrouted_startup(); sleep 3; 1;
+	} : -f "/usr/local/sbin/igmpproxy" ? sub {
+	    all4routed_conf();
+	    igmpproxy_startup(); sleep 3; 1;
+	} : sub {
+	    all4routed_conf();
+	    mrouted_startup(); sleep 3; 1;
+	},
 	testcmd => [$netbench,
 	    '-v',
 	    '-B'.($bitrate / 10),
@@ -1990,7 +2002,10 @@ push @tests, ($modify eq 'direct' ? {
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
-    } : ({
+	finalize => sub { eval {
+	    mrouted_shutdown(); igmpproxy_shutdown(); smcrouted_shutdown()
+	}; 1 },
+    }, $modify eq 'direct' ? () : ({
 	# receive
 	testcmd => [$netbench,
 	    '-v',
@@ -2027,42 +2042,16 @@ push @tests, ($modify eq 'direct' ? {
     })
 ) if $testmode{mcast4};
 push @tests, (
-    {
+    -f "/usr/local/sbin/smcrouted" ? () : ({
 	# forward
-	initialize => -f "/usr/local/sbin/smcrouted" ? sub {
-	    all4routed_conf();
+	initialize => sub {
+	    smcrouted_conf(
+		[$obsd_l_ipdev, $obsd_l_addr6], [$obsd_r_ipdev, $obsd_r_addr6],
+		\@icmp6_l_net6, \@icmp6_r_net6, $mcast_r_net6,
+		[$management_if]
+	    );
 	    smcrouted_startup(); sleep 3; 1;
-	} : -f "/usr/local/sbin/igmpproxy" ? sub {
-	    all4routed_conf();
-	    igmpproxy_startup(); sleep 3; 1;
-	} : sub {
-	    all4routed_conf();
-	    mrouted_startup(); sleep 3; 1;
 	},
-	testcmd => [$netbench,
-	    '-v',
-	    '-B'.($bitrate / 10),
-	    '-b1000000',
-	    '-d1',
-	    '-f1',
-	    '-i0',
-	    '-N10',
-	    "-R$lnx_r_addr",
-	    "-S$lnx_l_addr",
-	    "-c$lnx_l_ssh",
-	    "-s$lnx_r_ssh",
-	    "-a$mcast_r_addr",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-	finalize => sub { eval {
-	    mrouted_shutdown(); igmpproxy_shutdown(); smcrouted_shutdown()
-	}; 1 },
-    }
-) if $testmode{mcast4} &&
-    $pseudo =~ /^(none|carp|trunk|vlan)$/ && $modify ne 'direct';
-push @tests, ($modify eq 'direct' ? {
-	# forward
 	testcmd => [$netbench,
 	    '-v',
 	    '-B'.($bitrate / 10),
@@ -2079,7 +2068,8 @@ push @tests, ($modify eq 'direct' ? {
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
-    }: ({
+	finalize => sub { eval { smcrouted_shutdown() }; 1 },
+    }), $modify eq 'direct' ? () : ({
 	# receive
 	testcmd => [$netbench,
 	    '-v',
@@ -2115,38 +2105,6 @@ push @tests, ($modify eq 'direct' ? {
 	parser => \&netbench_parser,
     })
 ) if $testmode{mcast6};
-push @tests, (
-    {
-	# forward
-	initialize => sub {
-	    smcrouted_conf(
-		[$obsd_l_ipdev, $obsd_l_addr6], [$obsd_r_ipdev, $obsd_r_addr6],
-		\@icmp6_l_net6, \@icmp6_r_net6, $mcast_r_net6,
-		[$management_if]
-	    );
-	    smcrouted_startup(); sleep 3; 1;
-	},
-	testcmd => [$netbench,
-	    '-v',
-	    '-B'.($bitrate / 10),
-	    '-b1000000',
-	    '-d1',
-	    '-f1',
-	    '-i0',
-	    '-N10',
-	    "-R$lnx_ipdev",
-	    "-S$lnx_ipdev",
-	    "-c$lnx_l_ssh",
-	    "-s$lnx_r_ssh",
-	    "-a$mcast_r_addr6",
-	    '-t10',
-	    'udpbench'],
-	parser => \&netbench_parser,
-	finalize => sub { eval { smcrouted_shutdown() }; 1 },
-    }
-) if $testmode{mcast6} &&
-    $pseudo =~ /^(none|carp|trunk|vlan)$/ && $modify ne 'direct' &&
-    -f "/usr/local/sbin/smcrouted";
 
 push @tests, (
     {
