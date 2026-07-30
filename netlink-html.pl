@@ -707,14 +707,12 @@ sub glob_result_files {
     my $dateglob = $date ? $date : "*T*Z";
     my $relglob = $release ? $release : "[0-9]*.[0-9]";
 
-    find($wanted, bsd_glob($dateglob, GLOB_NOSORT)) unless $release;
-    find($wanted, bsd_glob("$relglob/$dateglob", GLOB_NOSORT));
-    if ($host) {
-	return sort { $a->{dir} cmp $b->{dir} }
-	    grep { -f "$_->{reldate}/version-$host.txt" } @files;
-    } else {
-	return sort { $a->{dir} cmp $b->{dir} } @files;
-    }
+    my @dirs = bsd_glob("$relglob/$dateglob", GLOB_NOSORT);
+    push @dirs, bsd_glob($dateglob, GLOB_NOSORT) unless $release;
+    @dirs = grep { -f "$_/version-$host.txt" } @dirs if $host;
+
+    find($wanted, @dirs);
+    return sort { $a->{dir} cmp $b->{dir} } @files;
 }
 
 # fill global @HIERS and hashes %T %D %H %V %S %B
