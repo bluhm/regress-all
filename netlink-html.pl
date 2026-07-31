@@ -345,7 +345,12 @@ sub html_hier_test_row {
 		my $link = uri_escape($svgfile, "^A-Za-z0-9\-\._~/");
 		my $href = -f $svgfile ? "<a href=\"$absresult/$link\">" : "";
 		my $enda = $href ? "</a>" : "";
-		print $html "    <td>$href$btrace$enda</td>\n";
+		print $html "    <td>$href$btrace$enda";
+		my $btfile = $tv->{btfile};
+		$link = uri_escape($btfile, "^A-Za-z0-9\-\._~/");
+		$href = -f $btfile ? "<a href=\"$absresult/$link\">" : "";
+		$enda = $href ? "</a>" : "";
+		print $html "/${href}raw$enda</td>\n";
 	    } else {
 		print $html "    <td></td>\n";
 	    }
@@ -837,16 +842,20 @@ sub parse_result_files {
 	    if ($file->{btrace}) {
 		(my $btrace = $file->{btrace}) =~ s,btrace-([^/]*)\.\d+,$1,;
 		(my $btfile = $logfile) =~ s,\.log$,-$btrace.btrace,;
-		my $svgfile = "$file->{dir}/btrace/$test-btrace-$btrace.svg";
-		$tv->{btrace} = $btrace if -s $btfile;
-		$tv->{svgfile} = $svgfile;
-		my $bt = $B{$test} ||= {};
-		$bt->{$hk} = {
-		    btdir   => "$file->{dir}/btrace",
-		    btfile  => $btfile,
-		    btrace  => $btrace,
-		    svgfile => $svgfile,
-		} if -s $btfile && ! -f $svgfile;
+		if (-s $btfile) {
+		    my $btdir = "$file->{dir}/btrace";
+		    my $svgfile = "$btdir/$test-btrace-$btrace.svg";
+		    $tv->{btrace} = $btrace;
+		    $tv->{btfile} = $btfile;
+		    $tv->{svgfile} = $svgfile;
+		    my $bt = $B{$test} ||= {};
+		    $bt->{$hk} = {
+			btrace  => $btrace,
+			btfile  => $btfile,
+			btdir   => $btdir,
+			svgfile => $svgfile,
+		    } unless -f $svgfile;
+		}
 	    }
 	    $V{$desc}{$hk} = [ splice @values ];
 	    my $severity = status2severity($status);
@@ -962,6 +971,13 @@ sub create_btrace_files {
 	    -d $btdir || mkdir $btdir
 		or die "Make directory '$btdir' failed: $!";
 	    my $btfile = $bv->{btfile};
+	    unless (-f "$btfile.gz") {
+		my @gzcmd = (qw(gzip -f -k -S .gz.new), $btfile);
+		system(@gzcmd)
+		    and die "Gzip '@gzcmd' failed: $?";
+		rename("$btfile.gz.new", "$btfile.gz") or die
+		    "Rename '$btfile.gz.new' to '$btfile.gz' failed: $!";
+	    }
 	    my $svgfile = $bv->{svgfile};
 	    my $fgcmd = "$fgdir/stackcollapse-bpftrace.pl <$btfile | ".
 		"$fgdir/flamegraph.pl >$svgfile.new";
