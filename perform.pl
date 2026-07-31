@@ -59,8 +59,8 @@ EOF
     exit(2);
 };
 my $btrace = $opts{b};
-!$btrace || $btrace eq "kprofile"
-    or die "Btrace -b '$btrace' not supported, use 'kprofile'";
+$btrace && $btrace ne "kprofile"
+    and die "Btrace -b '$btrace' not supported, use 'kprofile'";
 my $modify = $opts{m};
 !$modify || grep { $_ eq $modify } @allmodifymodes
     or die "Unknnown modify mode '$modify'";

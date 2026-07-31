@@ -62,8 +62,8 @@ EOF
 };
 my $btrace = $opts{b};
 $btrace = "kprofile" if $btrace && $btrace eq "kstack";  # backwards compat
-!$btrace || $btrace eq "kprofile"
-    or die "Btrace -b '$btrace' not supported, use 'kprofile'";
+$btrace && $btrace ne "kprofile"
+    and die "Btrace -b '$btrace' not supported, use 'kprofile'";
 my $timeout = $opts{t} || ($btrace ? 2*60 : 30);
 environment($opts{e}) if $opts{e};
 my $pseudo = $opts{c} || "none";

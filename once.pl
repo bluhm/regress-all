@@ -69,8 +69,8 @@ EOF
     exit(2);
 };
 my $btrace = $opts{b};
-!$btrace || $btrace eq "kprofile"
-    or die "Btrace -b '$btrace' not supported, use 'kprofile'";
+$btrace && $btrace ne "kprofile"
+    and die "Btrace -b '$btrace' not supported, use 'kprofile'";
 $opts{h} or die "No -h specified";
 !$opts{d} || $opts{d} =~ /^(current|latest|latest-\w+)$/ || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";
