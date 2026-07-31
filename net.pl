@@ -79,7 +79,6 @@ my $repeat = $opts{N};
 !$repeat || $repeat >= 1
     or die "Repeat -N repeat must be positive integer";
 my $btrace = $opts{b};
-$btrace = "kprofile" if $btrace && $btrace eq "kstack";  # backwards compat
 $btrace && $btrace ne "kprofile"
     and die "Btrace -b '$btrace' not supported, use 'kprofile'";
 
