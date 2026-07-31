@@ -121,7 +121,7 @@ my (%T, %D, %H, %V, %S, %B);
 # $T{$desc}{$date}{$hk}{message}	test printed a duration or summary
 # $T{$desc}{$date}{$hk}{logfile}	relative path to net.log for hyper link
 # $T{$desc}{$date}{$hk}{stats}		relative path to stats diff file
-# $T{$desc}{$date}{$hk}{btrace}		name of btrace, usually ktrace
+# $T{$desc}{$date}{$hk}{btrace}		name of btrace, usually kprofile
 # $T{$desc}{$date}{$hk}{svgfile}	relative path to btrace-kstat.svg file
 # %D
 # $date				date and time when test was executed as string
@@ -146,7 +146,7 @@ my (%T, %D, %H, %V, %S, %B);
 # $S{$test}{$hk}{stats}		relative path to stats-diff.txt
 # $B{$test}{$hk}{btdir}		directory of btrace output file
 # $B{$test}{$hk}{btfile}	btrace input file
-# $B{$test}{$hk}{btrace}	name of btrace, usually ktrace
+# $B{$test}{$hk}{btrace}	name of btrace, usually kprofile
 # $B{$test}{$hk}{svgfile}	relative path to btrace-kstat.svg file
 
 {

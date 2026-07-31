@@ -44,9 +44,9 @@ my @alltestmodes = sort qw(all icmp tcp udp splice mcast mmsg iperf trex);
 my %opts;
 getopts('b:c:e:i:m:pst:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: netlink.pl [-sv] [-b kstack] [-c pseudo] [-e environment] [-i iface]
+usage: netlink.pl [-sv] [-b btrace] [-c pseudo] [-e environment] [-i iface]
     [-m modify] [-t timeout] [test ...]
-    -b kstack	measure with btrace and create kernel stack map
+    -b btrace	btrace with kprofile and create kernel stack map
     -c pseudo	pseudo network device: @allpseudos
     -e environ	parse environment for tests from shell script
     -i iface	interface, may contain number: @allifaces
@@ -61,8 +61,9 @@ EOF
     exit(2);
 };
 my $btrace = $opts{b};
-!$btrace || $btrace eq "kstack"
-    or die "Btrace -b '$btrace' not supported, use 'kstack'";
+$btrace = "kprofile" if $btrace && $btrace eq "kstack";  # backwards compat
+!$btrace || $btrace eq "kprofile"
+    or die "Btrace -b '$btrace' not supported, use 'kprofile'";
 my $timeout = $opts{t} || ($btrace ? 2*60 : 30);
 environment($opts{e}) if $opts{e};
 my $pseudo = $opts{c} || "none";
@@ -2446,7 +2447,7 @@ foreach my $t (@tests) {
 
     my $btpid;
     if ($btrace) {
-	my @btcmd = ('btrace', '-e', "profile:hz:100{\@[$btrace]=count()}");
+	my @btcmd = ('btrace', "/usr/share/btrace/$btrace.bt");
 	my $btfile = "$test-$btrace.btrace";
 	open(my $bt, '>', $btfile)
 	    or bad $test, 'NOLOG',

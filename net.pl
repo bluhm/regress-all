@@ -42,9 +42,9 @@ my @alltestmodes = qw(all icmp tcp udp splice mcast mmsg iperf trex);
 my %opts;
 getopts('b:c:d:D:h:i:m:N:P:ps:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: net.pl [-pv] [-b kstack] [-c pseudo] [-d date] [-D cvsdate] -h host
+usage: net.pl [-pv] [-b btrace] [-c pseudo] [-d date] [-D cvsdate] -h host
 	[-i iface] [-m modify] [-N repeat] [-P patch] [-s setup] [test ...]
-    -b kstack	measure with btrace and create kernel stack map
+    -b btrace	btrace with kprofile and create kernel stack map
     -c pseudo	list of pseudo network devices: all @allpseudos
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
@@ -79,8 +79,9 @@ my $repeat = $opts{N};
 !$repeat || $repeat >= 1
     or die "Repeat -N repeat must be positive integer";
 my $btrace = $opts{b};
-$btrace && $btrace ne "kstack"
-    and die "Btrace -b '$btrace' not supported, use 'kstack'";
+$btrace = "kprofile" if $btrace && $btrace eq "kstack";  # backwards compat
+$btrace && $btrace ne "kprofile"
+    and die "Btrace -b '$btrace' not supported, use 'kprofile'";
 
 !$opts{s} || grep { $_ eq $opts{s} } @allsetupmodes
     or die "Unknown setup mode '$opts{s}'";
