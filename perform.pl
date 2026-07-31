@@ -46,9 +46,9 @@ my @alltestmodes = qw(
 my %opts;
 getopts('b:e:m:st:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: perform.pl [-sv] [-b kstack] [-e environment] [-m modify] [-t timeout]
+usage: perform.pl [-sv] [-b btrace] [-e environment] [-m modify] [-t timeout]
 	[test ...]
-    -b kstack	measure with btrace and create kernel stack map
+    -b btrace	btrace with kprofile and create kernel stack map
     -e environ	parse environment for tests from shell script
     -m modify	modify mode: @allmodifymodes
     -s		stress test, run tests longer, activate sysctl
@@ -59,8 +59,8 @@ EOF
     exit(2);
 };
 my $btrace = $opts{b};
-!$btrace || $btrace eq "kstack"
-    or die "Btrace -b '$btrace' not supported, use 'kstack'";
+!$btrace || $btrace eq "kprofile"
+    or die "Btrace -b '$btrace' not supported, use 'kprofile'";
 my $modify = $opts{m};
 !$modify || grep { $_ eq $modify } @allmodifymodes
     or die "Unknnown modify mode '$modify'";
@@ -1285,7 +1285,7 @@ foreach my $t (@tests) {
 
     my $btpid;
     if ($btrace) {
-	my @btcmd = ('btrace', '-e', "profile:hz:100{\@[$btrace]=count()}");
+	my @btcmd = ('btrace', "/usr/share/btrace/$btrace.bt");
 	my $btfile = "$test-$btrace.btrace";
 	open(my $bt, '>', $btfile)
 	    or bad $test, 'NOLOG',

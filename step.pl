@@ -52,9 +52,9 @@ my @alltestmodes = qw(
 my %opts;
 getopts('b:B:E:h:k:N:npr:S:s:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: step.pl [-npv] [-b kstack] -B date [-E date] -h host [-k kernel]
+usage: step.pl [-npv] [-b btrace] -B date [-E date] -h host [-k kernel]
 	[-N repeat] -r release [-S interval] [-s setup] [test ...]
-    -b kstack	measure with btrace and create kernel stack map
+    -b btrace	btrace with kprofile and create kernel stack map
     -B date	begin date, inclusive
     -E date	end date, inclusive
     -h host	user and host for performance test, user defaults to root
@@ -71,8 +71,8 @@ EOF
     exit(2);
 };
 my $btrace = $opts{b};
-$btrace && $btrace ne "kstack"
-    and die "Btrace -b '$btrace' not supported, use 'kstack'";
+$btrace && $btrace ne "kprofile"
+    and die "Btrace -b '$btrace' not supported, use 'kprofile'";
 $opts{h} or die "No -h specified";
 $opts{r} or die "No -r specified";
 my $release;

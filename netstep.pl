@@ -43,11 +43,11 @@ my @alltestmodes = qw(all icmp tcp udp splice mcast mmsg iperf trex);
 my %opts;
 getopts('B:b:c:E:h:i:m:k:N:pr:S:s:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: netstep.pl [-pv] -B date [-b kstack] [-c pseudo] [-E date] -h host
+usage: netstep.pl [-pv] -B date [-b btrace] [-c pseudo] [-E date] -h host
 	[-i iface] [-m modify] [-k kernel] [-N repeat] [-r release]
 	[-S interval] [-s setup] [test ...]
     -B date	begin date, inclusive
-    -b kstack	measure with btrace and create kernel stack map
+    -b btrace	btrace with kprofile and create kernel stack map
     -c pseudo	list of pseudo network devices: all @allpseudos
     -E date	end date, inclusive
     -h host	user and host for network link test, user defaults to root
@@ -65,8 +65,8 @@ EOF
     exit(2);
 };
 my $btrace = $opts{b};
-$btrace && $btrace ne "kstack"
-    and die "Btrace -b '$btrace' not supported, use 'kstack'";
+$btrace && $btrace ne "kprofile"
+    and die "Btrace -b '$btrace' not supported, use 'kprofile'";
 $opts{h} or die "No -h specified";
 (my $host = $opts{h}) =~ s/.*\@//;
 $opts{r} or die "No -r specified";

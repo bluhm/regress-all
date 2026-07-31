@@ -100,7 +100,7 @@ my (%T, %D, %V, %Z, @Z, %B, %R);
 # $T{$test}{$date}{$cvsdate}{$repeat}
 # $T{$test}{$date}{$cvsdate}{$repeat}{status}	result of this test
 # $T{$test}{$date}{$cvsdate}{$repeat}{message}	test printed a summary
-# $T{$test}{$date}{$cvsdate}{kstack}{btrace}	flame graph svg stack
+# $T{$test}{$date}{$cvsdate}{$stack}{btrace}	flame graph svg stack
 # %D
 # $date					date when test was executed as string
 # $D{$date}{short}			date without time
@@ -156,7 +156,7 @@ my (%T, %D, %V, %Z, @Z, %B, %R);
 # %Z @Z
 # $Z{$cvsdate}				index in @Z
 # $Z[$index]				hash of dates containing cvs checkout
-# $B{$date}{$cvsdate}{$test}{kstack}	btrace kstack output file
+# $B{$date}{$cvsdate}{$test}{$stack}	btrace kstack output file
 # $R{$release}{dates}{$date}		dates in release
 # $R{$release}{tests}{$test}		tests in release
 

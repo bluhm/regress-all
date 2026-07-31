@@ -50,9 +50,9 @@ my @alltestmodes = qw(
 my %opts;
 getopts('b:d:D:h:k:m:N:nP:pr:v', \%opts) or do {
     print STDERR <<"EOF";
-usage: once.pl [-npv] [-b kstack] [-d date] [-D cvsdate] -h host [-k kernel]
+usage: once.pl [-npv] [-b btrace] [-d date] [-D cvsdate] -h host [-k kernel]
 	[-m modify] [-N repeat] [-P patch] [-r release] [test ...]
-    -b kstack	measure with btrace and create kernel stack map
+    -b btrace	btrace with kprofile and create kernel stack map
     -d date	set date string and change to sub directory, may be current
     -D cvsdate	update sources from cvs to this date
     -h host	user and host for performance test, user defaults to root
@@ -69,8 +69,8 @@ EOF
     exit(2);
 };
 my $btrace = $opts{b};
-!$btrace || $btrace eq "kstack"
-    or die "Btrace -b '$btrace' not supported, use 'kstack'";
+!$btrace || $btrace eq "kprofile"
+    or die "Btrace -b '$btrace' not supported, use 'kprofile'";
 $opts{h} or die "No -h specified";
 !$opts{d} || $opts{d} =~ /^(current|latest|latest-\w+)$/ || str2time($opts{d})
     or die "Invalid -d date '$opts{d}'";

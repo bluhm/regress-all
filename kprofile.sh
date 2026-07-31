@@ -1,7 +1,7 @@
 #!/bin/sh
 
 fg=/home/bluhm/github/FlameGraph
-file="${1:-kstack}"
+file="${1:-kprofile}"
 host="${2:-ot14}"
 
 # btrace -e 'profile:hz:100{@[kstack]=count()}' >~/"$file.dt" &
