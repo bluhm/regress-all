@@ -30,7 +30,7 @@ use Hostctl;
 my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
-my @allifaces = qw(bge bnxt em iavf ice igc ix ixl ixv mcx re vio vmx);
+my @allifaces = qw(bge bnxt dwqe em iavf ice igc ix ixl ixv mcx re vio vmx);
 my @allmodifymodes = qw(none direct jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan
     vxlan vxlan-pointtopoint vxlan-learning wg
@@ -210,22 +210,41 @@ if ($iface) {
     }
     $iface = join(",", @allifaces) if $iface eq "all";
     foreach my $if (split(/,/, $iface)) {
-	my ($iftype, $num) = $if =~ /^([a-z]+)([0-9]+)?$/
-	    or die "Invalid interface '$if'";
-	grep { $_ eq $iftype } @allifaces
-	    or die "Unknown interface '$if'";
-	unless (grep { /^$iftype\d+ at / } @dmesg) {
+	my ($left_iftype, $left_ifnum, $right_iftype, $right_ifnum) =
+	    $if =~ /^([a-z]+)([0-9]+)?(?:\+([a-z]+)([0-9]+)?)?$/
+	    or die "Bad interface format '$if'";
+	grep { $_ eq $left_iftype } @allifaces
+	    or die "Unknown interface '$left_iftype'";
+	unless (grep { /^$left_iftype[0-9]+ at / } @dmesg) {
 	    if (!$opts{i} || $opts{i} eq "all") {
 		next;
 	    } else {
-		die "Interface type '$if' does not exist in dmesg";
+		die "Interface type '$left_iftype' does not exist in dmesg";
 	    }
 	}
+	if (defined($right_iftype)) {
+	    grep { $_ eq $right_iftype } @allifaces
+		or die "Unknown interface '$right_iftype'";
+	    grep { /^$right_iftype[0-9]+ at / } @dmesg
+		or die "Interface type '$right_iftype' does not exist in dmesg";
+	    defined($left_ifnum) && defined($right_ifnum)
+		or die "Need interface number when both interfaces are given";
+	    $left_ifnum += 0;
+	    $right_ifnum += 0;
+	    if ("$left_iftype$left_ifnum" =~ /^($skip_if)$/ ||
+		"$right_iftype$right_ifnum" =~ /^($skip_if)$/) {
+		die "Cannot use inferface '$if', conflicts skip interface";
+	    }
+	    push @ifaces,
+		"iface-$left_iftype$left_ifnum+$right_iftype$right_ifnum";
+	    next;
+	}
+	my ($iftype, $num) = ($left_iftype, $left_ifnum);
 	my %ifnums;
 	@ifnums{
-	    map { /^$iftype(\d+)$/ }
+	    map { /^$iftype([0-9]+)$/ }
 	    grep { ! /^($skip_if)$/ }
-	    map { /^($iftype\d+) at / ? $1 : () }
+	    map { /^($iftype[0-9]+) at / ? $1 : () }
 	    @dmesg} = ();
 	foreach my $ifnum (defined($num) ? ($num + 0) :
 	    pairkeys sort { $a <=> $b } keys %ifnums) {

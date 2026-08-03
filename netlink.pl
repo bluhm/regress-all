@@ -34,7 +34,8 @@ use Vmstat;
 my $startdir = getcwd();
 my @startcmd = ($0, @ARGV);
 
-my @allifaces = qw(none bge bnxt em iavf ice igc ix ixl ixv mcx re vio vmx);
+my @allifaces = qw(none
+    bge bnxt dwqe em iavf ice igc ix ixl ixv mcx re vio vmx);
 my @allmodifymodes = qw(none direct jumbo nolro nopf notso);
 my @allpseudos = qw(none bridge carp gif gif6 gre trunk veb vlan
     vxlan vxlan-pointtopoint vxlan-learning wg
@@ -103,29 +104,40 @@ if ($trex) {
 	or die "TREX_SSH is not in env";
 }
 
-my ($iftype, $ifnum) = $iface =~ /^([a-z]+)([0-9]+)?$/;
-grep { $_ eq $iftype } @allifaces
-    or die "Unknown interface '$iface'";
-my ($left_ifidx, $right_ifidx);
-if (defined($ifnum)) {
-    $left_ifidx = $ifnum + 0;
-    $right_ifidx = $ifnum + 1;
+# em or em0 or em+ix or em0+ix or or em+ix0 em0+ix1
+my ($left_iftype, $left_ifnum, $right_iftype, $right_ifnum) =
+    $iface =~ /^([a-z]+)([0-9]+)?(?:\+([a-z]+)([0-9]+)?)?$/
+    or die "Bad interface format '$iface'";
+grep { $_ eq $left_iftype } @allifaces
+    or die "Unknown interface type '$left_iftype'";
+if (defined $right_iftype) {
+    grep { $_ eq $right_iftype } @allifaces
+	or die "Unknown interface type '$right_iftype'";
 } else {
-    $left_ifidx = 0;
-    $right_ifidx = 1;
+    $right_iftype = $left_iftype;
 }
-if (($iftype.$left_ifidx) eq $management_if ||
-    ($iftype.$right_ifidx) eq $management_if) {
-    if (defined($ifnum)) {
-	die "Cannot use inferface '$iface', conflicts management";
-    } else {
-	$left_ifidx = 2;
-	$right_ifidx = 3;
-    }
+if (defined($right_ifnum) && defined($left_ifnum)) {
+    $left_ifnum = $left_ifnum + 0;
+    $right_ifnum = $right_ifnum + 0;
+} elsif (!defined($right_ifnum) && !defined($left_ifnum)) {
+    $left_ifnum = 0;
+    $right_ifnum = 1;
+} elsif (defined($left_ifnum)) {
+    $left_ifnum = $left_ifnum + 0;
+    $right_ifnum = $left_ifnum + 1;
+} elsif (defined($right_ifnum)) {
+    $left_ifnum = $right_ifnum + 0;
+    $right_ifnum = $right_ifnum + 0;
 }
+$left_iftype.$left_ifnum eq $management_if
+    and die "Cannot use left inferface '$left_iftype$left_ifnum', ".
+	"conflicts management '$management_if'";
+$right_iftype.$right_ifnum eq $management_if
+    and die "Cannot use right inferface '$right_iftype$right_ifnum', ".
+	"conflicts management '$management_if'";
 
-warn "left interface should be in the wrong network" if ($left_ifidx % 2);
-warn "right interface should be in the wrong network" if (!$right_ifidx % 2);
+warn "left interface should be in the wrong network" if ($left_ifnum % 2);
+warn "right interface should be in the wrong network" if (!$right_ifnum % 2);
 
 grep { $_ eq $modify } @allmodifymodes
     or die "Unknnown modify mode '$modify'";
@@ -174,7 +186,7 @@ my $pfxlen6_flat = 60;
 
 # OpenBSD Left
 
-my $obsd_l_if = $iftype . $left_ifidx;
+my $obsd_l_if = $left_iftype . $left_ifnum;
 my $obsd_l_ipdev = $obsd_l_if;
 
 my $obsd_l_mtu = 1500;
@@ -195,7 +207,7 @@ my $mcast_l_tunnel_addr = "234.${ip4mshort}${line}3.1";
 
 # OpenBSD Right
 
-my $obsd_r_if = $iftype . $right_ifidx;
+my $obsd_r_if = $right_iftype . $right_ifnum;
 my $obsd_r_ipdev = $obsd_r_if;
 
 my $obsd_r_mtu = 1500;
