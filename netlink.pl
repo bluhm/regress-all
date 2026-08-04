@@ -2054,7 +2054,7 @@ push @tests, (
     })
 ) if $testmode{mcast4};
 push @tests, (
-    -f "/usr/local/sbin/smcrouted" ? () : ({
+    ! -f "/usr/local/sbin/smcrouted" ? () : ({
 	# forward
 	initialize => sub {
 	    smcrouted_conf(
