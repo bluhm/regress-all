@@ -2014,9 +2014,11 @@ push @tests, (
 	    '-t10',
 	    'udpbench'],
 	parser => \&netbench_parser,
-	finalize => sub { eval {
-	    mrouted_shutdown(); igmpproxy_shutdown(); smcrouted_shutdown()
-	}; 1 },
+	finalize => sub {
+	    eval { mrouted_shutdown() };
+	    eval { igmpproxy_shutdown() };
+	    eval { smcrouted_shutdown() }; 1
+	},
     }, $modify eq 'direct' ? () : ({
 	# receive
 	testcmd => [$netbench,
