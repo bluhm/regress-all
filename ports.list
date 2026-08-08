@@ -191,6 +191,7 @@ devel/p5-MooseX-Types-Path-Tiny
 devel/p5-MooseX-Types-Stringlike
 devel/p5-MooseX-Types-Structured
 devel/p5-Net-Server
+devel/p5-Number-Compare
 devel/p5-POE
 devel/p5-Package-DeprecationManager
 devel/p5-Package-Stash
@@ -351,6 +352,7 @@ graphics/p5-Graphics-Primitive
 graphics/p5-Graphics-Primitive-Driver-Cairo
 graphics/p5-Imager
 graphics/p5-Layout-Manager
+mail/p5-MIME-Base32
 mail/p5-MIME-Types
 mail/p5-MIME-tools
 mail/p5-Mail-Alias
@@ -467,7 +469,6 @@ security/p5-Module-Signature
 security/p5-Net-SSLGlue
 security/p5-Net-SSLeay
 sysutils/p5-Capture-Tiny
-sysutils/p5-Data-Entropy
 sysutils/p5-File-Rename
 sysutils/p5-File-Which
 sysutils/p5-Filesys-Df
