@@ -438,7 +438,7 @@ usr.bin/nc
 usr.bin/netstat
 usr.bin/openssl
 usr.bin/patch
-usr.bin/pkg-config
+usr.bin/pkgconf
 usr.bin/rcs
 usr.bin/rev
 usr.bin/rsync
