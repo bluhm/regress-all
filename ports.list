@@ -34,6 +34,7 @@ databases/p5-Data-RandomPerson
 databases/p5-Rose-DB
 databases/p5-Rose-Object
 databases/p5-SQL-Abstract-More
+databases/p5-SQL-Statement
 databases/p5-ldap
 devel/libdivsufsort
 devel/llvm-lit
@@ -83,6 +84,7 @@ devel/p5-Data-Validate-Struct
 devel/p5-Data-Visitor
 devel/p5-Date-Extract
 devel/p5-Date-ICal
+devel/p5-DateTime
 devel/p5-DateTime-Format-ICal
 devel/p5-DateTime-Format-Natural
 devel/p5-DateTime-Format-Oracle
@@ -100,6 +102,7 @@ devel/p5-Devel-MAT-Dumper
 devel/p5-Devel-NYTProf
 devel/p5-Devel-OverloadInfo
 devel/p5-Devel-StackTrace
+devel/p5-Dist-CheckConflicts
 devel/p5-EV
 devel/p5-Eval-Closure
 devel/p5-Exporter-Tiny
@@ -117,12 +120,14 @@ devel/p5-File-Modified
 devel/p5-File-NCopy
 devel/p5-File-Share
 devel/p5-File-ShareDir
+devel/p5-File-ShareDir-Install
 devel/p5-File-Slurp
 devel/p5-File-TreeCreate
 devel/p5-Forest
 devel/p5-FreezeThaw
 devel/p5-Hash-Ordered
 devel/p5-Hash-Util-FieldHash-Compat
+devel/p5-Heap
 devel/p5-IO-AIO
 devel/p5-IO-BufferedSelect
 devel/p5-IO-Interactive
@@ -141,6 +146,7 @@ devel/p5-List-MoreUtils-XS
 devel/p5-Locale-Codes
 devel/p5-Log-Any
 devel/p5-Log-Log4perl
+devel/p5-MLDBM
 devel/p5-MRO-Compat
 devel/p5-Module-Build
 devel/p5-Module-Implementation
@@ -388,6 +394,7 @@ net/p5-Net-CIDR-Lite
 net/p5-Net-DHCP
 net/p5-Net-DNS
 net/p5-Net-DNS-SEC
+net/p5-Net-Daemon
 net/p5-Net-FTPSSL
 net/p5-Net-Flow
 net/p5-Net-HTTP
@@ -477,6 +484,7 @@ textproc/libxml
 textproc/libxslt
 textproc/p5-Encode-Locale
 textproc/p5-File-KDBX
+textproc/p5-Font-TTF
 textproc/p5-List-SomeUtils
 textproc/p5-List-SomeUtils-XS
 textproc/p5-List-Util-WeightedChoice
@@ -497,6 +505,7 @@ textproc/p5-Text-CSV
 textproc/p5-Text-CSV_XS
 textproc/p5-Text-Diff
 textproc/p5-Text-Flow
+textproc/p5-XML-Filter-BufferText
 textproc/p5-XML-Generator
 textproc/p5-XML-LibXML
 textproc/p5-XML-LibXSLT
@@ -532,6 +541,7 @@ www/p5-HTTP-Date
 www/p5-HTTP-Message
 www/p5-HTTP-Negotiate
 www/p5-HTTP-Response-Encoding
+www/p5-IO-HTML
 www/p5-LWP-MediaTypes
 www/p5-LWP-Protocol-https
 www/p5-LWP-Protocol-socks
