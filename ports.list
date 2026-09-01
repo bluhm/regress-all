@@ -51,6 +51,7 @@ devel/p5-BSD-arc4random
 devel/p5-BSD-stat
 devel/p5-CLI-Osprey
 devel/p5-Carp-Clan
+devel/p5-Carp-Object
 devel/p5-Check-ISA
 devel/p5-Class-Accessor
 devel/p5-Class-Data-Inheritable
@@ -207,6 +208,7 @@ devel/p5-Params-Validate
 devel/p5-Path-Tiny
 devel/p5-Pod-Constant
 devel/p5-Regexp-IPv6
+devel/p5-Role-Hooks
 devel/p5-Role-Tiny
 devel/p5-Set-Infinite
 devel/p5-Software-License
@@ -342,6 +344,7 @@ devel/p5-YAML-Syck
 devel/p5-YAML-Tiny
 devel/p5-YAML-XS
 devel/p5-common-sense
+devel/p5-meta
 devel/p5-namespace-autoclean
 devel/p5-namespace-clean
 devel/p5-prefork
