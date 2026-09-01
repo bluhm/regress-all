@@ -7,7 +7,11 @@ SYNTAX =	$(PMS:.pm=.syntax) $(PLS:.pl=.syntax) $(SHS:.sh=.syntax)
 
 .PHONY: all copyyear sorted syntax clean
 
-all: syntax sorted copyyear
+all: pkg.list syntax sorted copyyear
+
+pkg.list: ports.list
+	sed 's,.*/\(.*\),\1,' ports.list | sort >$@.tmp
+	mv $@.tmp $@
 
 sorted: ${SORTED}
 
