@@ -29,7 +29,7 @@ use Hostctl;
 my $now = strftime("%FT%TZ", gmtime);
 my $scriptname = "$0 @ARGV";
 
-my @allsetupmodes = qw(cvs keep kernel restart);
+my @allsetupmodes = qw(cvs keep kernel restart sysupgrade upgrade);
 
 my %opts;
 getopts('h:P:pv', \%opts) or do {
@@ -44,6 +44,8 @@ usage: make.pl [-pv] -h host [-P patch] setup ...
     keep	keep installed host as is, skip setup
     kernel	build kernel from source /usr/src/sys and reboot
     restart	cvs clean, patch /usr/src, install kernel, reboot
+    sysupgrade	sysupgrade to snapshot
+    upgrade	upgrade with snapshot
 EOF
     exit(2);
 };
@@ -57,7 +59,7 @@ foreach my $mode (@ARGV) {
 	or die "Unknown setup mode '$mode'";
     $setupmode{$mode} = 1;
 }
-foreach my $mode (qw(keep)) {
+foreach my $mode (qw(keep sysupgrade upgrade)) {
     die "Setup mode '$mode' must be used solely"
 	if $setupmode{$mode} && keys %setupmode != 1;
 }
