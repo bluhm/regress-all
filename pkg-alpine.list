@@ -31,6 +31,7 @@ openssl-dev
 pkgconf
 rsync
 tcpdump
+tmux
 util-linux
 wget
 wireguard-tools
