@@ -138,6 +138,7 @@ devel/p5-IO-stringy
 devel/p5-IPC-Run
 devel/p5-IPC-Shareable
 devel/p5-Importer
+devel/p5-Inline
 devel/p5-Iterator-Simple
 devel/p5-Lchown
 devel/p5-List-AllUtils
@@ -524,6 +525,7 @@ textproc/p5-XML-SAX-Writer
 textproc/p5-XML-Simple
 textproc/p5-XML-Twig
 textproc/p5-XML-XPath
+textproc/p5-YAML-PP
 www/p5-Apache-Session-Generate-UUID
 www/p5-CGI
 www/p5-CGI-Simple
