@@ -1304,6 +1304,11 @@ my %quirks = (
 	    "gnu/usr.bin/clang",
 	],
     },
+# OpenBSD 8.0, newvers 2026-09-30Z
+    '2026-10-07T05:25:54Z' => {
+	comment => "OpenBSD/amd64 8.0 release",
+	release => '8.0',
+    },
 );
 
 #### Patches ####
