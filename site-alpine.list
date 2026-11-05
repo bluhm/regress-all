@@ -6,6 +6,7 @@
 /etc/resolv.conf
 /etc/ssh/ssh_host_*
 /etc/ssh/ssh_known_hosts
+/etc/ssh/sshd_config
 /etc/update-extlinux.conf
 /root/.ssh/authorized_keys
 /root/.ssh/id_*

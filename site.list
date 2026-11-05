@@ -22,6 +22,7 @@
 /etc/soii.key
 /etc/ssh/ssh_host_*
 /etc/ssh/ssh_known_hosts
+/etc/ssh/sshd_config
 /etc/sysctl.conf
 /etc/vm.conf
 /root/.cvsrc
